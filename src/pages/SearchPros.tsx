@@ -268,7 +268,7 @@ const SearchPros = () => {
           {loading && allProviders.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
               <Loader2 size={32} className="animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">Discovering providers{loadingWeb ? " from the web" : ""}...</p>
+              <p className="text-sm text-muted-foreground">Discovering providers...</p>
             </div>
           ) : allProviders.length === 0 && webSearched ? (
             <div className="text-center py-16 bg-card rounded-xl border border-border">
