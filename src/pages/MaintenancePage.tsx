@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft, CalendarCheck, Loader2, Home, Check, Clock,
-  AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2
+  AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useHomeLimit } from "@/hooks/useHomeLimit";
 import { useToast } from "@/hooks/use-toast";
 
 type HomeProfile = {
@@ -96,7 +97,9 @@ const wizardSteps = [
 const MaintenancePage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { canAddHome, isPro, homeCount, loading: limitLoading } = useHomeLimit();
 
+  const [homes, setHomes] = useState<HomeProfile[]>([]);
   const [home, setHome] = useState<HomeProfile>(emptyHome);
   const [homeLoaded, setHomeLoaded] = useState(false);
   const [tasks, setTasks] = useState<MaintenanceTask[]>([]);
@@ -107,31 +110,54 @@ const MaintenancePage = () => {
   const [savingHome, setSavingHome] = useState(false);
   const [filter, setFilter] = useState<"all" | "upcoming" | "completed">("all");
   const [wizardStep, setWizardStep] = useState(0);
+  const [isAddingNew, setIsAddingNew] = useState(false);
 
   // Load home profile and tasks
   useEffect(() => {
     if (!user) { setLoadingHome(false); return; }
-    loadHome();
+    loadHomes();
   }, [user]);
 
-  const loadHome = async () => {
+  const loadHomes = async () => {
     setLoadingHome(true);
     const { data } = await supabase
       .from("homes")
       .select("*")
       .eq("user_id", user!.id)
-      .limit(1)
-      .maybeSingle();
+      .order("created_at", { ascending: true });
 
-    if (data) {
-      setHome({ ...data, year_built: data.year_built ?? null, square_feet: data.square_feet ?? null });
+    const allHomes = (data || []).map(h => ({ ...h, year_built: h.year_built ?? null, square_feet: h.square_feet ?? null }));
+    setHomes(allHomes);
+
+    if (allHomes.length > 0) {
+      setHome(allHomes[0]);
       setHomeLoaded(true);
-      loadTasks(data.id);
+      loadTasks(allHomes[0].id!);
     } else {
       setShowSetup(true);
       setWizardStep(0);
     }
     setLoadingHome(false);
+  };
+
+  const selectHome = (h: HomeProfile) => {
+    setHome(h);
+    setHomeLoaded(true);
+    setShowSetup(false);
+    loadTasks(h.id!);
+  };
+
+  const startAddHome = () => {
+    if (!canAddHome) {
+      toast({ title: "Upgrade required", description: "Free accounts can only have 1 home. Upgrade to Pro to add more.", variant: "destructive" });
+      return;
+    }
+    setHome(emptyHome);
+    setIsAddingNew(true);
+    setShowSetup(true);
+    setWizardStep(0);
+    setTasks([]);
+    setHomeLoaded(false);
   };
 
   const loadTasks = async (homeId: string) => {
@@ -153,10 +179,14 @@ const MaintenancePage = () => {
         await supabase.from("homes").update({ ...home, updated_at: new Date().toISOString() }).eq("id", home.id);
       } else {
         const { data } = await supabase.from("homes").insert({ ...home, user_id: user.id }).select().single();
-        if (data) setHome({ ...home, id: data.id });
+        if (data) {
+          setHome({ ...home, id: data.id });
+          setHomes(prev => [...prev, { ...home, id: data.id }]);
+        }
       }
       setHomeLoaded(true);
       setShowSetup(false);
+      setIsAddingNew(false);
       toast({ title: "Home saved", description: "Your home profile has been saved." });
     } catch {
       toast({ title: "Error", description: "Failed to save home profile.", variant: "destructive" });
@@ -166,8 +196,6 @@ const MaintenancePage = () => {
 
   const finishWizard = async () => {
     await saveHome();
-    // Auto-generate schedule after wizard completes
-    // Need to wait for home.id to be set, so we trigger generate in a timeout
     setTimeout(() => {
       generateSchedule();
     }, 500);
@@ -288,12 +316,39 @@ const MaintenancePage = () => {
                   <p className="text-muted-foreground text-sm">AI-powered maintenance schedules for your home</p>
                 </div>
               </div>
-              {homeLoaded && (
-                <Button variant="outline" size="sm" onClick={() => { setShowSetup(!showSetup); setWizardStep(0); }}>
-                  <Home size={14} className="mr-1" /> Edit Home
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                {homeLoaded && (
+                  <Button variant="outline" size="sm" onClick={() => { setShowSetup(!showSetup); setIsAddingNew(false); setWizardStep(0); }}>
+                    <Home size={14} className="mr-1" /> Edit Home
+                  </Button>
+                )}
+                {(isPro || homes.length === 0) && homes.length > 0 && (
+                  <Button variant="outline" size="sm" onClick={startAddHome}>
+                    <Plus size={14} className="mr-1" /> Add Home
+                  </Button>
+                )}
+              </div>
             </div>
+
+            {/* Home selector tabs */}
+            {homes.length > 1 && (
+              <div className="flex gap-2 mt-4 overflow-x-auto">
+                {homes.map(h => (
+                  <button
+                    key={h.id}
+                    onClick={() => selectHome(h)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium border whitespace-nowrap transition-all ${
+                      home.id === h.id ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground border-border hover:border-primary/30"
+                    }`}
+                  >
+                    <Home size={12} className="inline mr-1" /> {h.name}
+                  </button>
+                ))}
+                {!canAddHome && (
+                  <span className="px-3 py-2 text-xs text-muted-foreground self-center">Upgrade to Pro for more homes</span>
+                )}
+              </div>
+            )}
           </div>
 
           {loadingHome ? (
