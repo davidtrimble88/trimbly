@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 
@@ -37,6 +38,7 @@ const tiers = [
 ];
 
 const PricingSection = () => {
+  const navigate = useNavigate();
   return (
     <section id="pricing" className="py-20 md:py-28">
       <div className="container mx-auto px-4">
@@ -83,6 +85,7 @@ const PricingSection = () => {
                 className="w-full"
                 variant={tier.highlighted ? "default" : "outline"}
                 size="lg"
+                onClick={() => navigate("/auth")}
               >
                 {tier.cta}
               </Button>
