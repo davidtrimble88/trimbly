@@ -46,7 +46,7 @@ const HeroSection = () => {
             </div>
             <div className="flex items-center gap-2 text-sm">
               <Star size={16} className="text-accent" />
-              4.9 Average Rating
+              Verified Reviews
             </div>
             <div className="flex items-center gap-2 text-sm">
               <Zap size={16} className="text-primary" />
