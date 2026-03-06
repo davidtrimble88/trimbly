@@ -105,12 +105,25 @@ const SearchPros = () => {
     }
   }, [activeCategory, countryFilter, searchQuery, locationQuery, searchMode]);
 
-  // Merge: DB providers (with tier priority) first, then web providers
+  // Merge: registered pros first (sorted by tier + rating), then web fills up to 20
+  const tierOrder = { elite: 0, pro: 1, free: 2 };
+  const sortedDbProviders = [...dbProviders]
+    .map((p) => ({ ...p, source: "db" as const }))
+    .sort((a, b) => {
+      const tierDiff = (tierOrder[a.subscription_tier as keyof typeof tierOrder] ?? 2) - (tierOrder[b.subscription_tier as keyof typeof tierOrder] ?? 2);
+      if (tierDiff !== 0) return tierDiff;
+      return (b.avg_rating || 0) - (a.avg_rating || 0);
+    });
+
+  const uniqueWebProviders = webProviders.filter(
+    (wp) => !dbProviders.some((dp) => dp.business_name.toLowerCase() === wp.business_name.toLowerCase() && dp.city.toLowerCase() === wp.city.toLowerCase())
+  );
+
+  // Show all registered pros; fill remaining slots (up to 20 total) with web providers
+  const webSlots = Math.max(0, 20 - sortedDbProviders.length);
   const allProviders = [
-    ...dbProviders.map((p) => ({ ...p, source: "db" as const })),
-    ...webProviders.filter(
-      (wp) => !dbProviders.some((dp) => dp.business_name.toLowerCase() === wp.business_name.toLowerCase() && dp.city.toLowerCase() === wp.city.toLowerCase())
-    ),
+    ...sortedDbProviders,
+    ...uniqueWebProviders.slice(0, webSlots),
   ];
 
   const loading = loadingDb || loadingWeb;

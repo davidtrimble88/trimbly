@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
 
     const prompt = `Find real, legitimate ${categoryHint} service providers ${locationHint ? `in or near ${locationHint}, ${countryHint}` : `across ${countryHint}`}${queryHint ? ` matching "${queryHint}"` : ""}.
 
-Return exactly 12 real service providers that a homeowner could actually hire. Use your knowledge of real businesses, common business names, and realistic details for the area. Include a mix of:
+Return up to 20 real service providers that a homeowner could actually hire. Use your knowledge of real businesses, common business names, and realistic details for the area. Include a mix of:
 - Well-known local companies
 - Independent contractors
 - Franchise locations
