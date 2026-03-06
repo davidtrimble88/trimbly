@@ -5,9 +5,9 @@ import { useToast } from "@/hooks/use-toast";
 
 const providerFeatures = [
   { icon: Eye, title: "Get Discovered", desc: "Appear in local search results for homeowners near you.", route: "/auth" },
-  { icon: TrendingUp, title: "Boost Your Leads", desc: "Upgrade to Pro or Elite tiers for top placement and more leads.", route: null },
-  { icon: BarChart3, title: "Track Performance", desc: "View analytics on profile views, quote requests, and conversion rates.", route: null },
-  { icon: Zap, title: "Instant Boosts", desc: "Purchase one-time boosts to appear at the top of search results.", route: null },
+  { icon: TrendingUp, title: "Boost Your Leads", desc: "Upgrade to Pro or Elite tiers for top placement and more leads.", route: "/auth" },
+  { icon: BarChart3, title: "Track Performance", desc: "View analytics on profile views, quote requests, and conversion rates.", route: "/auth" },
+  { icon: Zap, title: "Instant Boosts", desc: "Purchase one-time boosts to appear at the top of search results.", route: "/auth" },
 ];
 
 const ForProsSection = () => {
