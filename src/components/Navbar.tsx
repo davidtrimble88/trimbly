@@ -1,11 +1,18 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -25,8 +32,19 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>Log In</Button>
-          <Button size="sm" onClick={() => navigate("/auth")}>Get Started</Button>
+          {user ? (
+            <>
+              <span className="text-sm text-muted-foreground">{user.email}</span>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                <LogOut size={16} className="mr-1" /> Sign Out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>Log In</Button>
+              <Button size="sm" onClick={() => navigate("/auth")}>Get Started</Button>
+            </>
+          )}
         </div>
 
         <button className="md:hidden text-foreground" onClick={() => setOpen(!open)}>
@@ -41,8 +59,16 @@ const Navbar = () => {
           <a href="/#pricing" className="block text-sm text-muted-foreground" onClick={() => setOpen(false)}>Pricing</a>
           <a href="/#pros" className="block text-sm text-muted-foreground" onClick={() => setOpen(false)}>For Pros</a>
           <div className="flex gap-2 pt-2">
-            <Button variant="ghost" size="sm" className="flex-1" onClick={() => { setOpen(false); navigate("/auth"); }}>Log In</Button>
-            <Button size="sm" className="flex-1" onClick={() => { setOpen(false); navigate("/auth"); }}>Get Started</Button>
+            {user ? (
+              <Button variant="ghost" size="sm" className="flex-1" onClick={() => { setOpen(false); handleSignOut(); }}>
+                <LogOut size={16} className="mr-1" /> Sign Out
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" className="flex-1" onClick={() => { setOpen(false); navigate("/auth"); }}>Log In</Button>
+                <Button size="sm" className="flex-1" onClick={() => { setOpen(false); navigate("/auth"); }}>Get Started</Button>
+              </>
+            )}
           </div>
         </div>
       )}
