@@ -11,13 +11,6 @@ const values = [
   { icon: Lightbulb, title: "AI-Powered Simplicity", description: "Smart technology should make life easier, not more complicated. We use AI to automate the tedious stuff." },
 ];
 
-const stats = [
-  { number: "10K+", label: "Homeowners Served" },
-  { number: "2,500+", label: "Verified Pros" },
-  { number: "50+", label: "Service Categories" },
-  { number: "98%", label: "Satisfaction Rate" },
-];
-
 const About = () => {
   return (
     <div className="min-h-screen">
@@ -61,15 +54,6 @@ const About = () => {
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-20">
-            {stats.map(stat => (
-              <div key={stat.label} className="text-center p-6 rounded-2xl bg-secondary/50">
-                <div className="text-3xl md:text-4xl font-extrabold text-primary mb-1">{stat.number}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
-          </div>
 
           {/* Values */}
           <div className="max-w-4xl mx-auto mb-20">
