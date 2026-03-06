@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Eye, BarChart3, Zap } from "lucide-react";
 
@@ -9,6 +10,7 @@ const providerFeatures = [
 ];
 
 const ForProsSection = () => {
+  const navigate = useNavigate();
   return (
     <section id="pros" className="py-20 md:py-28 bg-secondary/50">
       <div className="container mx-auto px-4">
@@ -21,7 +23,7 @@ const ForProsSection = () => {
             <p className="text-muted-foreground text-lg mb-8">
               Join thousands of pros who use HomeHero to find new customers, manage leads, and grow their revenue — with flexible subscription tiers to match your goals.
             </p>
-            <Button size="lg" className="gap-2">
+            <Button size="lg" className="gap-2" onClick={() => navigate("/auth")}>
               Join as a Pro
             </Button>
           </div>

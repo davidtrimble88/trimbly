@@ -1,7 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Zap, Star } from "lucide-react";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
   return (
     <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">
       {/* Background decoration */}
@@ -28,10 +30,10 @@ const HeroSection = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-            <Button size="lg" className="text-base px-8 h-12 gap-2">
+            <Button size="lg" className="text-base px-8 h-12 gap-2" onClick={() => navigate("/search")}>
               Find a Pro Near You <ArrowRight size={18} />
             </Button>
-            <Button variant="outline" size="lg" className="text-base px-8 h-12">
+            <Button variant="outline" size="lg" className="text-base px-8 h-12" onClick={() => navigate("/auth")}>
               I'm a Service Provider
             </Button>
           </div>
