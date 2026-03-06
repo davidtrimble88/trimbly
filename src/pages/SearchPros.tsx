@@ -2,13 +2,13 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, MapPin, SlidersHorizontal, ArrowLeft, Globe, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProviderCard from "@/components/search/ProviderCard";
 import AISearchBar from "@/components/search/AISearchBar";
-import { fetchProviders, type ProviderWithStats } from "@/lib/api/providers";
-import { mockPros } from "@/data/mockPros";
+import { fetchProviders, discoverWebProviders, type ProviderWithStats } from "@/lib/api/providers";
+import { useToast } from "@/hooks/use-toast";
 
 const categories = [
   "All", "Plumbing", "Electrical", "Handyman", "HVAC", "Landscaping", "Painting", "Roofing", "Cleaning",
@@ -23,16 +23,20 @@ const SearchPros = () => {
   const [searchMode, setSearchMode] = useState<SearchMode>("provider");
   const [activeCategory, setActiveCategory] = useState("All");
   const [countryFilter, setCountryFilter] = useState<CountryFilter>("all");
-  const [providers, setProviders] = useState<ProviderWithStats[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [usingMockData, setUsingMockData] = useState(false);
+  const [dbProviders, setDbProviders] = useState<ProviderWithStats[]>([]);
+  const [webProviders, setWebProviders] = useState<ProviderWithStats[]>([]);
+  const [loadingDb, setLoadingDb] = useState(true);
+  const [loadingWeb, setLoadingWeb] = useState(false);
+  const [webSearched, setWebSearched] = useState(false);
+  const { toast } = useToast();
 
+  // Load registered DB providers
   useEffect(() => {
-    loadProviders();
+    loadDbProviders();
   }, [activeCategory, countryFilter, searchMode, searchQuery, locationQuery]);
 
-  const loadProviders = async () => {
-    setLoading(true);
+  const loadDbProviders = async () => {
+    setLoadingDb(true);
     try {
       const data = await fetchProviders({
         category: activeCategory,
@@ -40,65 +44,70 @@ const SearchPros = () => {
         searchQuery: searchMode === "provider" ? searchQuery : undefined,
         locationQuery: searchMode === "location" ? locationQuery : undefined,
       });
-
-      if (data.length === 0 && !searchQuery && !locationQuery && activeCategory === "All" && countryFilter === "all") {
-        // No providers in DB yet, use mock data
-        setUsingMockData(true);
-        setProviders([]);
-      } else {
-        setUsingMockData(false);
-        setProviders(data);
-      }
+      setDbProviders(data);
     } catch {
-      setUsingMockData(true);
-      setProviders([]);
+      setDbProviders([]);
     } finally {
-      setLoading(false);
+      setLoadingDb(false);
     }
   };
 
-  // Fall back to mock data filtering when no real providers exist
-  const displayProviders = usingMockData
-    ? mockPros.filter((p) => {
-        const matchesCategory = activeCategory === "All" || p.category === activeCategory;
-        const matchesCountry = countryFilter === "all" || p.country === countryFilter;
-        const query = searchQuery.toLowerCase().trim();
-        const locQuery = locationQuery.toLowerCase().trim();
+  // Auto-discover web providers
+  useEffect(() => {
+    setWebSearched(false);
+    setWebProviders([]);
 
-        const matchesProvider = searchMode === "provider" && query
-          ? p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query) || p.city.toLowerCase().includes(query)
-          : searchMode !== "location";
+    const timer = setTimeout(() => {
+      discoverFromWeb();
+    }, 500);
 
-        const matchesLocation = searchMode === "location" && locQuery
-          ? p.city.toLowerCase().includes(locQuery) || p.state.toLowerCase().includes(locQuery)
-          : searchMode !== "location";
+    return () => clearTimeout(timer);
+  }, [activeCategory, countryFilter, searchQuery, locationQuery, searchMode]);
 
-        return matchesCategory && matchesCountry && (searchMode === "ai" || matchesProvider || matchesLocation);
-      }).map((p) => ({
-        id: String(p.id),
-        user_id: "",
-        business_name: p.name,
-        category: p.category,
-        description: "",
-        hourly_rate_min: parseInt(p.hourlyRate.replace(/[^0-9]/g, "")),
-        hourly_rate_max: parseInt(p.hourlyRate.split("–")[1]?.replace(/[^0-9]/g, "") || "0"),
-        currency: p.country === "CA" ? "CAD" : "USD",
-        licensed: p.licensed,
-        available: p.available,
-        city: p.city,
-        state: p.state,
-        country: p.country,
-        phone: null,
-        website: null,
-        years_experience: 0,
-        license_number: "",
-        insurance_details: "",
-        insured: p.licensed,
-        subscription_tier: "free" as const,
-        avg_rating: p.rating,
-        review_count: p.reviews,
-      }))
-    : providers;
+  const discoverFromWeb = useCallback(async () => {
+    if (searchMode === "ai") return;
+
+    setLoadingWeb(true);
+    try {
+      // Parse location from queries
+      let city = "";
+      let state = "";
+      if (searchMode === "location" && locationQuery) {
+        const parts = locationQuery.split(",").map((s) => s.trim());
+        city = parts[0] || "";
+        state = parts[1] || "";
+      }
+
+      const data = await discoverWebProviders({
+        category: activeCategory !== "All" ? activeCategory : undefined,
+        city: city || undefined,
+        state: state || undefined,
+        country: countryFilter !== "all" ? countryFilter : undefined,
+        searchQuery: searchMode === "provider" ? searchQuery : undefined,
+      });
+      setWebProviders(data);
+      setWebSearched(true);
+    } catch (err: any) {
+      console.error("Web discovery failed:", err);
+      if (err?.message?.includes("429") || err?.message?.includes("Rate limit")) {
+        toast({ title: "Rate limited", description: "Too many searches. Please wait a moment.", variant: "destructive" });
+      }
+      setWebProviders([]);
+      setWebSearched(true);
+    } finally {
+      setLoadingWeb(false);
+    }
+  }, [activeCategory, countryFilter, searchQuery, locationQuery, searchMode]);
+
+  // Merge: DB providers (with tier priority) first, then web providers
+  const allProviders = [
+    ...dbProviders.map((p) => ({ ...p, source: "db" as const })),
+    ...webProviders.filter(
+      (wp) => !dbProviders.some((dp) => dp.business_name.toLowerCase() === wp.business_name.toLowerCase() && dp.city.toLowerCase() === wp.city.toLowerCase())
+    ),
+  ];
+
+  const loading = loadingDb || loadingWeb;
 
   return (
     <div className="min-h-screen">
@@ -110,7 +119,7 @@ const SearchPros = () => {
               <ArrowLeft size={16} /> Back to home
             </Link>
             <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display mb-2">Find a Pro Near You</h1>
-            <p className="text-muted-foreground">Browse trusted service providers across the United States and Canada</p>
+            <p className="text-muted-foreground">Discover trusted service providers across the United States and Canada</p>
           </div>
 
           {/* Search mode toggle + country filter */}
@@ -218,23 +227,29 @@ const SearchPros = () => {
             ))}
           </div>
 
-          {/* Results */}
-          {usingMockData && (
-            <div className="bg-accent/10 border border-accent/20 rounded-lg p-3 mb-4 text-sm text-muted-foreground">
-              ✨ Showing sample providers. Sign up as a pro to list your business!
+          {/* Source indicators */}
+          {dbProviders.length > 0 && webProviders.length > 0 && (
+            <div className="flex gap-4 text-xs text-muted-foreground mb-4">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-primary" /> {dbProviders.length} verified pro{dbProviders.length !== 1 ? "s" : ""}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-muted-foreground" /> {webProviders.length} discovered online
+              </span>
             </div>
           )}
 
           <p className="text-sm text-muted-foreground mb-4">
-            {displayProviders.length} pro{displayProviders.length !== 1 ? "s" : ""} found
+            {loading ? "Searching..." : `${allProviders.length} pro${allProviders.length !== 1 ? "s" : ""} found`}
             {countryFilter !== "all" && ` in ${countryFilter === "US" ? "United States" : "Canada"}`}
           </p>
 
-          {loading ? (
-            <div className="flex justify-center py-16">
+          {loading && allProviders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
               <Loader2 size={32} className="animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Discovering providers{loadingWeb ? " from the web" : ""}...</p>
             </div>
-          ) : displayProviders.length === 0 ? (
+          ) : allProviders.length === 0 && webSearched ? (
             <div className="text-center py-16 bg-card rounded-xl border border-border">
               <MapPin size={40} className="mx-auto text-muted-foreground mb-4" />
               <h3 className="font-bold text-lg text-foreground mb-2">No pros found</h3>
@@ -243,11 +258,18 @@ const SearchPros = () => {
               </p>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayProviders.map((pro) => (
-                <ProviderCard key={pro.id} provider={pro} />
-              ))}
-            </div>
+            <>
+              {loadingWeb && dbProviders.length > 0 && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                  <Loader2 size={14} className="animate-spin" /> Discovering more providers online...
+                </div>
+              )}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {allProviders.map((pro) => (
+                  <ProviderCard key={pro.id} provider={pro} />
+                ))}
+              </div>
+            </>
           )}
         </div>
       </main>

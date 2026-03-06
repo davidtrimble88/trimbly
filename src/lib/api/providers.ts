@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface ProviderWithStats {
   id: string;
-  user_id: string;
+  user_id?: string;
   business_name: string;
   category: string;
   description: string;
@@ -18,11 +18,12 @@ export interface ProviderWithStats {
   phone: string | null;
   website: string | null;
   years_experience: number;
-  license_number: string;
-  insurance_details: string;
+  license_number?: string;
+  insurance_details?: string;
   subscription_tier: "free" | "pro" | "elite";
   avg_rating: number;
   review_count: number;
+  source?: "db" | "web";
 }
 
 export async function fetchProviders(filters?: {
@@ -31,9 +32,8 @@ export async function fetchProviders(filters?: {
   searchQuery?: string;
   locationQuery?: string;
 }): Promise<ProviderWithStats[]> {
-  let query = supabase
-    .from("providers")
-    .select("*");
+  // Fetch registered providers from DB
+  let query = supabase.from("providers").select("*");
 
   if (filters?.category && filters.category !== "All") {
     query = query.eq("category", filters.category);
@@ -53,33 +53,37 @@ export async function fetchProviders(filters?: {
   const { data: providers, error } = await query.order("created_at", { ascending: false });
   if (error) throw error;
 
-  // Fetch stats
-  const { data: stats } = await supabase
-    .from("provider_stats")
-    .select("*");
+  const { data: stats } = await supabase.from("provider_stats").select("*");
+  const statsMap = new Map((stats || []).map((s: any) => [s.provider_id, s]));
 
-  const statsMap = new Map(
-    (stats || []).map((s: any) => [s.provider_id, s])
-  );
-
-  const results: ProviderWithStats[] = (providers || []).map((p: any) => {
+  const dbProviders: ProviderWithStats[] = (providers || []).map((p: any) => {
     const s = statsMap.get(p.id) || { avg_rating: 0, review_count: 0 };
-    return {
-      ...p,
-      avg_rating: Number(s.avg_rating),
-      review_count: Number(s.review_count),
-    };
+    return { ...p, avg_rating: Number(s.avg_rating), review_count: Number(s.review_count), source: "db" as const };
   });
 
-  // Sort: elite first, then pro, then free — priority search benefit
+  // Sort: elite first, then pro, then free
   const tierOrder = { elite: 0, pro: 1, free: 2 };
-  results.sort((a, b) => {
+  dbProviders.sort((a, b) => {
     const tierDiff = (tierOrder[a.subscription_tier] ?? 2) - (tierOrder[b.subscription_tier] ?? 2);
     if (tierDiff !== 0) return tierDiff;
     return b.avg_rating - a.avg_rating;
   });
 
-  return results;
+  return dbProviders;
+}
+
+export async function discoverWebProviders(filters: {
+  category?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  searchQuery?: string;
+}): Promise<ProviderWithStats[]> {
+  const { data, error } = await supabase.functions.invoke("discover-providers", {
+    body: filters,
+  });
+  if (error) throw error;
+  return data?.providers || [];
 }
 
 export async function searchProvidersWithAI(query: string): Promise<string> {

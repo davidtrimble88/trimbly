@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Shield, Clock, BadgeCheck, Crown } from "lucide-react";
+import { Star, MapPin, Shield, Clock, BadgeCheck, Crown, Globe, ExternalLink } from "lucide-react";
 import type { ProviderWithStats } from "@/lib/api/providers";
 
 interface ProviderCardProps {
@@ -20,6 +20,7 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
 
   const tier = tierConfig[provider.subscription_tier] || tierConfig.free;
   const isPaid = provider.subscription_tier !== "free";
+  const isWeb = provider.source === "web";
 
   return (
     <div className={`rounded-xl border bg-card p-6 transition-all ${
@@ -27,22 +28,27 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
         ? "border-primary/30 shadow-md hover:shadow-lg ring-1 ring-primary/10"
         : "border-border hover:border-primary/30 hover:shadow-lg"
     }`}>
-      {/* Tier badge */}
-      {tier.label && tier.icon && (
-        <div className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full mb-3 ${tier.color}`}>
-          <tier.icon size={12} />
-          {tier.label}
-        </div>
-      )}
+      {/* Top badges row */}
+      <div className="flex items-center gap-2 mb-3">
+        {tier.label && tier.icon && (
+          <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${tier.color}`}>
+            <tier.icon size={12} />
+            {tier.label}
+          </span>
+        )}
+        {isWeb && (
+          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
+            <Globe size={10} /> Found online
+          </span>
+        )}
+      </div>
 
       <div className="flex items-start justify-between mb-3">
         <div>
           <h3 className="font-bold text-card-foreground">{provider.business_name}</h3>
           <span className="text-xs text-muted-foreground">{provider.category}</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs">{provider.country === "US" ? "🇺🇸" : "🇨🇦"}</span>
-        </div>
+        <span className="text-xs">{provider.country === "US" ? "🇺🇸" : "🇨🇦"}</span>
       </div>
 
       {provider.description && (
@@ -61,6 +67,11 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
             <Shield size={12} /> Insured
           </span>
         )}
+        {provider.years_experience > 0 && (
+          <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
+            {provider.years_experience}+ yrs
+          </span>
+        )}
       </div>
 
       <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
@@ -76,11 +87,22 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-card-foreground">{rateLabel}/hr</span>
         <div className="flex items-center gap-2">
-          <span className={`flex items-center gap-1 text-xs ${provider.available ? "text-primary" : "text-muted-foreground"}`}>
-            <Clock size={12} /> {provider.available ? "Available" : "Booked"}
-          </span>
+          {isWeb && provider.website ? (
+            <a
+              href={provider.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+            >
+              <ExternalLink size={12} /> Website
+            </a>
+          ) : (
+            <span className={`flex items-center gap-1 text-xs ${provider.available ? "text-primary" : "text-muted-foreground"}`}>
+              <Clock size={12} /> {provider.available ? "Available" : "Booked"}
+            </span>
+          )}
           <Button size="sm" disabled={!provider.available} onClick={() => onRequestQuote?.(provider)}>
-            {provider.available ? "Request Quote" : "Unavailable"}
+            {isWeb ? "View Details" : provider.available ? "Request Quote" : "Unavailable"}
           </Button>
         </div>
       </div>
