@@ -264,6 +264,33 @@ export type Database = {
           },
         ]
       }
+      product_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          preference_key: string
+          preference_value: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          preference_key: string
+          preference_value: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          preference_key?: string
+          preference_value?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

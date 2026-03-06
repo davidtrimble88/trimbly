@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { ProductQuestionnaireDialog } from "@/components/maintenance/ProductQuestionnaireDialog";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
@@ -146,6 +147,7 @@ const MaintenancePage = () => {
   const [filter, setFilter] = useState<"all" | "upcoming" | "completed">("all");
   const [wizardStep, setWizardStep] = useState(0);
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [productTask, setProductTask] = useState<MaintenanceTask | null>(null);
 
   // Load home profile and tasks
   useEffect(() => {
@@ -628,14 +630,12 @@ const MaintenancePage = () => {
                                   </div>
                                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
                                   {task.products_search_term && (
-                                    <a
-                                      href={`https://www.amazon.com/s?k=${encodeURIComponent(task.products_search_term)}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
+                                    <button
+                                      onClick={() => setProductTask(task)}
                                       className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-primary hover:underline"
                                     >
                                       <ShoppingCart size={12} /> Shop on Amazon <ExternalLink size={10} />
-                                    </a>
+                                    </button>
                                   )}
                                   <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                                     {task.due_date && (
@@ -675,6 +675,19 @@ const MaintenancePage = () => {
         </div>
       </main>
       <Footer />
+
+      {productTask && productTask.products_search_term && (
+        <ProductQuestionnaireDialog
+          open={!!productTask}
+          onOpenChange={(open) => { if (!open) setProductTask(null); }}
+          task={{
+            id: productTask.id,
+            title: productTask.title,
+            category: productTask.category,
+            products_search_term: productTask.products_search_term,
+          }}
+        />
+      )}
     </div>
   );
 };
