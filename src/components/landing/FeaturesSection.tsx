@@ -25,7 +25,7 @@ const features = [
     icon: FolderOpen,
     title: "Digital Home Binder",
     description: "Store appliance info, warranties, past jobs, receipts, and documents — all organized in one dashboard.",
-    route: null,
+    route: "/binder",
   },
   {
     icon: MessageSquare,

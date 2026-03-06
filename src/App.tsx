@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import SearchPros from "./pages/SearchPros";
 import EstimatorPage from "./pages/EstimatorPage";
 import MaintenancePage from "./pages/MaintenancePage";
+import HomeBinder from "./pages/HomeBinder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/search" element={<SearchPros />} />
             <Route path="/estimator" element={<EstimatorPage />} />
             <Route path="/maintenance" element={<MaintenancePage />} />
+            <Route path="/binder" element={<HomeBinder />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
