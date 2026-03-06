@@ -88,7 +88,7 @@ For each provider, include realistic details based on typical businesses in that
     }
 
     // Normalize and add IDs
-    providers = (Array.isArray(providers) ? providers : []).map((p: any, i: number) => ({
+    let normalizedProviders = (Array.isArray(providers) ? providers : []).map((p: any, i: number) => ({
       id: `web-${Date.now()}-${i}`,
       source: "web",
       business_name: p.business_name || "Unknown Provider",
@@ -105,13 +105,30 @@ For each provider, include realistic details based on typical businesses in that
       country: p.country || "US",
       phone: p.phone || null,
       website: p.website || null,
+      website_verified: false,
       years_experience: p.years_experience || 0,
       subscription_tier: "free",
       avg_rating: p.rating || 0,
       review_count: p.review_count || 0,
     }));
 
-    return new Response(JSON.stringify({ providers }), {
+    // Verify websites in parallel
+    const verifyPromises = normalizedProviders.map(async (p: any) => {
+      if (!p.website) return p;
+      try {
+        const res = await fetch(p.website, { method: "HEAD", redirect: "follow" });
+        if (res.ok || res.status === 301 || res.status === 302) {
+          return { ...p, website_verified: true };
+        }
+        return { ...p, website: null, website_verified: false };
+      } catch {
+        return { ...p, website: null, website_verified: false };
+      }
+    });
+
+    normalizedProviders = await Promise.all(verifyPromises);
+
+    return new Response(JSON.stringify({ providers: normalizedProviders }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
