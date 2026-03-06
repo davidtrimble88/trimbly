@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, Building2, MapPin, Briefcase, Phone, Globe,
-  Shield, FileText, DollarSign, Loader2, Star, Zap, Crown
+  Shield, FileText, DollarSign, Loader2, Star, Zap
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -23,7 +23,6 @@ const categories = [
 const tierLabels: Record<string, { label: string; icon: typeof Star; color: string }> = {
   free: { label: "Free", icon: Star, color: "secondary" },
   pro: { label: "Pro", icon: Zap, color: "default" },
-  elite: { label: "Elite", icon: Crown, color: "destructive" },
 };
 
 const ProRegister = () => {
