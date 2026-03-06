@@ -316,12 +316,11 @@ const MaintenancePage = () => {
       nextDue.setMonth(nextDue.getMonth() + task.recurrence_months);
       const nextDueStr = nextDue.toISOString().slice(0, 10);
 
-      // Check if an upcoming task with same title and due date already exists
+      // Check if an upcoming task with same title already exists
       const duplicate = tasks.find(t =>
         t.id !== task.id &&
         t.status !== "completed" &&
-        t.title.toLowerCase().trim() === task.title.toLowerCase().trim() &&
-        t.due_date === nextDueStr
+        t.title.toLowerCase().trim() === task.title.toLowerCase().trim()
       );
 
       if (duplicate) {
