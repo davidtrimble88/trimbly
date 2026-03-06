@@ -19,7 +19,7 @@ const features = [
     icon: CalendarCheck,
     title: "Maintenance Autopilot",
     description: "Automated schedules based on your home profile. Never forget an HVAC filter, gutter clean, or seasonal checkup.",
-    route: null,
+    route: "/maintenance",
   },
   {
     icon: FolderOpen,

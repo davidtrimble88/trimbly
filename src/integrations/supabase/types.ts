@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      homes: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          has_pool: boolean
+          has_septic: boolean
+          has_well_water: boolean
+          home_type: string
+          hvac_type: string | null
+          id: string
+          name: string
+          notes: string | null
+          roof_type: string | null
+          square_feet: number | null
+          state: string
+          updated_at: string
+          user_id: string
+          year_built: number | null
+        }
+        Insert: {
+          city?: string
+          country?: string
+          created_at?: string
+          has_pool?: boolean
+          has_septic?: boolean
+          has_well_water?: boolean
+          home_type?: string
+          hvac_type?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          roof_type?: string | null
+          square_feet?: number | null
+          state?: string
+          updated_at?: string
+          user_id: string
+          year_built?: number | null
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          has_pool?: boolean
+          has_septic?: boolean
+          has_well_water?: boolean
+          home_type?: string
+          hvac_type?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          roof_type?: string | null
+          square_feet?: number | null
+          state?: string
+          updated_at?: string
+          user_id?: string
+          year_built?: number | null
+        }
+        Relationships: []
+      }
       jobs: {
         Row: {
           category: string
@@ -70,6 +130,65 @@ export type Database = {
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_tasks: {
+        Row: {
+          category: string
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          home_id: string
+          id: string
+          priority: string
+          recurrence_months: number | null
+          season: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          home_id: string
+          id?: string
+          priority?: string
+          recurrence_months?: number | null
+          season?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          home_id?: string
+          id?: string
+          priority?: string
+          recurrence_months?: number | null
+          season?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_tasks_home_id_fkey"
+            columns: ["home_id"]
+            isOneToOne: false
+            referencedRelation: "homes"
             referencedColumns: ["id"]
           },
         ]
