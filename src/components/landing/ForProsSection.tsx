@@ -4,10 +4,10 @@ import { TrendingUp, Eye, BarChart3, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const providerFeatures = [
-  { icon: Eye, title: "Get Discovered", desc: "Appear in local search results for homeowners near you.", route: "/auth" },
-  { icon: TrendingUp, title: "Boost Your Leads", desc: "Upgrade to Pro or Elite tiers for top placement and more leads.", route: "/auth" },
-  { icon: BarChart3, title: "Track Performance", desc: "View analytics on profile views, quote requests, and conversion rates.", route: "/auth" },
-  { icon: Zap, title: "Instant Boosts", desc: "Purchase one-time boosts to appear at the top of search results.", route: "/auth" },
+  { icon: Eye, title: "Get Discovered", desc: "Appear in local search results for homeowners near you.", route: "/pro-pricing" },
+  { icon: TrendingUp, title: "Boost Your Leads", desc: "Upgrade to Pro or Elite tiers for top placement and more leads.", route: "/pro-pricing" },
+  { icon: BarChart3, title: "Track Performance", desc: "View analytics on profile views, quote requests, and conversion rates.", route: "/pro-pricing" },
+  { icon: Zap, title: "Instant Boosts", desc: "Purchase one-time boosts to appear at the top of search results.", route: "/pro-pricing" },
 ];
 
 const ForProsSection = () => {
@@ -34,7 +34,7 @@ const ForProsSection = () => {
             <p className="text-muted-foreground text-lg mb-8">
               Join thousands of pros who use HomeHero to find new customers, manage leads, and grow their revenue — with flexible subscription tiers to match your goals.
             </p>
-            <Button size="lg" className="gap-2" onClick={() => navigate("/auth")}>
+            <Button size="lg" className="gap-2" onClick={() => navigate("/pro-pricing")}>
               Join as a Pro
             </Button>
           </div>
