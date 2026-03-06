@@ -14,6 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      home_binder_items: {
+        Row: {
+          brand: string | null
+          cost: number | null
+          created_at: string
+          document_name: string | null
+          document_url: string | null
+          home_id: string
+          id: string
+          item_type: string
+          location_in_home: string | null
+          model_number: string | null
+          name: string
+          notes: string | null
+          purchase_date: string | null
+          serial_number: string | null
+          updated_at: string
+          user_id: string
+          warranty_expiry: string | null
+        }
+        Insert: {
+          brand?: string | null
+          cost?: number | null
+          created_at?: string
+          document_name?: string | null
+          document_url?: string | null
+          home_id: string
+          id?: string
+          item_type?: string
+          location_in_home?: string | null
+          model_number?: string | null
+          name: string
+          notes?: string | null
+          purchase_date?: string | null
+          serial_number?: string | null
+          updated_at?: string
+          user_id: string
+          warranty_expiry?: string | null
+        }
+        Update: {
+          brand?: string | null
+          cost?: number | null
+          created_at?: string
+          document_name?: string | null
+          document_url?: string | null
+          home_id?: string
+          id?: string
+          item_type?: string
+          location_in_home?: string | null
+          model_number?: string | null
+          name?: string
+          notes?: string | null
+          purchase_date?: string | null
+          serial_number?: string | null
+          updated_at?: string
+          user_id?: string
+          warranty_expiry?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "home_binder_items_home_id_fkey"
+            columns: ["home_id"]
+            isOneToOne: false
+            referencedRelation: "homes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       homes: {
         Row: {
           city: string
