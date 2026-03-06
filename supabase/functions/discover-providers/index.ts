@@ -84,8 +84,8 @@ Deno.serve(async (req) => {
       .map((r: any, i: number) => {
         const title = r.title || "Unknown";
         const url = r.url || "";
-        const markdown = r.markdown ? r.markdown.substring(0, 1500) : r.description || "";
-        return `--- Result ${i + 1} ---\nTitle: ${title}\nURL: ${url}\n${markdown}`;
+        const markdown = r.markdown ? r.markdown.substring(0, 2500) : r.description || "";
+        return `--- Result ${i + 1} ---\nTitle: ${title}\nURL: ${url}\nDescription: ${r.description || ""}\n${markdown}`;
       })
       .join("\n\n");
 
@@ -101,20 +101,26 @@ Deno.serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You extract real service provider information from web search results. Only include providers where you can confirm the business name from the search results. Do NOT invent or fabricate any information. If a field is not found in the data, use null or appropriate defaults.
+            content: `You extract real service provider information from web search results. Only include providers where you can confirm the business name from the search results.
+
+For each confirmed real business found in the search results:
+- Extract all available information directly from the scraped content
+- If a phone number or website URL appears anywhere in the search results for that business, include it
+- If the business is a well-known real company and you know their publicly listed phone number or website from your training data, you may include it
+- Do NOT invent fictional businesses. Only list businesses that appear in the search results.
 
 Return a JSON array. Each provider object must have exactly these fields:
-- business_name (string, from the search results)
+- business_name (string, must be from the search results)
 - category (one of: Plumbing, Electrical, Handyman, HVAC, Landscaping, Painting, Roofing, Cleaning)
-- description (string, extracted from search results, or empty string)
-- city (string, from search results or empty)
-- state (string, 2-letter code or empty)
+- description (string, from search results or your knowledge of the business)
+- city (string)
+- state (string, 2-letter code)
 - country ("US" or "CA")
-- phone (string, only if found in search results, otherwise null)
-- website (string URL, only if found in search results, otherwise null)
-- licensed (boolean, true only if explicitly mentioned)
-- insured (boolean, true only if explicitly mentioned)
-- years_experience (number, only if mentioned, otherwise 0)
+- phone (string formatted as "(XXX) XXX-XXXX", from search results or publicly known number, or null if unknown)
+- website (string URL, from search results or publicly known URL, or null if unknown)
+- licensed (boolean, true if mentioned or typically required for the trade in that state)
+- insured (boolean, true if mentioned)
+- years_experience (number, if mentioned, otherwise 0)
 
 Return ONLY the JSON array, no markdown fences, no explanation. If no real providers can be extracted, return an empty array [].`,
           },
@@ -217,21 +223,51 @@ Return ONLY the JSON array, no markdown fences, no explanation. If no real provi
       review_count: 0,
     }));
 
-    // Verify websites in parallel
-    const verifyPromises = normalizedProviders.map(async (p: any) => {
+    // Verify websites and scrape for missing phone numbers in parallel
+    const enrichPromises = normalizedProviders.map(async (p: any) => {
       if (!p.website) return p;
       try {
-        const res = await fetch(p.website, { method: "HEAD", redirect: "follow" });
-        if (res.ok || res.status === 301 || res.status === 302) {
-          return { ...p, website_verified: true };
+        // Scrape the website to verify it works AND find phone numbers
+        const scrapeRes = await fetch("https://api.firecrawl.dev/v1/scrape", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${firecrawlApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            url: p.website,
+            formats: ["markdown"],
+            onlyMainContent: false,
+            waitFor: 3000,
+          }),
+        });
+
+        if (!scrapeRes.ok) {
+          return { ...p, website: null, website_verified: false };
         }
-        return { ...p, website: null, website_verified: false };
+
+        const scrapeData = await scrapeRes.json();
+        const pageContent = scrapeData?.data?.markdown || scrapeData?.markdown || "";
+        
+        // Website is live
+        let enriched = { ...p, website_verified: true };
+
+        // Extract phone number from page if we don't have one
+        if (!p.phone && pageContent) {
+          const phoneMatch = pageContent.match(/\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/);
+          if (phoneMatch) {
+            const digits = phoneMatch[0].replace(/\D/g, "");
+            enriched.phone = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+          }
+        }
+
+        return enriched;
       } catch {
         return { ...p, website: null, website_verified: false };
       }
     });
 
-    normalizedProviders = await Promise.all(verifyPromises);
+    normalizedProviders = await Promise.all(enrichPromises);
 
     // Filter out entries with no real business name
     normalizedProviders = normalizedProviders.filter(
