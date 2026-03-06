@@ -14,10 +14,208 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      jobs: {
+        Row: {
+          category: string
+          city: string
+          country: string
+          created_at: string
+          description: string | null
+          homeowner_id: string
+          id: string
+          provider_id: string | null
+          state: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          city: string
+          country?: string
+          created_at?: string
+          description?: string | null
+          homeowner_id: string
+          id?: string
+          provider_id?: string | null
+          state: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          city?: string
+          country?: string
+          created_at?: string
+          description?: string | null
+          homeowner_id?: string
+          id?: string
+          provider_id?: string | null
+          state?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_stats"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "jobs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string
+          id: string
+          updated_at: string
+          user_type: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string
+          id: string
+          updated_at?: string
+          user_type?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          updated_at?: string
+          user_type?: string
+        }
+        Relationships: []
+      }
+      providers: {
+        Row: {
+          available: boolean
+          business_name: string
+          category: string
+          city: string
+          country: string
+          created_at: string
+          currency: string
+          description: string | null
+          hourly_rate_max: number
+          hourly_rate_min: number
+          id: string
+          licensed: boolean
+          phone: string | null
+          state: string
+          updated_at: string
+          user_id: string
+          website: string | null
+          years_experience: number | null
+        }
+        Insert: {
+          available?: boolean
+          business_name: string
+          category: string
+          city: string
+          country?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          hourly_rate_max?: number
+          hourly_rate_min?: number
+          id?: string
+          licensed?: boolean
+          phone?: string | null
+          state: string
+          updated_at?: string
+          user_id: string
+          website?: string | null
+          years_experience?: number | null
+        }
+        Update: {
+          available?: boolean
+          business_name?: string
+          category?: string
+          city?: string
+          country?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          hourly_rate_max?: number
+          hourly_rate_min?: number
+          id?: string
+          licensed?: boolean
+          phone?: string | null
+          state?: string
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+          years_experience?: number | null
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          provider_id: string
+          rating: number
+          reviewer_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          provider_id: string
+          rating: number
+          reviewer_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          provider_id?: string
+          rating?: number
+          reviewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_stats"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "reviews_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      provider_stats: {
+        Row: {
+          avg_rating: number | null
+          provider_id: string | null
+          review_count: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

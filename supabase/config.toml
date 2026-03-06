@@ -1,1 +1,4 @@
 project_id = "mrideliutnlaxsvbabyk"
+
+[functions.ai-search-providers]
+verify_jwt = false
