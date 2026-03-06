@@ -1,6 +1,6 @@
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Check, ArrowLeft, Star, Zap, Crown } from "lucide-react";
+import { Check, ArrowLeft, Star, Zap } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -41,26 +41,6 @@ const tiers = [
     highlighted: true,
     tier: "pro",
   },
-  {
-    name: "Elite",
-    icon: Crown,
-    price: "$79",
-    period: "/month",
-    description: "Dominate your local market",
-    features: [
-      "Everything in Pro",
-      "Top placement in all searches",
-      "Featured Pro spotlight on homepage",
-      "Dedicated account manager",
-      "Lead guarantee (min 20/month)",
-      "Custom branded profile page",
-      "Priority customer support",
-      "Instant boost credits (5/month)",
-    ],
-    cta: "Go Elite",
-    highlighted: false,
-    tier: "elite",
-  },
 ];
 
 const ProPricing = () => {
@@ -85,7 +65,7 @@ const ProPricing = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
             {tiers.map((tier) => (
               <div
                 key={tier.name}
