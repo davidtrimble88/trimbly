@@ -82,6 +82,9 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
           <span className="flex items-center gap-1">
             <Star size={14} className="text-accent fill-accent" />
             {provider.avg_rating} ({provider.review_count})
+            {provider.rating_source && (
+              <span className="text-xs text-muted-foreground ml-0.5">· {provider.rating_source}</span>
+            )}
           </span>
         ) : (
           <span className="text-xs text-muted-foreground italic">Not Yet Rated</span>

@@ -23,6 +23,7 @@ export interface ProviderWithStats {
   subscription_tier: "free" | "pro" | "elite";
   avg_rating: number;
   review_count: number;
+  rating_source?: string | null;
   source?: "db" | "web";
 }
 
