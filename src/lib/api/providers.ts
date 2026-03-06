@@ -10,6 +10,7 @@ export interface ProviderWithStats {
   hourly_rate_max: number;
   currency: string;
   licensed: boolean;
+  insured: boolean;
   available: boolean;
   city: string;
   state: string;
@@ -17,6 +18,9 @@ export interface ProviderWithStats {
   phone: string | null;
   website: string | null;
   years_experience: number;
+  license_number: string;
+  insurance_details: string;
+  subscription_tier: "free" | "pro" | "elite";
   avg_rating: number;
   review_count: number;
 }
@@ -58,7 +62,7 @@ export async function fetchProviders(filters?: {
     (stats || []).map((s: any) => [s.provider_id, s])
   );
 
-  return (providers || []).map((p: any) => {
+  const results: ProviderWithStats[] = (providers || []).map((p: any) => {
     const s = statsMap.get(p.id) || { avg_rating: 0, review_count: 0 };
     return {
       ...p,
@@ -66,6 +70,16 @@ export async function fetchProviders(filters?: {
       review_count: Number(s.review_count),
     };
   });
+
+  // Sort: elite first, then pro, then free — priority search benefit
+  const tierOrder = { elite: 0, pro: 1, free: 2 };
+  results.sort((a, b) => {
+    const tierDiff = (tierOrder[a.subscription_tier] ?? 2) - (tierOrder[b.subscription_tier] ?? 2);
+    if (tierDiff !== 0) return tierDiff;
+    return b.avg_rating - a.avg_rating;
+  });
+
+  return results;
 }
 
 export async function searchProvidersWithAI(query: string): Promise<string> {

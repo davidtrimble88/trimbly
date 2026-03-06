@@ -91,6 +91,10 @@ const SearchPros = () => {
         phone: null,
         website: null,
         years_experience: 0,
+        license_number: "",
+        insurance_details: "",
+        insured: p.licensed,
+        subscription_tier: "free" as const,
         avg_rating: p.rating,
         review_count: p.reviews,
       }))

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Shield, Clock } from "lucide-react";
+import { Star, MapPin, Shield, Clock, BadgeCheck, Crown } from "lucide-react";
 import type { ProviderWithStats } from "@/lib/api/providers";
 
 interface ProviderCardProps {
@@ -7,13 +7,34 @@ interface ProviderCardProps {
   onRequestQuote?: (provider: ProviderWithStats) => void;
 }
 
+const tierConfig = {
+  elite: { label: "Elite Pro", color: "bg-accent text-accent-foreground", icon: Crown },
+  pro: { label: "Pro", color: "bg-primary/10 text-primary", icon: BadgeCheck },
+  free: { label: null, color: "", icon: null },
+};
+
 const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
   const rateLabel = provider.currency === "CAD"
     ? `C$${provider.hourly_rate_min}–${provider.hourly_rate_max}`
     : `$${provider.hourly_rate_min}–${provider.hourly_rate_max}`;
 
+  const tier = tierConfig[provider.subscription_tier] || tierConfig.free;
+  const isPaid = provider.subscription_tier !== "free";
+
   return (
-    <div className="rounded-xl border border-border bg-card p-6 hover:border-primary/30 hover:shadow-lg transition-all">
+    <div className={`rounded-xl border bg-card p-6 transition-all ${
+      isPaid
+        ? "border-primary/30 shadow-md hover:shadow-lg ring-1 ring-primary/10"
+        : "border-border hover:border-primary/30 hover:shadow-lg"
+    }`}>
+      {/* Tier badge */}
+      {tier.label && tier.icon && (
+        <div className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full mb-3 ${tier.color}`}>
+          <tier.icon size={12} />
+          {tier.label}
+        </div>
+      )}
+
       <div className="flex items-start justify-between mb-3">
         <div>
           <h3 className="font-bold text-card-foreground">{provider.business_name}</h3>
@@ -21,16 +42,27 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-xs">{provider.country === "US" ? "🇺🇸" : "🇨🇦"}</span>
-          {provider.licensed && (
-            <span className="flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-1 rounded-full">
-              <Shield size={12} /> Licensed
-            </span>
-          )}
         </div>
       </div>
+
       {provider.description && (
         <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{provider.description}</p>
       )}
+
+      {/* Credentials */}
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {provider.licensed && (
+          <span className="flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-1 rounded-full">
+            <Shield size={12} /> Licensed
+          </span>
+        )}
+        {provider.insured && (
+          <span className="flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-1 rounded-full">
+            <Shield size={12} /> Insured
+          </span>
+        )}
+      </div>
+
       <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
         <span className="flex items-center gap-1">
           <Star size={14} className="text-accent fill-accent" />
@@ -40,6 +72,7 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
           <MapPin size={14} /> {provider.city}, {provider.state}
         </span>
       </div>
+
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-card-foreground">{rateLabel}/hr</span>
         <div className="flex items-center gap-2">

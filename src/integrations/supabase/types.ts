@@ -114,9 +114,13 @@ export type Database = {
           hourly_rate_max: number
           hourly_rate_min: number
           id: string
+          insurance_details: string | null
+          insured: boolean
+          license_number: string | null
           licensed: boolean
           phone: string | null
           state: string
+          subscription_tier: string
           updated_at: string
           user_id: string
           website: string | null
@@ -134,9 +138,13 @@ export type Database = {
           hourly_rate_max?: number
           hourly_rate_min?: number
           id?: string
+          insurance_details?: string | null
+          insured?: boolean
+          license_number?: string | null
           licensed?: boolean
           phone?: string | null
           state: string
+          subscription_tier?: string
           updated_at?: string
           user_id: string
           website?: string | null
@@ -154,9 +162,13 @@ export type Database = {
           hourly_rate_max?: number
           hourly_rate_min?: number
           id?: string
+          insurance_details?: string | null
+          insured?: boolean
+          license_number?: string | null
           licensed?: boolean
           phone?: string | null
           state?: string
+          subscription_tier?: string
           updated_at?: string
           user_id?: string
           website?: string | null
@@ -213,6 +225,7 @@ export type Database = {
           avg_rating: number | null
           provider_id: string | null
           review_count: number | null
+          subscription_tier: string | null
         }
         Relationships: []
       }
