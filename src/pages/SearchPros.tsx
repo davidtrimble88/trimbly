@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProviderCard from "@/components/search/ProviderCard";
+import ProviderDetailDialog from "@/components/search/ProviderDetailDialog";
 import AISearchBar from "@/components/search/AISearchBar";
 import { fetchProviders, discoverWebProviders, type ProviderWithStats } from "@/lib/api/providers";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +29,7 @@ const SearchPros = () => {
   const [loadingDb, setLoadingDb] = useState(true);
   const [loadingWeb, setLoadingWeb] = useState(false);
   const [webSearched, setWebSearched] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<ProviderWithStats | null>(null);
   const { toast } = useToast();
 
   // Load registered DB providers
@@ -266,11 +268,17 @@ const SearchPros = () => {
               )}
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {allProviders.map((pro) => (
-                  <ProviderCard key={pro.id} provider={pro} />
+                  <ProviderCard key={pro.id} provider={pro} onRequestQuote={setSelectedProvider} />
                 ))}
               </div>
             </>
           )}
+
+          <ProviderDetailDialog
+            provider={selectedProvider}
+            open={!!selectedProvider}
+            onOpenChange={(open) => !open && setSelectedProvider(null)}
+          />
         </div>
       </main>
       <Footer />
