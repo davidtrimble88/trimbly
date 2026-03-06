@@ -119,7 +119,9 @@ const SearchPros = () => {
     });
 
   const uniqueWebProviders = webProviders.filter(
-    (wp) => !dbProviders.some((dp) => dp.business_name.toLowerCase() === wp.business_name.toLowerCase() && dp.city.toLowerCase() === wp.city.toLowerCase())
+    (wp) =>
+      (wp.phone || wp.website) &&
+      !dbProviders.some((dp) => dp.business_name.toLowerCase() === wp.business_name.toLowerCase() && dp.city.toLowerCase() === wp.city.toLowerCase())
   );
 
   // Show all registered pros; fill remaining slots (up to 20 total) with web providers
