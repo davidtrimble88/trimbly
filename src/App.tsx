@@ -10,6 +10,8 @@ import SearchPros from "./pages/SearchPros";
 import EstimatorPage from "./pages/EstimatorPage";
 import MaintenancePage from "./pages/MaintenancePage";
 import HomeBinder from "./pages/HomeBinder";
+import ProPricing from "./pages/ProPricing";
+import ProRegister from "./pages/ProRegister";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,8 @@ const App = () => (
             <Route path="/estimator" element={<EstimatorPage />} />
             <Route path="/maintenance" element={<MaintenancePage />} />
             <Route path="/binder" element={<HomeBinder />} />
+            <Route path="/pro-pricing" element={<ProPricing />} />
+            <Route path="/pro-register" element={<ProRegister />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
