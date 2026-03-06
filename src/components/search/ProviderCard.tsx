@@ -14,13 +14,16 @@ const tierConfig = {
 };
 
 const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
-  const rateLabel = provider.currency === "CAD"
-    ? `C$${provider.hourly_rate_min}–${provider.hourly_rate_max}`
-    : `$${provider.hourly_rate_min}–${provider.hourly_rate_max}`;
+  const isWeb = provider.source === "web";
+  const rateLabel = isWeb
+    ? "Contact for pricing"
+    : provider.currency === "CAD"
+      ? `C$${provider.hourly_rate_min}–${provider.hourly_rate_max}/hr`
+      : `$${provider.hourly_rate_min}–${provider.hourly_rate_max}/hr`;
 
   const tier = tierConfig[provider.subscription_tier] || tierConfig.free;
   const isPaid = provider.subscription_tier !== "free";
-  const isWeb = provider.source === "web";
+  
 
   return (
     <div className={`rounded-xl border bg-card p-6 transition-all ${
@@ -89,7 +92,7 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
       </div>
 
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-card-foreground">{rateLabel}/hr</span>
+        <span className={`text-sm font-semibold ${isWeb ? "text-muted-foreground italic" : "text-card-foreground"}`}>{rateLabel}</span>
         <div className="flex items-center gap-2">
           {isWeb && provider.website ? (
             <a
