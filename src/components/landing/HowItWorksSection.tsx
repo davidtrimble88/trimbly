@@ -15,7 +15,7 @@ const steps = [
     step: "02",
     title: "Get Instant Quotes",
     description: "Receive AI-powered estimates and compare quotes from verified local pros.",
-    route: null,
+    route: "/estimator",
   },
   {
     icon: MessageSquare,
