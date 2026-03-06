@@ -46,7 +46,7 @@ For each provider, include realistic details based on typical businesses in that
         messages: [
           {
             role: "system",
-            content: "You are a home services directory assistant. Return provider data as a JSON array. Each provider object must have exactly these fields: business_name (string), category (one of: Plumbing, Electrical, Handyman, HVAC, Landscaping, Painting, Roofing, Cleaning), description (1-2 sentence description), hourly_rate_min (number), hourly_rate_max (number), licensed (boolean), insured (boolean), city (string), state (2-letter code), country (US or CA), phone (string like '(555) 123-4567'), website (string URL or null), years_experience (number), rating (number 1-5 with one decimal), review_count (number). Return ONLY the JSON array, no markdown, no explanation.",
+            content: "You are a home services directory assistant. Return provider data as a JSON array. Each provider object must have exactly these fields: business_name (string), category (one of: Plumbing, Electrical, Handyman, HVAC, Landscaping, Painting, Roofing, Cleaning), description (1-2 sentence description), hourly_rate_min (number), hourly_rate_max (number), licensed (boolean), insured (boolean), city (string), state (2-letter code), country (US or CA), phone (string like '(555) 123-4567'), website (string URL or null), years_experience (number). Do NOT include rating or review_count. Return ONLY the JSON array, no markdown, no explanation.",
           },
           { role: "user", content: prompt },
         ],
@@ -108,8 +108,8 @@ For each provider, include realistic details based on typical businesses in that
       website_verified: false,
       years_experience: p.years_experience || 0,
       subscription_tier: "free",
-      avg_rating: p.rating || 0,
-      review_count: p.review_count || 0,
+      avg_rating: 0,
+      review_count: 0,
     }));
 
     // Verify websites in parallel
