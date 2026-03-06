@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProviderCard from "@/components/search/ProviderCard";
 import ProviderDetailDialog from "@/components/search/ProviderDetailDialog";
-import AISearchBar from "@/components/search/AISearchBar";
+
 import { fetchProviders, discoverWebProviders, type ProviderWithStats } from "@/lib/api/providers";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,7 +15,7 @@ const categories = [
   "All", "Plumbing", "Electrical", "Handyman", "HVAC", "Landscaping", "Painting", "Roofing", "Cleaning",
 ];
 
-type SearchMode = "provider" | "location" | "ai";
+type SearchMode = "provider" | "location";
 type CountryFilter = "all" | "US" | "CA";
 
 const SearchPros = () => {
@@ -71,7 +71,7 @@ const SearchPros = () => {
   }, [activeCategory, countryFilter, searchQuery, locationQuery, searchMode, hasSearched]);
 
   const discoverFromWeb = useCallback(async () => {
-    if (searchMode === "ai") return;
+    
 
     setLoadingWeb(true);
     try {
@@ -162,16 +162,6 @@ const SearchPros = () => {
                 </button>
               ))}
 
-              <button
-                onClick={() => setSearchMode("ai")}
-                className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-                  searchMode === "ai"
-                    ? "bg-accent text-accent-foreground border-accent"
-                    : "bg-card text-muted-foreground border-border hover:border-accent/30"
-                }`}
-              >
-                ✨ AI Search
-              </button>
 
               <div className="h-6 w-px bg-border mx-1 hidden sm:block" />
 
@@ -197,9 +187,7 @@ const SearchPros = () => {
               </div>
             </div>
 
-            {searchMode === "ai" ? (
-              <AISearchBar />
-            ) : (
+            {(
               <div className="flex gap-3">
                 {searchMode === "provider" ? (
                   <div className="relative flex-1">
