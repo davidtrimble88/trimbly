@@ -263,8 +263,21 @@ const MaintenancePage = () => {
 
       const aiTasks = data.tasks || [];
 
+      // Filter out duplicates: tasks with same title that already exist as upcoming
+      const existingTitles = new Set(
+        tasks.filter(t => t.status !== "completed").map(t => t.title.toLowerCase().trim())
+      );
+
+      const uniqueTasks = aiTasks.filter((t: any) => !existingTitles.has((t.title || "").toLowerCase().trim()));
+
+      if (uniqueTasks.length === 0) {
+        toast({ title: "No new tasks", description: "All generated tasks already exist in your schedule." });
+        setGenerating(false);
+        return;
+      }
+
       // Insert tasks into DB
-      const rows = aiTasks.map((t: any) => ({
+      const rows = uniqueTasks.map((t: any) => ({
         home_id: home.id!,
         user_id: user.id,
         title: t.title,
@@ -281,8 +294,10 @@ const MaintenancePage = () => {
       const { error: insertErr } = await supabase.from("maintenance_tasks").insert(rows);
       if (insertErr) throw insertErr;
 
+      const skipped = aiTasks.length - uniqueTasks.length;
+
       await loadTasks(home.id!);
-      toast({ title: "Schedule generated!", description: `${aiTasks.length} maintenance tasks added to your calendar.` });
+      toast({ title: "Schedule generated!", description: `${uniqueTasks.length} new tasks added.${skipped > 0 ? ` ${skipped} duplicates skipped.` : ""}` });
     } catch (err: any) {
       toast({ title: "Error", description: err?.message || "Failed to generate schedule.", variant: "destructive" });
     }
@@ -295,10 +310,25 @@ const MaintenancePage = () => {
     await supabase.from("maintenance_tasks").update({ status: newStatus, completed_at: completedAt }).eq("id", task.id);
     setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus, completed_at: completedAt } : t));
 
-    // If marking complete and task is recurring, create next cycle task
+    // If marking complete and task is recurring, create next cycle task (no duplicates)
     if (newStatus === "completed" && task.recurrence_months > 0 && task.due_date && home.id && user) {
       const nextDue = new Date(task.due_date);
       nextDue.setMonth(nextDue.getMonth() + task.recurrence_months);
+      const nextDueStr = nextDue.toISOString().slice(0, 10);
+
+      // Check if an upcoming task with same title and due date already exists
+      const duplicate = tasks.find(t =>
+        t.id !== task.id &&
+        t.status !== "completed" &&
+        t.title.toLowerCase().trim() === task.title.toLowerCase().trim() &&
+        t.due_date === nextDueStr
+      );
+
+      if (duplicate) {
+        toast({ title: "Task already scheduled", description: `"${task.title}" is already scheduled for ${nextDue.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}.` });
+        if (newStatus === "completed") setFilter("completed");
+        return;
+      }
 
       const newTask = {
         home_id: home.id,
@@ -308,7 +338,7 @@ const MaintenancePage = () => {
         category: task.category,
         priority: task.priority,
         status: "upcoming",
-        due_date: nextDue.toISOString().slice(0, 10),
+        due_date: nextDueStr,
         recurrence_months: task.recurrence_months,
         season: task.season,
         products_search_term: task.products_search_term || null,
