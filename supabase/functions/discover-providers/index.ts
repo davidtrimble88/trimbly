@@ -123,7 +123,7 @@ Return ONLY the JSON array, no markdown fences, no explanation. If no real provi
             content: `Extract real ${categoryHint} service providers from these web search results. Location context: ${locationHint || countryHint}.\n\n${scrapedContent}`,
           },
         ],
-        max_tokens: 4000,
+        max_tokens: 8000,
         temperature: 0.1,
       }),
     });
@@ -149,8 +149,31 @@ Return ONLY the JSON array, no markdown fences, no explanation. If no real provi
     try {
       providers = JSON.parse(content);
     } catch {
-      console.error("Failed to parse AI extraction:", content);
-      providers = [];
+      // Try to extract JSON array from content
+      const arrayMatch = content.match(/\[[\s\S]*\]/);
+      if (arrayMatch) {
+        try {
+          providers = JSON.parse(arrayMatch[0]);
+        } catch {
+          console.error("Failed to parse extracted JSON array");
+          // Try fixing truncated JSON by closing incomplete objects
+          let fixedContent = arrayMatch[0];
+          // Remove trailing incomplete object
+          const lastCompleteObj = fixedContent.lastIndexOf("}");
+          if (lastCompleteObj > 0) {
+            fixedContent = fixedContent.substring(0, lastCompleteObj + 1) + "]";
+            try {
+              providers = JSON.parse(fixedContent);
+            } catch {
+              console.error("Could not fix truncated JSON");
+              providers = [];
+            }
+          }
+        }
+      } else {
+        console.error("No JSON array found in AI response");
+        providers = [];
+      }
     }
 
     // Normalize and add IDs
