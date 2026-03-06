@@ -12,11 +12,12 @@ interface ProviderDetailDialogProps {
 const ProviderDetailDialog = ({ provider, open, onOpenChange }: ProviderDetailDialogProps) => {
   if (!provider) return null;
 
-  const rateLabel = provider.currency === "CAD"
-    ? `C$${provider.hourly_rate_min}–${provider.hourly_rate_max}`
-    : `$${provider.hourly_rate_min}–${provider.hourly_rate_max}`;
-
   const isWeb = provider.source === "web";
+  const rateLabel = isWeb
+    ? "Contact for pricing"
+    : provider.currency === "CAD"
+      ? `C$${provider.hourly_rate_min}–${provider.hourly_rate_max}/hr`
+      : `$${provider.hourly_rate_min}–${provider.hourly_rate_max}/hr`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -57,7 +58,7 @@ const ProviderDetailDialog = ({ provider, open, onOpenChange }: ProviderDetailDi
             ) : (
               <span className="text-sm text-muted-foreground italic">Not Yet Rated</span>
             )}
-            <span className="text-sm font-semibold text-foreground">{rateLabel}/hr</span>
+            <span className={`text-sm font-semibold ${isWeb ? "text-muted-foreground italic" : "text-foreground"}`}>{rateLabel}</span>
           </div>
 
           {/* Description */}
