@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft, CalendarCheck, Loader2, Home, Check, Clock,
-  AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus
+  AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus, CalendarPlus, Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +53,40 @@ const emptyHome: HomeProfile = {
 
 const seasonIcons: Record<string, typeof Sun> = { spring: Leaf, summer: Sun, fall: CloudRain, winter: Snowflake, any: Clock };
 const priorityColors: Record<string, string> = { high: "destructive", medium: "default", low: "secondary" };
+
+const formatICSDate = (date: string) => {
+  const d = new Date(date);
+  return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+};
+
+const generateICSEvent = (task: { id: string; title: string; description: string; category: string; priority: string; due_date: string | null; recurrence_months: number; season: string }) => {
+  const dueDate = task.due_date ? new Date(task.due_date) : new Date();
+  const nextDay = new Date(dueDate);
+  nextDay.setDate(nextDay.getDate() + 1);
+
+  const dtStart = `DTSTART;VALUE=DATE:${dueDate.toISOString().slice(0, 10).replace(/-/g, "")}`;
+  const dtEnd = `DTEND;VALUE=DATE:${nextDay.toISOString().slice(0, 10).replace(/-/g, "")}`;
+
+  const rrule = task.recurrence_months > 0
+    ? `\nRRULE:FREQ=MONTHLY;INTERVAL=${task.recurrence_months}`
+    : "";
+
+  const alarm = `\nBEGIN:VALARM\nTRIGGER:${task.priority === "high" ? "-P1D" : "-P3D"}\nACTION:DISPLAY\nDESCRIPTION:${task.title} - HomeHero Maintenance\nEND:VALARM`;
+
+  return `BEGIN:VEVENT\nUID:${task.id}@homehero\nSUMMARY:🏠 ${task.title}\nDESCRIPTION:${(task.description || "").replace(/\n/g, "\\n")}\\nCategory: ${task.category}\\nPriority: ${task.priority}\\nSeason: ${task.season}\n${dtStart}\n${dtEnd}${rrule}${alarm}\nEND:VEVENT`;
+};
+
+const downloadICS = (filename: string, content: string) => {
+  const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
 
 // Wizard steps for quick setup
 const wizardSteps = [
@@ -270,6 +304,28 @@ const MaintenancePage = () => {
     toast({ title: "Tasks cleared", description: "All maintenance tasks have been removed." });
   };
 
+  const addTaskToCalendar = (task: MaintenanceTask) => {
+    if (!task.due_date) {
+      toast({ title: "No due date", description: "This task has no due date to add to your calendar.", variant: "destructive" });
+      return;
+    }
+    const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//HomeHero//Maintenance//EN\nCALSCALE:GREGORIAN\n${generateICSEvent(task)}\nEND:VCALENDAR`;
+    downloadICS(`${task.title.replace(/\s+/g, "-").toLowerCase()}.ics`, ics);
+    toast({ title: "Calendar event downloaded", description: "Open the file to add it to your calendar app." });
+  };
+
+  const exportAllToCalendar = () => {
+    const upcomingTasks = tasks.filter(t => t.status !== "completed" && t.due_date);
+    if (upcomingTasks.length === 0) {
+      toast({ title: "No tasks to export", description: "There are no upcoming tasks with due dates.", variant: "destructive" });
+      return;
+    }
+    const events = upcomingTasks.map(t => generateICSEvent(t)).join("\n");
+    const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//HomeHero//Maintenance//EN\nCALSCALE:GREGORIAN\n${events}\nEND:VCALENDAR`;
+    downloadICS("homehero-maintenance.ics", ics);
+    toast({ title: "Calendar exported!", description: `${upcomingTasks.length} tasks exported. Open the file to add them to your calendar.` });
+  };
+
   const filteredTasks = tasks.filter(t => {
     if (filter === "upcoming") return t.status !== "completed";
     if (filter === "completed") return t.status === "completed";
@@ -477,9 +533,14 @@ const MaintenancePage = () => {
                     )}
                     <div className="ml-auto flex gap-2">
                       {tasks.length > 0 && (
-                        <Button variant="outline" size="sm" onClick={clearAllTasks}>
-                          <Trash2 size={14} className="mr-1" /> Clear All
-                        </Button>
+                        <>
+                          <Button variant="outline" size="sm" onClick={exportAllToCalendar} className="gap-1">
+                            <CalendarPlus size={14} /> Add to Calendar
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={clearAllTasks}>
+                            <Trash2 size={14} className="mr-1" /> Clear All
+                          </Button>
+                        </>
                       )}
                       <Button onClick={generateSchedule} disabled={generating} size="sm" className="gap-1">
                         {generating ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
@@ -578,9 +639,16 @@ const MaintenancePage = () => {
                                     )}
                                   </div>
                                 </div>
-                                <button onClick={() => deleteTask(task.id)} className="text-muted-foreground hover:text-destructive transition-colors shrink-0">
-                                  <Trash2 size={14} />
-                                </button>
+                                <div className="flex flex-col gap-1 shrink-0">
+                                  {task.due_date && task.status !== "completed" && (
+                                    <button onClick={() => addTaskToCalendar(task)} className="text-muted-foreground hover:text-primary transition-colors" title="Add to calendar">
+                                      <CalendarPlus size={14} />
+                                    </button>
+                                  )}
+                                  <button onClick={() => deleteTask(task.id)} className="text-muted-foreground hover:text-destructive transition-colors" title="Delete">
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           );
