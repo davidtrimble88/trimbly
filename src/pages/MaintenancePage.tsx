@@ -307,6 +307,20 @@ const MaintenancePage = () => {
   const toggleTask = async (task: MaintenanceTask) => {
     const newStatus = task.status === "completed" ? "upcoming" : "completed";
     const completedAt = newStatus === "completed" ? new Date().toISOString() : null;
+
+    // If undoing a completed recurring task, remove the next-cycle duplicate first
+    if (newStatus === "upcoming" && task.recurrence_months > 0) {
+      const nextCycleDup = tasks.find(t =>
+        t.id !== task.id &&
+        t.status !== "completed" &&
+        t.title.toLowerCase().trim() === task.title.toLowerCase().trim()
+      );
+      if (nextCycleDup) {
+        await supabase.from("maintenance_tasks").delete().eq("id", nextCycleDup.id);
+        setTasks(prev => prev.filter(t => t.id !== nextCycleDup.id));
+      }
+    }
+
     await supabase.from("maintenance_tasks").update({ status: newStatus, completed_at: completedAt }).eq("id", task.id);
     setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus, completed_at: completedAt } : t));
 
