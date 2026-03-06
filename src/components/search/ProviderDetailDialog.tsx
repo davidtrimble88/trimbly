@@ -46,15 +46,17 @@ const ProviderDetailDialog = ({ provider, open, onOpenChange }: ProviderDetailDi
         <div className="space-y-5 mt-2">
           {/* Rating & Rate */}
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-1.5">
-              <Star size={18} className="text-accent fill-accent" />
-              <span className="font-semibold text-foreground">
-                {provider.avg_rating > 0 ? provider.avg_rating : "New"}
-              </span>
-              {provider.review_count > 0 && (
-                <span className="text-sm text-muted-foreground">({provider.review_count} reviews)</span>
-              )}
-            </div>
+            {provider.avg_rating > 0 ? (
+              <div className="flex items-center gap-1.5">
+                <Star size={18} className="text-accent fill-accent" />
+                <span className="font-semibold text-foreground">{provider.avg_rating}</span>
+                {provider.review_count > 0 && (
+                  <span className="text-sm text-muted-foreground">({provider.review_count} reviews)</span>
+                )}
+              </div>
+            ) : (
+              <span className="text-sm text-muted-foreground italic">Not Yet Rated</span>
+            )}
             <span className="text-sm font-semibold text-foreground">{rateLabel}/hr</span>
           </div>
 
