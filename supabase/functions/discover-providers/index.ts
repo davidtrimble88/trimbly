@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     const categoryHint = category && category !== "All" ? category : "home services";
     const queryHint = searchQuery || "";
 
-    const webQuery = `${categoryHint} ${queryHint} contractor near ${locationHint || countryHint} phone number reviews`.trim();
+    const webQuery = `${categoryHint} ${queryHint} contractor near ${locationHint || countryHint} phone number reviews ratings`.trim();
 
     console.log("Firecrawl search query:", webQuery);
 
@@ -107,6 +107,7 @@ For each confirmed real business found in the search results:
 - Extract all available information directly from the scraped content
 - If a phone number or website URL appears anywhere in the search results for that business, include it
 - If the business is a well-known real company and you know their publicly listed phone number or website from your training data, you may include it
+- IMPORTANT: Extract ratings and review counts from Google, HomeAdvisor, Angi, Yelp, or BBB if present in the search results. Look for patterns like "4.8 stars", "4.8/5", "X reviews", "rated 4.8"
 - Do NOT invent fictional businesses. Only list businesses that appear in the search results.
 
 Return a JSON array. Each provider object must have exactly these fields:
@@ -121,6 +122,9 @@ Return a JSON array. Each provider object must have exactly these fields:
 - licensed (boolean, true if mentioned or typically required for the trade in that state)
 - insured (boolean, true if mentioned)
 - years_experience (number, if mentioned, otherwise 0)
+- avg_rating (number, e.g. 4.8, from Google/Yelp/HomeAdvisor/Angi/BBB if found, or 0 if unknown)
+- review_count (number, total reviews from the source, or 0 if unknown)
+- rating_source (string, e.g. "Google", "HomeAdvisor", "Yelp", "Angi", "BBB", or null if no rating found)
 
 Return ONLY the JSON array, no markdown fences, no explanation. If no real providers can be extracted, return an empty array [].`,
           },
@@ -219,8 +223,9 @@ Return ONLY the JSON array, no markdown fences, no explanation. If no real provi
       website_verified: false,
       years_experience: p.years_experience || 0,
       subscription_tier: "free",
-      avg_rating: 0,
-      review_count: 0,
+      avg_rating: p.avg_rating || 0,
+      review_count: p.review_count || 0,
+      rating_source: p.rating_source || null,
     }));
 
     // Verify websites and scrape for missing phone numbers in parallel
