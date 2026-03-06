@@ -14,6 +14,7 @@ import HomeBinder from "./pages/HomeBinder";
 import ProPricing from "./pages/ProPricing";
 import ProRegister from "./pages/ProRegister";
 import About from "./pages/About";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/pro-pricing" element={<ProPricing />} />
             <Route path="/pro-register" element={<ProRegister />} />
             <Route path="/about" element={<About />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
