@@ -15,6 +15,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useHomeLimit } from "@/hooks/useHomeLimit";
 import { useToast } from "@/hooks/use-toast";
 
 const itemTypes = [
@@ -68,8 +69,10 @@ const emptyItem = {
 const HomeBinder = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { canAddHome, isPro } = useHomeLimit();
 
   const [items, setItems] = useState<BinderItem[]>([]);
+  const [homes, setHomes] = useState<{ id: string; name: string }[]>([]);
   const [homeId, setHomeId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -85,22 +88,25 @@ const HomeBinder = () => {
     loadData();
   }, [user]);
 
-  const loadData = async () => {
+  const loadData = async (selectedHomeId?: string) => {
     setLoading(true);
-    // Get or create home
-    const { data: home } = await supabase
+    const { data: allHomes } = await supabase
       .from("homes")
-      .select("id")
+      .select("id, name")
       .eq("user_id", user!.id)
-      .limit(1)
-      .maybeSingle();
+      .order("created_at", { ascending: true });
 
-    if (home) {
-      setHomeId(home.id);
+    const homesList = allHomes || [];
+    setHomes(homesList);
+
+    const activeHomeId = selectedHomeId || homesList[0]?.id || null;
+
+    if (activeHomeId) {
+      setHomeId(activeHomeId);
       const { data: binderItems } = await supabase
         .from("home_binder_items")
         .select("*")
-        .eq("home_id", home.id)
+        .eq("home_id", activeHomeId)
         .order("created_at", { ascending: false });
       setItems((binderItems as BinderItem[]) || []);
     } else {
@@ -108,11 +114,19 @@ const HomeBinder = () => {
       const { data: newHome } = await supabase
         .from("homes")
         .insert({ user_id: user!.id, name: "My Home" })
-        .select("id")
+        .select("id, name")
         .single();
-      if (newHome) setHomeId(newHome.id);
+      if (newHome) {
+        setHomeId(newHome.id);
+        setHomes([newHome]);
+      }
     }
     setLoading(false);
+  };
+
+  const switchHome = (id: string) => {
+    setHomeId(id);
+    loadData(id);
   };
 
   const openNew = () => {
@@ -273,6 +287,26 @@ const HomeBinder = () => {
                 <Plus size={16} /> Add Item
               </Button>
             </div>
+
+            {/* Home selector tabs */}
+            {homes.length > 1 && (
+              <div className="flex gap-2 mt-4 overflow-x-auto">
+                {homes.map(h => (
+                  <button
+                    key={h.id}
+                    onClick={() => switchHome(h.id)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium border whitespace-nowrap transition-all flex items-center gap-1 ${
+                      homeId === h.id ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground border-border hover:border-primary/30"
+                    }`}
+                  >
+                    <HomeIcon size={12} /> {h.name}
+                  </button>
+                ))}
+                {!canAddHome && (
+                  <span className="px-3 py-2 text-xs text-muted-foreground self-center">Upgrade to Pro for more homes</span>
+                )}
+              </div>
+            )}
           </div>
 
           {loading ? (
