@@ -1,0 +1,1 @@
+ALTER TABLE public.maintenance_tasks ADD COLUMN products_search_term text DEFAULT NULL;

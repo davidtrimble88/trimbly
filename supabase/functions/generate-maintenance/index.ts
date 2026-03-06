@@ -63,6 +63,8 @@ Create tasks that are specific to the home's characteristics (age, location clim
 Assign realistic due dates starting from today going forward 12 months.
 Each task should have a specific season and recurrence interval.
 
+For tasks that require purchasing supplies or products (like air filters, batteries, cleaning chemicals, sealant, etc.), include a specific Amazon search term in products_search_term. Be specific with sizes/types when possible. Leave it as empty string for tasks that don't need products (like inspections or professional services).
+
 You must call the "maintenance_schedule" function with the generated tasks.`,
           },
           {
@@ -91,8 +93,9 @@ You must call the "maintenance_schedule" function with the generated tasks.`,
                         due_date: { type: "string", description: "ISO date string YYYY-MM-DD" },
                         recurrence_months: { type: "number", description: "How often to repeat in months (0 = one-time)" },
                         season: { type: "string", enum: ["spring", "summer", "fall", "winter", "any"] },
+                        products_search_term: { type: "string", description: "Amazon search term for required product/supply, e.g. 'HVAC air filter 20x25x1', 'smoke detector 10 year battery', 'gutter guard mesh'. Leave empty string if no product needed." },
                       },
-                      required: ["title", "description", "category", "priority", "due_date", "recurrence_months", "season"],
+                      required: ["title", "description", "category", "priority", "due_date", "recurrence_months", "season", "products_search_term"],
                       additionalProperties: false,
                     },
                   },

@@ -212,6 +212,7 @@ export type Database = {
           home_id: string
           id: string
           priority: string
+          products_search_term: string | null
           recurrence_months: number | null
           season: string | null
           status: string
@@ -228,6 +229,7 @@ export type Database = {
           home_id: string
           id?: string
           priority?: string
+          products_search_term?: string | null
           recurrence_months?: number | null
           season?: string | null
           status?: string
@@ -244,6 +246,7 @@ export type Database = {
           home_id?: string
           id?: string
           priority?: string
+          products_search_term?: string | null
           recurrence_months?: number | null
           season?: string | null
           status?: string

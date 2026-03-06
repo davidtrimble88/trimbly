@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft, CalendarCheck, Loader2, Home, Check, Clock,
-  AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus, CalendarPlus, Download
+  AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus, CalendarPlus, Download, ShoppingCart, ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,7 @@ type MaintenanceTask = {
   recurrence_months: number;
   season: string;
   completed_at: string | null;
+  products_search_term: string | null;
 };
 
 const emptyHome: HomeProfile = {
@@ -272,6 +273,7 @@ const MaintenancePage = () => {
         due_date: t.due_date || null,
         recurrence_months: t.recurrence_months || 0,
         season: t.season || "any",
+        products_search_term: t.products_search_term || null,
       }));
 
       const { error: insertErr } = await supabase.from("maintenance_tasks").insert(rows);
@@ -625,6 +627,16 @@ const MaintenancePage = () => {
                                     <span className="text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">{task.category}</span>
                                   </div>
                                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
+                                  {task.products_search_term && (
+                                    <a
+                                      href={`https://www.amazon.com/s?k=${encodeURIComponent(task.products_search_term)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-primary hover:underline"
+                                    >
+                                      <ShoppingCart size={12} /> Shop on Amazon <ExternalLink size={10} />
+                                    </a>
+                                  )}
                                   <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                                     {task.due_date && (
                                       <span className={isOverdue ? "text-destructive font-medium" : ""}>
