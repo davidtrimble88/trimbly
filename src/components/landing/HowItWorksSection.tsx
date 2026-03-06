@@ -1,43 +1,104 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, FileText, MessageSquare, CheckCircle } from "lucide-react";
+import {
+  Search, FileText, MessageSquare, CheckCircle,
+  Home, ClipboardList, CalendarCheck, Bell,
+  Wrench, ShieldCheck, PackageSearch, RotateCcw
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const steps = [
+const tabs = [
   {
+    id: "pros",
+    label: "Find a Pro",
     icon: Search,
-    step: "01",
-    title: "Describe Your Job",
-    description: "Tell us what you need — or let our AI analyze a photo and suggest the right service.",
-    route: "/search",
+    steps: [
+      {
+        icon: Search, step: "01", title: "Describe Your Job",
+        description: "Tell us what you need — or let our AI analyze a photo and suggest the right service.",
+        route: "/search",
+      },
+      {
+        icon: FileText, step: "02", title: "Get Instant Quotes",
+        description: "Receive AI-powered estimates and compare quotes from verified local pros.",
+        route: "/estimator",
+      },
+      {
+        icon: MessageSquare, step: "03", title: "Chat & Schedule",
+        description: "Message pros directly, agree on timing and price, and book your appointment.",
+        route: null,
+      },
+      {
+        icon: CheckCircle, step: "04", title: "Job Done, Review Left",
+        description: "Get the work done by a trusted pro, then leave a review to help others.",
+        route: null,
+      },
+    ],
   },
   {
-    icon: FileText,
-    step: "02",
-    title: "Get Instant Quotes",
-    description: "Receive AI-powered estimates and compare quotes from verified local pros.",
-    route: "/estimator",
+    id: "maintenance",
+    label: "Maintenance Autopilot",
+    icon: CalendarCheck,
+    steps: [
+      {
+        icon: Home, step: "01", title: "Set Up Your Home",
+        description: "Answer a few quick questions about your home — type, age, HVAC, roof, and special features like pools or septic.",
+        route: "/maintenance",
+      },
+      {
+        icon: ClipboardList, step: "02", title: "AI Generates Your Schedule",
+        description: "Our AI creates a personalized 12-month maintenance plan with seasonal tasks, priorities, and product recommendations.",
+        route: "/maintenance",
+      },
+      {
+        icon: Bell, step: "03", title: "Get Timely Reminders",
+        description: "Receive email reminders at 30, 7, and 1 day before each task — plus day-of alerts so nothing slips through.",
+        route: "/maintenance",
+      },
+      {
+        icon: RotateCcw, step: "04", title: "Complete & Auto-Renew",
+        description: "Mark tasks done and recurring maintenance automatically schedules for the next cycle. Export to your calendar anytime.",
+        route: "/maintenance",
+      },
+    ],
   },
   {
-    icon: MessageSquare,
-    step: "03",
-    title: "Chat & Schedule",
-    description: "Message pros directly, agree on timing and price, and book your appointment.",
-    route: null,
-  },
-  {
-    icon: CheckCircle,
-    step: "04",
-    title: "Job Done, Review Left",
-    description: "Get the work done by a trusted pro, then leave a review to help others.",
-    route: null,
+    id: "binder",
+    label: "Digital Home Binder",
+    icon: ShieldCheck,
+    steps: [
+      {
+        icon: Home, step: "01", title: "Add Your Home Profile",
+        description: "Create a profile for each property with details like location, systems, and year built.",
+        route: "/home-binder",
+      },
+      {
+        icon: Wrench, step: "02", title: "Log Systems & Appliances",
+        description: "Track every appliance, system, and fixture — with brand, model, serial number, and install date.",
+        route: "/home-binder",
+      },
+      {
+        icon: PackageSearch, step: "03", title: "Store Warranties & Docs",
+        description: "Upload receipts, manuals, and warranty documents. Everything is securely stored in the cloud.",
+        route: "/home-binder",
+      },
+      {
+        icon: ShieldCheck, step: "04", title: "Never Miss an Expiry",
+        description: "Get alerts before warranties expire so you can file claims or plan replacements ahead of time.",
+        route: "/home-binder",
+      },
+    ],
   },
 ];
 
 const HowItWorksSection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("pros");
 
-  const handleClick = (step: typeof steps[0]) => {
+  const activeData = tabs.find(t => t.id === activeTab)!;
+
+  const handleClick = (step: typeof activeData.steps[0]) => {
     if (step.route) {
       navigate(step.route);
     } else {
@@ -48,15 +109,34 @@ const HowItWorksSection = () => {
   return (
     <section id="how-it-works" className="py-20 md:py-28 bg-secondary/50">
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-2xl mx-auto mb-16">
+        <div className="text-center max-w-2xl mx-auto mb-10">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">How It Works</p>
           <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
-            From problem to solved in 4 steps
+            Simple steps to a well-maintained home
           </h2>
         </div>
 
+        {/* Tabs */}
+        <div className="flex justify-center gap-2 mb-12 flex-wrap">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border transition-all ${
+                activeTab === tab.id
+                  ? "bg-primary text-primary-foreground border-primary shadow-md"
+                  : "bg-background text-muted-foreground border-border hover:border-primary/40 hover:text-foreground"
+              }`}
+            >
+              <tab.icon size={16} />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Steps */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {steps.map((s, i) => (
+          {activeData.steps.map((s, i) => (
             <button
               key={s.step}
               onClick={() => handleClick(s)}
@@ -71,7 +151,7 @@ const HowItWorksSection = () => {
               {!s.route && (
                 <span className="inline-block mt-3 text-xs font-medium text-muted-foreground bg-secondary px-2 py-1 rounded-full">Coming Soon</span>
               )}
-              {i < steps.length - 1 && (
+              {i < activeData.steps.length - 1 && (
                 <div className="hidden lg:block absolute top-8 left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-border" />
               )}
             </button>
