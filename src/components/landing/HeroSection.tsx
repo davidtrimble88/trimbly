@@ -33,7 +33,7 @@ const HeroSection = () => {
             <Button size="lg" className="text-base px-8 h-12 gap-2" onClick={() => navigate("/search")}>
               Find a Pro Near You <ArrowRight size={18} />
             </Button>
-            <Button variant="outline" size="lg" className="text-base px-8 h-12" onClick={() => navigate("/auth")}>
+            <Button variant="outline" size="lg" className="text-base px-8 h-12" onClick={() => navigate("/pro-pricing")}>
               I'm a Service Provider
             </Button>
           </div>
