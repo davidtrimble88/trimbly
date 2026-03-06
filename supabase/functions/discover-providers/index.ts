@@ -142,39 +142,55 @@ Return ONLY the JSON array, no markdown fences, no explanation. If no real provi
     }
 
     const aiData = await aiResponse.json();
-    let content = aiData.choices?.[0]?.message?.content || "[]";
-    content = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-
+    const rawContent = aiData.choices?.[0]?.message?.content;
+    
     let providers = [];
-    try {
-      providers = JSON.parse(content);
-    } catch {
-      // Try to extract JSON array from content
-      const arrayMatch = content.match(/\[[\s\S]*\]/);
-      if (arrayMatch) {
-        try {
-          providers = JSON.parse(arrayMatch[0]);
-        } catch {
-          console.error("Failed to parse extracted JSON array");
-          // Try fixing truncated JSON by closing incomplete objects
-          let fixedContent = arrayMatch[0];
-          // Remove trailing incomplete object
-          const lastCompleteObj = fixedContent.lastIndexOf("}");
-          if (lastCompleteObj > 0) {
-            fixedContent = fixedContent.substring(0, lastCompleteObj + 1) + "]";
+    
+    // Handle case where content is already parsed as an object/array
+    if (Array.isArray(rawContent)) {
+      providers = rawContent;
+    } else if (typeof rawContent === "object" && rawContent !== null) {
+      providers = [rawContent];
+    } else {
+      let content = String(rawContent || "[]");
+      content = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      
+      // Clean control characters
+      content = content.replace(/[\x00-\x1F\x7F]/g, (c) => c === '\n' || c === '\r' || c === '\t' ? c : '');
+      
+      try {
+        providers = JSON.parse(content);
+      } catch (e1) {
+        console.error("Initial parse failed:", (e1 as Error).message);
+        // Extract JSON array
+        const jsonStart = content.indexOf("[");
+        const jsonEnd = content.lastIndexOf("]");
+        if (jsonStart !== -1 && jsonEnd > jsonStart) {
+          let extracted = content.substring(jsonStart, jsonEnd + 1);
+          try {
+            providers = JSON.parse(extracted);
+          } catch {
+            // Fix trailing commas and try again
+            extracted = extracted.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
             try {
-              providers = JSON.parse(fixedContent);
+              providers = JSON.parse(extracted);
             } catch {
-              console.error("Could not fix truncated JSON");
-              providers = [];
+              // Last resort: find last complete object
+              const lastBrace = extracted.lastIndexOf("}");
+              if (lastBrace > 0) {
+                try {
+                  providers = JSON.parse(extracted.substring(0, lastBrace + 1) + "]");
+                } catch {
+                  console.error("All parse attempts failed");
+                }
+              }
             }
           }
         }
-      } else {
-        console.error("No JSON array found in AI response");
-        providers = [];
       }
     }
+    
+    console.log(`Parsed ${Array.isArray(providers) ? providers.length : 0} providers from AI response`);
 
     // Normalize and add IDs
     let normalizedProviders = (Array.isArray(providers) ? providers : []).map((p: any, i: number) => ({

@@ -32,13 +32,16 @@ const SearchPros = () => {
   const [selectedProvider, setSelectedProvider] = useState<ProviderWithStats | null>(null);
   const { toast } = useToast();
 
-  const [hasSearched, setHasSearched] = useState(false);
+  const [searchTrigger, setSearchTrigger] = useState(0);
+  const hasSearched = searchTrigger > 0;
+
+  const triggerSearch = () => setSearchTrigger((n) => n + 1);
 
   // Load registered DB providers only after user searches
   useEffect(() => {
     if (!hasSearched) return;
     loadDbProviders();
-  }, [activeCategory, countryFilter, searchMode, searchQuery, locationQuery, hasSearched]);
+  }, [activeCategory, countryFilter, searchMode, searchQuery, locationQuery, searchTrigger]);
 
   const loadDbProviders = async () => {
     setLoadingDb(true);
@@ -68,7 +71,7 @@ const SearchPros = () => {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [activeCategory, countryFilter, searchQuery, locationQuery, searchMode, hasSearched]);
+  }, [activeCategory, countryFilter, searchQuery, locationQuery, searchMode, searchTrigger]);
 
   const discoverFromWeb = useCallback(async () => {
     
@@ -196,7 +199,7 @@ const SearchPros = () => {
                       placeholder="Search by provider name, service, or city..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && setHasSearched(true)}
+                      onKeyDown={(e) => e.key === "Enter" && triggerSearch()}
                       className="pl-10 h-12"
                     />
                   </div>
@@ -207,12 +210,12 @@ const SearchPros = () => {
                       placeholder="Enter city or state/province (e.g. Toronto, ON or Miami, FL)..."
                       value={locationQuery}
                       onChange={(e) => setLocationQuery(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && setHasSearched(true)}
+                      onKeyDown={(e) => e.key === "Enter" && triggerSearch()}
                       className="pl-10 h-12"
                     />
                   </div>
                 )}
-                <Button onClick={() => setHasSearched(true)} size="lg" className="h-12 gap-2">
+                <Button onClick={() => triggerSearch()} size="lg" className="h-12 gap-2">
                   <Search size={16} /> Search
                 </Button>
                 <Button variant="outline" size="lg" className="h-12 gap-2">
