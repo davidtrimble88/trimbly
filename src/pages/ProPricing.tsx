@@ -14,7 +14,6 @@ const tiers = [
     features: [
       "Business profile listing",
       "Appear in search results",
-      "Up to 5 quote requests/month",
       "Customer reviews & ratings",
       "Basic analytics dashboard",
     ],
@@ -31,7 +30,6 @@ const tiers = [
     features: [
       "Everything in Free",
       "Priority search placement",
-      "Unlimited quote requests",
       "Verified Pro badge",
       "Detailed performance analytics",
       "Direct messaging with homeowners",
