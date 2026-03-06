@@ -1,5 +1,3 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
@@ -13,6 +11,14 @@ Deno.serve(async (req) => {
   try {
     const { category, city, state, country, searchQuery } = await req.json();
 
+    const firecrawlApiKey = Deno.env.get("FIRECRAWL_API_KEY");
+    if (!firecrawlApiKey) {
+      return new Response(JSON.stringify({ error: "Firecrawl not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!lovableApiKey) {
       return new Response(JSON.stringify({ error: "AI not configured" }), {
@@ -21,20 +27,69 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Build a search query for real businesses
     const locationHint = city && state ? `${city}, ${state}` : state || city || "";
     const countryHint = country === "CA" ? "Canada" : "United States";
     const categoryHint = category && category !== "All" ? category : "home services";
     const queryHint = searchQuery || "";
 
-    const prompt = `Find real, legitimate ${categoryHint} service providers ${locationHint ? `in or near ${locationHint}, ${countryHint}` : `across ${countryHint}`}${queryHint ? ` matching "${queryHint}"` : ""}.
+    const webQuery = `${categoryHint} ${queryHint} contractor near ${locationHint || countryHint} phone number reviews`.trim();
 
-Return up to 20 real service providers that a homeowner could actually hire. Use your knowledge of real businesses, common business names, and realistic details for the area. Include a mix of:
-- Well-known local companies
-- Independent contractors
-- Franchise locations
+    console.log("Firecrawl search query:", webQuery);
 
-For each provider, include realistic details based on typical businesses in that area.`;
+    // Step 1: Search the web with Firecrawl
+    const searchResponse = await fetch("https://api.firecrawl.dev/v1/search", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${firecrawlApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: webQuery,
+        limit: 20,
+        scrapeOptions: { formats: ["markdown"] },
+      }),
+    });
 
+    if (!searchResponse.ok) {
+      const errText = await searchResponse.text();
+      console.error("Firecrawl search error:", searchResponse.status, errText);
+      if (searchResponse.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (searchResponse.status === 402) {
+        return new Response(JSON.stringify({ error: "Search usage limit reached." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ error: "Web search failed" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const searchData = await searchResponse.json();
+    const results = searchData?.data || [];
+
+    if (results.length === 0) {
+      return new Response(JSON.stringify({ providers: [] }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Step 2: Compile scraped content for AI extraction
+    const scrapedContent = results
+      .slice(0, 15)
+      .map((r: any, i: number) => {
+        const title = r.title || "Unknown";
+        const url = r.url || "";
+        const markdown = r.markdown ? r.markdown.substring(0, 1500) : r.description || "";
+        return `--- Result ${i + 1} ---\nTitle: ${title}\nURL: ${url}\n${markdown}`;
+      })
+      .join("\n\n");
+
+    // Step 3: Use AI to extract structured provider data from real search results
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -46,44 +101,55 @@ For each provider, include realistic details based on typical businesses in that
         messages: [
           {
             role: "system",
-            content: "You are a home services directory assistant. Return provider data as a JSON array. Each provider object must have exactly these fields: business_name (string), category (one of: Plumbing, Electrical, Handyman, HVAC, Landscaping, Painting, Roofing, Cleaning), description (1-2 sentence description), hourly_rate_min (number), hourly_rate_max (number), licensed (boolean), insured (boolean), city (string), state (2-letter code), country (US or CA), phone (string like '(555) 123-4567'), website (string URL or null), years_experience (number). Do NOT include rating or review_count. Return ONLY the JSON array, no markdown, no explanation.",
+            content: `You extract real service provider information from web search results. Only include providers where you can confirm the business name from the search results. Do NOT invent or fabricate any information. If a field is not found in the data, use null or appropriate defaults.
+
+Return a JSON array. Each provider object must have exactly these fields:
+- business_name (string, from the search results)
+- category (one of: Plumbing, Electrical, Handyman, HVAC, Landscaping, Painting, Roofing, Cleaning)
+- description (string, extracted from search results, or empty string)
+- city (string, from search results or empty)
+- state (string, 2-letter code or empty)
+- country ("US" or "CA")
+- phone (string, only if found in search results, otherwise null)
+- website (string URL, only if found in search results, otherwise null)
+- licensed (boolean, true only if explicitly mentioned)
+- insured (boolean, true only if explicitly mentioned)
+- years_experience (number, only if mentioned, otherwise 0)
+
+Return ONLY the JSON array, no markdown fences, no explanation. If no real providers can be extracted, return an empty array [].`,
           },
-          { role: "user", content: prompt },
+          {
+            role: "user",
+            content: `Extract real ${categoryHint} service providers from these web search results. Location context: ${locationHint || countryHint}.\n\n${scrapedContent}`,
+          },
         ],
-        max_tokens: 3000,
-        temperature: 0.7,
+        max_tokens: 4000,
+        temperature: 0.1,
       }),
     });
 
     if (!aiResponse.ok) {
+      const errText = await aiResponse.text();
+      console.error("AI extraction error:", aiResponse.status, errText);
       if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
+        return new Response(JSON.stringify({ error: "Rate limit exceeded." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: "AI usage limit reached." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const errText = await aiResponse.text();
-      console.error("AI gateway error:", aiResponse.status, errText);
-      return new Response(JSON.stringify({ error: "Failed to discover providers" }), {
+      return new Response(JSON.stringify({ error: "Failed to extract provider data" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const aiData = await aiResponse.json();
     let content = aiData.choices?.[0]?.message?.content || "[]";
-
-    // Strip markdown fences if present
     content = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
 
     let providers = [];
     try {
       providers = JSON.parse(content);
     } catch {
-      console.error("Failed to parse AI response:", content);
+      console.error("Failed to parse AI extraction:", content);
       providers = [];
     }
 
@@ -92,17 +158,17 @@ For each provider, include realistic details based on typical businesses in that
       id: `web-${Date.now()}-${i}`,
       source: "web",
       business_name: p.business_name || "Unknown Provider",
-      category: p.category || "Handyman",
+      category: p.category || categoryHint || "Handyman",
       description: p.description || "",
-      hourly_rate_min: p.hourly_rate_min || 50,
-      hourly_rate_max: p.hourly_rate_max || 100,
+      hourly_rate_min: 0,
+      hourly_rate_max: 0,
       currency: p.country === "CA" ? "CAD" : "USD",
       licensed: p.licensed ?? false,
       insured: p.insured ?? false,
       available: true,
       city: p.city || "",
       state: p.state || "",
-      country: p.country || "US",
+      country: p.country || (country === "CA" ? "CA" : "US"),
       phone: p.phone || null,
       website: p.website || null,
       website_verified: false,
@@ -128,7 +194,12 @@ For each provider, include realistic details based on typical businesses in that
 
     normalizedProviders = await Promise.all(verifyPromises);
 
-    return new Response(JSON.stringify({ providers: normalizedProviders }), {
+    // Filter out entries with no real business name
+    normalizedProviders = normalizedProviders.filter(
+      (p: any) => p.business_name && p.business_name !== "Unknown Provider"
+    );
+
+    return new Response(JSON.stringify({ providers: normalizedProviders.slice(0, 20) }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
