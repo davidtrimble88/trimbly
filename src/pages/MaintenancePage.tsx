@@ -1,14 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft, CalendarCheck, Loader2, Plus, Home, Check, Clock,
+  ArrowLeft, CalendarCheck, Loader2, Home, Check, Clock,
   AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
@@ -56,6 +53,46 @@ const emptyHome: HomeProfile = {
 const seasonIcons: Record<string, typeof Sun> = { spring: Leaf, summer: Sun, fall: CloudRain, winter: Snowflake, any: Clock };
 const priorityColors: Record<string, string> = { high: "destructive", medium: "default", low: "secondary" };
 
+// Wizard steps for quick setup
+const wizardSteps = [
+  { key: "home_type", question: "What type of home do you have?", type: "select" as const, options: [
+    { value: "single_family", label: "🏠 Single Family" },
+    { value: "townhouse", label: "🏘️ Townhouse" },
+    { value: "condo", label: "🏢 Condo" },
+    { value: "duplex", label: "🏗️ Duplex" },
+    { value: "mobile", label: "🏕️ Mobile Home" },
+  ]},
+  { key: "location", question: "Where is your home located?", type: "location" as const },
+  { key: "year_built", question: "Approximately when was it built?", type: "select" as const, options: [
+    { value: "2020", label: "2020+" },
+    { value: "2010", label: "2010–2019" },
+    { value: "2000", label: "2000–2009" },
+    { value: "1990", label: "1990–1999" },
+    { value: "1980", label: "1980–1989" },
+    { value: "1960", label: "Before 1980" },
+  ]},
+  { key: "hvac_type", question: "What heating/cooling system do you have?", type: "select" as const, options: [
+    { value: "central", label: "❄️ Central Air" },
+    { value: "heat_pump", label: "🔄 Heat Pump" },
+    { value: "furnace", label: "🔥 Furnace" },
+    { value: "mini_split", label: "💨 Mini Split" },
+    { value: "window", label: "🪟 Window Units" },
+    { value: "none", label: "❌ None" },
+  ]},
+  { key: "roof_type", question: "What type of roof do you have?", type: "select" as const, options: [
+    { value: "asphalt", label: "🏠 Asphalt Shingle" },
+    { value: "metal", label: "🔩 Metal" },
+    { value: "tile", label: "🧱 Tile" },
+    { value: "slate", label: "🪨 Slate" },
+    { value: "flat", label: "📐 Flat / TPO" },
+  ]},
+  { key: "extras", question: "Does your home have any of these?", type: "toggles" as const, options: [
+    { value: "has_pool", label: "🏊 Pool" },
+    { value: "has_septic", label: "🚽 Septic System" },
+    { value: "has_well_water", label: "💧 Well Water" },
+  ]},
+];
+
 const MaintenancePage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -69,6 +106,7 @@ const MaintenancePage = () => {
   const [showSetup, setShowSetup] = useState(false);
   const [savingHome, setSavingHome] = useState(false);
   const [filter, setFilter] = useState<"all" | "upcoming" | "completed">("all");
+  const [wizardStep, setWizardStep] = useState(0);
 
   // Load home profile and tasks
   useEffect(() => {
@@ -91,6 +129,7 @@ const MaintenancePage = () => {
       loadTasks(data.id);
     } else {
       setShowSetup(true);
+      setWizardStep(0);
     }
     setLoadingHome(false);
   };
@@ -123,6 +162,28 @@ const MaintenancePage = () => {
       toast({ title: "Error", description: "Failed to save home profile.", variant: "destructive" });
     }
     setSavingHome(false);
+  };
+
+  const finishWizard = async () => {
+    await saveHome();
+    // Auto-generate schedule after wizard completes
+    // Need to wait for home.id to be set, so we trigger generate in a timeout
+    setTimeout(() => {
+      generateSchedule();
+    }, 500);
+  };
+
+  const handleWizardSelect = (key: string, value: string) => {
+    if (key === "home_type") setHome(h => ({ ...h, home_type: value }));
+    else if (key === "year_built") setHome(h => ({ ...h, year_built: Number(value) }));
+    else if (key === "hvac_type") setHome(h => ({ ...h, hvac_type: value }));
+    else if (key === "roof_type") setHome(h => ({ ...h, roof_type: value }));
+    // Auto-advance after selection (except toggles & location)
+    setTimeout(() => setWizardStep(s => Math.min(s + 1, wizardSteps.length - 1)), 200);
+  };
+
+  const handleToggle = (field: string) => {
+    setHome(h => ({ ...h, [field]: !(h as any)[field] }));
   };
 
   const generateSchedule = async () => {
@@ -228,7 +289,7 @@ const MaintenancePage = () => {
                 </div>
               </div>
               {homeLoaded && (
-                <Button variant="outline" size="sm" onClick={() => setShowSetup(!showSetup)}>
+                <Button variant="outline" size="sm" onClick={() => { setShowSetup(!showSetup); setWizardStep(0); }}>
                   <Home size={14} className="mr-1" /> Edit Home
                 </Button>
               )}
@@ -241,101 +302,103 @@ const MaintenancePage = () => {
             </div>
           ) : (
             <>
-              {/* Home Profile Form */}
+              {/* Home Setup Wizard */}
               {(showSetup || !homeLoaded) && (
-                <div className="rounded-xl border border-border bg-card p-6 mb-8">
-                  <h2 className="font-bold text-lg text-foreground mb-4 flex items-center gap-2">
-                    <Home size={18} className="text-primary" /> {home.id ? "Edit Home Profile" : "Set Up Your Home"}
-                  </h2>
-                  <div className="space-y-4">
-                    <div className="grid sm:grid-cols-2 gap-4">
+                <div className="rounded-xl border border-border bg-card p-6 mb-8 max-w-xl mx-auto">
+                  {/* Progress bar */}
+                  <div className="flex gap-1.5 mb-6">
+                    {wizardSteps.map((_, i) => (
+                      <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i <= wizardStep ? "bg-primary" : "bg-border"}`} />
+                    ))}
+                  </div>
+
+                  <p className="text-xs text-muted-foreground mb-1">Question {wizardStep + 1} of {wizardSteps.length}</p>
+                  <h2 className="font-bold text-xl text-foreground mb-6">{wizardSteps[wizardStep].question}</h2>
+
+                  {/* Select type: card-style options */}
+                  {wizardSteps[wizardStep].type === "select" && (
+                    <div className="grid grid-cols-2 gap-3">
+                      {wizardSteps[wizardStep].options!.map(opt => {
+                        const currentVal = wizardSteps[wizardStep].key === "home_type" ? home.home_type
+                          : wizardSteps[wizardStep].key === "year_built" ? String(home.year_built || "")
+                          : wizardSteps[wizardStep].key === "hvac_type" ? home.hvac_type
+                          : home.roof_type;
+                        const isSelected = currentVal === opt.value;
+                        return (
+                          <button
+                            key={opt.value}
+                            onClick={() => handleWizardSelect(wizardSteps[wizardStep].key, opt.value)}
+                            className={`p-4 rounded-xl border text-left text-sm font-medium transition-all ${
+                              isSelected
+                                ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/20"
+                                : "border-border bg-card text-muted-foreground hover:border-primary/30"
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Location type: city + state inputs */}
+                  {wizardSteps[wizardStep].type === "location" && (
+                    <div className="space-y-3">
                       <div>
-                        <Label>Home Name</Label>
-                        <Input value={home.name} onChange={e => setHome({ ...home, name: e.target.value })} placeholder="My Home" />
+                        <Label className="text-sm">City</Label>
+                        <Input value={home.city} onChange={e => setHome({ ...home, city: e.target.value })} placeholder="e.g. Austin" className="mt-1" />
                       </div>
                       <div>
-                        <Label>Home Type</Label>
-                        <Select value={home.home_type} onValueChange={v => setHome({ ...home, home_type: v })}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="single_family">Single Family</SelectItem>
-                            <SelectItem value="townhouse">Townhouse</SelectItem>
-                            <SelectItem value="condo">Condo</SelectItem>
-                            <SelectItem value="duplex">Duplex</SelectItem>
-                            <SelectItem value="mobile">Mobile Home</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Label className="text-sm">State / Province</Label>
+                        <Input value={home.state} onChange={e => setHome({ ...home, state: e.target.value })} placeholder="e.g. TX" maxLength={2} className="mt-1" />
                       </div>
                     </div>
-                    <div className="grid sm:grid-cols-3 gap-4">
-                      <div>
-                        <Label>Year Built</Label>
-                        <Input type="number" value={home.year_built ?? ""} onChange={e => setHome({ ...home, year_built: e.target.value ? Number(e.target.value) : null })} placeholder="2005" />
-                      </div>
-                      <div>
-                        <Label>Square Feet</Label>
-                        <Input type="number" value={home.square_feet ?? ""} onChange={e => setHome({ ...home, square_feet: e.target.value ? Number(e.target.value) : null })} placeholder="2000" />
-                      </div>
-                      <div>
-                        <Label>City</Label>
-                        <Input value={home.city} onChange={e => setHome({ ...home, city: e.target.value })} placeholder="Austin" />
-                      </div>
+                  )}
+
+                  {/* Toggles type: multi-select toggles */}
+                  {wizardSteps[wizardStep].type === "toggles" && (
+                    <div className="space-y-3">
+                      {wizardSteps[wizardStep].options!.map(opt => {
+                        const isOn = !!(home as any)[opt.value];
+                        return (
+                          <button
+                            key={opt.value}
+                            onClick={() => handleToggle(opt.value)}
+                            className={`w-full p-4 rounded-xl border text-left text-sm font-medium transition-all flex items-center justify-between ${
+                              isOn
+                                ? "border-primary bg-primary/10 text-foreground"
+                                : "border-border bg-card text-muted-foreground hover:border-primary/30"
+                            }`}
+                          >
+                            {opt.label}
+                            {isOn && <Check size={16} className="text-primary" />}
+                          </button>
+                        );
+                      })}
+                      <p className="text-xs text-muted-foreground">Select all that apply, or skip to continue.</p>
                     </div>
-                    <div className="grid sm:grid-cols-3 gap-4">
-                      <div>
-                        <Label>State</Label>
-                        <Input value={home.state} onChange={e => setHome({ ...home, state: e.target.value })} placeholder="TX" maxLength={2} />
-                      </div>
-                      <div>
-                        <Label>HVAC Type</Label>
-                        <Select value={home.hvac_type || "central"} onValueChange={v => setHome({ ...home, hvac_type: v })}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="central">Central Air</SelectItem>
-                            <SelectItem value="heat_pump">Heat Pump</SelectItem>
-                            <SelectItem value="furnace">Furnace</SelectItem>
-                            <SelectItem value="mini_split">Mini Split</SelectItem>
-                            <SelectItem value="window">Window Units</SelectItem>
-                            <SelectItem value="none">None</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label>Roof Type</Label>
-                        <Select value={home.roof_type || "asphalt"} onValueChange={v => setHome({ ...home, roof_type: v })}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="asphalt">Asphalt Shingle</SelectItem>
-                            <SelectItem value="metal">Metal</SelectItem>
-                            <SelectItem value="tile">Tile</SelectItem>
-                            <SelectItem value="slate">Slate</SelectItem>
-                            <SelectItem value="flat">Flat / TPO</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-6">
-                      <div className="flex items-center gap-2">
-                        <Switch checked={home.has_pool} onCheckedChange={v => setHome({ ...home, has_pool: v })} />
-                        <Label>Pool</Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch checked={home.has_septic} onCheckedChange={v => setHome({ ...home, has_septic: v })} />
-                        <Label>Septic System</Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch checked={home.has_well_water} onCheckedChange={v => setHome({ ...home, has_well_water: v })} />
-                        <Label>Well Water</Label>
-                      </div>
-                    </div>
-                    <div>
-                      <Label>Additional Notes</Label>
-                      <Textarea value={home.notes} onChange={e => setHome({ ...home, notes: e.target.value })} placeholder="e.g. Finished basement, cedar deck, gas water heater..." className="resize-none" />
-                    </div>
-                    <Button onClick={saveHome} disabled={savingHome}>
-                      {savingHome ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
-                      {home.id ? "Update Home" : "Save Home Profile"}
+                  )}
+
+                  {/* Navigation */}
+                  <div className="flex justify-between mt-6">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setWizardStep(s => Math.max(0, s - 1))}
+                      disabled={wizardStep === 0}
+                    >
+                      Back
                     </Button>
+                    {wizardStep < wizardSteps.length - 1 ? (
+                      <Button size="sm" onClick={() => setWizardStep(s => s + 1)}>
+                        {wizardSteps[wizardStep].type === "location" && !home.city ? "Skip" : "Next"}
+                      </Button>
+                    ) : (
+                      <Button size="sm" onClick={finishWizard} disabled={savingHome || generating} className="gap-1">
+                        {(savingHome || generating) ? <Loader2 size={14} className="animate-spin" /> : <CalendarCheck size={14} />}
+                        Generate My Schedule
+                      </Button>
+                    )}
                   </div>
                 </div>
               )}
