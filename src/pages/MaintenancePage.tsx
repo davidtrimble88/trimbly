@@ -294,6 +294,37 @@ const MaintenancePage = () => {
     const completedAt = newStatus === "completed" ? new Date().toISOString() : null;
     await supabase.from("maintenance_tasks").update({ status: newStatus, completed_at: completedAt }).eq("id", task.id);
     setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus, completed_at: completedAt } : t));
+
+    // If marking complete and task is recurring, create next cycle task
+    if (newStatus === "completed" && task.recurrence_months > 0 && task.due_date && home.id && user) {
+      const nextDue = new Date(task.due_date);
+      nextDue.setMonth(nextDue.getMonth() + task.recurrence_months);
+
+      const newTask = {
+        home_id: home.id,
+        user_id: user.id,
+        title: task.title,
+        description: task.description,
+        category: task.category,
+        priority: task.priority,
+        status: "upcoming",
+        due_date: nextDue.toISOString().slice(0, 10),
+        recurrence_months: task.recurrence_months,
+        season: task.season,
+        products_search_term: task.products_search_term || null,
+      };
+
+      const { data: inserted } = await supabase.from("maintenance_tasks").insert(newTask).select().single();
+      if (inserted) {
+        setTasks(prev => [...prev, inserted as MaintenanceTask]);
+        toast({ title: "Next cycle scheduled", description: `"${task.title}" rescheduled for ${nextDue.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}.` });
+      }
+    }
+
+    // Auto-switch to completed filter when marking complete
+    if (newStatus === "completed") {
+      setFilter("completed");
+    }
   };
 
   const deleteTask = async (taskId: string) => {
@@ -620,6 +651,11 @@ const MaintenancePage = () => {
                                     <h4 className={`font-semibold text-sm ${task.status === "completed" ? "line-through text-muted-foreground" : "text-foreground"}`}>
                                       {task.title}
                                     </h4>
+                                    {isOverdue && (
+                                      <Badge variant="destructive" className="text-[10px] px-1.5 py-0 gap-1 animate-pulse">
+                                        <AlertTriangle size={10} /> OVERDUE
+                                      </Badge>
+                                    )}
                                     <Badge variant={priorityColors[task.priority] as any} className="text-[10px] px-1.5 py-0">
                                       {task.priority}
                                     </Badge>
@@ -650,6 +686,26 @@ const MaintenancePage = () => {
                                       </span>
                                     )}
                                   </div>
+                                  {/* Mark Complete / Undo button */}
+                                  {task.status !== "completed" ? (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="mt-3 gap-1 text-xs h-7"
+                                      onClick={() => toggleTask(task)}
+                                    >
+                                      <Check size={12} /> Mark Complete
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="mt-3 gap-1 text-xs h-7 text-muted-foreground"
+                                      onClick={() => toggleTask(task)}
+                                    >
+                                      <RotateCcw size={12} /> Undo
+                                    </Button>
+                                  )}
                                 </div>
                                 <div className="flex flex-col gap-1 shrink-0">
                                   {task.due_date && task.status !== "completed" && (

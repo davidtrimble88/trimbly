@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.generate-maintenance]
 verify_jwt = false
+
+[functions.maintenance-reminders]
+verify_jwt = false
