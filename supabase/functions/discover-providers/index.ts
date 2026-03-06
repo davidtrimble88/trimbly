@@ -118,7 +118,7 @@ Return a JSON array. Each provider object must have exactly these fields:
 - state (string, 2-letter code)
 - country ("US" or "CA")
 - phone (string formatted as "(XXX) XXX-XXXX", from search results or publicly known number, or null if unknown)
-- website (string URL, from search results or publicly known URL, or null if unknown)
+- website (string URL — MUST be the company's own website domain, NOT a review/directory site like yelp.com, homeadvisor.com, angieslist.com, bbb.org, google.com, thumbtack.com, houzz.com, yellowpages.com, nextdoor.com, facebook.com. Set to null if only review site URLs are found)
 - licensed (boolean, true if mentioned or typically required for the trade in that state)
 - insured (boolean, true if mentioned)
 - years_experience (number, if mentioned, otherwise 0)
