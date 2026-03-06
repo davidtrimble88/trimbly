@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.discover-providers]
 verify_jwt = false
+
+[functions.job-estimator]
+verify_jwt = false
