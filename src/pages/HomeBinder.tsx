@@ -445,6 +445,11 @@ const HomeBinder = () => {
                         </div>
 
                         <h4 className="font-semibold text-foreground text-sm mb-1">{item.name}</h4>
+                        {homeId === "all" && (
+                          <p className="text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded inline-flex items-center gap-1 mb-1">
+                            <HomeIcon size={10} /> {homes.find(h => h.id === item.home_id)?.name || "Unknown"}
+                          </p>
+                        )}
                         {item.brand && <p className="text-xs text-muted-foreground">{item.brand}{item.model_number ? ` · ${item.model_number}` : ""}</p>}
                         {item.location_in_home && (
                           <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
