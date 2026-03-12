@@ -89,7 +89,7 @@ const HomeBinder = () => {
     loadData();
   }, [user]);
 
-  const loadData = async (selectedHomeId?: string) => {
+  const loadData = async (selectedHomeId?: string | null) => {
     setLoading(true);
     const { data: allHomes } = await supabase
       .from("homes")
@@ -100,9 +100,22 @@ const HomeBinder = () => {
     const homesList = allHomes || [];
     setHomes(homesList);
 
-    const activeHomeId = selectedHomeId || homesList[0]?.id || null;
+    const activeHomeId = selectedHomeId !== undefined ? selectedHomeId : homesList[0]?.id || null;
 
-    if (activeHomeId) {
+    if (activeHomeId === "all") {
+      setHomeId("all");
+      const homeIds = homesList.map(h => h.id);
+      if (homeIds.length > 0) {
+        const { data: binderItems } = await supabase
+          .from("home_binder_items")
+          .select("*")
+          .in("home_id", homeIds)
+          .order("created_at", { ascending: false });
+        setItems((binderItems as BinderItem[]) || []);
+      } else {
+        setItems([]);
+      }
+    } else if (activeHomeId) {
       setHomeId(activeHomeId);
       const { data: binderItems } = await supabase
         .from("home_binder_items")
@@ -111,7 +124,6 @@ const HomeBinder = () => {
         .order("created_at", { ascending: false });
       setItems((binderItems as BinderItem[]) || []);
     } else {
-      // Auto-create a home for the user
       const { data: newHome } = await supabase
         .from("homes")
         .insert({ user_id: user!.id, name: "My Home" })
