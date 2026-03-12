@@ -312,4 +312,69 @@ function AuthForm({
   );
 }
 
+// Forgot password form
+function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const { resetPassword } = useAuth();
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { error } = await resetPassword(email);
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } else {
+        setSent(true);
+      }
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (sent) {
+    return (
+      <div className="text-center py-4">
+        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <Mail size={24} className="text-primary" />
+        </div>
+        <h3 className="font-semibold text-foreground mb-1">Check your email</h3>
+        <p className="text-sm text-muted-foreground mb-4">We sent a password reset link to <strong>{email}</strong></p>
+        <button onClick={onBack} className="text-sm text-primary hover:underline">Back to login</button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="reset-email" className="text-sm font-medium">Email</Label>
+        <div className="relative">
+          <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            id="reset-email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="pl-10"
+            required
+          />
+        </div>
+      </div>
+      <Button type="submit" className="w-full h-11" size="lg" disabled={loading}>
+        {loading ? "Sending..." : "Send Reset Link"}
+      </Button>
+    </form>
+  );
+}
+
+export default Auth;
+}
+
 export default Auth;
