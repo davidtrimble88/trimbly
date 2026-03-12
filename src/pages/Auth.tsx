@@ -173,8 +173,10 @@ const Auth = () => {
           <p className="text-center text-sm text-muted-foreground mt-6">
             {mode === "login" ? (
               <>Don't have an account?{" "}<button onClick={() => setMode("signup")} className="text-primary font-medium hover:underline">Sign up</button></>
-            ) : (
+            ) : mode === "signup" ? (
               <>Already have an account?{" "}<button onClick={() => setMode("login")} className="text-primary font-medium hover:underline">Log in</button></>
+            ) : (
+              <>Remember your password?{" "}<button onClick={() => setMode("login")} className="text-primary font-medium hover:underline">Log in</button></>
             )}
           </p>
         </div>
