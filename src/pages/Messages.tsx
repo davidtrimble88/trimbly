@@ -194,7 +194,7 @@ const Messages = () => {
                 <h1 className="text-3xl font-extrabold text-foreground font-display">Messages</h1>
                 <p className="text-muted-foreground text-sm mt-1">Communicate with service providers directly</p>
               </div>
-              <Button asChild variant="outline" className="gap-2">
+              <Button asChild className="gap-2">
                 <Link to="/search"><Search size={14} /> Find Local Pros</Link>
               </Button>
             </div>
