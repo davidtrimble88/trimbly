@@ -502,7 +502,7 @@ const Messages = () => {
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-semibold text-foreground">{selectedPartner?.name || "Unknown"}</p>
-                          {selectedPartner && <StatusBadge status={selectedPartner.chatStatus} />}
+                          {selectedPartner && <StatusBadge status={selectedPartner.chatStatus} large />}
                         </div>
                         {isPendingConversation ? (
                           <div className="flex items-center gap-2">
