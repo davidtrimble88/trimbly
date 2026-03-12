@@ -269,6 +269,29 @@ const HomeBinder = () => {
     );
   }
 
+  if (!isPro) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <main className="pt-24 pb-16">
+          <div className="container mx-auto px-4 max-w-2xl text-center py-20">
+            <FolderOpen size={48} className="mx-auto text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-bold text-foreground mb-2">Upgrade to Access Digital Home Binder</h2>
+            <p className="text-muted-foreground mb-6">
+              The Digital Home Binder is available on Homeowner Pro ($5/mo) and Multi-Homeowner Pro ($20/mo) plans.
+              Track appliances, warranties, receipts, and documents all in one place.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button asChild variant="outline"><Link to="/#pricing">View Plans</Link></Button>
+              <Button asChild><Link to="/dashboard">Back to Dashboard</Link></Button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <Navbar />
