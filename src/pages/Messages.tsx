@@ -422,10 +422,15 @@ const Messages = () => {
                         <p className="text-xs text-muted-foreground truncate">
                           {isFreePro ? "Message pending — upgrade to view" : conv.lastMessage}
                         </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <p className="text-[10px] text-muted-foreground">{format(new Date(conv.lastTime), "MMM d, h:mm a")}</p>
-                          <StatusBadge status={conv.chatStatus} />
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                          <StatusBadge status={conv.chatStatus} large />
+                          <p className="text-[11px] font-medium text-muted-foreground whitespace-nowrap">
+                            {format(new Date(conv.lastTime), "MMM d, h:mm a")}
+                          </p>
                         </div>
+                        <p className="text-[11px] font-semibold text-foreground/80 mt-1">
+                          Status: {statusConfig[conv.chatStatus].label}
+                        </p>
                       </button>
 
                       {/* Actions dropdown */}
