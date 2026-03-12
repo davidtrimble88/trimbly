@@ -237,7 +237,7 @@ const Dashboard = () => {
                 Your Homes
                 <span className="text-sm font-normal text-muted-foreground">({homes.length}/{maxHomes})</span>
               </h2>
-              {subscriptionTier === "multi_pro" && homes.length < maxHomes && (
+              {homes.length < maxHomes && (
                 <Button size="sm" onClick={() => navigate("/maintenance")}>
                   <Plus size={14} className="mr-1.5" /> Add Home
                 </Button>
