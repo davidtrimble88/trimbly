@@ -614,7 +614,38 @@ const MaintenancePage = () => {
                     </div>
                   )}
 
-                  {/* Text type: free text input (e.g. home name) */}
+                  {/* Address lookup type */}
+                  {wizardSteps[wizardStep].type === "address" && (
+                    <div className="space-y-4">
+                      <div className="flex gap-2">
+                        <Input
+                          value={addressInput}
+                          onChange={e => setAddressInput(e.target.value)}
+                          placeholder={(wizardSteps[wizardStep] as any).placeholder || "Enter your address"}
+                          className="flex-1"
+                          autoFocus
+                          onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); lookupAddress(); } }}
+                          disabled={lookingUpAddress}
+                        />
+                        <Button onClick={lookupAddress} disabled={lookingUpAddress || !addressInput.trim()} size="sm" className="shrink-0">
+                          {lookingUpAddress ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <Search size={14} className="mr-1.5" />}
+                          {lookingUpAddress ? "Looking up…" : "Look Up"}
+                        </Button>
+                      </div>
+                      {addressLookedUp && (
+                        <div className="rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3 text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
+                          <Check size={16} />
+                          Home details pre-filled from Zillow! Review and adjust in the next steps.
+                        </div>
+                      )}
+                      {!addressLookedUp && (
+                        <p className="text-xs text-muted-foreground">
+                          We'll search Zillow to auto-fill your home details. You can skip this and enter everything manually.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {wizardSteps[wizardStep].type === "text" && (
                     <div className="space-y-3">
                       <Input
