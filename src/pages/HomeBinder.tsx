@@ -69,7 +69,7 @@ const emptyItem = {
 const HomeBinder = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { canAddHome, isPro } = useHomeLimit();
+  const { canAddHome, isPro, maxBinderItems } = useHomeLimit();
 
   const [items, setItems] = useState<BinderItem[]>([]);
   const [homes, setHomes] = useState<{ id: string; name: string }[]>([]);
