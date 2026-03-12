@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
     }
 
     // Extract structured data
-    const propertyData = scrapeData.data?.json || scrapeData.json || {};
+    const propertyData = scrapeData.data?.extract || scrapeData.extract || scrapeData.data?.json || {};
 
     console.log('Extracted property data:', JSON.stringify(propertyData));
 
