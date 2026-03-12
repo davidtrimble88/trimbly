@@ -333,6 +333,54 @@ export type Database = {
           },
         ]
       }
+      pending_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          provider_category: string
+          provider_city: string
+          provider_country: string
+          provider_name: string
+          provider_phone: string | null
+          provider_state: string
+          provider_website: string | null
+          sender_id: string
+          status: string
+          subject: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          provider_category?: string
+          provider_city?: string
+          provider_country?: string
+          provider_name: string
+          provider_phone?: string | null
+          provider_state?: string
+          provider_website?: string | null
+          sender_id: string
+          status?: string
+          subject?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          provider_category?: string
+          provider_city?: string
+          provider_country?: string
+          provider_name?: string
+          provider_phone?: string | null
+          provider_state?: string
+          provider_website?: string | null
+          sender_id?: string
+          status?: string
+          subject?: string
+        }
+        Relationships: []
+      }
       product_preferences: {
         Row: {
           created_at: string
