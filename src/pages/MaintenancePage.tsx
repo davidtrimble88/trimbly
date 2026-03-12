@@ -137,6 +137,8 @@ const MaintenancePage = () => {
   const { toast } = useToast();
   const { canAddHome, isPro, homeCount, loading: limitLoading, subscriptionTier } = useHomeLimit();
   const isMultiPro = subscriptionTier === "multi_pro";
+  // For multi-home users, include the name step; for single-home, skip it
+  const wizardSteps = isMultiPro ? baseWizardSteps : baseWizardSteps.filter(s => s.key !== "home_name");
   const [allHomesView, setAllHomesView] = useState(false);
 
   const [homes, setHomes] = useState<HomeProfile[]>([]);
