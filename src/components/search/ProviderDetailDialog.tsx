@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Shield, Clock, Phone, Globe, ExternalLink, BadgeCheck, Crown } from "lucide-react";
+import { Star, MapPin, Shield, Clock, Phone, Globe, ExternalLink, BadgeCheck, Crown, MessageSquare } from "lucide-react";
 import type { ProviderWithStats } from "@/lib/api/providers";
+import SendMessageDialog from "./SendMessageDialog";
 
 interface ProviderDetailDialogProps {
   provider: ProviderWithStats | null;
