@@ -133,7 +133,9 @@ const wizardSteps = [
 const MaintenancePage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { canAddHome, isPro, homeCount, loading: limitLoading } = useHomeLimit();
+  const { canAddHome, isPro, homeCount, loading: limitLoading, subscriptionTier } = useHomeLimit();
+  const isMultiPro = subscriptionTier === "multi_pro";
+  const [allHomesView, setAllHomesView] = useState(false);
 
   const [homes, setHomes] = useState<HomeProfile[]>([]);
   const [home, setHome] = useState<HomeProfile>(emptyHome);
