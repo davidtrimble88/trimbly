@@ -102,6 +102,9 @@ const Dashboard = () => {
   const [deletingHome, setDeletingHome] = useState<HomeData | null>(null);
   const [editForm, setEditForm] = useState<Partial<HomeData>>({});
   const [saving, setSaving] = useState(false);
+  const [allTasks, setAllTasks] = useState<TaskRow[]>([]);
+  const [allBinderItems, setAllBinderItems] = useState<BinderRow[]>([]);
+  const [drilldown, setDrilldown] = useState<DrilldownInfo | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
