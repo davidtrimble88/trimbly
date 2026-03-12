@@ -193,6 +193,7 @@ function AuthForm({
   setForm,
   showPassword,
   setShowPassword,
+  onForgot,
 }: {
   mode: AuthMode;
   userType: UserType;
@@ -200,6 +201,7 @@ function AuthForm({
   setForm: (f: { name: string; email: string; password: string }) => void;
   showPassword: boolean;
   setShowPassword: (v: boolean) => void;
+  onForgot: () => void;
 }) {
   const { signUp, signIn } = useAuth();
   const { toast } = useToast();
