@@ -47,7 +47,7 @@ const tiers = [
       "View homes individually or all together",
       "Everything in Homeowner Pro",
       "Unlimited Digital Home Binder entries",
-      "Priority pro matching (24h SLA)",
+      "Priority pro matching",
       "Emergency support channel",
       "Seasonal checklists",
     ],
