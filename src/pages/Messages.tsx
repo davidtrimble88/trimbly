@@ -325,12 +325,20 @@ const Messages = () => {
     );
   }
 
-  const StatusBadge = ({ status }: { status: ChatStatus }) => {
+  const StatusBadge = ({ status, large }: { status: ChatStatus; large?: boolean }) => {
     const config = statusConfig[status];
     const Icon = config.icon;
+    if (large) {
+      return (
+        <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md ${config.color}`}>
+          <Icon size={13} />
+          {config.label}
+        </span>
+      );
+    }
     return (
-      <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded ${config.color}`}>
-        <Icon size={9} />
+      <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md ${config.color}`}>
+        <Icon size={11} />
         {config.label}
       </span>
     );
@@ -494,7 +502,7 @@ const Messages = () => {
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-semibold text-foreground">{selectedPartner?.name || "Unknown"}</p>
-                          {selectedPartner && <StatusBadge status={selectedPartner.chatStatus} />}
+                          {selectedPartner && <StatusBadge status={selectedPartner.chatStatus} large />}
                         </div>
                         {isPendingConversation ? (
                           <div className="flex items-center gap-2">
