@@ -23,7 +23,7 @@ const Auth = () => {
 
   // Redirect if already logged in
   if (user) {
-    navigate("/search");
+    navigate("/dashboard");
     return null;
   }
 
