@@ -41,6 +41,7 @@ const homeTypeLabels: Record<string, string> = {
   mobile: "Mobile Home",
 };
 
+// ─── Types ───
 type HomeData = {
   id: string;
   name: string;
@@ -56,6 +57,22 @@ type HomeData = {
   has_well_water: boolean;
 };
 
+type TaskRow = {
+  home_id: string;
+  title: string;
+  status: string;
+  priority: string;
+  due_date: string | null;
+  category: string;
+};
+
+type BinderRow = {
+  home_id: string;
+  name: string;
+  warranty_expiry: string | null;
+  item_type: string;
+};
+
 type HomeStats = {
   homeId: string;
   totalTasks: number;
@@ -65,6 +82,12 @@ type HomeStats = {
   highPriorityTasks: number;
   binderItemCount: number;
   expiringWarranties: number;
+};
+
+type DrilldownInfo = {
+  title: string;
+  homeId: string;
+  filter: "overdue" | "high_priority" | "upcoming" | "completed" | "binder" | "expiring_warranties";
 };
 
 const Dashboard = () => {
