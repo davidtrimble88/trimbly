@@ -309,7 +309,7 @@ const HomeBinder = () => {
                   </button>
                 ))}
                 {!canAddHome && (
-                  <span className="px-3 py-2 text-xs text-muted-foreground self-center">Upgrade to Pro for more homes</span>
+                  <span className="px-3 py-2 text-xs text-muted-foreground self-center">Upgrade to Multi-Homeowner Pro for more homes</span>
                 )}
               </div>
             )}
