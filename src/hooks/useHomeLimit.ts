@@ -23,9 +23,10 @@ export const useHomeLimit = () => {
     load();
   }, [user]);
 
-  const maxHomes = subscriptionTier === "free" ? 1 : Infinity;
+  const maxHomes = subscriptionTier === "free" ? 1 : subscriptionTier === "pro" ? 1 : subscriptionTier === "multi_pro" ? 10 : 1;
+  const maxBinderItems = subscriptionTier === "free" ? 5 : subscriptionTier === "pro" ? 5 : Infinity;
   const canAddHome = homeCount < maxHomes;
   const isPro = subscriptionTier !== "free";
 
-  return { homeCount, maxHomes, canAddHome, isPro, subscriptionTier, loading };
+  return { homeCount, maxHomes, maxBinderItems, canAddHome, isPro, subscriptionTier, loading };
 };

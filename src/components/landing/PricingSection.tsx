@@ -9,6 +9,7 @@ const tiers = [
     period: "",
     description: "Get started with basic home management",
     features: [
+      "1 home profile",
       "Search & browse local pros",
       "Create up to 3 job requests/month",
       "Basic maintenance reminders",
@@ -24,16 +25,34 @@ const tiers = [
     period: "/month",
     description: "Full-powered home maintenance on autopilot",
     features: [
+      "1 home profile",
       "Unlimited job requests",
       "AI job estimator (unlimited)",
       "Advanced maintenance schedules",
       "Priority pro matching (24h SLA)",
       "Emergency support channel",
-      "Full Digital Home Binder + export",
+      "Digital Home Binder (5 items) + export",
       "Seasonal checklists",
     ],
     cta: "Start Free Trial",
     highlighted: true,
+  },
+  {
+    name: "Multi-Homeowner Pro",
+    price: "$20",
+    period: "/month",
+    description: "Manage up to 10 properties from one account",
+    features: [
+      "Up to 10 home profiles",
+      "View homes individually or all together",
+      "Everything in Homeowner Pro",
+      "Unlimited Digital Home Binder entries",
+      "Priority pro matching (24h SLA)",
+      "Emergency support channel",
+      "Seasonal checklists",
+    ],
+    cta: "Start Free Trial",
+    highlighted: false,
   },
 ];
 
