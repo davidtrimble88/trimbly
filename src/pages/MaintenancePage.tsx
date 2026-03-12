@@ -492,19 +492,34 @@ const MaintenancePage = () => {
             {/* Home selector tabs */}
             {homes.length > 1 && (
               <div className="flex gap-2 mt-4 overflow-x-auto">
+                {isMultiPro && (
+                  <button
+                    onClick={() => loadAllTasks()}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium border whitespace-nowrap transition-all ${
+                      allHomesView ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground border-border hover:border-primary/30"
+                    }`}
+                  >
+                    All Homes
+                  </button>
+                )}
                 {homes.map(h => (
                   <button
                     key={h.id}
-                    onClick={() => selectHome(h)}
+                    onClick={() => selectHomeAndLoad(h)}
                     className={`px-3 py-2 rounded-lg text-sm font-medium border whitespace-nowrap transition-all ${
-                      home.id === h.id ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground border-border hover:border-primary/30"
+                      !allHomesView && home.id === h.id ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground border-border hover:border-primary/30"
                     }`}
                   >
                     <Home size={12} className="inline mr-1" /> {h.name}
                   </button>
                 ))}
-                {!canAddHome && (
-                  <span className="px-3 py-2 text-xs text-muted-foreground self-center">Upgrade to Multi-Homeowner Pro for more homes</span>
+                {canAddHome && (
+                  <button
+                    onClick={startAddHome}
+                    className="px-3 py-2 rounded-lg text-sm font-medium border border-dashed border-border text-muted-foreground hover:border-primary/30 whitespace-nowrap transition-all"
+                  >
+                    <Plus size={12} className="inline mr-1" /> Add Home
+                  </button>
                 )}
               </div>
             )}
