@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Brain, Loader2, DollarSign, Clock, Wrench, Lightbulb, ShieldCheck, AlertTriangle, ChevronRight } from "lucide-react";
+import { ArrowLeft, Brain, Loader2, DollarSign, Clock, Wrench, Lightbulb, ShieldCheck, AlertTriangle, ChevronRight, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,6 +9,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { getJobEstimate, type JobEstimate } from "@/lib/api/jobEstimator";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useHomeLimit } from "@/hooks/useHomeLimit";
 
 const categories = ["Plumbing", "Electrical", "Handyman", "HVAC", "Landscaping", "Painting", "Roofing", "Cleaning", "Other"];
 
@@ -16,6 +18,8 @@ const difficultyLabels = ["", "Easy — DIY Friendly", "Moderate", "Intermediate
 const difficultyColors = ["", "text-primary", "text-primary", "text-accent", "text-destructive", "text-destructive"];
 
 const EstimatorPage = () => {
+  const { user } = useAuth();
+  const { hasEstimator, loading: limitLoading } = useHomeLimit();
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [city, setCity] = useState("");
@@ -23,6 +27,46 @@ const EstimatorPage = () => {
   const [loading, setLoading] = useState(false);
   const [estimate, setEstimate] = useState<JobEstimate | null>(null);
   const { toast } = useToast();
+
+  if (!user) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <main className="pt-24 pb-16">
+          <div className="container mx-auto px-4 max-w-2xl text-center py-20">
+            <Brain size={48} className="mx-auto text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-bold text-foreground mb-2">Sign in to use AI Job Estimator</h2>
+            <p className="text-muted-foreground mb-6">Get instant cost estimates, material lists, and DIY vs. pro recommendations.</p>
+            <Button asChild><Link to="/auth">Sign In / Sign Up</Link></Button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!limitLoading && !hasEstimator) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <main className="pt-24 pb-16">
+          <div className="container mx-auto px-4 max-w-2xl text-center py-20">
+            <Crown size={48} className="mx-auto text-primary mb-4" />
+            <h2 className="text-2xl font-bold text-foreground mb-2">Upgrade to Use AI Job Estimator</h2>
+            <p className="text-muted-foreground mb-6">
+              The AI Job Estimator is available on Homeowner Pro and Multi-Homeowner Pro plans.
+              Get unlimited instant cost estimates, material breakdowns, and DIY vs. pro recommendations.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button asChild variant="outline"><Link to="/#pricing">View Plans</Link></Button>
+              <Button asChild><Link to="/dashboard">Back to Dashboard</Link></Button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   const handleSubmit = async () => {
     if (description.trim().length < 10) {
