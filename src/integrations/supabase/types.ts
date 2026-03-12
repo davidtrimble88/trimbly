@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      email_optouts: {
+        Row: {
+          business_name: string | null
+          email: string
+          id: string
+          opted_out_at: string
+        }
+        Insert: {
+          business_name?: string | null
+          email: string
+          id?: string
+          opted_out_at?: string
+        }
+        Update: {
+          business_name?: string | null
+          email?: string
+          id?: string
+          opted_out_at?: string
+        }
+        Relationships: []
+      }
       home_binder_items: {
         Row: {
           brand: string | null
