@@ -229,7 +229,9 @@ const Messages = () => {
                   <div className="p-6 text-center">
                     <MessageSquare size={32} className="mx-auto text-muted-foreground mb-2" />
                     <p className="text-sm text-muted-foreground">No conversations yet</p>
-                    <p className="text-xs text-muted-foreground mt-1">Send a message to a pro from the Find Pros page</p>
+                    <Button asChild size="sm" className="mt-3 gap-2">
+                      <Link to="/search"><Search size={12} /> Find a Pro to Message</Link>
+                    </Button>
                   </div>
                 ) : (
                   conversations.map((conv) => (
