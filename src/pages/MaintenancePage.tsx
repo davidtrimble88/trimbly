@@ -707,7 +707,8 @@ const MaintenancePage = () => {
                     </Button>
                     {wizardStep < wizardSteps.length - 1 ? (
                       <Button size="sm" onClick={() => setWizardStep(s => s + 1)}>
-                        {wizardSteps[wizardStep].type === "location" && !home.city ? "Skip" : "Next"}
+                        {wizardSteps[wizardStep].type === "address" && !addressLookedUp ? "Skip" :
+                         wizardSteps[wizardStep].type === "location" && !home.city ? "Skip" : "Next"}
                       </Button>
                     ) : (
                       <Button size="sm" onClick={finishWizard} disabled={savingHome || generating} className="gap-1">
