@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star,
   Lock, Crown, Home, AlertTriangle, CheckCircle2, Clock, Shield,
-  MapPin, Ruler, Calendar, Thermometer, ChevronRight
+  MapPin, Ruler, Calendar, Thermometer, Plus
 } from "lucide-react";
 
 // ─── Service definitions ───
