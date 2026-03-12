@@ -60,12 +60,14 @@ const Auth = () => {
             </div>
           </Link>
           <h1 className="text-4xl font-extrabold text-primary-foreground mb-4 font-display">
-            {mode === "login" ? "Welcome back" : "Join HomeHero"}
+            {mode === "login" ? "Welcome back" : mode === "signup" ? "Join HomeHero" : "Reset password"}
           </h1>
           <p className="text-primary-foreground/70 text-lg max-w-md">
             {mode === "login"
               ? "Log in to manage your home, connect with pros, and stay on top of maintenance."
-              : "Create your account and start finding trusted pros or growing your business."}
+              : mode === "signup"
+              ? "Create your account and start finding trusted pros or growing your business."
+              : "No worries — we'll send you a link to reset your password."}
           </p>
         </div>
       </div>
