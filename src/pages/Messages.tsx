@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, MessageSquare, Send, Crown, Clock, CheckCheck, User } from "lucide-react";
+import { ArrowLeft, MessageSquare, Send, Crown, Clock, CheckCheck, User, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
