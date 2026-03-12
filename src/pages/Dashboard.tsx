@@ -449,6 +449,97 @@ const Dashboard = () => {
           </div>
         </div>
       </main>
+
+      {/* Edit Home Dialog */}
+      <Dialog open={!!editingHome} onOpenChange={open => !open && setEditingHome(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Home</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm">Home Name</Label>
+              <Input value={editForm.name || ""} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="mt-1" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sm">City</Label>
+                <Input value={editForm.city || ""} onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))} className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-sm">State</Label>
+                <Input value={editForm.state || ""} onChange={e => setEditForm(f => ({ ...f, state: e.target.value }))} maxLength={2} className="mt-1" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sm">Year Built</Label>
+                <Input type="number" value={editForm.year_built || ""} onChange={e => setEditForm(f => ({ ...f, year_built: e.target.value ? Number(e.target.value) : null }))} className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-sm">Square Feet</Label>
+                <Input type="number" value={editForm.square_feet || ""} onChange={e => setEditForm(f => ({ ...f, square_feet: e.target.value ? Number(e.target.value) : null }))} className="mt-1" />
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm">Home Type</Label>
+              <select
+                value={editForm.home_type || "single_family"}
+                onChange={e => setEditForm(f => ({ ...f, home_type: e.target.value }))}
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                {Object.entries(homeTypeLabels).map(([val, label]) => (
+                  <option key={val} value={val}>{label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sm">HVAC Type</Label>
+                <Input value={editForm.hvac_type || ""} onChange={e => setEditForm(f => ({ ...f, hvac_type: e.target.value }))} className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-sm">Roof Type</Label>
+                <Input value={editForm.roof_type || ""} onChange={e => setEditForm(f => ({ ...f, roof_type: e.target.value }))} className="mt-1" />
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-4 text-sm">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={editForm.has_pool || false} onChange={e => setEditForm(f => ({ ...f, has_pool: e.target.checked }))} /> Pool
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={editForm.has_septic || false} onChange={e => setEditForm(f => ({ ...f, has_septic: e.target.checked }))} /> Septic
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={editForm.has_well_water || false} onChange={e => setEditForm(f => ({ ...f, has_well_water: e.target.checked }))} /> Well Water
+              </label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingHome(null)}>Cancel</Button>
+            <Button onClick={saveEdit} disabled={saving}>{saving ? "Saving…" : "Save Changes"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Home Confirmation */}
+      <AlertDialog open={!!deletingHome} onOpenChange={open => !open && setDeletingHome(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove "{deletingHome?.name}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this home and all its maintenance tasks and binder items. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteHome} disabled={saving} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {saving ? "Removing…" : "Remove Home"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Footer />
     </div>
   );
