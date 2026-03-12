@@ -746,6 +746,11 @@ const MaintenancePage = () => {
                                       <SeasonIcon size={10} /> {task.season}
                                     </span>
                                     <span className="text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">{task.category}</span>
+                                    {allHomesView && (
+                                      <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                                        <Home size={10} /> {homes.find(h => h.id === (task as any).home_id)?.name || "Unknown"}
+                                      </span>
+                                    )}
                                   </div>
                                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
                                   {task.products_search_term && (
