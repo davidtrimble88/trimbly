@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, LayoutDashboard, CalendarCheck, Wrench, Search, FileText, Crown } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, CalendarCheck, Wrench, Search, FileText, Crown, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
