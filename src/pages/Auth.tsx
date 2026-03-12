@@ -301,7 +301,7 @@ function AuthForm({
 
       {mode === "login" && (
         <div className="text-right">
-          <a href="#" className="text-sm text-primary hover:underline">Forgot password?</a>
+          <button type="button" onClick={onForgot} className="text-sm text-primary hover:underline">Forgot password?</button>
         </div>
       )}
 
