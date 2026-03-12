@@ -41,7 +41,7 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>Log In</Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>Dashboard</Button>
               <Button size="sm" onClick={() => navigate("/auth")}>Get Started</Button>
             </>
           )}
