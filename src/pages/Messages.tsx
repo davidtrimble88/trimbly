@@ -189,8 +189,15 @@ const Messages = () => {
             <Link to="/dashboard" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
               <ArrowLeft size={16} /> Back to Dashboard
             </Link>
-            <h1 className="text-3xl font-extrabold text-foreground font-display">Messages</h1>
-            <p className="text-muted-foreground text-sm mt-1">Communicate with service providers directly</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-extrabold text-foreground font-display">Messages</h1>
+                <p className="text-muted-foreground text-sm mt-1">Communicate with service providers directly</p>
+              </div>
+              <Button asChild variant="outline" className="gap-2">
+                <Link to="/search"><Search size={14} /> Find Local Pros</Link>
+              </Button>
+            </div>
           </div>
 
           {/* Free Pro upgrade banner */}
