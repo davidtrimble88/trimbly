@@ -291,7 +291,7 @@ const HomeBinder = () => {
             <FolderOpen size={48} className="mx-auto text-muted-foreground mb-4" />
             <h2 className="text-2xl font-bold text-foreground mb-2">Upgrade to Access Digital Home Binder</h2>
             <p className="text-muted-foreground mb-6">
-              The Digital Home Binder is available on Homeowner Pro ($5/mo) and Multi-Homeowner Pro ($20/mo) plans.
+              The Digital Home Binder is available on Homeowner Pro and Multi-Homeowner Pro plans.
               Track appliances, warranties, receipts, and documents all in one place.
             </p>
             <div className="flex gap-3 justify-center">
