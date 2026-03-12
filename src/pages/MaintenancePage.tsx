@@ -35,6 +35,7 @@ type HomeProfile = {
 
 type MaintenanceTask = {
   id: string;
+  home_id: string;
   title: string;
   description: string;
   category: string;
