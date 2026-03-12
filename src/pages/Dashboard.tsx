@@ -7,11 +7,17 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star,
   Lock, Crown, Home, AlertTriangle, CheckCircle2, Clock, Shield,
-  MapPin, Ruler, Calendar, Thermometer, Plus
+  MapPin, Ruler, Calendar, Thermometer, Plus, MoreVertical, Pencil, Trash2
 } from "lucide-react";
 
 // ─── Service definitions ───
