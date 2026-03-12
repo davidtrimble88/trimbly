@@ -35,6 +35,7 @@ type HomeProfile = {
 
 type MaintenanceTask = {
   id: string;
+  home_id: string;
   title: string;
   description: string;
   category: string;
@@ -133,7 +134,9 @@ const wizardSteps = [
 const MaintenancePage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { canAddHome, isPro, homeCount, loading: limitLoading } = useHomeLimit();
+  const { canAddHome, isPro, homeCount, loading: limitLoading, subscriptionTier } = useHomeLimit();
+  const isMultiPro = subscriptionTier === "multi_pro";
+  const [allHomesView, setAllHomesView] = useState(false);
 
   const [homes, setHomes] = useState<HomeProfile[]>([]);
   const [home, setHome] = useState<HomeProfile>(emptyHome);
@@ -206,6 +209,29 @@ const MaintenancePage = () => {
       .order("due_date", { ascending: true });
     setTasks((data as MaintenanceTask[]) || []);
     setLoadingTasks(false);
+  };
+
+  const loadAllTasks = async () => {
+    if (!user) return;
+    setLoadingTasks(true);
+    setAllHomesView(true);
+    const homeIds = homes.map(h => h.id!).filter(Boolean);
+    if (homeIds.length > 0) {
+      const { data } = await supabase
+        .from("maintenance_tasks")
+        .select("*")
+        .in("home_id", homeIds)
+        .order("due_date", { ascending: true });
+      setTasks((data as MaintenanceTask[]) || []);
+    } else {
+      setTasks([]);
+    }
+    setLoadingTasks(false);
+  };
+
+  const selectHomeAndLoad = (h: HomeProfile) => {
+    setAllHomesView(false);
+    selectHome(h);
   };
 
   const saveHome = async () => {
@@ -467,19 +493,34 @@ const MaintenancePage = () => {
             {/* Home selector tabs */}
             {homes.length > 1 && (
               <div className="flex gap-2 mt-4 overflow-x-auto">
+                {isMultiPro && (
+                  <button
+                    onClick={() => loadAllTasks()}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium border whitespace-nowrap transition-all ${
+                      allHomesView ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground border-border hover:border-primary/30"
+                    }`}
+                  >
+                    All Homes
+                  </button>
+                )}
                 {homes.map(h => (
                   <button
                     key={h.id}
-                    onClick={() => selectHome(h)}
+                    onClick={() => selectHomeAndLoad(h)}
                     className={`px-3 py-2 rounded-lg text-sm font-medium border whitespace-nowrap transition-all ${
-                      home.id === h.id ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground border-border hover:border-primary/30"
+                      !allHomesView && home.id === h.id ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground border-border hover:border-primary/30"
                     }`}
                   >
                     <Home size={12} className="inline mr-1" /> {h.name}
                   </button>
                 ))}
-                {!canAddHome && (
-                  <span className="px-3 py-2 text-xs text-muted-foreground self-center">Upgrade to Multi-Homeowner Pro for more homes</span>
+                {canAddHome && (
+                  <button
+                    onClick={startAddHome}
+                    className="px-3 py-2 rounded-lg text-sm font-medium border border-dashed border-border text-muted-foreground hover:border-primary/30 whitespace-nowrap transition-all"
+                  >
+                    <Plus size={12} className="inline mr-1" /> Add Home
+                  </button>
                 )}
               </div>
             )}
@@ -706,6 +747,11 @@ const MaintenancePage = () => {
                                       <SeasonIcon size={10} /> {task.season}
                                     </span>
                                     <span className="text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">{task.category}</span>
+                                    {allHomesView && (
+                                      <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                                        <Home size={10} /> {homes.find(h => h.id === (task as any).home_id)?.name || "Unknown"}
+                                      </span>
+                                    )}
                                   </div>
                                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
                                   {task.products_search_term && (

@@ -69,7 +69,8 @@ const emptyItem = {
 const HomeBinder = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { canAddHome, isPro, maxBinderItems } = useHomeLimit();
+  const { canAddHome, isPro, maxBinderItems, subscriptionTier } = useHomeLimit();
+  const isMultiPro = subscriptionTier === "multi_pro";
 
   const [items, setItems] = useState<BinderItem[]>([]);
   const [homes, setHomes] = useState<{ id: string; name: string }[]>([]);
@@ -88,7 +89,7 @@ const HomeBinder = () => {
     loadData();
   }, [user]);
 
-  const loadData = async (selectedHomeId?: string) => {
+  const loadData = async (selectedHomeId?: string | null) => {
     setLoading(true);
     const { data: allHomes } = await supabase
       .from("homes")
@@ -99,9 +100,22 @@ const HomeBinder = () => {
     const homesList = allHomes || [];
     setHomes(homesList);
 
-    const activeHomeId = selectedHomeId || homesList[0]?.id || null;
+    const activeHomeId = selectedHomeId !== undefined ? selectedHomeId : homesList[0]?.id || null;
 
-    if (activeHomeId) {
+    if (activeHomeId === "all") {
+      setHomeId("all");
+      const homeIds = homesList.map(h => h.id);
+      if (homeIds.length > 0) {
+        const { data: binderItems } = await supabase
+          .from("home_binder_items")
+          .select("*")
+          .in("home_id", homeIds)
+          .order("created_at", { ascending: false });
+        setItems((binderItems as BinderItem[]) || []);
+      } else {
+        setItems([]);
+      }
+    } else if (activeHomeId) {
       setHomeId(activeHomeId);
       const { data: binderItems } = await supabase
         .from("home_binder_items")
@@ -110,7 +124,6 @@ const HomeBinder = () => {
         .order("created_at", { ascending: false });
       setItems((binderItems as BinderItem[]) || []);
     } else {
-      // Auto-create a home for the user
       const { data: newHome } = await supabase
         .from("homes")
         .insert({ user_id: user!.id, name: "My Home" })
@@ -312,14 +325,26 @@ const HomeBinder = () => {
                   <p className="text-muted-foreground text-sm">Appliances, warranties, receipts & documents — all in one place</p>
                 </div>
               </div>
-              <Button onClick={openNew} className="gap-1">
-                <Plus size={16} /> Add Item
-              </Button>
+              {homeId !== "all" && (
+                <Button onClick={openNew} className="gap-1">
+                  <Plus size={16} /> Add Item
+                </Button>
+              )}
             </div>
 
             {/* Home selector tabs */}
             {homes.length > 1 && (
               <div className="flex gap-2 mt-4 overflow-x-auto">
+                {isMultiPro && (
+                  <button
+                    onClick={() => switchHome("all")}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium border whitespace-nowrap transition-all flex items-center gap-1 ${
+                      homeId === "all" ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground border-border hover:border-primary/30"
+                    }`}
+                  >
+                    All Homes
+                  </button>
+                )}
                 {homes.map(h => (
                   <button
                     key={h.id}
@@ -331,9 +356,6 @@ const HomeBinder = () => {
                     <HomeIcon size={12} /> {h.name}
                   </button>
                 ))}
-                {!canAddHome && (
-                  <span className="px-3 py-2 text-xs text-muted-foreground self-center">Upgrade to Multi-Homeowner Pro for more homes</span>
-                )}
               </div>
             )}
           </div>
@@ -425,6 +447,11 @@ const HomeBinder = () => {
                         </div>
 
                         <h4 className="font-semibold text-foreground text-sm mb-1">{item.name}</h4>
+                        {homeId === "all" && (
+                          <p className="text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded inline-flex items-center gap-1 mb-1">
+                            <HomeIcon size={10} /> {homes.find(h => h.id === item.home_id)?.name || "Unknown"}
+                          </p>
+                        )}
                         {item.brand && <p className="text-xs text-muted-foreground">{item.brand}{item.model_number ? ` · ${item.model_number}` : ""}</p>}
                         {item.location_in_home && (
                           <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
