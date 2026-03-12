@@ -69,7 +69,8 @@ const emptyItem = {
 const HomeBinder = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { canAddHome, isPro, maxBinderItems } = useHomeLimit();
+  const { canAddHome, isPro, maxBinderItems, subscriptionTier } = useHomeLimit();
+  const isMultiPro = subscriptionTier === "multi_pro";
 
   const [items, setItems] = useState<BinderItem[]>([]);
   const [homes, setHomes] = useState<{ id: string; name: string }[]>([]);
