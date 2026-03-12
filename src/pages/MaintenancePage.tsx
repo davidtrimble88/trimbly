@@ -475,11 +475,31 @@ const MaintenancePage = () => {
     toast({ title: "Calendar exported!", description: `${upcomingTasks.length} tasks exported. Open the file to add them to your calendar.` });
   };
 
-  const filteredTasks = tasks.filter(t => {
-    if (filter === "upcoming") return t.status !== "completed";
-    if (filter === "completed") return t.status === "completed";
-    return true;
-  });
+  const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
+  const seasonOrder: Record<string, number> = { spring: 0, summer: 1, fall: 2, winter: 3, any: 4 };
+
+  const filteredTasks = tasks
+    .filter(t => {
+      if (filter === "upcoming") return t.status !== "completed";
+      if (filter === "completed") return t.status === "completed";
+      return true;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "priority":
+          return (priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1);
+        case "category":
+          return a.category.localeCompare(b.category);
+        case "season":
+          return (seasonOrder[a.season] ?? 4) - (seasonOrder[b.season] ?? 4);
+        case "due_date":
+        default:
+          if (!a.due_date && !b.due_date) return 0;
+          if (!a.due_date) return 1;
+          if (!b.due_date) return -1;
+          return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+      }
+    });
 
   const upcomingCount = tasks.filter(t => t.status !== "completed").length;
   const overdueCount = tasks.filter(t => t.status !== "completed" && t.due_date && new Date(t.due_date) < new Date()).length;
