@@ -42,6 +42,9 @@ const Navbar = () => {
       <Link to="/estimator" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
         <Wrench size={14} /> Estimator
       </Link>
+      <Link to="/messages" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
+        <MessageSquare size={14} /> Messages
+      </Link>
       {!isPro && (
         <a href="/#pricing" className="text-sm text-primary hover:text-primary/80 transition-colors inline-flex items-center gap-1.5 font-medium">
           <Crown size={14} /> Upgrade
