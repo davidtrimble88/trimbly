@@ -166,10 +166,18 @@ const Dashboard = () => {
 
           {/* ─── Home Analysis Section ─── */}
           <div className="mb-12">
-            <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-              <Home size={20} className="text-primary" />
-              Your Homes
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                <Home size={20} className="text-primary" />
+                Your Homes
+                <span className="text-sm font-normal text-muted-foreground">({homes.length}/{maxHomes})</span>
+              </h2>
+              {subscriptionTier === "multi_pro" && homes.length < maxHomes && (
+                <Button size="sm" onClick={() => navigate("/maintenance")}>
+                  <Plus size={14} className="mr-1.5" /> Add Home
+                </Button>
+              )}
+            </div>
 
             {loadingHomes ? (
               <div className="text-muted-foreground text-sm py-8 text-center">Loading home data…</div>
