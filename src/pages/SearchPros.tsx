@@ -21,7 +21,7 @@ type CountryFilter = "all" | "US" | "CA";
 const SearchPros = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
-  const [searchMode, setSearchMode] = useState<SearchMode>("provider");
+  const [searchMode, setSearchMode] = useState<SearchMode>("location");
   const [activeCategory, setActiveCategory] = useState("All");
   const [countryFilter, setCountryFilter] = useState<CountryFilter>("all");
   const [dbProviders, setDbProviders] = useState<ProviderWithStats[]>([]);
