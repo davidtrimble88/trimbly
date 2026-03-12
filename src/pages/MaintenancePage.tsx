@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft, CalendarCheck, Loader2, Home, Check, Clock,
-  AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus, CalendarPlus, Download, ShoppingCart, ExternalLink, Search
+  AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus, CalendarPlus, Download, ShoppingCart, ExternalLink, Search, ArrowUpDown
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -152,6 +153,7 @@ const MaintenancePage = () => {
   const [showSetup, setShowSetup] = useState(false);
   const [savingHome, setSavingHome] = useState(false);
   const [filter, setFilter] = useState<"all" | "upcoming" | "completed">("all");
+  const [sortBy, setSortBy] = useState<"due_date" | "priority" | "category" | "season">("due_date");
   const [wizardStep, setWizardStep] = useState(0);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [productTask, setProductTask] = useState<MaintenanceTask | null>(null);
@@ -473,11 +475,31 @@ const MaintenancePage = () => {
     toast({ title: "Calendar exported!", description: `${upcomingTasks.length} tasks exported. Open the file to add them to your calendar.` });
   };
 
-  const filteredTasks = tasks.filter(t => {
-    if (filter === "upcoming") return t.status !== "completed";
-    if (filter === "completed") return t.status === "completed";
-    return true;
-  });
+  const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
+  const seasonOrder: Record<string, number> = { spring: 0, summer: 1, fall: 2, winter: 3, any: 4 };
+
+  const filteredTasks = tasks
+    .filter(t => {
+      if (filter === "upcoming") return t.status !== "completed";
+      if (filter === "completed") return t.status === "completed";
+      return true;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "priority":
+          return (priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1);
+        case "category":
+          return a.category.localeCompare(b.category);
+        case "season":
+          return (seasonOrder[a.season] ?? 4) - (seasonOrder[b.season] ?? 4);
+        case "due_date":
+        default:
+          if (!a.due_date && !b.due_date) return 0;
+          if (!a.due_date) return 1;
+          if (!b.due_date) return -1;
+          return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+      }
+    });
 
   const upcomingCount = tasks.filter(t => t.status !== "completed").length;
   const overdueCount = tasks.filter(t => t.status !== "completed" && t.due_date && new Date(t.due_date) < new Date()).length;
@@ -777,21 +799,37 @@ const MaintenancePage = () => {
 
                   {tasks.length > 0 && (
                     <>
-                      {/* Filter tabs */}
-                      <div className="flex gap-2 mb-4">
-                        {(["all", "upcoming", "completed"] as const).map(f => (
-                          <button
-                            key={f}
-                            onClick={() => setFilter(f)}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
-                              filter === f
-                                ? "bg-primary text-primary-foreground border-primary"
-                                : "text-muted-foreground border-transparent hover:bg-secondary"
-                            }`}
-                          >
-                            {f.charAt(0).toUpperCase() + f.slice(1)} {f === "all" ? `(${tasks.length})` : f === "upcoming" ? `(${upcomingCount})` : `(${tasks.length - upcomingCount})`}
-                          </button>
-                        ))}
+                      {/* Filter tabs + Sort */}
+                      <div className="flex items-center justify-between gap-4 mb-4">
+                        <div className="flex gap-2">
+                          {(["all", "upcoming", "completed"] as const).map(f => (
+                            <button
+                              key={f}
+                              onClick={() => setFilter(f)}
+                              className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
+                                filter === f
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "text-muted-foreground border-transparent hover:bg-secondary"
+                              }`}
+                            >
+                              {f.charAt(0).toUpperCase() + f.slice(1)} {f === "all" ? `(${tasks.length})` : f === "upcoming" ? `(${upcomingCount})` : `(${tasks.length - upcomingCount})`}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <ArrowUpDown size={14} className="text-muted-foreground" />
+                          <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                            <SelectTrigger className="h-8 w-[140px] text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="due_date">Due Date</SelectItem>
+                              <SelectItem value="priority">Priority</SelectItem>
+                              <SelectItem value="category">Category</SelectItem>
+                              <SelectItem value="season">Season</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
 
                       {/* Task List */}
