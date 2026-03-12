@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Shield, Clock, Phone, Globe, ExternalLink, BadgeCheck, Crown } from "lucide-react";
+import { Star, MapPin, Shield, Clock, Phone, Globe, ExternalLink, BadgeCheck, Crown, MessageSquare } from "lucide-react";
 import type { ProviderWithStats } from "@/lib/api/providers";
+import SendMessageDialog from "./SendMessageDialog";
 
 interface ProviderDetailDialogProps {
   provider: ProviderWithStats | null;
@@ -10,6 +12,7 @@ interface ProviderDetailDialogProps {
 }
 
 const ProviderDetailDialog = ({ provider, open, onOpenChange }: ProviderDetailDialogProps) => {
+  const [messageOpen, setMessageOpen] = useState(false);
   if (!provider) return null;
 
   const isWeb = provider.source === "web";
@@ -110,23 +113,29 @@ const ProviderDetailDialog = ({ provider, open, onOpenChange }: ProviderDetailDi
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">
+            <Button className="flex-1 gap-2" onClick={() => setMessageOpen(true)}>
+              <MessageSquare size={14} /> Send Message
+            </Button>
             {provider.phone && (
-              <Button asChild className="flex-1">
-                <a href={`tel:${provider.phone}`}>Call Now</a>
+              <Button variant="outline" asChild className="flex-1">
+                <a href={`tel:${provider.phone}`}>Call</a>
               </Button>
             )}
             {provider.website && (
               <Button variant="outline" asChild className="flex-1">
                 <a href={provider.website} target="_blank" rel="noopener noreferrer">
-                  Visit Website
+                  Website
                 </a>
               </Button>
             )}
-            {!provider.phone && !provider.website && (
-              <p className="text-sm text-muted-foreground">No contact information available.</p>
-            )}
           </div>
         </div>
+
+        <SendMessageDialog
+          provider={provider}
+          open={messageOpen}
+          onOpenChange={setMessageOpen}
+        />
       </DialogContent>
     </Dialog>
   );
