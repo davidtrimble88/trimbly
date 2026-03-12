@@ -7,11 +7,17 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star,
   Lock, Crown, Home, AlertTriangle, CheckCircle2, Clock, Shield,
-  MapPin, Ruler, Calendar, Thermometer, Plus
+  MapPin, Ruler, Calendar, Thermometer, Plus, MoreVertical, Pencil, Trash2
 } from "lucide-react";
 
 // ─── Service definitions ───
@@ -64,10 +70,15 @@ type HomeStats = {
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, profileName } = useAuth();
-  const { subscriptionTier, maxHomes, maxBinderItems, loading: limitLoading } = useHomeLimit();
+  const { subscriptionTier, maxHomes, maxBinderItems, loading: limitLoading, homeCount } = useHomeLimit();
+  const { toast } = useToast();
   const [homes, setHomes] = useState<HomeData[]>([]);
   const [homeStats, setHomeStats] = useState<Record<string, HomeStats>>({});
   const [loadingHomes, setLoadingHomes] = useState(true);
+  const [editingHome, setEditingHome] = useState<HomeData | null>(null);
+  const [deletingHome, setDeletingHome] = useState<HomeData | null>(null);
+  const [editForm, setEditForm] = useState<Partial<HomeData>>({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -128,6 +139,60 @@ const Dashboard = () => {
     setLoadingHomes(false);
   };
 
+  const startEdit = (h: HomeData) => {
+    setEditingHome(h);
+    setEditForm({ ...h });
+  };
+
+  const saveEdit = async () => {
+    if (!editingHome || !editForm) return;
+    setSaving(true);
+    const { error } = await supabase.from("homes").update({
+      name: editForm.name,
+      home_type: editForm.home_type,
+      year_built: editForm.year_built,
+      square_feet: editForm.square_feet,
+      city: editForm.city,
+      state: editForm.state,
+      hvac_type: editForm.hvac_type,
+      roof_type: editForm.roof_type,
+      has_pool: editForm.has_pool,
+      has_septic: editForm.has_septic,
+      has_well_water: editForm.has_well_water,
+      updated_at: new Date().toISOString(),
+    }).eq("id", editingHome.id);
+    setSaving(false);
+    if (error) {
+      toast({ title: "Error", description: "Failed to update home.", variant: "destructive" });
+    } else {
+      setHomes(prev => prev.map(h => h.id === editingHome.id ? { ...h, ...editForm } as HomeData : h));
+      setEditingHome(null);
+      toast({ title: "Home updated" });
+    }
+  };
+
+  const deleteHome = async () => {
+    if (!deletingHome) return;
+    setSaving(true);
+    // Delete related data first
+    await Promise.all([
+      supabase.from("maintenance_tasks").delete().eq("home_id", deletingHome.id),
+      supabase.from("home_binder_items").delete().eq("home_id", deletingHome.id),
+    ]);
+    const { error } = await supabase.from("homes").delete().eq("id", deletingHome.id);
+    setSaving(false);
+    if (error) {
+      toast({ title: "Error", description: "Failed to delete home.", variant: "destructive" });
+    } else {
+      setHomes(prev => prev.filter(h => h.id !== deletingHome.id));
+      const newStats = { ...homeStats };
+      delete newStats[deletingHome.id];
+      setHomeStats(newStats);
+      setDeletingHome(null);
+      toast({ title: "Home removed", description: `"${deletingHome.name}" and its data have been deleted.` });
+    }
+  };
+
   if (authLoading || limitLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -172,7 +237,7 @@ const Dashboard = () => {
                 Your Homes
                 <span className="text-sm font-normal text-muted-foreground">({homes.length}/{maxHomes})</span>
               </h2>
-              {subscriptionTier === "multi_pro" && homes.length < maxHomes && (
+              {homes.length < maxHomes && (
                 <Button size="sm" onClick={() => navigate("/maintenance")}>
                   <Plus size={14} className="mr-1.5" /> Add Home
                 </Button>
@@ -210,9 +275,26 @@ const Dashboard = () => {
                               {home.city}, {home.state?.toUpperCase()}
                             </CardDescription>
                           </div>
-                          <Badge variant="outline" className="text-xs shrink-0">
-                            {homeTypeLabels[home.home_type] || home.home_type}
-                          </Badge>
+                          <div className="flex items-center gap-1.5">
+                            <Badge variant="outline" className="text-xs shrink-0">
+                              {homeTypeLabels[home.home_type] || home.home_type}
+                            </Badge>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreVertical size={14} />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => startEdit(home)}>
+                                  <Pencil size={14} className="mr-2" /> Edit Home
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setDeletingHome(home)} className="text-destructive focus:text-destructive">
+                                  <Trash2 size={14} className="mr-2" /> Remove Home
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </div>
                       </CardHeader>
 
@@ -367,6 +449,97 @@ const Dashboard = () => {
           </div>
         </div>
       </main>
+
+      {/* Edit Home Dialog */}
+      <Dialog open={!!editingHome} onOpenChange={open => !open && setEditingHome(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Home</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm">Home Name</Label>
+              <Input value={editForm.name || ""} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="mt-1" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sm">City</Label>
+                <Input value={editForm.city || ""} onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))} className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-sm">State</Label>
+                <Input value={editForm.state || ""} onChange={e => setEditForm(f => ({ ...f, state: e.target.value }))} maxLength={2} className="mt-1" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sm">Year Built</Label>
+                <Input type="number" value={editForm.year_built || ""} onChange={e => setEditForm(f => ({ ...f, year_built: e.target.value ? Number(e.target.value) : null }))} className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-sm">Square Feet</Label>
+                <Input type="number" value={editForm.square_feet || ""} onChange={e => setEditForm(f => ({ ...f, square_feet: e.target.value ? Number(e.target.value) : null }))} className="mt-1" />
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm">Home Type</Label>
+              <select
+                value={editForm.home_type || "single_family"}
+                onChange={e => setEditForm(f => ({ ...f, home_type: e.target.value }))}
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                {Object.entries(homeTypeLabels).map(([val, label]) => (
+                  <option key={val} value={val}>{label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sm">HVAC Type</Label>
+                <Input value={editForm.hvac_type || ""} onChange={e => setEditForm(f => ({ ...f, hvac_type: e.target.value }))} className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-sm">Roof Type</Label>
+                <Input value={editForm.roof_type || ""} onChange={e => setEditForm(f => ({ ...f, roof_type: e.target.value }))} className="mt-1" />
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-4 text-sm">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={editForm.has_pool || false} onChange={e => setEditForm(f => ({ ...f, has_pool: e.target.checked }))} /> Pool
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={editForm.has_septic || false} onChange={e => setEditForm(f => ({ ...f, has_septic: e.target.checked }))} /> Septic
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={editForm.has_well_water || false} onChange={e => setEditForm(f => ({ ...f, has_well_water: e.target.checked }))} /> Well Water
+              </label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingHome(null)}>Cancel</Button>
+            <Button onClick={saveEdit} disabled={saving}>{saving ? "Saving…" : "Save Changes"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Home Confirmation */}
+      <AlertDialog open={!!deletingHome} onOpenChange={open => !open && setDeletingHome(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove "{deletingHome?.name}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this home and all its maintenance tasks and binder items. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteHome} disabled={saving} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {saving ? "Removing…" : "Remove Home"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Footer />
     </div>
   );
