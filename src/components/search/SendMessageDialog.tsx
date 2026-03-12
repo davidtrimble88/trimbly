@@ -33,12 +33,27 @@ const SendMessageDialog = ({ provider, open, onOpenChange }: SendMessageDialogPr
     if (!user || !body.trim()) return;
 
     if (!isRegistered) {
-      // Web-only provider — show notification
-      toast({
-        title: "Message sent",
-        description: `Your message has been sent to ${provider.business_name}. They'll be notified and invited to register on HomeHero to view and respond to your inquiry.`,
+      // Web-only provider — store as pending message
+      setSending(true);
+      const { error } = await supabase.from("pending_messages").insert({
+        sender_id: user.id,
+        provider_name: provider.business_name,
+        provider_category: provider.category || "",
+        provider_city: provider.city || "",
+        provider_state: provider.state || "",
+        provider_country: provider.country || "US",
+        provider_phone: provider.phone || null,
+        provider_website: provider.website || null,
+        subject: subject.trim(),
+        body: body.trim(),
       });
-      setSent(true);
+
+      if (error) {
+        toast({ title: "Failed to send", description: error.message, variant: "destructive" });
+      } else {
+        setSent(true);
+      }
+      setSending(false);
       return;
     }
 

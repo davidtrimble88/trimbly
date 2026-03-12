@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, MessageSquare, Send, Crown, Clock, CheckCheck, User, Search } from "lucide-react";
+import { ArrowLeft, MessageSquare, Send, Crown, Clock, CheckCheck, User, Search, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
@@ -21,6 +21,22 @@ interface Message {
   created_at: string;
 }
 
+interface PendingMessage {
+  id: string;
+  sender_id: string;
+  provider_name: string;
+  provider_category: string;
+  provider_city: string;
+  provider_state: string;
+  provider_country: string;
+  provider_phone: string | null;
+  provider_website: string | null;
+  subject: string;
+  body: string;
+  status: string;
+  created_at: string;
+}
+
 interface ConversationPartner {
   id: string;
   name: string;
@@ -29,12 +45,16 @@ interface ConversationPartner {
   unreadCount: number;
   providerId: string | null;
   providerTier: string | null;
+  isPending?: boolean;
+  pendingCategory?: string;
+  pendingLocation?: string;
 }
 
 const Messages = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [pendingMessages, setPendingMessages] = useState<PendingMessage[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
   const [providerTiers, setProviderTiers] = useState<Record<string, string>>({});
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
@@ -43,7 +63,6 @@ const Messages = () => {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<{ user_type: string; subscription_tier: string } | null>(null);
 
-  // Load messages & related data
   useEffect(() => {
     if (!user) return;
     loadData();
@@ -62,14 +81,16 @@ const Messages = () => {
     if (!user) return;
     setLoading(true);
 
-    const [{ data: msgs }, { data: profile }] = await Promise.all([
+    const [{ data: msgs }, { data: profile }, { data: pending }] = await Promise.all([
       supabase.from("messages").select("*").order("created_at", { ascending: true }),
       supabase.from("profiles").select("user_type, subscription_tier").eq("id", user.id).maybeSingle(),
+      supabase.from("pending_messages").select("*").eq("sender_id", user.id).order("created_at", { ascending: true }),
     ]);
 
     setUserProfile(profile);
     const allMessages = (msgs || []) as Message[];
     setMessages(allMessages);
+    setPendingMessages((pending || []) as PendingMessage[]);
 
     // Gather unique partner IDs
     const partnerIds = new Set<string>();
@@ -99,8 +120,36 @@ const Messages = () => {
     setLoading(false);
   };
 
-  // Group messages into conversations
-  const conversations = useMemo(() => {
+  // Group pending messages by provider name into conversations
+  const pendingConversations = useMemo(() => {
+    const map = new Map<string, ConversationPartner>();
+
+    pendingMessages.forEach((pm) => {
+      // Use provider_name as the key for grouping
+      const key = `pending-${pm.provider_name}`;
+      const existing = map.get(key);
+      const isNewer = !existing || new Date(pm.created_at) > new Date(existing.lastTime);
+      const location = [pm.provider_city, pm.provider_state].filter(Boolean).join(", ");
+
+      map.set(key, {
+        id: key,
+        name: pm.provider_name,
+        lastMessage: isNewer ? pm.body : existing!.lastMessage,
+        lastTime: isNewer ? pm.created_at : existing!.lastTime,
+        unreadCount: 0,
+        providerId: null,
+        providerTier: null,
+        isPending: true,
+        pendingCategory: pm.provider_category,
+        pendingLocation: location,
+      });
+    });
+
+    return [...map.values()];
+  }, [pendingMessages]);
+
+  // Group regular messages into conversations
+  const regularConversations = useMemo(() => {
     if (!user) return [];
     const map = new Map<string, ConversationPartner>();
 
@@ -120,36 +169,57 @@ const Messages = () => {
       });
     });
 
-    return [...map.values()].sort((a, b) => new Date(b.lastTime).getTime() - new Date(a.lastTime).getTime());
+    return [...map.values()];
   }, [messages, profiles, providerTiers, user]);
+
+  // Merge and sort all conversations
+  const conversations = useMemo(() => {
+    return [...regularConversations, ...pendingConversations]
+      .sort((a, b) => new Date(b.lastTime).getTime() - new Date(a.lastTime).getTime());
+  }, [regularConversations, pendingConversations]);
 
   const activeConversation = useMemo(() => {
     if (!user || !selectedPartnerId) return [];
+    // If it's a pending conversation
+    if (selectedPartnerId.startsWith("pending-")) {
+      const providerName = selectedPartnerId.replace("pending-", "");
+      return pendingMessages
+        .filter((pm) => pm.provider_name === providerName)
+        .map((pm) => ({
+          id: pm.id,
+          sender_id: pm.sender_id,
+          recipient_id: "pending",
+          provider_id: null,
+          subject: pm.subject,
+          body: pm.body,
+          read: false,
+          created_at: pm.created_at,
+        }));
+    }
     return messages.filter(
       (m) =>
         (m.sender_id === user.id && m.recipient_id === selectedPartnerId) ||
         (m.sender_id === selectedPartnerId && m.recipient_id === user.id)
     );
-  }, [messages, selectedPartnerId, user]);
+  }, [messages, pendingMessages, selectedPartnerId, user]);
 
   const selectedPartner = conversations.find((c) => c.id === selectedPartnerId);
-
-  // Check if current user is a free pro viewing gated messages
   const isFreePro = userProfile?.user_type === "provider" && userProfile?.subscription_tier === "free";
+  const isPendingConversation = selectedPartnerId?.startsWith("pending-");
 
   // Mark messages as read when opening conversation
   useEffect(() => {
-    if (!user || !selectedPartnerId) return;
+    if (!user || !selectedPartnerId || isPendingConversation) return;
     const unreadIds = messages
       .filter((m) => m.recipient_id === user.id && m.sender_id === selectedPartnerId && !m.read)
       .map((m) => m.id);
     if (unreadIds.length > 0 && !isFreePro) {
       supabase.from("messages").update({ read: true }).in("id", unreadIds).then();
     }
-  }, [selectedPartnerId, messages, user, isFreePro]);
+  }, [selectedPartnerId, messages, user, isFreePro, isPendingConversation]);
 
   const handleSend = async () => {
-    if (!user || !selectedPartnerId || !newMessage.trim()) return;
+    if (!user || !selectedPartnerId || !newMessage.trim() || isPendingConversation) return;
     setSending(true);
 
     const { error } = await supabase.from("messages").insert({
@@ -243,7 +313,10 @@ const Messages = () => {
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium text-foreground truncate">{conv.name}</span>
+                        <div className="flex items-center gap-1.5 truncate">
+                          {conv.isPending && <Globe size={12} className="text-muted-foreground shrink-0" />}
+                          <span className="text-sm font-medium text-foreground truncate">{conv.name}</span>
+                        </div>
                         {conv.unreadCount > 0 && (
                           <span className="bg-primary text-primary-foreground text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0">
                             {conv.unreadCount}
@@ -253,7 +326,12 @@ const Messages = () => {
                       <p className="text-xs text-muted-foreground truncate">
                         {isFreePro ? "Message pending — upgrade to view" : conv.lastMessage}
                       </p>
-                      <p className="text-[10px] text-muted-foreground mt-1">{format(new Date(conv.lastTime), "MMM d, h:mm a")}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-[10px] text-muted-foreground">{format(new Date(conv.lastTime), "MMM d, h:mm a")}</p>
+                        {conv.isPending && (
+                          <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded">Pending</span>
+                        )}
+                      </div>
                     </button>
                   ))
                 )}
@@ -287,15 +365,38 @@ const Messages = () => {
                   {/* Header */}
                   <div className="p-3 border-b border-border flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                      <User size={14} className="text-muted-foreground" />
+                      {isPendingConversation ? (
+                        <Globe size={14} className="text-muted-foreground" />
+                      ) : (
+                        <User size={14} className="text-muted-foreground" />
+                      )}
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-foreground">{selectedPartner?.name || "Unknown"}</p>
-                      {selectedPartner?.providerTier && selectedPartner.providerTier !== "free" && (
+                      {isPendingConversation ? (
+                        <div className="flex items-center gap-2">
+                          {selectedPartner?.pendingCategory && (
+                            <span className="text-[10px] text-muted-foreground">{selectedPartner.pendingCategory}</span>
+                          )}
+                          {selectedPartner?.pendingLocation && (
+                            <span className="text-[10px] text-muted-foreground">· {selectedPartner.pendingLocation}</span>
+                          )}
+                        </div>
+                      ) : selectedPartner?.providerTier && selectedPartner.providerTier !== "free" ? (
                         <span className="text-[10px] text-primary font-medium">PRO</span>
-                      )}
+                      ) : null}
                     </div>
                   </div>
+
+                  {/* Pending banner */}
+                  {isPendingConversation && (
+                    <div className="px-4 py-2 bg-muted/50 border-b border-border flex items-start gap-2">
+                      <Clock size={12} className="text-muted-foreground mt-0.5 shrink-0" />
+                      <p className="text-xs text-muted-foreground">
+                        This provider isn't on HomeHero yet. We'll notify them about your message and invite them to join. Once they register, they'll be able to respond directly.
+                      </p>
+                    </div>
+                  )}
 
                   {/* Messages */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[300px] max-h-[400px]">
@@ -322,28 +423,34 @@ const Messages = () => {
 
                   {/* Composer */}
                   <div className="p-3 border-t border-border">
-                    <div className="flex gap-2">
-                      <Textarea
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Type your message..."
-                        className="min-h-[44px] max-h-[120px] resize-none"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSend();
-                          }
-                        }}
-                      />
-                      <Button
-                        size="icon"
-                        onClick={handleSend}
-                        disabled={!newMessage.trim() || sending}
-                        className="shrink-0 h-[44px] w-[44px]"
-                      >
-                        <Send size={16} />
-                      </Button>
-                    </div>
+                    {isPendingConversation ? (
+                      <p className="text-xs text-muted-foreground text-center py-2">
+                        You'll be able to continue this conversation once {selectedPartner?.name} joins HomeHero.
+                      </p>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Textarea
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          placeholder="Type your message..."
+                          className="min-h-[44px] max-h-[120px] resize-none"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              handleSend();
+                            }
+                          }}
+                        />
+                        <Button
+                          size="icon"
+                          onClick={handleSend}
+                          disabled={!newMessage.trim() || sending}
+                          className="shrink-0 h-[44px] w-[44px]"
+                        >
+                          <Send size={16} />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
