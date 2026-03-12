@@ -155,6 +155,43 @@ const MaintenancePage = () => {
   const [wizardStep, setWizardStep] = useState(0);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [productTask, setProductTask] = useState<MaintenanceTask | null>(null);
+  const [addressInput, setAddressInput] = useState("");
+  const [lookingUpAddress, setLookingUpAddress] = useState(false);
+  const [addressLookedUp, setAddressLookedUp] = useState(false);
+
+  const lookupAddress = async () => {
+    if (!addressInput.trim()) return;
+    setLookingUpAddress(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("zillow-lookup", {
+        body: { address: addressInput.trim() },
+      });
+      if (error) throw error;
+      if (data?.success && data.data) {
+        const z = data.data;
+        setHome(h => ({
+          ...h,
+          home_type: z.home_type || h.home_type,
+          year_built: z.year_built || h.year_built,
+          square_feet: z.square_feet || h.square_feet,
+          city: z.city || h.city,
+          state: z.state || h.state,
+          hvac_type: z.hvac_type || h.hvac_type,
+          roof_type: z.roof_type || h.roof_type,
+          has_pool: z.has_pool ?? h.has_pool,
+        }));
+        setAddressLookedUp(true);
+        toast({ title: "Home details found!", description: "We've pre-filled your home info from Zillow. You can adjust anything in the following steps." });
+      } else {
+        toast({ title: "No results found", description: data?.error || "Couldn't find property details for that address. You can fill in details manually.", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error("Address lookup error:", err);
+      toast({ title: "Lookup failed", description: "Something went wrong. You can still fill in details manually.", variant: "destructive" });
+    } finally {
+      setLookingUpAddress(false);
+    }
+  };
 
   // Load home profile and tasks
   useEffect(() => {
