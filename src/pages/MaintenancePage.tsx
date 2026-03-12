@@ -210,6 +210,29 @@ const MaintenancePage = () => {
     setLoadingTasks(false);
   };
 
+  const loadAllTasks = async () => {
+    if (!user) return;
+    setLoadingTasks(true);
+    setAllHomesView(true);
+    const homeIds = homes.map(h => h.id!).filter(Boolean);
+    if (homeIds.length > 0) {
+      const { data } = await supabase
+        .from("maintenance_tasks")
+        .select("*")
+        .in("home_id", homeIds)
+        .order("due_date", { ascending: true });
+      setTasks((data as MaintenanceTask[]) || []);
+    } else {
+      setTasks([]);
+    }
+    setLoadingTasks(false);
+  };
+
+  const selectHomeAndLoad = (h: HomeProfile) => {
+    setAllHomesView(false);
+    selectHome(h);
+  };
+
   const saveHome = async () => {
     if (!user) return;
     setSavingHome(true);
