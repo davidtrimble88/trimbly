@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft, CalendarCheck, Loader2, Home, Check, Clock,
-  AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus, CalendarPlus, Download, ShoppingCart, ExternalLink
+  AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus, CalendarPlus, Download, ShoppingCart, ExternalLink, Search
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -93,6 +93,7 @@ const downloadICS = (filename: string, content: string) => {
 
 // Wizard steps for quick setup
 const baseWizardSteps = [
+  { key: "address_lookup", question: "Enter your address to auto-fill home details", type: "address" as const, placeholder: "e.g. 123 Main St, Austin, TX 78701" },
   { key: "home_name", question: "Give this home a name", type: "text" as const, placeholder: "e.g. Lake House, Main Residence" },
   { key: "home_type", question: "What type of home do you have?", type: "select" as const, options: [
     { value: "single_family", label: "🏠 Single Family" },
@@ -154,6 +155,43 @@ const MaintenancePage = () => {
   const [wizardStep, setWizardStep] = useState(0);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [productTask, setProductTask] = useState<MaintenanceTask | null>(null);
+  const [addressInput, setAddressInput] = useState("");
+  const [lookingUpAddress, setLookingUpAddress] = useState(false);
+  const [addressLookedUp, setAddressLookedUp] = useState(false);
+
+  const lookupAddress = async () => {
+    if (!addressInput.trim()) return;
+    setLookingUpAddress(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("zillow-lookup", {
+        body: { address: addressInput.trim() },
+      });
+      if (error) throw error;
+      if (data?.success && data.data) {
+        const z = data.data;
+        setHome(h => ({
+          ...h,
+          home_type: z.home_type || h.home_type,
+          year_built: z.year_built || h.year_built,
+          square_feet: z.square_feet || h.square_feet,
+          city: z.city || h.city,
+          state: z.state || h.state,
+          hvac_type: z.hvac_type || h.hvac_type,
+          roof_type: z.roof_type || h.roof_type,
+          has_pool: z.has_pool ?? h.has_pool,
+        }));
+        setAddressLookedUp(true);
+        toast({ title: "Home details found!", description: "We've pre-filled your home info from Zillow. You can adjust anything in the following steps." });
+      } else {
+        toast({ title: "No results found", description: data?.error || "Couldn't find property details for that address. You can fill in details manually.", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error("Address lookup error:", err);
+      toast({ title: "Lookup failed", description: "Something went wrong. You can still fill in details manually.", variant: "destructive" });
+    } finally {
+      setLookingUpAddress(false);
+    }
+  };
 
   // Load home profile and tasks
   useEffect(() => {
@@ -201,6 +239,8 @@ const MaintenancePage = () => {
     setWizardStep(0);
     setTasks([]);
     setHomeLoaded(false);
+    setAddressInput("");
+    setAddressLookedUp(false);
   };
 
   const loadTasks = async (homeId: string) => {
@@ -574,7 +614,38 @@ const MaintenancePage = () => {
                     </div>
                   )}
 
-                  {/* Text type: free text input (e.g. home name) */}
+                  {/* Address lookup type */}
+                  {wizardSteps[wizardStep].type === "address" && (
+                    <div className="space-y-4">
+                      <div className="flex gap-2">
+                        <Input
+                          value={addressInput}
+                          onChange={e => setAddressInput(e.target.value)}
+                          placeholder={(wizardSteps[wizardStep] as any).placeholder || "Enter your address"}
+                          className="flex-1"
+                          autoFocus
+                          onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); lookupAddress(); } }}
+                          disabled={lookingUpAddress}
+                        />
+                        <Button onClick={lookupAddress} disabled={lookingUpAddress || !addressInput.trim()} size="sm" className="shrink-0">
+                          {lookingUpAddress ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <Search size={14} className="mr-1.5" />}
+                          {lookingUpAddress ? "Looking up…" : "Look Up"}
+                        </Button>
+                      </div>
+                      {addressLookedUp && (
+                        <div className="rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3 text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
+                          <Check size={16} />
+                          Home details pre-filled from Zillow! Review and adjust in the next steps.
+                        </div>
+                      )}
+                      {!addressLookedUp && (
+                        <p className="text-xs text-muted-foreground">
+                          We'll search Zillow to auto-fill your home details. You can skip this and enter everything manually.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {wizardSteps[wizardStep].type === "text" && (
                     <div className="space-y-3">
                       <Input
@@ -636,7 +707,8 @@ const MaintenancePage = () => {
                     </Button>
                     {wizardStep < wizardSteps.length - 1 ? (
                       <Button size="sm" onClick={() => setWizardStep(s => s + 1)}>
-                        {wizardSteps[wizardStep].type === "location" && !home.city ? "Skip" : "Next"}
+                        {wizardSteps[wizardStep].type === "address" && !addressLookedUp ? "Skip" :
+                         wizardSteps[wizardStep].type === "location" && !home.city ? "Skip" : "Next"}
                       </Button>
                     ) : (
                       <Button size="sm" onClick={finishWizard} disabled={savingHome || generating} className="gap-1">
