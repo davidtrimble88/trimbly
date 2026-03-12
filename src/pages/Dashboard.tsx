@@ -355,48 +355,48 @@ const Dashboard = () => {
                           {home.has_well_water && <Badge variant="secondary" className="text-xs">Well Water</Badge>}
                         </div>
 
-                        {/* Maintenance stats */}
+                        {/* Maintenance stats - clickable */}
                         {stats && (
                           <div className="grid grid-cols-2 gap-2">
                             {stats.overdueTasks > 0 && (
-                              <div className="flex items-center gap-2 rounded-lg bg-destructive/10 px-3 py-2">
+                              <button onClick={() => setDrilldown({ title: `${home.name} — Overdue`, homeId: home.id, filter: "overdue" })} className="flex items-center gap-2 rounded-lg bg-destructive/10 px-3 py-2 hover:ring-2 hover:ring-destructive/30 transition-all text-left">
                                 <AlertTriangle size={14} className="text-destructive" />
                                 <span className="text-sm font-medium text-destructive">{stats.overdueTasks} overdue</span>
-                              </div>
+                              </button>
                             )}
                             {stats.highPriorityTasks > 0 && (
-                              <div className="flex items-center gap-2 rounded-lg bg-orange-100 dark:bg-orange-900/20 px-3 py-2">
+                              <button onClick={() => setDrilldown({ title: `${home.name} — High Priority`, homeId: home.id, filter: "high_priority" })} className="flex items-center gap-2 rounded-lg bg-orange-100 dark:bg-orange-900/20 px-3 py-2 hover:ring-2 hover:ring-orange-300 dark:hover:ring-orange-700 transition-all text-left">
                                 <Clock size={14} className="text-orange-600 dark:text-orange-400" />
                                 <span className="text-sm font-medium text-orange-700 dark:text-orange-400">{stats.highPriorityTasks} high priority</span>
-                              </div>
+                              </button>
                             )}
-                            <div className="flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2">
+                            <button onClick={() => setDrilldown({ title: `${home.name} — Upcoming`, homeId: home.id, filter: "upcoming" })} className="flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 hover:ring-2 hover:ring-primary/30 transition-all text-left">
                               <CalendarCheck size={14} className="text-primary" />
                               <span className="text-sm font-medium text-primary">{stats.upcomingTasks} upcoming</span>
-                            </div>
-                            <div className="flex items-center gap-2 rounded-lg bg-green-100 dark:bg-green-900/20 px-3 py-2">
+                            </button>
+                            <button onClick={() => setDrilldown({ title: `${home.name} — Completed`, homeId: home.id, filter: "completed" })} className="flex items-center gap-2 rounded-lg bg-green-100 dark:bg-green-900/20 px-3 py-2 hover:ring-2 hover:ring-green-300 dark:hover:ring-green-700 transition-all text-left">
                               <CheckCircle2 size={14} className="text-green-600 dark:text-green-400" />
                               <span className="text-sm font-medium text-green-700 dark:text-green-400">{stats.completedTasks} completed</span>
-                            </div>
+                            </button>
                           </div>
                         )}
 
-                        {/* Pro-only: Binder & warranty stats */}
+                        {/* Pro-only: Binder & warranty stats - clickable */}
                         {isPro && stats && (
                           <div className="border-t border-border pt-3 space-y-2">
-                            <div className="flex items-center justify-between text-sm">
+                            <button onClick={() => setDrilldown({ title: `${home.name} — Binder Items`, homeId: home.id, filter: "binder" })} className="flex items-center justify-between text-sm w-full hover:bg-muted/50 rounded-lg px-2 py-1 transition-colors">
                               <span className="text-muted-foreground flex items-center gap-1.5">
                                 <FolderOpen size={14} /> Binder items
                               </span>
                               <span className="font-medium text-foreground">{stats.binderItemCount}</span>
-                            </div>
+                            </button>
                             {stats.expiringWarranties > 0 && (
-                              <div className="flex items-center justify-between text-sm">
+                              <button onClick={() => setDrilldown({ title: `${home.name} — Expiring Warranties`, homeId: home.id, filter: "expiring_warranties" })} className="flex items-center justify-between text-sm w-full hover:bg-muted/50 rounded-lg px-2 py-1 transition-colors">
                                 <span className="text-orange-600 dark:text-orange-400 flex items-center gap-1.5">
                                   <Shield size={14} /> Warranties expiring soon
                                 </span>
                                 <span className="font-medium text-orange-600 dark:text-orange-400">{stats.expiringWarranties}</span>
-                              </div>
+                              </button>
                             )}
                           </div>
                         )}
