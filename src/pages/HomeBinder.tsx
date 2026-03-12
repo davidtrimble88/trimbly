@@ -129,7 +129,13 @@ const HomeBinder = () => {
     loadData(id);
   };
 
+  const canAddBinderItem = items.length < maxBinderItems;
+
   const openNew = () => {
+    if (!canAddBinderItem) {
+      toast({ title: "Binder limit reached", description: `Your plan allows up to ${maxBinderItems} binder items. Upgrade to Multi-Homeowner Pro for unlimited entries.`, variant: "destructive" });
+      return;
+    }
     setEditingItem(null);
     setForm(emptyItem);
     setFile(null);
