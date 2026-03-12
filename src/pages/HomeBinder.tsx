@@ -325,9 +325,11 @@ const HomeBinder = () => {
                   <p className="text-muted-foreground text-sm">Appliances, warranties, receipts & documents — all in one place</p>
                 </div>
               </div>
-              <Button onClick={openNew} className="gap-1">
-                <Plus size={16} /> Add Item
-              </Button>
+              {homeId !== "all" && (
+                <Button onClick={openNew} className="gap-1">
+                  <Plus size={16} /> Add Item
+                </Button>
+              )}
             </div>
 
             {/* Home selector tabs */}
