@@ -153,6 +153,7 @@ const MaintenancePage = () => {
   const [showSetup, setShowSetup] = useState(false);
   const [savingHome, setSavingHome] = useState(false);
   const [filter, setFilter] = useState<"all" | "upcoming" | "completed">("all");
+  const [sortBy, setSortBy] = useState<"due_date" | "priority" | "category" | "season">("due_date");
   const [wizardStep, setWizardStep] = useState(0);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [productTask, setProductTask] = useState<MaintenanceTask | null>(null);
