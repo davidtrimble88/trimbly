@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      blocked_providers: {
+        Row: {
+          created_at: string
+          id: string
+          provider_name: string | null
+          provider_user_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          provider_name?: string | null
+          provider_user_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          provider_name?: string | null
+          provider_user_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_optouts: {
         Row: {
           business_name: string | null
