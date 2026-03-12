@@ -429,7 +429,7 @@ const Messages = () => {
                       </button>
 
                       {/* Actions dropdown */}
-                      <div className="p-2 pt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="p-2 pt-3">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-7 w-7">
