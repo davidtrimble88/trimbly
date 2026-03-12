@@ -34,14 +34,14 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <>
-              <span className="text-sm text-muted-foreground">{profileName || user.user_metadata?.full_name || user.email}</span>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>Dashboard</Button>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut size={16} className="mr-1" /> Sign Out
               </Button>
             </>
           ) : (
             <>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>Dashboard</Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>Log In</Button>
               <Button size="sm" onClick={() => navigate("/auth")}>Get Started</Button>
             </>
           )}
