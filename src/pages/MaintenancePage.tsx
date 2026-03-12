@@ -574,7 +574,19 @@ const MaintenancePage = () => {
                     </div>
                   )}
 
-                  {/* Location type: city + state inputs */}
+                  {/* Text type: free text input (e.g. home name) */}
+                  {wizardSteps[wizardStep].type === "text" && (
+                    <div className="space-y-3">
+                      <Input
+                        value={home.name}
+                        onChange={e => setHome({ ...home, name: e.target.value })}
+                        placeholder={(wizardSteps[wizardStep] as any).placeholder || "Enter a name"}
+                        className="text-lg"
+                        autoFocus
+                      />
+                    </div>
+                  )}
+
                   {wizardSteps[wizardStep].type === "location" && (
                     <div className="space-y-3">
                       <div>
