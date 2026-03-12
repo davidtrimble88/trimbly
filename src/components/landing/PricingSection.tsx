@@ -29,7 +29,7 @@ const tiers = [
       "Unlimited job requests",
       "AI job estimator (unlimited)",
       "Advanced maintenance schedules",
-      "Priority pro matching (24h SLA)",
+      "Priority pro matching",
       "Emergency support channel",
       "Digital Home Binder (5 items) + export",
       "Seasonal checklists",
