@@ -239,6 +239,8 @@ const MaintenancePage = () => {
     setWizardStep(0);
     setTasks([]);
     setHomeLoaded(false);
+    setAddressInput("");
+    setAddressLookedUp(false);
   };
 
   const loadTasks = async (homeId: string) => {
