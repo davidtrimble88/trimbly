@@ -36,7 +36,7 @@ const allServices = [
     title: "Digital Home Binder",
     description: "Store appliance info, warranties, past jobs, and documents.",
     route: "/binder",
-    minTier: "free",
+    minTier: "pro",
   },
   {
     icon: MessageSquare,
