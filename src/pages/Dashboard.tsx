@@ -70,10 +70,15 @@ type HomeStats = {
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, profileName } = useAuth();
-  const { subscriptionTier, maxHomes, maxBinderItems, loading: limitLoading } = useHomeLimit();
+  const { subscriptionTier, maxHomes, maxBinderItems, loading: limitLoading, homeCount } = useHomeLimit();
+  const { toast } = useToast();
   const [homes, setHomes] = useState<HomeData[]>([]);
   const [homeStats, setHomeStats] = useState<Record<string, HomeStats>>({});
   const [loadingHomes, setLoadingHomes] = useState(true);
+  const [editingHome, setEditingHome] = useState<HomeData | null>(null);
+  const [deletingHome, setDeletingHome] = useState<HomeData | null>(null);
+  const [editForm, setEditForm] = useState<Partial<HomeData>>({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
