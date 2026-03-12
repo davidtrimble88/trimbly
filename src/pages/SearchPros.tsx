@@ -21,7 +21,7 @@ type CountryFilter = "all" | "US" | "CA";
 const SearchPros = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
-  const [searchMode, setSearchMode] = useState<SearchMode>("provider");
+  const [searchMode, setSearchMode] = useState<SearchMode>("location");
   const [activeCategory, setActiveCategory] = useState("All");
   const [countryFilter, setCountryFilter] = useState<CountryFilter>("all");
   const [dbProviders, setDbProviders] = useState<ProviderWithStats[]>([]);
@@ -150,8 +150,8 @@ const SearchPros = () => {
           <div className="space-y-3 mb-6">
             <div className="flex flex-wrap items-center gap-2">
               {([
-                { mode: "provider" as SearchMode, icon: Search, label: "By Provider" },
                 { mode: "location" as SearchMode, icon: MapPin, label: "By City / State" },
+                { mode: "provider" as SearchMode, icon: Search, label: "By Provider" },
               ]).map(({ mode, icon: Icon, label }) => (
                 <button
                   key={mode}
