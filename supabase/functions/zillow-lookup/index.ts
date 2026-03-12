@@ -75,66 +75,29 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         url: propertyResult.url,
-        formats: [
-          {
-            type: 'json',
-            prompt: 'Extract property details from this Zillow listing page.',
-            schema: {
-              type: 'object',
-              properties: {
-                home_type: {
-                  type: 'string',
-                  description: 'Type of home: single_family, townhouse, condo, duplex, or mobile'
-                },
-                year_built: {
-                  type: 'number',
-                  description: 'Year the home was built'
-                },
-                square_feet: {
-                  type: 'number',
-                  description: 'Total square footage of the home'
-                },
-                city: {
-                  type: 'string',
-                  description: 'City where the home is located'
-                },
-                state: {
-                  type: 'string',
-                  description: 'Two-letter state abbreviation'
-                },
-                hvac_type: {
-                  type: 'string',
-                  description: 'Heating/cooling system type: central, heat_pump, furnace, mini_split, window, or none'
-                },
-                roof_type: {
-                  type: 'string',
-                  description: 'Roof material: asphalt, metal, tile, slate, or flat'
-                },
-                has_pool: {
-                  type: 'boolean',
-                  description: 'Whether the property has a pool'
-                },
-                bedrooms: {
-                  type: 'number',
-                  description: 'Number of bedrooms'
-                },
-                bathrooms: {
-                  type: 'number',
-                  description: 'Number of bathrooms'
-                },
-                lot_size: {
-                  type: 'string',
-                  description: 'Lot size'
-                },
-                address: {
-                  type: 'string',
-                  description: 'Full street address'
-                }
-              }
-            }
-          }
-        ],
+        formats: ['extract'],
+        extract: {
+          prompt: 'Extract property details from this Zillow listing page.',
+          schema: {
+            type: 'object',
+            properties: {
+              home_type: { type: 'string', description: 'Type of home: single_family, townhouse, condo, duplex, or mobile' },
+              year_built: { type: 'number', description: 'Year the home was built' },
+              square_feet: { type: 'number', description: 'Total square footage of the home' },
+              city: { type: 'string', description: 'City where the home is located' },
+              state: { type: 'string', description: 'Two-letter state abbreviation' },
+              hvac_type: { type: 'string', description: 'Heating/cooling system type: central, heat_pump, furnace, mini_split, window, or none' },
+              roof_type: { type: 'string', description: 'Roof material: asphalt, metal, tile, slate, or flat' },
+              has_pool: { type: 'boolean', description: 'Whether the property has a pool' },
+              bedrooms: { type: 'number', description: 'Number of bedrooms' },
+              bathrooms: { type: 'number', description: 'Number of bathrooms' },
+              lot_size: { type: 'string', description: 'Lot size' },
+              address: { type: 'string', description: 'Full street address' },
+            },
+          },
+        },
         onlyMainContent: true,
+        waitFor: 3000,
       }),
     });
 
