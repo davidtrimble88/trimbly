@@ -12,6 +12,7 @@ interface ProviderDetailDialogProps {
 }
 
 const ProviderDetailDialog = ({ provider, open, onOpenChange }: ProviderDetailDialogProps) => {
+  const [messageOpen, setMessageOpen] = useState(false);
   if (!provider) return null;
 
   const isWeb = provider.source === "web";
