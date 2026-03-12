@@ -275,9 +275,26 @@ const Dashboard = () => {
                               {home.city}, {home.state?.toUpperCase()}
                             </CardDescription>
                           </div>
-                          <Badge variant="outline" className="text-xs shrink-0">
-                            {homeTypeLabels[home.home_type] || home.home_type}
-                          </Badge>
+                          <div className="flex items-center gap-1.5">
+                            <Badge variant="outline" className="text-xs shrink-0">
+                              {homeTypeLabels[home.home_type] || home.home_type}
+                            </Badge>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreVertical size={14} />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => startEdit(home)}>
+                                  <Pencil size={14} className="mr-2" /> Edit Home
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setDeletingHome(home)} className="text-destructive focus:text-destructive">
+                                  <Trash2 size={14} className="mr-2" /> Remove Home
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </div>
                       </CardHeader>
 
