@@ -113,23 +113,29 @@ const ProviderDetailDialog = ({ provider, open, onOpenChange }: ProviderDetailDi
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">
+            <Button className="flex-1 gap-2" onClick={() => setMessageOpen(true)}>
+              <MessageSquare size={14} /> Send Message
+            </Button>
             {provider.phone && (
-              <Button asChild className="flex-1">
-                <a href={`tel:${provider.phone}`}>Call Now</a>
+              <Button variant="outline" asChild className="flex-1">
+                <a href={`tel:${provider.phone}`}>Call</a>
               </Button>
             )}
             {provider.website && (
               <Button variant="outline" asChild className="flex-1">
                 <a href={provider.website} target="_blank" rel="noopener noreferrer">
-                  Visit Website
+                  Website
                 </a>
               </Button>
             )}
-            {!provider.phone && !provider.website && (
-              <p className="text-sm text-muted-foreground">No contact information available.</p>
-            )}
           </div>
         </div>
+
+        <SendMessageDialog
+          provider={provider}
+          open={messageOpen}
+          onOpenChange={setMessageOpen}
+        />
       </DialogContent>
     </Dialog>
   );

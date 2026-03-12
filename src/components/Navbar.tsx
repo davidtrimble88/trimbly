@@ -79,6 +79,9 @@ const Navbar = () => {
       <Link to="/estimator" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
         <Wrench size={14} /> Estimator
       </Link>
+      <Link to="/messages" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
+        <MessageSquare size={14} /> Messages
+      </Link>
       {!isPro && (
         <a href="/#pricing" className="flex items-center gap-2 text-sm text-primary font-medium" onClick={onClose}>
           <Crown size={14} /> Upgrade
