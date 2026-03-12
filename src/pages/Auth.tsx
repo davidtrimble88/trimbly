@@ -228,7 +228,7 @@ function AuthForm({
         if (error) {
           toast({ title: "Login failed", description: error.message, variant: "destructive" });
         } else {
-          navigate("/search");
+          navigate("/dashboard");
         }
       }
     } catch (err: any) {
