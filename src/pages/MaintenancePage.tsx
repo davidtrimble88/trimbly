@@ -186,7 +186,7 @@ const MaintenancePage = () => {
 
   const startAddHome = () => {
     if (!canAddHome) {
-      toast({ title: "Upgrade required", description: "Free accounts can only have 1 home. Upgrade to Pro to add more.", variant: "destructive" });
+      toast({ title: "Upgrade required", description: "Your plan only allows 1 home. Upgrade to Multi-Homeowner Pro to manage up to 10.", variant: "destructive" });
       return;
     }
     setHome(emptyHome);
@@ -479,7 +479,7 @@ const MaintenancePage = () => {
                   </button>
                 ))}
                 {!canAddHome && (
-                  <span className="px-3 py-2 text-xs text-muted-foreground self-center">Upgrade to Pro for more homes</span>
+                  <span className="px-3 py-2 text-xs text-muted-foreground self-center">Upgrade to Multi-Homeowner Pro for more homes</span>
                 )}
               </div>
             )}

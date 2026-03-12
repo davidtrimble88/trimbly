@@ -69,7 +69,7 @@ const emptyItem = {
 const HomeBinder = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { canAddHome, isPro } = useHomeLimit();
+  const { canAddHome, isPro, maxBinderItems } = useHomeLimit();
 
   const [items, setItems] = useState<BinderItem[]>([]);
   const [homes, setHomes] = useState<{ id: string; name: string }[]>([]);
@@ -129,7 +129,13 @@ const HomeBinder = () => {
     loadData(id);
   };
 
+  const canAddBinderItem = items.length < maxBinderItems;
+
   const openNew = () => {
+    if (!canAddBinderItem) {
+      toast({ title: "Binder limit reached", description: `Your plan allows up to ${maxBinderItems} binder items. Upgrade to Multi-Homeowner Pro for unlimited entries.`, variant: "destructive" });
+      return;
+    }
     setEditingItem(null);
     setForm(emptyItem);
     setFile(null);
@@ -303,7 +309,7 @@ const HomeBinder = () => {
                   </button>
                 ))}
                 {!canAddHome && (
-                  <span className="px-3 py-2 text-xs text-muted-foreground self-center">Upgrade to Pro for more homes</span>
+                  <span className="px-3 py-2 text-xs text-muted-foreground self-center">Upgrade to Multi-Homeowner Pro for more homes</span>
                 )}
               </div>
             )}
