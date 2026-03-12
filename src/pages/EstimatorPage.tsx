@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Brain, Loader2, DollarSign, Clock, Wrench, Lightbulb, ShieldCheck, AlertTriangle, ChevronRight } from "lucide-react";
+import { ArrowLeft, Brain, Loader2, DollarSign, Clock, Wrench, Lightbulb, ShieldCheck, AlertTriangle, ChevronRight, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,6 +9,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { getJobEstimate, type JobEstimate } from "@/lib/api/jobEstimator";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useHomeLimit } from "@/hooks/useHomeLimit";
 
 const categories = ["Plumbing", "Electrical", "Handyman", "HVAC", "Landscaping", "Painting", "Roofing", "Cleaning", "Other"];
 
