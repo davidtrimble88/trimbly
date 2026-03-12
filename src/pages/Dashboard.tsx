@@ -23,15 +23,15 @@ import {
 // ─── Service definitions ───
 const allServices = [
   { icon: Wrench, title: "Find Local Pros", description: "Search by service, distance, rating, and availability.", route: "/search", minTier: "free" },
-  { icon: Brain, title: "AI Job Estimator", description: "Get instant cost estimates, material lists, and DIY vs. pro recommendations.", route: "/estimator", minTier: "pro" },
-  { icon: CalendarCheck, title: "Maintenance Autopilot", description: "Automated schedules based on your home profile.", route: "/maintenance", minTier: "free" },
-  { icon: FolderOpen, title: "Digital Home Binder", description: "Store appliance info, warranties, past jobs, and documents.", route: "/binder", minTier: "pro" },
+  { icon: Brain, title: "AI Job Estimator", description: "Unlimited instant cost estimates, material lists, and DIY vs. pro recommendations.", route: "/estimator", minTier: "homeowner_pro" },
+  { icon: CalendarCheck, title: "Maintenance Autopilot", description: "Advanced automated schedules based on your home profile.", route: "/maintenance", minTier: "free" },
+  { icon: FolderOpen, title: "Digital Home Binder", description: "Store appliance info, warranties, past jobs, and documents (5 items).", route: "/binder", minTier: "homeowner_pro" },
   { icon: MessageSquare, title: "In-App Messaging", description: "Chat directly with pros, share photos, and track job status.", route: "/messages", minTier: "free" },
   { icon: Star, title: "Verified Reviews", description: "Read and leave honest reviews from real homeowners.", route: "/search", minTier: "free" },
 ];
 
-const tierOrder: Record<string, number> = { free: 0, pro: 1, multi_pro: 2 };
-const tierLabels: Record<string, string> = { free: "Free", pro: "Homeowner Pro", multi_pro: "Multi-Homeowner Pro" };
+const tierOrder: Record<string, number> = { free: 0, homeowner_pro: 1, multi_pro: 2 };
+const tierLabels: Record<string, string> = { free: "Free", homeowner_pro: "Homeowner Pro", multi_pro: "Multi-Homeowner Pro" };
 
 const homeTypeLabels: Record<string, string> = {
   single_family: "Single Family",
