@@ -118,14 +118,19 @@ const Auth = () => {
             </div>
           )}
 
-          <AuthForm
-            mode={mode}
-            userType={userType}
-            form={form}
-            setForm={setForm}
-            showPassword={showPassword}
-            setShowPassword={setShowPassword}
-          />
+          {mode === "forgot" ? (
+            <ForgotPasswordForm onBack={() => setMode("login")} />
+          ) : (
+            <AuthForm
+              mode={mode}
+              userType={userType}
+              form={form}
+              setForm={setForm}
+              showPassword={showPassword}
+              setShowPassword={setShowPassword}
+              onForgot={() => setMode("forgot")}
+            />
+          )}
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
