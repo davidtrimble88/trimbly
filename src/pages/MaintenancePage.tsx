@@ -799,21 +799,37 @@ const MaintenancePage = () => {
 
                   {tasks.length > 0 && (
                     <>
-                      {/* Filter tabs */}
-                      <div className="flex gap-2 mb-4">
-                        {(["all", "upcoming", "completed"] as const).map(f => (
-                          <button
-                            key={f}
-                            onClick={() => setFilter(f)}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
-                              filter === f
-                                ? "bg-primary text-primary-foreground border-primary"
-                                : "text-muted-foreground border-transparent hover:bg-secondary"
-                            }`}
-                          >
-                            {f.charAt(0).toUpperCase() + f.slice(1)} {f === "all" ? `(${tasks.length})` : f === "upcoming" ? `(${upcomingCount})` : `(${tasks.length - upcomingCount})`}
-                          </button>
-                        ))}
+                      {/* Filter tabs + Sort */}
+                      <div className="flex items-center justify-between gap-4 mb-4">
+                        <div className="flex gap-2">
+                          {(["all", "upcoming", "completed"] as const).map(f => (
+                            <button
+                              key={f}
+                              onClick={() => setFilter(f)}
+                              className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
+                                filter === f
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "text-muted-foreground border-transparent hover:bg-secondary"
+                              }`}
+                            >
+                              {f.charAt(0).toUpperCase() + f.slice(1)} {f === "all" ? `(${tasks.length})` : f === "upcoming" ? `(${upcomingCount})` : `(${tasks.length - upcomingCount})`}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <ArrowUpDown size={14} className="text-muted-foreground" />
+                          <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                            <SelectTrigger className="h-8 w-[140px] text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="due_date">Due Date</SelectItem>
+                              <SelectItem value="priority">Priority</SelectItem>
+                              <SelectItem value="category">Category</SelectItem>
+                              <SelectItem value="season">Season</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
 
                       {/* Task List */}
