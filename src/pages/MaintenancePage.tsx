@@ -186,7 +186,7 @@ const MaintenancePage = () => {
 
   const startAddHome = () => {
     if (!canAddHome) {
-      toast({ title: "Upgrade required", description: "Free accounts can only have 1 home. Upgrade to Pro to add more.", variant: "destructive" });
+      toast({ title: "Upgrade required", description: "Your plan only allows 1 home. Upgrade to Multi-Homeowner Pro to manage up to 10.", variant: "destructive" });
       return;
     }
     setHome(emptyHome);
