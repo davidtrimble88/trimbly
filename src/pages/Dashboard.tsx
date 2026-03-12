@@ -429,6 +429,69 @@ const Dashboard = () => {
             )}
           </div>
 
+          {/* ─── Upgrade Banner ─── */}
+          {subscriptionTier !== "multi_pro" && (() => {
+            const nextTier = subscriptionTier === "free" ? "homeowner_pro" : "multi_pro";
+            const upgradeConfig: Record<string, { name: string; price: string; period: string; cta: string; newFeatures: string[]; }> = {
+              homeowner_pro: {
+                name: "Homeowner Pro",
+                price: "$5",
+                period: "/month",
+                cta: "Start Free Trial",
+                newFeatures: [
+                  "Unlimited job requests",
+                  "AI job estimator (unlimited)",
+                  "Advanced maintenance schedules",
+                  "Priority pro matching",
+                  "Emergency support channel",
+                  "Digital Home Binder (5 items) + export",
+                  "Seasonal checklists",
+                ],
+              },
+              multi_pro: {
+                name: "Multi-Homeowner Pro",
+                price: "$20",
+                period: "/month",
+                cta: "Upgrade Now",
+                newFeatures: [
+                  "Up to 10 home profiles",
+                  "View homes individually or all together",
+                  "Unlimited Digital Home Binder entries",
+                ],
+              },
+            };
+            const cfg = upgradeConfig[nextTier];
+            return (
+              <Card className="mb-12 border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 overflow-hidden">
+                <CardContent className="p-6 md:p-8">
+                  <div className="flex flex-col md:flex-row md:items-center gap-6">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Crown size={20} className="text-primary" />
+                        <h3 className="text-lg font-bold text-foreground">Unlock {cfg.name}</h3>
+                        <Badge className="bg-primary text-primary-foreground text-xs">{cfg.price}{cfg.period}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-4">Here's what you'll get by upgrading:</p>
+                      <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
+                        {cfg.newFeatures.map(f => (
+                          <li key={f} className="flex items-start gap-2 text-sm text-foreground">
+                            <Check size={15} className="text-primary mt-0.5 shrink-0" />
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="shrink-0">
+                      <Button size="lg" onClick={() => navigate("/#pricing")} className="w-full md:w-auto">
+                        <Crown size={16} className="mr-2" /> {cfg.cta}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
+
           {/* ─── Services Section ─── */}
           <div>
             <h2 className="text-xl font-bold text-foreground mb-4">Services</h2>
