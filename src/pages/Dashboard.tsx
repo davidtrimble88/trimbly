@@ -133,9 +133,12 @@ const Dashboard = () => {
     const homeIds = homesList.map(h => h.id);
 
     const [{ data: tasks }, { data: binderItems }] = await Promise.all([
-      supabase.from("maintenance_tasks").select("home_id, status, priority, due_date").in("home_id", homeIds),
-      supabase.from("home_binder_items").select("home_id, warranty_expiry").in("home_id", homeIds),
+      supabase.from("maintenance_tasks").select("home_id, title, status, priority, due_date, category").in("home_id", homeIds),
+      supabase.from("home_binder_items").select("home_id, name, warranty_expiry, item_type").in("home_id", homeIds),
     ]);
+
+    setAllTasks((tasks as TaskRow[]) || []);
+    setAllBinderItems((binderItems as BinderRow[]) || []);
 
     const now = new Date();
     const thirtyDays = 30 * 24 * 60 * 60 * 1000;
