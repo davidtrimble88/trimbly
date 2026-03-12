@@ -87,10 +87,10 @@ const Auth = () => {
           </div>
 
           <h2 className="text-2xl font-bold text-foreground mb-1 font-display">
-            {mode === "login" ? "Log in to your account" : "Create your account"}
+            {mode === "login" ? "Log in to your account" : mode === "signup" ? "Create your account" : "Forgot your password?"}
           </h2>
           <p className="text-muted-foreground text-sm mb-6">
-            {mode === "login" ? "Enter your credentials to continue" : "Fill in your details to get started"}
+            {mode === "login" ? "Enter your credentials to continue" : mode === "signup" ? "Fill in your details to get started" : "Enter your email and we'll send you a reset link"}
           </p>
 
           {mode === "signup" && (
