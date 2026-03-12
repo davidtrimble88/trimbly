@@ -92,7 +92,8 @@ const downloadICS = (filename: string, content: string) => {
 };
 
 // Wizard steps for quick setup
-const wizardSteps = [
+const baseWizardSteps = [
+  { key: "home_name", question: "Give this home a name", type: "text" as const, placeholder: "e.g. Lake House, Main Residence" },
   { key: "home_type", question: "What type of home do you have?", type: "select" as const, options: [
     { value: "single_family", label: "🏠 Single Family" },
     { value: "townhouse", label: "🏘️ Townhouse" },
@@ -136,6 +137,8 @@ const MaintenancePage = () => {
   const { toast } = useToast();
   const { canAddHome, isPro, homeCount, loading: limitLoading, subscriptionTier } = useHomeLimit();
   const isMultiPro = subscriptionTier === "multi_pro";
+  // For multi-home users, include the name step; for single-home, skip it
+  const wizardSteps = isMultiPro ? baseWizardSteps : baseWizardSteps.filter(s => s.key !== "home_name");
   const [allHomesView, setAllHomesView] = useState(false);
 
   const [homes, setHomes] = useState<HomeProfile[]>([]);
@@ -571,7 +574,19 @@ const MaintenancePage = () => {
                     </div>
                   )}
 
-                  {/* Location type: city + state inputs */}
+                  {/* Text type: free text input (e.g. home name) */}
+                  {wizardSteps[wizardStep].type === "text" && (
+                    <div className="space-y-3">
+                      <Input
+                        value={home.name}
+                        onChange={e => setHome({ ...home, name: e.target.value })}
+                        placeholder={(wizardSteps[wizardStep] as any).placeholder || "Enter a name"}
+                        className="text-lg"
+                        autoFocus
+                      />
+                    </div>
+                  )}
+
                   {wizardSteps[wizardStep].type === "location" && (
                     <div className="space-y-3">
                       <div>
