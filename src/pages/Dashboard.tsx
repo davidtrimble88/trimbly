@@ -26,7 +26,7 @@ const allServices = [
   { icon: Brain, title: "AI Job Estimator", description: "Get instant cost estimates, material lists, and DIY vs. pro recommendations.", route: "/estimator", minTier: "pro" },
   { icon: CalendarCheck, title: "Maintenance Autopilot", description: "Automated schedules based on your home profile.", route: "/maintenance", minTier: "free" },
   { icon: FolderOpen, title: "Digital Home Binder", description: "Store appliance info, warranties, past jobs, and documents.", route: "/binder", minTier: "pro" },
-  { icon: MessageSquare, title: "In-App Messaging", description: "Chat directly with pros, share photos, and track job status.", route: null, minTier: "pro" },
+  { icon: MessageSquare, title: "In-App Messaging", description: "Chat directly with pros, share photos, and track job status.", route: "/messages", minTier: "free" },
   { icon: Star, title: "Verified Reviews", description: "Read and leave honest reviews from real homeowners.", route: "/search", minTier: "free" },
 ];
 
