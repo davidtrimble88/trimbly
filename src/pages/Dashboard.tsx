@@ -139,7 +139,60 @@ const Dashboard = () => {
     setLoadingHomes(false);
   };
 
-  if (authLoading || limitLoading) {
+  const startEdit = (h: HomeData) => {
+    setEditingHome(h);
+    setEditForm({ ...h });
+  };
+
+  const saveEdit = async () => {
+    if (!editingHome || !editForm) return;
+    setSaving(true);
+    const { error } = await supabase.from("homes").update({
+      name: editForm.name,
+      home_type: editForm.home_type,
+      year_built: editForm.year_built,
+      square_feet: editForm.square_feet,
+      city: editForm.city,
+      state: editForm.state,
+      hvac_type: editForm.hvac_type,
+      roof_type: editForm.roof_type,
+      has_pool: editForm.has_pool,
+      has_septic: editForm.has_septic,
+      has_well_water: editForm.has_well_water,
+      updated_at: new Date().toISOString(),
+    }).eq("id", editingHome.id);
+    setSaving(false);
+    if (error) {
+      toast({ title: "Error", description: "Failed to update home.", variant: "destructive" });
+    } else {
+      setHomes(prev => prev.map(h => h.id === editingHome.id ? { ...h, ...editForm } as HomeData : h));
+      setEditingHome(null);
+      toast({ title: "Home updated" });
+    }
+  };
+
+  const deleteHome = async () => {
+    if (!deletingHome) return;
+    setSaving(true);
+    // Delete related data first
+    await Promise.all([
+      supabase.from("maintenance_tasks").delete().eq("home_id", deletingHome.id),
+      supabase.from("home_binder_items").delete().eq("home_id", deletingHome.id),
+    ]);
+    const { error } = await supabase.from("homes").delete().eq("id", deletingHome.id);
+    setSaving(false);
+    if (error) {
+      toast({ title: "Error", description: "Failed to delete home.", variant: "destructive" });
+    } else {
+      setHomes(prev => prev.filter(h => h.id !== deletingHome.id));
+      const newStats = { ...homeStats };
+      delete newStats[deletingHome.id];
+      setHomeStats(newStats);
+      setDeletingHome(null);
+      toast({ title: "Home removed", description: `"${deletingHome.name}" and its data have been deleted.` });
+    }
+  };
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <p className="text-muted-foreground">Loading…</p>
