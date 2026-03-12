@@ -374,3 +374,4 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
   );
 }
 
+export default Auth;
