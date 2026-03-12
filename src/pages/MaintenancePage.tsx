@@ -92,7 +92,8 @@ const downloadICS = (filename: string, content: string) => {
 };
 
 // Wizard steps for quick setup
-const wizardSteps = [
+const baseWizardSteps = [
+  { key: "home_name", question: "Give this home a name", type: "text" as const, placeholder: "e.g. Lake House, Main Residence" },
   { key: "home_type", question: "What type of home do you have?", type: "select" as const, options: [
     { value: "single_family", label: "🏠 Single Family" },
     { value: "townhouse", label: "🏘️ Townhouse" },
