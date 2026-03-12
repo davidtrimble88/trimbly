@@ -569,6 +569,100 @@ const Dashboard = () => {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Drilldown Dialog */}
+      <Dialog open={!!drilldown} onOpenChange={open => !open && setDrilldown(null)}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{drilldown?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {drilldown && (() => {
+              const now = new Date();
+              const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+              const homeTasks = allTasks.filter(t => t.home_id === drilldown.homeId);
+              const homeItems = allBinderItems.filter(i => i.home_id === drilldown.homeId);
+
+              if (drilldown.filter === "overdue") {
+                const items = homeTasks.filter(t => t.due_date && new Date(t.due_date) < now && t.status !== "completed");
+                return items.length === 0 ? <p className="text-sm text-muted-foreground">No overdue tasks.</p> : items.map((t, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-lg border border-border p-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{t.title}</p>
+                      <p className="text-xs text-muted-foreground">{t.category} · Due {t.due_date}</p>
+                    </div>
+                    <Badge variant="destructive" className="text-xs">{t.priority}</Badge>
+                  </div>
+                ));
+              }
+              if (drilldown.filter === "high_priority") {
+                const items = homeTasks.filter(t => t.priority === "high" && t.status !== "completed");
+                return items.length === 0 ? <p className="text-sm text-muted-foreground">No high priority tasks.</p> : items.map((t, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-lg border border-border p-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{t.title}</p>
+                      <p className="text-xs text-muted-foreground">{t.category} · {t.status}{t.due_date ? ` · Due ${t.due_date}` : ""}</p>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">High</Badge>
+                  </div>
+                ));
+              }
+              if (drilldown.filter === "upcoming") {
+                const items = homeTasks.filter(t => t.status === "upcoming");
+                return items.length === 0 ? <p className="text-sm text-muted-foreground">No upcoming tasks.</p> : items.map((t, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-lg border border-border p-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{t.title}</p>
+                      <p className="text-xs text-muted-foreground">{t.category}{t.due_date ? ` · Due ${t.due_date}` : ""}</p>
+                    </div>
+                    <Badge variant="outline" className="text-xs">{t.priority}</Badge>
+                  </div>
+                ));
+              }
+              if (drilldown.filter === "completed") {
+                const items = homeTasks.filter(t => t.status === "completed");
+                return items.length === 0 ? <p className="text-sm text-muted-foreground">No completed tasks.</p> : items.map((t, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-lg border border-border p-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{t.title}</p>
+                      <p className="text-xs text-muted-foreground">{t.category}</p>
+                    </div>
+                    <CheckCircle2 size={14} className="text-green-600 dark:text-green-400" />
+                  </div>
+                ));
+              }
+              if (drilldown.filter === "binder") {
+                return homeItems.length === 0 ? <p className="text-sm text-muted-foreground">No binder items.</p> : homeItems.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-lg border border-border p-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">{item.item_type}{item.warranty_expiry ? ` · Warranty: ${item.warranty_expiry}` : ""}</p>
+                    </div>
+                    <FolderOpen size={14} className="text-muted-foreground" />
+                  </div>
+                ));
+              }
+              if (drilldown.filter === "expiring_warranties") {
+                const items = homeItems.filter(i => {
+                  if (!i.warranty_expiry) return false;
+                  const diff = new Date(i.warranty_expiry).getTime() - now.getTime();
+                  return diff > 0 && diff < thirtyDays;
+                });
+                return items.length === 0 ? <p className="text-sm text-muted-foreground">No expiring warranties.</p> : items.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-lg border border-border p-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">{item.item_type} · Expires {item.warranty_expiry}</p>
+                    </div>
+                    <Shield size={14} className="text-orange-600 dark:text-orange-400" />
+                  </div>
+                ));
+              }
+              return null;
+            })()}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Footer />
     </div>
   );
