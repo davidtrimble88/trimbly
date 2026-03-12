@@ -150,8 +150,8 @@ const SearchPros = () => {
           <div className="space-y-3 mb-6">
             <div className="flex flex-wrap items-center gap-2">
               {([
-                { mode: "provider" as SearchMode, icon: Search, label: "By Provider" },
                 { mode: "location" as SearchMode, icon: MapPin, label: "By City / State" },
+                { mode: "provider" as SearchMode, icon: Search, label: "By Provider" },
               ]).map(({ mode, icon: Icon, label }) => (
                 <button
                   key={mode}
