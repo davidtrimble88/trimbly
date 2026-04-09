@@ -447,6 +447,7 @@ const Dashboard = () => {
                   "Priority pro matching",
                   "Emergency support channel",
                   "Digital Home Binder (5 items) + export",
+                  "Coverage Advisor (AI-powered)",
                   "Seasonal checklists",
                 ],
               },
