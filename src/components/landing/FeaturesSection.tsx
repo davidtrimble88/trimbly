@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield } from "lucide-react";
+import { Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const features = [
@@ -38,6 +38,12 @@ const features = [
     title: "In-App Messaging",
     description: "Chat directly with pros, share photos, negotiate quotes, and track job status from request to completion.",
     route: "/messages",
+  },
+  {
+    icon: Briefcase,
+    title: "Job Requests & Bidding",
+    description: "Post a job and let pros come to you. Review bids, messages, and credentials — you control who can call.",
+    route: "/post-job",
   },
   {
     icon: Star,

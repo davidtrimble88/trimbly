@@ -4,7 +4,7 @@ import {
   Search, FileText, MessageSquare, CheckCircle,
   Home, ClipboardList, CalendarCheck, Bell,
   Wrench, ShieldCheck, PackageSearch, RotateCcw,
-  Upload, Bot, Shield
+  Upload, Bot, Shield, Briefcase, Send, Phone, UserCheck
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -114,6 +114,33 @@ const tabs = [
         icon: CheckCircle, step: "04", title: "Know Before You Pay",
         description: "Get clear answers about your coverage so you never pay out-of-pocket for something that's covered.",
         route: "/coverage",
+      },
+    ],
+  },
+  {
+    id: "jobs",
+    label: "Job Requests",
+    icon: Briefcase,
+    steps: [
+      {
+        icon: Briefcase, step: "01", title: "Post Your Job",
+        description: "Describe what you need, select a category, and share your location so nearby pros can find it.",
+        route: "/post-job",
+      },
+      {
+        icon: Send, step: "02", title: "Pros Send Bids",
+        description: "Interested pros message you first with their bid, experience, and credentials — no unsolicited calls.",
+        route: "/post-job",
+      },
+      {
+        icon: UserCheck, step: "03", title: "Accept & Approve",
+        description: "Review bids side-by-side, accept the best one, and only then decide if the pro can call you.",
+        route: "/post-job",
+      },
+      {
+        icon: Phone, step: "04", title: "Connect & Get It Done",
+        description: "Communicate on your terms — message only or approve a call. You stay in control the entire way.",
+        route: "/post-job",
       },
     ],
   },

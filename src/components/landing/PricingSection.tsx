@@ -12,6 +12,7 @@ const tiers = [
       "1 home profile",
       "Search & browse local pros",
       "Create up to 3 job requests/month",
+      "Receive pro bids & messages",
       "Basic maintenance reminders",
       "Digital Home Binder (5 items)",
       "Community reviews access",
@@ -26,7 +27,7 @@ const tiers = [
     description: "Full-powered home maintenance on autopilot",
     features: [
       "1 home profile",
-      "Unlimited job requests",
+      "Unlimited job requests & bidding",
       "AI job estimator (unlimited)",
       "Advanced maintenance schedules",
       "Priority pro matching",
