@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,8 +17,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building2, MapPin, Phone, Globe, DollarSign, Shield, Star,
-  Briefcase, MessageSquare, Clock, CheckCircle, XCircle, Send,
-  Eye, TrendingUp, Users, Zap, Crown, Pencil, Award, PhoneOff,
+  Briefcase, MessageSquare, Clock, CheckCircle,
+  Eye, Zap, Crown, Pencil, Award, PhoneOff,
 } from "lucide-react";
 
 type ProviderProfile = {
