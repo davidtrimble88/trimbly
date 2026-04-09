@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { lovable } from "@/integrations/lovable/index";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 type AuthMode = "login" | "signup" | "forgot";
@@ -225,8 +226,9 @@ function AuthForm({
           toast({ title: "Login failed", description: error.message, variant: "destructive" });
         } else {
           // Check user type to route to correct dashboard
-          const { data: profile } = await (await import("@/integrations/supabase/client")).supabase
-            .from("profiles").select("user_type").eq("id", (await (await import("@/integrations/supabase/client")).supabase.auth.getUser()).data.user?.id || "").maybeSingle();
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          const { data: profile } = await supabase
+            .from("profiles").select("user_type").eq("id", authUser?.id || "").maybeSingle();
           if (profile?.user_type === "provider") {
             navigate("/pro-dashboard");
           } else {
