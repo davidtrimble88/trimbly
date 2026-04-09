@@ -21,11 +21,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Redirect if already logged in
-  if (user) {
-    navigate("/dashboard");
-    return null;
-  }
+  // Redirect if already logged in — handled after login via navigate
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -228,7 +224,14 @@ function AuthForm({
         if (error) {
           toast({ title: "Login failed", description: error.message, variant: "destructive" });
         } else {
-          navigate("/dashboard");
+          // Check user type to route to correct dashboard
+          const { data: profile } = await (await import("@/integrations/supabase/client")).supabase
+            .from("profiles").select("user_type").eq("id", (await (await import("@/integrations/supabase/client")).supabase.auth.getUser()).data.user?.id || "").maybeSingle();
+          if (profile?.user_type === "provider") {
+            navigate("/pro-dashboard");
+          } else {
+            navigate("/dashboard");
+          }
         }
       }
     } catch (err: any) {
