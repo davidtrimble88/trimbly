@@ -71,22 +71,22 @@ const tabs = [
       {
         icon: Home, step: "01", title: "Add Your Home Profile",
         description: "Create a profile for each property with details like location, systems, and year built.",
-        route: "/home-binder",
+        route: "/binder",
       },
       {
         icon: Wrench, step: "02", title: "Log Systems & Appliances",
         description: "Track every appliance, system, and fixture — with brand, model, serial number, and install date.",
-        route: "/home-binder",
+        route: "/binder",
       },
       {
         icon: PackageSearch, step: "03", title: "Store Warranties & Docs",
         description: "Upload receipts, manuals, and warranty documents. Everything is securely stored in the cloud.",
-        route: "/home-binder",
+        route: "/binder",
       },
       {
         icon: ShieldCheck, step: "04", title: "Never Miss an Expiry",
         description: "Get alerts before warranties expire so you can file claims or plan replacements ahead of time.",
-        route: "/home-binder",
+        route: "/binder",
       },
     ],
   },
