@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import {
   Search, FileText, MessageSquare, CheckCircle,
   Home, ClipboardList, CalendarCheck, Bell,
-  Wrench, ShieldCheck, PackageSearch, RotateCcw
+  Wrench, ShieldCheck, PackageSearch, RotateCcw,
+  Upload, Bot, Shield
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -26,12 +27,12 @@ const tabs = [
       {
         icon: MessageSquare, step: "03", title: "Chat & Schedule",
         description: "Message pros directly, agree on timing and price, and book your appointment.",
-        route: null,
+        route: "/messages",
       },
       {
         icon: CheckCircle, step: "04", title: "Job Done, Review Left",
         description: "Get the work done by a trusted pro, then leave a review to help others.",
-        route: null,
+        route: "/search",
       },
     ],
   },
@@ -86,6 +87,33 @@ const tabs = [
         icon: ShieldCheck, step: "04", title: "Never Miss an Expiry",
         description: "Get alerts before warranties expire so you can file claims or plan replacements ahead of time.",
         route: "/home-binder",
+      },
+    ],
+  },
+  {
+    id: "coverage",
+    label: "Coverage Advisor",
+    icon: Shield,
+    steps: [
+      {
+        icon: Upload, step: "01", title: "Upload Your Documents",
+        description: "Upload your home warranty and insurance policy documents — PDFs, images, or text files.",
+        route: "/coverage",
+      },
+      {
+        icon: Shield, step: "02", title: "AI Reads Your Policy",
+        description: "Our AI analyzes your coverage documents to understand your limits, deductibles, and exclusions.",
+        route: "/coverage",
+      },
+      {
+        icon: Bot, step: "03", title: "Ask Anything",
+        description: "Chat with the AI about what's covered, how to file a claim, or whether a repair falls under warranty.",
+        route: "/coverage",
+      },
+      {
+        icon: CheckCircle, step: "04", title: "Know Before You Pay",
+        description: "Get clear answers about your coverage so you never pay out-of-pocket for something that's covered.",
+        route: "/coverage",
       },
     ],
   },

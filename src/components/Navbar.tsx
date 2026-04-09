@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, LayoutDashboard, CalendarCheck, Wrench, Search, FileText, Crown, MessageSquare } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, CalendarCheck, Wrench, Search, FileText, Crown, MessageSquare, Shield } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
@@ -45,6 +45,9 @@ const Navbar = () => {
       <Link to="/messages" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
         <MessageSquare size={14} /> Messages
       </Link>
+      <Link to="/coverage" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
+        <Shield size={14} /> Coverage
+      </Link>
       {!isPro && (
         <a href="/#pricing" className="text-sm text-primary hover:text-primary/80 transition-colors inline-flex items-center gap-1.5 font-medium">
           <Crown size={14} /> Upgrade
@@ -81,6 +84,9 @@ const Navbar = () => {
       </Link>
       <Link to="/messages" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
         <MessageSquare size={14} /> Messages
+      </Link>
+      <Link to="/coverage" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
+        <Shield size={14} /> Coverage
       </Link>
       {!isPro && (
         <a href="/#pricing" className="flex items-center gap-2 text-sm text-primary font-medium" onClick={onClose}>

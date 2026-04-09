@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star } from "lucide-react";
+import { Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const features = [
@@ -26,6 +26,12 @@ const features = [
     title: "Digital Home Binder",
     description: "Store appliance info, warranties, past jobs, receipts, and documents — all organized in one dashboard.",
     route: "/binder",
+  },
+  {
+    icon: Shield,
+    title: "Coverage Advisor",
+    description: "Upload your home warranty and insurance docs, then ask AI questions about what's covered and how to file claims.",
+    route: "/coverage",
   },
   {
     icon: MessageSquare,
