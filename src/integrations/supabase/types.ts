@@ -231,6 +231,70 @@ export type Database = {
         }
         Relationships: []
       }
+      job_bids: {
+        Row: {
+          bid_amount: number | null
+          call_approved: boolean
+          created_at: string
+          estimated_hours: number | null
+          id: string
+          job_id: string
+          message: string
+          phone_number: string | null
+          provider_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bid_amount?: number | null
+          call_approved?: boolean
+          created_at?: string
+          estimated_hours?: number | null
+          id?: string
+          job_id: string
+          message: string
+          phone_number?: string | null
+          provider_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bid_amount?: number | null
+          call_approved?: boolean
+          created_at?: string
+          estimated_hours?: number | null
+          id?: string
+          job_id?: string
+          message?: string
+          phone_number?: string | null
+          provider_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_bids_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_bids_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_stats"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "job_bids_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           category: string
