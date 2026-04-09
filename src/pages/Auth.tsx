@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { lovable } from "@/integrations/lovable/index";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 type AuthMode = "login" | "signup" | "forgot";
@@ -21,11 +22,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Redirect if already logged in
-  if (user) {
-    navigate("/dashboard");
-    return null;
-  }
+  // Redirect if already logged in — handled after login via navigate
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -228,7 +225,15 @@ function AuthForm({
         if (error) {
           toast({ title: "Login failed", description: error.message, variant: "destructive" });
         } else {
-          navigate("/dashboard");
+          // Check user type to route to correct dashboard
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          const { data: profile } = await supabase
+            .from("profiles").select("user_type").eq("id", authUser?.id || "").maybeSingle();
+          if (profile?.user_type === "provider") {
+            navigate("/pro-dashboard");
+          } else {
+            navigate("/dashboard");
+          }
         }
       }
     } catch (err: any) {
