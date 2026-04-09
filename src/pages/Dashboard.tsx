@@ -29,6 +29,7 @@ const allServices = [
   { icon: FolderOpen, title: "Digital Home Binder", description: "Store appliance info, warranties, past jobs, and documents (5 items).", route: "/binder", minTier: "homeowner_pro" },
   { icon: MessageSquare, title: "In-App Messaging", description: "Chat directly with pros, share photos, and track job status.", route: "/messages", minTier: "free" },
   { icon: Star, title: "Verified Reviews", description: "Read and leave honest reviews from real homeowners.", route: "/search", minTier: "free" },
+  { icon: Shield, title: "Coverage Advisor", description: "Upload warranty & insurance docs and ask AI about your coverage.", route: "/coverage", minTier: "homeowner_pro" },
 ];
 
 const tierOrder: Record<string, number> = { free: 0, homeowner_pro: 1, multi_pro: 2 };
