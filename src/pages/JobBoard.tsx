@@ -178,7 +178,7 @@ const JobBoard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-10 max-w-4xl">
+      <div className="container mx-auto px-4 pt-24 pb-10 max-w-4xl">
         <div className="mb-6">
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Briefcase className="h-8 w-8 text-primary" /> Job Board
