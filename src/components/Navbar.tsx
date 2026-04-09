@@ -1,20 +1,31 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, LayoutDashboard, CalendarCheck, Wrench, Search, FileText, Crown, MessageSquare, Shield, Briefcase } from "lucide-react";
-import { useState } from "react";
+import { Menu, X, LogOut, LayoutDashboard, CalendarCheck, Wrench, Search, FileText, Crown, MessageSquare, Shield, Briefcase, Building2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { user, profileName, signOut } = useAuth();
   const { subscriptionTier, isPro } = useHomeLimit();
+  const [userType, setUserType] = useState<string>("homeowner");
+
+  useEffect(() => {
+    if (!user) { setUserType("homeowner"); return; }
+    supabase.from("profiles").select("user_type").eq("id", user.id).maybeSingle().then(({ data }) => {
+      setUserType(data?.user_type || "homeowner");
+    });
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
   };
+
+  const isProvider = userType === "provider";
 
   const guestLinks = (
     <>
@@ -25,7 +36,7 @@ const Navbar = () => {
     </>
   );
 
-  const userLinks = (
+  const homeownerLinks = (
     <>
       <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
         <LayoutDashboard size={14} /> Dashboard
@@ -59,6 +70,25 @@ const Navbar = () => {
     </>
   );
 
+  const providerLinks = (
+    <>
+      <Link to="/pro-dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
+        <LayoutDashboard size={14} /> Dashboard
+      </Link>
+      <Link to="/job-board" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
+        <Briefcase size={14} /> Job Board
+      </Link>
+      <Link to="/messages" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
+        <MessageSquare size={14} /> Messages
+      </Link>
+      <Link to="/search" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
+        <Search size={14} /> My Listing
+      </Link>
+    </>
+  );
+
+  const userLinks = isProvider ? providerLinks : homeownerLinks;
+
   const guestMobileLinks = (onClose: () => void) => (
     <>
       <a href="/#features" className="block text-sm text-muted-foreground" onClick={onClose}>Features</a>
@@ -68,7 +98,7 @@ const Navbar = () => {
     </>
   );
 
-  const userMobileLinks = (onClose: () => void) => (
+  const homeownerMobileLinks = (onClose: () => void) => (
     <>
       <Link to="/dashboard" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
         <LayoutDashboard size={14} /> Dashboard
@@ -102,10 +132,31 @@ const Navbar = () => {
     </>
   );
 
+  const providerMobileLinks = (onClose: () => void) => (
+    <>
+      <Link to="/pro-dashboard" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
+        <LayoutDashboard size={14} /> Dashboard
+      </Link>
+      <Link to="/job-board" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
+        <Briefcase size={14} /> Job Board
+      </Link>
+      <Link to="/messages" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
+        <MessageSquare size={14} /> Messages
+      </Link>
+      <Link to="/search" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
+        <Search size={14} /> My Listing
+      </Link>
+    </>
+  );
+
+  const userMobileLinks = isProvider ? providerMobileLinks : homeownerMobileLinks;
+
+  const dashboardRoute = isProvider ? "/pro-dashboard" : "/dashboard";
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2">
+        <Link to={user ? dashboardRoute : "/"} className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
             <span className="text-primary-foreground font-display font-bold text-sm">H</span>
           </div>
@@ -122,7 +173,8 @@ const Navbar = () => {
               {profileName && (
                 <span className="text-xs text-muted-foreground mr-1">
                   {profileName}
-                  {isPro && <span className="ml-1.5 text-primary font-medium">PRO</span>}
+                  {isProvider && <span className="ml-1.5 text-primary font-medium">PRO</span>}
+                  {!isProvider && isPro && <span className="ml-1.5 text-primary font-medium">PRO</span>}
                 </span>
               )}
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
