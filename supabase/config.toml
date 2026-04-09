@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.unsubscribe]
 verify_jwt = false
+
+[functions.coverage-chat]
+verify_jwt = false
