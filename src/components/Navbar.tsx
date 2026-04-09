@@ -33,7 +33,7 @@ const Navbar = () => {
       <Link to="/maintenance" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
         <CalendarCheck size={14} /> Maintenance
       </Link>
-      <Link to="/home-binder" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
+      <Link to="/binder" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
         <FileText size={14} /> Home Binder
       </Link>
       <Link to="/search" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
@@ -76,7 +76,7 @@ const Navbar = () => {
       <Link to="/maintenance" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
         <CalendarCheck size={14} /> Maintenance
       </Link>
-      <Link to="/home-binder" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
+      <Link to="/binder" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
         <FileText size={14} /> Home Binder
       </Link>
       <Link to="/search" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
