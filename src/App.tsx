@@ -20,6 +20,8 @@ import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Messages from "./pages/Messages";
 import CoverageAdvisor from "./pages/CoverageAdvisor";
+import PostJob from "./pages/PostJob";
+import JobBoard from "./pages/JobBoard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,6 +65,8 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/coverage" element={<CoverageAdvisor />} />
+            <Route path="/post-job" element={<PostJob />} />
+            <Route path="/job-board" element={<JobBoard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
