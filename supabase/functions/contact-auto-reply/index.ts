@@ -5,6 +5,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const MAX_ATTEMPTS = 3;
+
 const SITE_KNOWLEDGE = `
 HomeHero is a platform connecting homeowners with local home-service professionals (handymen, plumbers, electricians, etc.) and providing AI-driven home maintenance tools.
 
@@ -38,11 +40,125 @@ REPLIES:
 - Replies to support messages arrive in the user's in-app /messages inbox, typically within 48 hours.
 `;
 
+interface TriageResult {
+  should_reply: boolean;
+  confidence: number;
+  reason: string;
+  reply_subject: string;
+  reply_body: string;
+}
+
+async function callAI(
+  contactMsg: any,
+  prevTurns: { role: string; content: string }[]
+): Promise<TriageResult | null> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
+
+  const messages = [
+    {
+      role: "system",
+      content: `You are a careful support triage AI for HomeHero. Decide if you can confidently answer the user's question using ONLY the provided site knowledge.
+
+Reply ONLY when ALL of these are true:
+1. The question is directly about HomeHero (the site, its features, pricing, account, how-to).
+2. The answer is unambiguously contained in the site knowledge below.
+3. There is NO billing dispute, refund request, bug report needing investigation, complaint, or anything requiring a human.
+4. You are 90%+ confident the reply fully resolves the question.
+
+If the user previously said your last reply was NOT helpful, you'll see their follow-up details. Use those to give a better, more specific answer. If you still cannot confidently answer, set should_reply=false.
+
+Tone: friendly, concise (under 150 words), use the user's first name if available, sign off as "The HomeHero Team". Markdown allowed (links, lists).
+
+SITE KNOWLEDGE:
+${SITE_KNOWLEDGE}`,
+    },
+    {
+      role: "user",
+      content: `From: ${contactMsg.name} <${contactMsg.email}>\nSubject: ${contactMsg.subject}\n\nOriginal question:\n${contactMsg.body}`,
+    },
+    ...prevTurns,
+  ];
+
+  const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages,
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "triage_response",
+            description: "Decide whether to auto-reply and draft the reply if so.",
+            parameters: {
+              type: "object",
+              properties: {
+                should_reply: { type: "boolean" },
+                confidence: { type: "number" },
+                reason: { type: "string" },
+                reply_subject: { type: "string" },
+                reply_body: { type: "string" },
+              },
+              required: ["should_reply", "confidence", "reason", "reply_subject", "reply_body"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "triage_response" } },
+    }),
+  });
+
+  if (!aiResp.ok) {
+    const t = await aiResp.text();
+    console.error("AI gateway error:", aiResp.status, t);
+    return null;
+  }
+
+  const aiData = await aiResp.json();
+  const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+  if (!toolCall) return null;
+  return JSON.parse(toolCall.function.arguments);
+}
+
+async function getSenderId(supabase: any, fallbackUserId: string): Promise<string> {
+  const { data: adminRole } = await supabase
+    .from("user_roles")
+    .select("user_id")
+    .eq("role", "admin")
+    .limit(1)
+    .maybeSingle();
+  return adminRole?.user_id ?? fallbackUserId;
+}
+
+async function escalateToStaff(supabase: any, contactMsg: any, reason: string) {
+  await supabase
+    .from("contact_messages")
+    .update({ status: "escalated" })
+    .eq("id", contactMsg.id);
+
+  const senderId = await getSenderId(supabase, contactMsg.user_id);
+  await supabase.from("messages").insert({
+    sender_id: senderId,
+    recipient_id: contactMsg.user_id,
+    subject: `Re: ${contactMsg.subject}`,
+    body: `Thanks for the extra detail! I'm handing this off to our human team — someone will reply within 48 hours.\n\n— The HomeHero Team`,
+    contact_message_id: contactMsg.id,
+    ai_meta: { kind: "escalation_notice", reason },
+    read: false,
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messageId } = await req.json();
+    const { messageId, followUpDetails } = await req.json();
     if (!messageId) {
       return new Response(JSON.stringify({ error: "messageId required" }), {
         status: 400,
@@ -55,7 +171,6 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Fetch the contact message
     const { data: msg, error: msgErr } = await supabase
       .from("contact_messages")
       .select("*")
@@ -69,135 +184,94 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (msg.status !== "new") {
-      return new Response(JSON.stringify({ skipped: true, reason: "already handled" }), {
+    // If status is resolved or escalated, do nothing
+    if (msg.status === "resolved" || msg.status === "escalated" || msg.status === "replied") {
+      return new Response(JSON.stringify({ skipped: true, reason: "already finalized" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
+    const currentAttempts = msg.ai_attempt_count ?? 0;
 
-    // Ask the AI to classify + draft a reply, using tool calling for structured output
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          {
-            role: "system",
-            content: `You are a careful support triage AI for HomeHero. Decide if you can confidently answer the user's question using ONLY the provided site knowledge.
+    // If user already used up all attempts, escalate
+    if (currentAttempts >= MAX_ATTEMPTS) {
+      await escalateToStaff(supabase, msg, "max attempts reached");
+      return new Response(JSON.stringify({ escalated: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-Reply ONLY when ALL of these are true:
-1. The question is directly about HomeHero (the site, its features, pricing, account, how-to).
-2. The answer is unambiguously contained in the site knowledge below.
-3. There is NO billing dispute, refund request, bug report needing investigation, complaint, or anything requiring a human.
-4. You are 90%+ confident the reply fully resolves the question.
+    // Build conversation history from prior AI replies + user follow-ups
+    const { data: priorMessages } = await supabase
+      .from("messages")
+      .select("sender_id, body, ai_meta, created_at")
+      .eq("contact_message_id", messageId)
+      .order("created_at", { ascending: true });
 
-Otherwise set should_reply=false and let a human handle it.
-
-Tone: friendly, concise (under 150 words), use the user's first name if available, sign off as "The HomeHero Team". Markdown allowed (links, lists).
-
-SITE KNOWLEDGE:
-${SITE_KNOWLEDGE}`,
-          },
-          {
-            role: "user",
-            content: `From: ${msg.name} <${msg.email}>\nSubject: ${msg.subject}\n\n${msg.body}`,
-          },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "triage_response",
-              description: "Decide whether to auto-reply and draft the reply if so.",
-              parameters: {
-                type: "object",
-                properties: {
-                  should_reply: {
-                    type: "boolean",
-                    description: "True only if highly confident answer is in site knowledge.",
-                  },
-                  confidence: {
-                    type: "number",
-                    description: "0-1 confidence score.",
-                  },
-                  reason: {
-                    type: "string",
-                    description: "Brief reason for the decision.",
-                  },
-                  reply_subject: { type: "string" },
-                  reply_body: {
-                    type: "string",
-                    description: "Markdown reply body. Empty if should_reply is false.",
-                  },
-                },
-                required: ["should_reply", "confidence", "reason", "reply_subject", "reply_body"],
-                additionalProperties: false,
-              },
-            },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "triage_response" } },
-      }),
+    const prevTurns: { role: string; content: string }[] = [];
+    (priorMessages || []).forEach((m: any) => {
+      if (m.ai_meta?.kind === "ai_reply") {
+        prevTurns.push({ role: "assistant", content: m.body });
+      } else if (m.sender_id === msg.user_id) {
+        prevTurns.push({ role: "user", content: m.body });
+      }
     });
 
-    if (!aiResp.ok) {
-      const t = await aiResp.text();
-      console.error("AI gateway error:", aiResp.status, t);
-      return new Response(JSON.stringify({ error: "AI failed", status: aiResp.status }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (followUpDetails) {
+      prevTurns.push({
+        role: "user",
+        content: `That wasn't quite what I needed. Here's more detail: ${followUpDetails}`,
+      });
+
+      // Persist the user's follow-up as a message in the thread
+      await supabase.from("messages").insert({
+        sender_id: msg.user_id,
+        recipient_id: msg.user_id, // self — represents the follow-up note
+        subject: `Re: ${msg.subject}`,
+        body: followUpDetails,
+        contact_message_id: messageId,
+        ai_meta: { kind: "user_followup", attempt: currentAttempts },
+        read: true,
       });
     }
 
-    const aiData = await aiResp.json();
-    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) {
-      console.log("No tool call returned, skipping auto-reply");
-      return new Response(JSON.stringify({ should_reply: false, reason: "no tool call" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const result = await callAI(msg, prevTurns);
+    const nextAttempt = currentAttempts + 1;
+
+    if (!result || !result.should_reply || result.confidence < 0.9) {
+      // Mark attempt and decide whether to escalate
+      await supabase
+        .from("contact_messages")
+        .update({ ai_attempt_count: nextAttempt })
+        .eq("id", messageId);
+
+      if (nextAttempt >= MAX_ATTEMPTS) {
+        await escalateToStaff(supabase, msg, result?.reason ?? "low confidence");
+        return new Response(JSON.stringify({ escalated: true, attempts: nextAttempt }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(
+        JSON.stringify({ should_reply: false, attempts: nextAttempt, reason: result?.reason ?? "no AI response" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    const result = JSON.parse(toolCall.function.arguments);
-    console.log("Triage result:", { confidence: result.confidence, should_reply: result.should_reply, reason: result.reason });
+    const senderId = await getSenderId(supabase, msg.user_id);
 
-    if (!result.should_reply || result.confidence < 0.9) {
-      return new Response(JSON.stringify({ should_reply: false, ...result }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Find a system "AI Assistant" sender — use the user themselves as recipient,
-    // sender_id = the message author so it appears as a reply from HomeHero.
-    // We use the user's own id for sender to satisfy RLS-free service insert.
-    // For UX, set sender_id to recipient_id so the user sees a self-addressed reply
-    // is not ideal — instead, we'll insert with the user's id as both is wrong too.
-    // Best approach: use service role to insert with sender_id = recipient_id (self),
-    // OR pick a designated admin user. We'll use the user's id as sender of an "AI reply"
-    // is misleading. Instead: pick any admin as sender.
-
-    const { data: adminRole } = await supabase
-      .from("user_roles")
-      .select("user_id")
-      .eq("role", "admin")
-      .limit(1)
-      .maybeSingle();
-
-    const senderId = adminRole?.user_id ?? msg.user_id;
-
-    // Insert reply into messages inbox
     const { error: insertErr } = await supabase.from("messages").insert({
       sender_id: senderId,
       recipient_id: msg.user_id,
       subject: result.reply_subject || `Re: ${msg.subject}`,
-      body: `🤖 *Automated reply from HomeHero AI Assistant*\n\n${result.reply_body}\n\n---\n*If this didn't fully answer your question, just reply and a human will follow up within 48 hours.*`,
+      body: result.reply_body,
+      contact_message_id: messageId,
+      ai_meta: {
+        kind: "ai_reply",
+        attempt: nextAttempt,
+        confidence: result.confidence,
+        awaiting_feedback: true,
+      },
       read: false,
     });
 
@@ -209,18 +283,18 @@ ${SITE_KNOWLEDGE}`,
       });
     }
 
-    // Mark contact message as auto-replied
     await supabase
       .from("contact_messages")
       .update({
         status: "auto_replied",
+        ai_attempt_count: nextAttempt,
         replied_at: new Date().toISOString(),
         replied_by: senderId,
       })
       .eq("id", messageId);
 
     return new Response(
-      JSON.stringify({ should_reply: true, confidence: result.confidence }),
+      JSON.stringify({ should_reply: true, attempts: nextAttempt, confidence: result.confidence }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
