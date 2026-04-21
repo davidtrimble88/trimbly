@@ -57,23 +57,43 @@ const Contact = () => {
     }
 
     setSubmitting(true);
-    const { error } = await supabase.from("contact_messages").insert({
-      user_id: user.id,
-      name: parsed.data.name,
-      email: parsed.data.email,
-      subject: parsed.data.subject,
-      body: parsed.data.body,
-    });
-    setSubmitting(false);
+    const { data: inserted, error } = await supabase
+      .from("contact_messages")
+      .insert({
+        user_id: user.id,
+        name: parsed.data.name,
+        email: parsed.data.email,
+        subject: parsed.data.subject,
+        body: parsed.data.body,
+      })
+      .select("id")
+      .maybeSingle();
 
     if (error) {
+      setSubmitting(false);
       toast.error("Failed to send message: " + error.message);
       return;
     }
 
+    // Fire AI auto-reply attempt (non-blocking for UX, but we await briefly to show feedback)
+    let autoReplied = false;
+    try {
+      const { data: autoData } = await supabase.functions.invoke("contact-auto-reply", {
+        body: { messageId: inserted?.id },
+      });
+      autoReplied = !!autoData?.should_reply;
+    } catch (err) {
+      console.error("Auto-reply attempt failed:", err);
+    }
+
+    setSubmitting(false);
     setSubmitted(true);
     setForm((f) => ({ ...f, subject: "", body: "" }));
-    toast.success("Message sent! We'll reply within 48 hours.");
+    if (autoReplied) {
+      toast.success("Instant AI reply sent! Check your Messages inbox.");
+    } else {
+      toast.success("Message sent! We'll reply within 48 hours.");
+    }
   };
 
   return (
