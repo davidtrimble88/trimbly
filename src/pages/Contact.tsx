@@ -115,10 +115,10 @@ const Contact = () => {
             <CardContent className="pt-6 flex items-start gap-3">
               <Clock className="w-5 h-5 text-primary mt-0.5 shrink-0" />
               <div>
-                <p className="font-semibold text-sm text-foreground">We reply within 48 hours</p>
+                <p className="font-semibold text-sm text-foreground">Instant AI replies, plus humans within 48 hours</p>
                 <p className="text-sm text-muted-foreground">
-                  Our team responds to every message. Replies will arrive in your in-app{" "}
-                  <a href="/messages" className="underline text-primary">Messages</a> inbox.
+                  Our AI assistant may answer common questions about HomeHero immediately. Anything else gets a human reply in your{" "}
+                  <a href="/messages" className="underline text-primary">Messages</a> inbox within 48 hours.
                 </p>
               </div>
             </CardContent>
