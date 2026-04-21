@@ -130,7 +130,11 @@ const TermsOfService = () => {
             <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-4">
               <h2 className="text-xl font-bold text-foreground">11. Contact</h2>
               <p className="text-muted-foreground leading-relaxed">
-                For questions about these Terms of Service, please contact us at legal@homehero.com.
+                For questions about these Terms of Service, please{" "}
+                <Link to="/contact" className="text-primary hover:underline font-medium">
+                  contact us
+                </Link>
+                .
               </p>
             </section>
           </div>
