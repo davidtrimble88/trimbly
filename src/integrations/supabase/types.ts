@@ -38,6 +38,36 @@ export type Database = {
         }
         Relationships: []
       }
+      broadcasts: {
+        Row: {
+          audience: string
+          author_id: string
+          body: string
+          id: string
+          recipient_count: number | null
+          sent_at: string
+          subject: string
+        }
+        Insert: {
+          audience: string
+          author_id: string
+          body: string
+          id?: string
+          recipient_count?: number | null
+          sent_at?: string
+          subject: string
+        }
+        Update: {
+          audience?: string
+          author_id?: string
+          body?: string
+          id?: string
+          recipient_count?: number | null
+          sent_at?: string
+          subject?: string
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           body: string
@@ -589,6 +619,8 @@ export type Database = {
           full_name: string
           id: string
           subscription_tier: string
+          suspended: boolean
+          suspended_reason: string | null
           updated_at: string
           user_type: string
         }
@@ -598,6 +630,8 @@ export type Database = {
           full_name?: string
           id: string
           subscription_tier?: string
+          suspended?: boolean
+          suspended_reason?: string | null
           updated_at?: string
           user_type?: string
         }
@@ -607,6 +641,8 @@ export type Database = {
           full_name?: string
           id?: string
           subscription_tier?: string
+          suspended?: boolean
+          suspended_reason?: string | null
           updated_at?: string
           user_type?: string
         }
@@ -622,6 +658,8 @@ export type Database = {
           created_at: string
           currency: string
           description: string | null
+          featured: boolean
+          hidden: boolean
           hourly_rate_max: number
           hourly_rate_min: number
           id: string
@@ -634,6 +672,7 @@ export type Database = {
           subscription_tier: string
           updated_at: string
           user_id: string
+          verified: boolean
           website: string | null
           years_experience: number | null
         }
@@ -646,6 +685,8 @@ export type Database = {
           created_at?: string
           currency?: string
           description?: string | null
+          featured?: boolean
+          hidden?: boolean
           hourly_rate_max?: number
           hourly_rate_min?: number
           id?: string
@@ -658,6 +699,7 @@ export type Database = {
           subscription_tier?: string
           updated_at?: string
           user_id: string
+          verified?: boolean
           website?: string | null
           years_experience?: number | null
         }
@@ -670,6 +712,8 @@ export type Database = {
           created_at?: string
           currency?: string
           description?: string | null
+          featured?: boolean
+          hidden?: boolean
           hourly_rate_max?: number
           hourly_rate_min?: number
           id?: string
@@ -682,6 +726,7 @@ export type Database = {
           subscription_tier?: string
           updated_at?: string
           user_id?: string
+          verified?: boolean
           website?: string | null
           years_experience?: number | null
         }
@@ -691,6 +736,9 @@ export type Database = {
         Row: {
           comment: string | null
           created_at: string
+          flagged: boolean
+          flagged_reason: string | null
+          hidden: boolean
           id: string
           provider_id: string
           rating: number
@@ -699,6 +747,9 @@ export type Database = {
         Insert: {
           comment?: string | null
           created_at?: string
+          flagged?: boolean
+          flagged_reason?: string | null
+          hidden?: boolean
           id?: string
           provider_id: string
           rating: number
@@ -707,6 +758,9 @@ export type Database = {
         Update: {
           comment?: string | null
           created_at?: string
+          flagged?: boolean
+          flagged_reason?: string | null
+          hidden?: boolean
           id?: string
           provider_id?: string
           rating?: number
@@ -728,6 +782,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      staff_activity_log: {
+        Row: {
+          action: string
+          actor_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: []
+      }
+      staff_notes: {
+        Row: {
+          author_id: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          note: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          note: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          note?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
