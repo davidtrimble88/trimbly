@@ -1,6 +1,6 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, LayoutDashboard, CalendarCheck, Wrench, Search, FileText, Crown, MessageSquare, Shield, Briefcase, Building2 } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, CalendarCheck, Wrench, Search, FileText, Crown, MessageSquare, Shield, Briefcase, Building2, ShieldCheck, Home as HomeIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
@@ -9,16 +9,23 @@ import { supabase } from "@/integrations/supabase/client";
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, profileName, signOut } = useAuth();
   const { subscriptionTier, isPro } = useHomeLimit();
   const [userType, setUserType] = useState<string>("homeowner");
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (!user) { setUserType("homeowner"); return; }
+    if (!user) { setUserType("homeowner"); setIsAdmin(false); return; }
     supabase.from("profiles").select("user_type").eq("id", user.id).maybeSingle().then(({ data }) => {
       setUserType(data?.user_type || "homeowner");
     });
+    supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle().then(({ data }) => {
+      setIsAdmin(!!data);
+    });
   }, [user]);
+
+  const inStaffPortal = location.pathname.startsWith("/staff");
 
   const handleSignOut = async () => {
     await signOut();
@@ -170,6 +177,16 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <>
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(inStaffPortal ? (isProvider ? "/pro-dashboard" : "/dashboard") : "/staff")}
+                  className="gap-1.5"
+                >
+                  {inStaffPortal ? <><HomeIcon size={14} /> User View</> : <><ShieldCheck size={14} /> Staff Portal</>}
+                </Button>
+              )}
               {profileName && (
                 <span className="text-xs text-muted-foreground mr-1">
                   {profileName}
@@ -197,6 +214,16 @@ const Navbar = () => {
       {open && (
         <div className="md:hidden border-t border-border bg-background p-4 space-y-3 animate-fade-in">
           {user ? userMobileLinks(() => setOpen(false)) : guestMobileLinks(() => setOpen(false))}
+          {user && isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-1.5"
+              onClick={() => { setOpen(false); navigate(inStaffPortal ? (isProvider ? "/pro-dashboard" : "/dashboard") : "/staff"); }}
+            >
+              {inStaffPortal ? <><HomeIcon size={14} /> User View</> : <><ShieldCheck size={14} /> Staff Portal</>}
+            </Button>
+          )}
           <div className="flex gap-2 pt-2 border-t border-border mt-2">
             {user ? (
               <Button variant="ghost" size="sm" className="flex-1" onClick={() => { setOpen(false); handleSignOut(); }}>
