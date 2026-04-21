@@ -24,7 +24,15 @@ import PostJob from "./pages/PostJob";
 import JobBoard from "./pages/JobBoard";
 import ProDashboard from "./pages/ProDashboard";
 import Contact from "./pages/Contact";
-import StaffPortal from "./pages/StaffPortal";
+import StaffLayout from "./pages/staff/StaffLayout";
+import StaffDashboard from "./pages/staff/Dashboard";
+import StaffContacts from "./pages/staff/Contacts";
+import StaffUsers from "./pages/staff/Users";
+import StaffProviders from "./pages/staff/Providers";
+import StaffJobs from "./pages/staff/Jobs";
+import StaffOutreach from "./pages/staff/Outreach";
+import StaffModeration from "./pages/staff/Moderation";
+import StaffBroadcasts from "./pages/staff/Broadcasts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -72,7 +80,16 @@ const App = () => (
             <Route path="/job-board" element={<JobBoard />} />
             <Route path="/pro-dashboard" element={<ProDashboard />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/staff" element={<StaffPortal />} />
+            <Route path="/staff" element={<StaffLayout />}>
+              <Route index element={<StaffDashboard />} />
+              <Route path="contacts" element={<StaffContacts />} />
+              <Route path="users" element={<StaffUsers />} />
+              <Route path="providers" element={<StaffProviders />} />
+              <Route path="jobs" element={<StaffJobs />} />
+              <Route path="outreach" element={<StaffOutreach />} />
+              <Route path="moderation" element={<StaffModeration />} />
+              <Route path="broadcasts" element={<StaffBroadcasts />} />
+            </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
