@@ -33,6 +33,7 @@ import StaffJobs from "./pages/staff/Jobs";
 import StaffOutreach from "./pages/staff/Outreach";
 import StaffModeration from "./pages/staff/Moderation";
 import StaffBroadcasts from "./pages/staff/Broadcasts";
+import PortalChoice from "./pages/PortalChoice";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
