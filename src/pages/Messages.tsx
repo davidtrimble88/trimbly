@@ -29,6 +29,8 @@ interface Message {
   body: string;
   read: boolean;
   created_at: string;
+  contact_message_id?: string | null;
+  ai_meta?: { kind?: string; awaiting_feedback?: boolean; attempt?: number; confidence?: number; user_marked_helpful?: boolean } | null;
 }
 
 interface PendingMessage {
