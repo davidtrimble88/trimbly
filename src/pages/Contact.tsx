@@ -105,9 +105,9 @@ const Contact = () => {
           </Card>
 
           {submitted && (
-            <Card className="mb-6 border-green-500/30 bg-green-500/5">
+            <Card className="mb-6 border-primary/30 bg-primary/5">
               <CardContent className="pt-6 flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                 <div>
                   <p className="font-semibold text-sm text-foreground">Message sent successfully</p>
                   <p className="text-sm text-muted-foreground">
