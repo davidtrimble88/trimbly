@@ -177,6 +177,16 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <>
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(inStaffPortal ? (isProvider ? "/pro-dashboard" : "/dashboard") : "/staff")}
+                  className="gap-1.5"
+                >
+                  {inStaffPortal ? <><HomeIcon size={14} /> User View</> : <><ShieldCheck size={14} /> Staff Portal</>}
+                </Button>
+              )}
               {profileName && (
                 <span className="text-xs text-muted-foreground mr-1">
                   {profileName}
