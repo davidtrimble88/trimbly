@@ -70,6 +70,7 @@ export type Database = {
       }
       contact_messages: {
         Row: {
+          ai_attempt_count: number
           body: string
           created_at: string
           email: string
@@ -83,6 +84,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_attempt_count?: number
           body: string
           created_at?: string
           email: string
@@ -96,6 +98,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_attempt_count?: number
           body?: string
           created_at?: string
           email?: string
@@ -491,7 +494,9 @@ export type Database = {
       }
       messages: {
         Row: {
+          ai_meta: Json | null
           body: string
+          contact_message_id: string | null
           created_at: string
           id: string
           provider_id: string | null
@@ -501,7 +506,9 @@ export type Database = {
           subject: string
         }
         Insert: {
+          ai_meta?: Json | null
           body: string
+          contact_message_id?: string | null
           created_at?: string
           id?: string
           provider_id?: string | null
@@ -511,7 +518,9 @@ export type Database = {
           subject?: string
         }
         Update: {
+          ai_meta?: Json | null
           body?: string
+          contact_message_id?: string | null
           created_at?: string
           id?: string
           provider_id?: string | null
@@ -521,6 +530,13 @@ export type Database = {
           subject?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "messages_contact_message_id_fkey"
+            columns: ["contact_message_id"]
+            isOneToOne: false
+            referencedRelation: "contact_messages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_provider_id_fkey"
             columns: ["provider_id"]
