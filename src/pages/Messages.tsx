@@ -560,17 +560,37 @@ const Messages = () => {
                   <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[300px] max-h-[400px]">
                     {activeConversation.map((m) => {
                       const isMine = m.sender_id === user.id;
+                      const msg = m as Message;
+                      const isAI = msg.ai_meta?.kind === "ai_reply";
+                      const isAIEscalation = msg.ai_meta?.kind === "escalation_notice";
+                      const awaitingFeedback = isAI && msg.ai_meta?.awaiting_feedback;
                       return (
                         <div key={m.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
-                          <div className={`max-w-[75%] rounded-xl px-3 py-2 text-sm ${
-                            isMine ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                          <div className={`max-w-[80%] rounded-xl px-3 py-2 text-sm ${
+                            isMine ? "bg-primary text-primary-foreground" :
+                            isAI ? "bg-accent/40 text-foreground border border-accent" :
+                            "bg-secondary text-foreground"
                           }`}>
-                            <p>{m.body}</p>
+                            {(isAI || isAIEscalation) && (
+                              <div className="flex items-center gap-1.5 mb-1.5 text-[10px] font-semibold text-primary uppercase tracking-wide">
+                                <Bot size={11} /> HomeHero AI
+                              </div>
+                            )}
+                            <p className="whitespace-pre-wrap">{m.body}</p>
                             <div className={`flex items-center gap-1 mt-1 text-[10px] ${isMine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
                               <Clock size={9} />
                               {format(new Date(m.created_at), "h:mm a")}
                               {isMine && m.read && <CheckCheck size={10} className="ml-1" />}
                             </div>
+                            {awaitingFeedback && msg.contact_message_id && (
+                              <AIFeedback
+                                messageId={msg.id}
+                                contactMessageId={msg.contact_message_id}
+                                attempt={msg.ai_meta?.attempt ?? 1}
+                                maxAttempts={3}
+                                onResolved={loadData}
+                              />
+                            )}
                           </div>
                         </div>
                       );
