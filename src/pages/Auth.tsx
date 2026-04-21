@@ -225,11 +225,16 @@ function AuthForm({
         if (error) {
           toast({ title: "Login failed", description: error.message, variant: "destructive" });
         } else {
-          // Check user type to route to correct dashboard
+          // Check admin role first — admins get the portal chooser
           const { data: { user: authUser } } = await supabase.auth.getUser();
-          const { data: profile } = await supabase
-            .from("profiles").select("user_type").eq("id", authUser?.id || "").maybeSingle();
-          if (profile?.user_type === "provider") {
+          const uid = authUser?.id || "";
+          const [{ data: roleRow }, { data: profile }] = await Promise.all([
+            supabase.from("user_roles").select("role").eq("user_id", uid).eq("role", "admin").maybeSingle(),
+            supabase.from("profiles").select("user_type").eq("id", uid).maybeSingle(),
+          ]);
+          if (roleRow) {
+            navigate("/portal-choice");
+          } else if (profile?.user_type === "provider") {
             navigate("/pro-dashboard");
           } else {
             navigate("/dashboard");

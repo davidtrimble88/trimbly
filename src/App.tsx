@@ -33,6 +33,7 @@ import StaffJobs from "./pages/staff/Jobs";
 import StaffOutreach from "./pages/staff/Outreach";
 import StaffModeration from "./pages/staff/Moderation";
 import StaffBroadcasts from "./pages/staff/Broadcasts";
+import PortalChoice from "./pages/PortalChoice";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -80,6 +81,7 @@ const App = () => (
             <Route path="/job-board" element={<JobBoard />} />
             <Route path="/pro-dashboard" element={<ProDashboard />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/portal-choice" element={<PortalChoice />} />
             <Route path="/staff" element={<StaffLayout />}>
               <Route index element={<StaffDashboard />} />
               <Route path="contacts" element={<StaffContacts />} />
