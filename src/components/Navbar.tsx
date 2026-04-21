@@ -214,6 +214,16 @@ const Navbar = () => {
       {open && (
         <div className="md:hidden border-t border-border bg-background p-4 space-y-3 animate-fade-in">
           {user ? userMobileLinks(() => setOpen(false)) : guestMobileLinks(() => setOpen(false))}
+          {user && isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-1.5"
+              onClick={() => { setOpen(false); navigate(inStaffPortal ? (isProvider ? "/pro-dashboard" : "/dashboard") : "/staff"); }}
+            >
+              {inStaffPortal ? <><HomeIcon size={14} /> User View</> : <><ShieldCheck size={14} /> Staff Portal</>}
+            </Button>
+          )}
           <div className="flex gap-2 pt-2 border-t border-border mt-2">
             {user ? (
               <Button variant="ghost" size="sm" className="flex-1" onClick={() => { setOpen(false); handleSignOut(); }}>
