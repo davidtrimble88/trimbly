@@ -206,25 +206,32 @@ const ProDashboard = () => {
     if (!provider) return;
     setLocCity(provider.city || "");
     setLocState(provider.state || "");
+    setLocPostal(provider.postal_code || "");
+    setLocCountry(provider.country || "US");
     setLocationOpen(true);
   };
 
   const saveLocation = async () => {
     if (!provider) return;
-    if (!locCity.trim() || !locState.trim()) {
-      toast({ title: "City and state required", variant: "destructive" });
+    const hasCityState = locCity.trim() && locState.trim();
+    const hasPostal = locPostal.trim();
+    if (!hasCityState && !hasPostal) {
+      toast({ title: "Enter city + state or a ZIP/postal code", variant: "destructive" });
       return;
     }
     setSavingLoc(true);
-    const { error } = await supabase
-      .from("providers")
-      .update({ city: locCity.trim(), state: locState.trim() })
-      .eq("id", provider.id);
+    const updates = {
+      city: locCity.trim(),
+      state: locState.trim(),
+      postal_code: locPostal.trim(),
+      country: locCountry,
+    };
+    const { error } = await supabase.from("providers").update(updates).eq("id", provider.id);
     setSavingLoc(false);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      setProvider({ ...provider, city: locCity.trim(), state: locState.trim() });
+      setProvider({ ...provider, ...updates });
       setLocationOpen(false);
       toast({ title: "Location updated" });
     }
