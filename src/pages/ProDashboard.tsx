@@ -307,6 +307,9 @@ const ProDashboard = () => {
                 <span className="text-sm text-muted-foreground">Available</span>
                 <Switch checked={provider.available} onCheckedChange={toggleAvailability} />
               </div>
+              <Button variant="outline" onClick={openLocation} className="gap-1.5">
+                <MapPinned size={14} /> Change Location
+              </Button>
               <Button variant="outline" onClick={openEdit} className="gap-1.5">
                 <Pencil size={14} /> Edit Profile
               </Button>
