@@ -28,6 +28,7 @@ type ProviderProfile = {
   city: string;
   state: string;
   country: string;
+  postal_code: string | null;
   phone: string | null;
   website: string | null;
   description: string | null;
