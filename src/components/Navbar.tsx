@@ -177,14 +177,14 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <>
-              {isAdmin && (
+              {isAdmin && inStaffPortal && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => navigate(inStaffPortal ? (isProvider ? "/pro-dashboard" : "/dashboard") : "/staff")}
+                  onClick={() => navigate(isProvider ? "/pro-dashboard" : "/dashboard")}
                   className="gap-1.5"
                 >
-                  {inStaffPortal ? <><HomeIcon size={14} /> User View</> : <><ShieldCheck size={14} /> Staff Portal</>}
+                  <HomeIcon size={14} /> User View
                 </Button>
               )}
               {profileName && (
@@ -214,14 +214,14 @@ const Navbar = () => {
       {open && (
         <div className="md:hidden border-t border-border bg-background p-4 space-y-3 animate-fade-in">
           {user ? userMobileLinks(() => setOpen(false)) : guestMobileLinks(() => setOpen(false))}
-          {user && isAdmin && (
+          {user && isAdmin && inStaffPortal && (
             <Button
               variant="outline"
               size="sm"
               className="w-full gap-1.5"
-              onClick={() => { setOpen(false); navigate(inStaffPortal ? (isProvider ? "/pro-dashboard" : "/dashboard") : "/staff"); }}
+              onClick={() => { setOpen(false); navigate(isProvider ? "/pro-dashboard" : "/dashboard"); }}
             >
-              {inStaffPortal ? <><HomeIcon size={14} /> User View</> : <><ShieldCheck size={14} /> Staff Portal</>}
+              <HomeIcon size={14} /> User View
             </Button>
           )}
           <div className="flex gap-2 pt-2 border-t border-border mt-2">
