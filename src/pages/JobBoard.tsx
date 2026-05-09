@@ -331,12 +331,29 @@ const JobBoard = () => {
           <div className="space-y-4">
             {filteredJobs.map((job) => {
               const myBid = myBids[job.id];
+              const msgInfo = homeownerMessages[job.homeowner_id];
               return (
                 <Card key={job.id} className="hover:border-primary/20 transition-colors">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-foreground mb-1">{job.title}</h3>
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-foreground">{job.title}</h3>
+                          {msgInfo && msgInfo.count > 0 && (
+                            <button
+                              onClick={() => navigate("/messages")}
+                              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
+                                msgInfo.unread > 0
+                                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                  : "bg-primary/10 text-primary hover:bg-primary/20"
+                              }`}
+                              title="Open conversation"
+                            >
+                              <MessageSquare size={12} />
+                              {msgInfo.unread > 0 ? `${msgInfo.unread} new message${msgInfo.unread === 1 ? "" : "s"}` : "Message"}
+                            </button>
+                          )}
+                        </div>
                         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-2">
                           <span className="flex items-center gap-1"><Briefcase size={12} /> {job.category}</span>
                           <span className="flex items-center gap-1"><MapPin size={12} /> {job.city}, {job.state}</span>
