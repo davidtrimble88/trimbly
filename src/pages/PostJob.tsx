@@ -74,6 +74,7 @@ const PostJob = () => {
   const [showForm, setShowForm] = useState(false);
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [bidCounts, setBidCounts] = useState<Record<string, number>>({});
 
   // Message-a-pro dialog (without accepting the bid)
   const [messageBid, setMessageBid] = useState<Bid | null>(null);
@@ -116,8 +117,22 @@ const PostJob = () => {
       .select("*")
       .eq("homeowner_id", user.id)
       .order("created_at", { ascending: false });
-    setJobs((data as Job[]) || []);
+    const jobsList = (data as Job[]) || [];
+    setJobs(jobsList);
     setLoadingJobs(false);
+
+    // Load bid counts for each job
+    if (jobsList.length > 0) {
+      const { data: bidsData } = await supabase
+        .from("job_bids")
+        .select("job_id")
+        .in("job_id", jobsList.map((j) => j.id));
+      const counts: Record<string, number> = {};
+      (bidsData || []).forEach((b: any) => {
+        counts[b.job_id] = (counts[b.job_id] || 0) + 1;
+      });
+      setBidCounts(counts);
+    }
   };
 
   // Load bids when a job is expanded
@@ -266,6 +281,11 @@ const PostJob = () => {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-foreground">{job.title}</h3>
                         <Badge className={`text-xs ${statusColor(job.status)}`}>{job.status.replace("_", " ")}</Badge>
+                        {(bidCounts[job.id] ?? 0) > 0 && (
+                          <Badge className="text-xs bg-primary/15 text-primary hover:bg-primary/20 gap-1">
+                            <MessageSquare size={10} /> {bidCounts[job.id]} {bidCounts[job.id] === 1 ? "bid" : "bids"}
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-1">
                         <span className="flex items-center gap-1"><Briefcase size={12} /> {job.category}</span>
