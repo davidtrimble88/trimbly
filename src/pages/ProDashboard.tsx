@@ -18,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building2, MapPin, Phone, Globe, DollarSign, Shield, Star,
   Briefcase, MessageSquare, Clock, CheckCircle,
-  Eye, Zap, Crown, Pencil, Award, PhoneOff,
+  Eye, Zap, Crown, Pencil, Award, PhoneOff, MapPinned,
 } from "lucide-react";
 
 type ProviderProfile = {
@@ -98,6 +98,10 @@ const ProDashboard = () => {
   const [editForm, setEditForm] = useState<Partial<ProviderProfile>>({});
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("bids");
+  const [locationOpen, setLocationOpen] = useState(false);
+  const [locCity, setLocCity] = useState("");
+  const [locState, setLocState] = useState("");
+  const [savingLoc, setSavingLoc] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -195,6 +199,34 @@ const ProDashboard = () => {
     }
   };
 
+  const openLocation = () => {
+    if (!provider) return;
+    setLocCity(provider.city || "");
+    setLocState(provider.state || "");
+    setLocationOpen(true);
+  };
+
+  const saveLocation = async () => {
+    if (!provider) return;
+    if (!locCity.trim() || !locState.trim()) {
+      toast({ title: "City and state required", variant: "destructive" });
+      return;
+    }
+    setSavingLoc(true);
+    const { error } = await supabase
+      .from("providers")
+      .update({ city: locCity.trim(), state: locState.trim() })
+      .eq("id", provider.id);
+    setSavingLoc(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setProvider({ ...provider, city: locCity.trim(), state: locState.trim() });
+      setLocationOpen(false);
+      toast({ title: "Location updated" });
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -256,9 +288,13 @@ const ProDashboard = () => {
                 <Badge variant="secondary" className="text-sm">
                   {provider.category}
                 </Badge>
-                <span className="text-sm text-muted-foreground flex items-center gap-1">
+                <button
+                  onClick={openLocation}
+                  className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-1 underline-offset-2 hover:underline"
+                  title="Change location"
+                >
                   <MapPin size={13} /> {provider.city}, {provider.state}
-                </span>
+                </button>
                 {provider.subscription_tier === "pro" && (
                   <Badge className="bg-primary text-primary-foreground text-xs gap-1">
                     <Zap size={10} /> Verified Pro
@@ -271,6 +307,9 @@ const ProDashboard = () => {
                 <span className="text-sm text-muted-foreground">Available</span>
                 <Switch checked={provider.available} onCheckedChange={toggleAvailability} />
               </div>
+              <Button variant="outline" onClick={openLocation} className="gap-1.5">
+                <MapPinned size={14} /> Change Location
+              </Button>
               <Button variant="outline" onClick={openEdit} className="gap-1.5">
                 <Pencil size={14} /> Edit Profile
               </Button>
@@ -596,6 +635,32 @@ const ProDashboard = () => {
           </div>
         </div>
       </main>
+
+      {/* Change Location Dialog */}
+      <Dialog open={locationOpen} onOpenChange={setLocationOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><MapPinned size={18} /> Change Service Location</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Update where homeowners find you. Your listing and job-board results will use this location.
+          </p>
+          <div className="grid grid-cols-2 gap-3 mt-2">
+            <div>
+              <Label>City</Label>
+              <Input value={locCity} onChange={e => setLocCity(e.target.value)} className="mt-1" placeholder="e.g. Austin" />
+            </div>
+            <div>
+              <Label>State</Label>
+              <Input value={locState} onChange={e => setLocState(e.target.value)} className="mt-1" placeholder="e.g. TX" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLocationOpen(false)}>Cancel</Button>
+            <Button onClick={saveLocation} disabled={savingLoc}>{savingLoc ? "Saving…" : "Save Location"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Profile Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
