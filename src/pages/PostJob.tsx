@@ -353,6 +353,16 @@ const PostJob = () => {
                                     </Button>
                                   </>
                                 )}
+                                {bid.provider?.user_id && bid.status !== "rejected" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => { setMessageBid(bid); setMessageBody(""); }}
+                                    className="gap-1"
+                                  >
+                                    <MessageSquare size={14} /> Message
+                                  </Button>
+                                )}
                                 {bid.status === "accepted" && (
                                   <Button
                                     size="sm"
