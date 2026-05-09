@@ -109,6 +109,7 @@ const Dashboard = () => {
   const [allTasks, setAllTasks] = useState<TaskRow[]>([]);
   const [allBinderItems, setAllBinderItems] = useState<BinderRow[]>([]);
   const [drilldown, setDrilldown] = useState<DrilldownInfo | null>(null);
+  const [jobStats, setJobStats] = useState({ total: 0, pending: 0, withBids: 0, accepted: 0, completed: 0 });
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -117,7 +118,33 @@ const Dashboard = () => {
   useEffect(() => {
     if (!user) return;
     loadHomesAndStats();
+    loadJobStats();
   }, [user]);
+
+  const loadJobStats = async () => {
+    if (!user) return;
+    const { data: jobs } = await supabase
+      .from("jobs")
+      .select("id, status")
+      .eq("homeowner_id", user.id);
+    const jobList = jobs || [];
+    const ids = jobList.map(j => j.id);
+    let bidJobIds = new Set<string>();
+    if (ids.length) {
+      const { data: bids } = await supabase
+        .from("job_bids")
+        .select("job_id")
+        .in("job_id", ids);
+      bidJobIds = new Set((bids || []).map(b => b.job_id));
+    }
+    setJobStats({
+      total: jobList.length,
+      pending: jobList.filter(j => j.status === "pending" || j.status === "open").length,
+      withBids: jobList.filter(j => bidJobIds.has(j.id)).length,
+      accepted: jobList.filter(j => j.status === "accepted" || j.status === "in_progress").length,
+      completed: jobList.filter(j => j.status === "completed").length,
+    });
+  };
 
   const loadHomesAndStats = async () => {
     if (!user) return;
@@ -433,7 +460,46 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* ─── Upgrade Banner ─── */}
+          {/* ─── My Job Posts Section ─── */}
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                <Briefcase size={20} className="text-primary" />
+                My Job Posts
+                <span className="text-sm font-normal text-muted-foreground">({jobStats.total})</span>
+              </h2>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => navigate("/job-board")}>View Board</Button>
+                <Button size="sm" onClick={() => navigate("/post-job")}>
+                  <Plus size={14} className="mr-1.5" /> Post Job
+                </Button>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-card p-4 text-left hover:border-primary/40 hover:shadow-sm transition-all">
+                <div className="text-2xl font-bold text-foreground">{jobStats.total}</div>
+                <div className="text-xs text-muted-foreground mt-1">Total Posts</div>
+              </button>
+              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-orange-50 dark:bg-orange-900/10 p-4 text-left hover:ring-2 hover:ring-orange-300 dark:hover:ring-orange-700 transition-all">
+                <div className="text-2xl font-bold text-orange-700 dark:text-orange-400">{jobStats.pending}</div>
+                <div className="text-xs text-orange-700/80 dark:text-orange-400/80 mt-1">Pending</div>
+              </button>
+              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-primary/10 p-4 text-left hover:ring-2 hover:ring-primary/30 transition-all">
+                <div className="text-2xl font-bold text-primary">{jobStats.withBids}</div>
+                <div className="text-xs text-primary/80 mt-1">With Bids</div>
+              </button>
+              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-blue-50 dark:bg-blue-900/10 p-4 text-left hover:ring-2 hover:ring-blue-300 dark:hover:ring-blue-700 transition-all">
+                <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">{jobStats.accepted}</div>
+                <div className="text-xs text-blue-700/80 dark:text-blue-400/80 mt-1">Accepted</div>
+              </button>
+              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-green-50 dark:bg-green-900/10 p-4 text-left hover:ring-2 hover:ring-green-300 dark:hover:ring-green-700 transition-all">
+                <div className="text-2xl font-bold text-green-700 dark:text-green-400">{jobStats.completed}</div>
+                <div className="text-xs text-green-700/80 dark:text-green-400/80 mt-1">Completed</div>
+              </button>
+            </div>
+          </div>
+
+
           {subscriptionTier !== "multi_pro" && (() => {
             const nextTier = subscriptionTier === "free" ? "homeowner_pro" : "multi_pro";
             const upgradeConfig: Record<string, { name: string; price: string; period: string; cta: string; newFeatures: string[]; }> = {
