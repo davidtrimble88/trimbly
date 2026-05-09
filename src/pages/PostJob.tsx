@@ -74,6 +74,7 @@ const PostJob = () => {
   const [showForm, setShowForm] = useState(false);
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [bidCounts, setBidCounts] = useState<Record<string, number>>({});
 
   // Message-a-pro dialog (without accepting the bid)
   const [messageBid, setMessageBid] = useState<Bid | null>(null);
