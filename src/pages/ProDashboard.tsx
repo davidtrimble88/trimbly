@@ -288,9 +288,13 @@ const ProDashboard = () => {
                 <Badge variant="secondary" className="text-sm">
                   {provider.category}
                 </Badge>
-                <span className="text-sm text-muted-foreground flex items-center gap-1">
+                <button
+                  onClick={openLocation}
+                  className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-1 underline-offset-2 hover:underline"
+                  title="Change location"
+                >
                   <MapPin size={13} /> {provider.city}, {provider.state}
-                </span>
+                </button>
                 {provider.subscription_tier === "pro" && (
                   <Badge className="bg-primary text-primary-foreground text-xs gap-1">
                     <Zap size={10} /> Verified Pro
