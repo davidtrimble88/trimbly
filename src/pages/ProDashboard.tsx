@@ -199,6 +199,34 @@ const ProDashboard = () => {
     }
   };
 
+  const openLocation = () => {
+    if (!provider) return;
+    setLocCity(provider.city || "");
+    setLocState(provider.state || "");
+    setLocationOpen(true);
+  };
+
+  const saveLocation = async () => {
+    if (!provider) return;
+    if (!locCity.trim() || !locState.trim()) {
+      toast({ title: "City and state required", variant: "destructive" });
+      return;
+    }
+    setSavingLoc(true);
+    const { error } = await supabase
+      .from("providers")
+      .update({ city: locCity.trim(), state: locState.trim() })
+      .eq("id", provider.id);
+    setSavingLoc(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setProvider({ ...provider, city: locCity.trim(), state: locState.trim() });
+      setLocationOpen(false);
+      toast({ title: "Location updated" });
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
