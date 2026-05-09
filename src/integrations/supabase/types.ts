@@ -684,6 +684,7 @@ export type Database = {
           license_number: string | null
           licensed: boolean
           phone: string | null
+          postal_code: string | null
           state: string
           subscription_tier: string
           updated_at: string
@@ -711,6 +712,7 @@ export type Database = {
           license_number?: string | null
           licensed?: boolean
           phone?: string | null
+          postal_code?: string | null
           state: string
           subscription_tier?: string
           updated_at?: string
@@ -738,6 +740,7 @@ export type Database = {
           license_number?: string | null
           licensed?: boolean
           phone?: string | null
+          postal_code?: string | null
           state?: string
           subscription_tier?: string
           updated_at?: string
