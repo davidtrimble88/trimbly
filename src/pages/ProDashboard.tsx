@@ -279,28 +279,28 @@ const ProDashboard = () => {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <Card>
+            <Card onClick={() => setActiveTab("reviews")} className="cursor-pointer hover:border-primary transition-colors">
               <CardContent className="p-4 text-center">
                 <Star className="mx-auto h-6 w-6 text-yellow-500 mb-1" />
                 <p className="text-2xl font-bold text-foreground">{avgRating}</p>
                 <p className="text-xs text-muted-foreground">{reviewCount} review{reviewCount !== 1 ? "s" : ""}</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card onClick={() => setActiveTab("bids")} className="cursor-pointer hover:border-primary transition-colors">
               <CardContent className="p-4 text-center">
                 <Briefcase className="mx-auto h-6 w-6 text-primary mb-1" />
                 <p className="text-2xl font-bold text-foreground">{totalBids}</p>
                 <p className="text-xs text-muted-foreground">Total bids</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card onClick={() => setActiveTab("bids")} className="cursor-pointer hover:border-primary transition-colors">
               <CardContent className="p-4 text-center">
                 <CheckCircle className="mx-auto h-6 w-6 text-green-500 mb-1" />
                 <p className="text-2xl font-bold text-foreground">{acceptedBids}</p>
                 <p className="text-xs text-muted-foreground">Accepted</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card onClick={() => navigate("/messages")} className="cursor-pointer hover:border-primary transition-colors">
               <CardContent className="p-4 text-center">
                 <MessageSquare className="mx-auto h-6 w-6 text-blue-500 mb-1" />
                 <p className="text-2xl font-bold text-foreground">{unreadMessages}</p>
@@ -310,7 +310,7 @@ const ProDashboard = () => {
           </div>
 
           {/* Tabs */}
-          <Tabs defaultValue="bids" className="space-y-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="w-full md:w-auto">
               <TabsTrigger value="bids" className="gap-1.5">
                 <Briefcase size={14} /> Bids {pendingBids > 0 && <Badge variant="secondary" className="text-xs ml-1">{pendingBids}</Badge>}
