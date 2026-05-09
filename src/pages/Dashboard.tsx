@@ -118,7 +118,33 @@ const Dashboard = () => {
   useEffect(() => {
     if (!user) return;
     loadHomesAndStats();
+    loadJobStats();
   }, [user]);
+
+  const loadJobStats = async () => {
+    if (!user) return;
+    const { data: jobs } = await supabase
+      .from("jobs")
+      .select("id, status")
+      .eq("homeowner_id", user.id);
+    const jobList = jobs || [];
+    const ids = jobList.map(j => j.id);
+    let bidJobIds = new Set<string>();
+    if (ids.length) {
+      const { data: bids } = await supabase
+        .from("job_bids")
+        .select("job_id")
+        .in("job_id", ids);
+      bidJobIds = new Set((bids || []).map(b => b.job_id));
+    }
+    setJobStats({
+      total: jobList.length,
+      pending: jobList.filter(j => j.status === "pending" || j.status === "open").length,
+      withBids: jobList.filter(j => bidJobIds.has(j.id)).length,
+      accepted: jobList.filter(j => j.status === "accepted" || j.status === "in_progress").length,
+      completed: jobList.filter(j => j.status === "completed").length,
+    });
+  };
 
   const loadHomesAndStats = async () => {
     if (!user) return;
