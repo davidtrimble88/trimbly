@@ -62,6 +62,8 @@ const JobBoard = () => {
   const [searchCenter, setSearchCenter] = useState<{ lat: number; lon: number } | null>(null);
   const [geocodingSearch, setGeocodingSearch] = useState(false);
   const [jobCoords, setJobCoords] = useState<Record<string, { lat: number; lon: number } | null>>({});
+  // Map of homeowner_id -> { count, unread } of messages from that homeowner
+  const [homeownerMessages, setHomeownerMessages] = useState<Record<string, { count: number; unread: number }>>({});
 
   // Bid form
   const [bidJob, setBidJob] = useState<Job | null>(null);
