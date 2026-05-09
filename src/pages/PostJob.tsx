@@ -51,6 +51,7 @@ type Bid = {
   phone_number: string | null;
   created_at: string;
   provider?: {
+    user_id: string;
     business_name: string;
     category: string;
     city: string;
@@ -73,6 +74,11 @@ const PostJob = () => {
   const [showForm, setShowForm] = useState(false);
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Message-a-pro dialog (without accepting the bid)
+  const [messageBid, setMessageBid] = useState<Bid | null>(null);
+  const [messageBody, setMessageBody] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   const [form, setForm] = useState({
     title: "", description: "", category: "", city: "", state: "", country: "US",
@@ -118,7 +124,7 @@ const PostJob = () => {
   const loadBids = async (jobId: string) => {
     const { data } = await supabase
       .from("job_bids")
-      .select("*, provider:providers(business_name, category, city, state, years_experience, licensed, insured, phone)")
+      .select("*, provider:providers(user_id, business_name, category, city, state, years_experience, licensed, insured, phone)")
       .eq("job_id", jobId)
       .order("created_at", { ascending: false });
     setBids((prev) => ({ ...prev, [jobId]: (data as unknown as Bid[]) || [] }));
@@ -170,6 +176,26 @@ const PostJob = () => {
     await supabase.from("job_bids").update({ call_approved: !current }).eq("id", bidId);
     loadBids(jobId);
     toast({ title: !current ? "Call approved" : "Call permission revoked" });
+  };
+
+  const sendMessageToPro = async () => {
+    if (!user || !messageBid?.provider?.user_id || !messageBody.trim()) return;
+    setSendingMessage(true);
+    const { error } = await supabase.from("messages").insert({
+      sender_id: user.id,
+      recipient_id: messageBid.provider.user_id,
+      provider_id: messageBid.provider_id,
+      subject: `Re: ${messageBid.message?.slice(0, 60) || "Your bid"}`,
+      body: messageBody.trim(),
+    });
+    setSendingMessage(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Message sent", description: "The pro can now reply to you in Messages." });
+    setMessageBid(null);
+    setMessageBody("");
   };
 
   const deleteJob = async (jobId: string) => {
@@ -327,6 +353,16 @@ const PostJob = () => {
                                     </Button>
                                   </>
                                 )}
+                                {bid.provider?.user_id && bid.status !== "rejected" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => { setMessageBid(bid); setMessageBody(""); }}
+                                    className="gap-1"
+                                  >
+                                    <MessageSquare size={14} /> Message
+                                  </Button>
+                                )}
                                 {bid.status === "accepted" && (
                                   <Button
                                     size="sm"
@@ -398,6 +434,35 @@ const PostJob = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
             <Button onClick={handleSubmit} disabled={submitting}>{submitting ? "Posting..." : "Post Job"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Message Pro dialog (no acceptance required) */}
+      <Dialog open={!!messageBid} onOpenChange={(o) => { if (!o) { setMessageBid(null); setMessageBody(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare size={18} /> Message {messageBid?.provider?.business_name || "Pro"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Send a message without accepting the bid. The pro will be able to reply, but cannot call you unless you also accept and approve calling.
+            </p>
+            <Textarea
+              placeholder="Hi, I'd like to ask a few questions about your bid..."
+              value={messageBody}
+              onChange={(e) => setMessageBody(e.target.value)}
+              className="min-h-[120px]"
+              maxLength={2000}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setMessageBid(null); setMessageBody(""); }}>Cancel</Button>
+            <Button onClick={sendMessageToPro} disabled={sendingMessage || !messageBody.trim()} className="gap-1">
+              <MessageSquare size={14} /> {sendingMessage ? "Sending..." : "Send Message"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
