@@ -75,6 +75,11 @@ const PostJob = () => {
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Message-a-pro dialog (without accepting the bid)
+  const [messageBid, setMessageBid] = useState<Bid | null>(null);
+  const [messageBody, setMessageBody] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
+
   const [form, setForm] = useState({
     title: "", description: "", category: "", city: "", state: "", country: "US",
   });
