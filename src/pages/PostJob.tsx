@@ -281,6 +281,11 @@ const PostJob = () => {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-foreground">{job.title}</h3>
                         <Badge className={`text-xs ${statusColor(job.status)}`}>{job.status.replace("_", " ")}</Badge>
+                        {(bidCounts[job.id] ?? 0) > 0 && (
+                          <Badge className="text-xs bg-primary/15 text-primary hover:bg-primary/20 gap-1">
+                            <MessageSquare size={10} /> {bidCounts[job.id]} {bidCounts[job.id] === 1 ? "bid" : "bids"}
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-1">
                         <span className="flex items-center gap-1"><Briefcase size={12} /> {job.category}</span>
