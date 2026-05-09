@@ -102,6 +102,8 @@ const ProDashboard = () => {
   const [locationOpen, setLocationOpen] = useState(false);
   const [locCity, setLocCity] = useState("");
   const [locState, setLocState] = useState("");
+  const [locPostal, setLocPostal] = useState("");
+  const [locCountry, setLocCountry] = useState("US");
   const [savingLoc, setSavingLoc] = useState(false);
 
   useEffect(() => {
