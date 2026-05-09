@@ -31,7 +31,7 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, onCloseAutoFocus, onInteractOutside, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
@@ -41,11 +41,11 @@ const DialogContent = React.forwardRef<
         className,
       )}
       onCloseAutoFocus={(event) => {
-        props.onCloseAutoFocus?.(event);
+        onCloseAutoFocus?.(event);
         clearScrollLock();
       }}
       onInteractOutside={(event) => {
-        props.onInteractOutside?.(event);
+        onInteractOutside?.(event);
         window.setTimeout(clearScrollLock, 0);
       }}
       {...props}
