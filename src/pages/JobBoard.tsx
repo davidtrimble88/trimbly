@@ -262,12 +262,43 @@ const JobBoard = () => {
               </SelectContent>
             </Select>
           </div>
-          <Input
-            placeholder="Filter by city..."
-            value={filterCity}
-            onChange={(e) => setFilterCity(e.target.value)}
-            className="w-48"
-          />
+          <div className="flex items-center gap-2">
+            <MapPin size={14} className="text-muted-foreground" />
+            <Input
+              placeholder="City, state, or zip..."
+              value={locationQuery}
+              onChange={(e) => setLocationQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleLocationSearch()}
+              className="w-52"
+            />
+          </div>
+          <Select value={radiusMiles} onValueChange={setRadiusMiles}>
+            <SelectTrigger className="w-36"><SelectValue placeholder="Radius" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="any">Any distance</SelectItem>
+              <SelectItem value="10">Within 10 mi</SelectItem>
+              <SelectItem value="20">Within 20 mi</SelectItem>
+              <SelectItem value="50">Within 50 mi</SelectItem>
+              <SelectItem value="100">Within 100 mi</SelectItem>
+              <SelectItem value="250">Within 250 mi</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            size="sm"
+            onClick={handleLocationSearch}
+            disabled={geocodingSearch || !locationQuery.trim()}
+          >
+            {geocodingSearch ? "Searching..." : "Search"}
+          </Button>
+          {searchCenter && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => { setLocationQuery(""); setSearchCenter(null); setRadiusMiles("any"); }}
+            >
+              Clear
+            </Button>
+          )}
           <Badge variant="outline" className="self-center">{filteredJobs.length} jobs</Badge>
         </div>
 
