@@ -117,8 +117,22 @@ const PostJob = () => {
       .select("*")
       .eq("homeowner_id", user.id)
       .order("created_at", { ascending: false });
-    setJobs((data as Job[]) || []);
+    const jobsList = (data as Job[]) || [];
+    setJobs(jobsList);
     setLoadingJobs(false);
+
+    // Load bid counts for each job
+    if (jobsList.length > 0) {
+      const { data: bidsData } = await supabase
+        .from("job_bids")
+        .select("job_id")
+        .in("job_id", jobsList.map((j) => j.id));
+      const counts: Record<string, number> = {};
+      (bidsData || []).forEach((b: any) => {
+        counts[b.job_id] = (counts[b.job_id] || 0) + 1;
+      });
+      setBidCounts(counts);
+    }
   };
 
   // Load bids when a job is expanded
