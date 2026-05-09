@@ -109,6 +109,7 @@ const Dashboard = () => {
   const [allTasks, setAllTasks] = useState<TaskRow[]>([]);
   const [allBinderItems, setAllBinderItems] = useState<BinderRow[]>([]);
   const [drilldown, setDrilldown] = useState<DrilldownInfo | null>(null);
+  const [jobStats, setJobStats] = useState({ total: 0, pending: 0, withBids: 0, accepted: 0, completed: 0 });
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
