@@ -22,10 +22,10 @@ import {
 } from "lucide-react";
 
 const categories = [
-  "Plumbing", "Electrical", "HVAC", "Roofing", "Painting", "Carpentry",
-  "Landscaping", "Cleaning", "Pest Control", "Appliance Repair",
-  "Flooring", "Drywall", "Fencing", "General Handyman", "Other",
-];
+  "Appliance Repair", "Carpentry", "Cleaning", "Drywall", "Electrical",
+  "Fencing", "Flooring", "General Handyman", "HVAC", "Landscaping",
+  "Painting", "Pest Control", "Plumbing", "Roofing", "Other",
+].sort((a, b) => (a === "Other" ? 1 : b === "Other" ? -1 : a.localeCompare(b)));
 
 type Job = {
   id: string;
