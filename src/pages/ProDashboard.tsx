@@ -653,16 +653,38 @@ const ProDashboard = () => {
             <DialogTitle className="flex items-center gap-2"><MapPinned size={18} /> Change Service Location</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Update where homeowners find you. Your listing and job-board results will use this location.
+            Set where homeowners find you. Use city + state, a ZIP/postal code, or both.
           </p>
-          <div className="grid grid-cols-2 gap-3 mt-2">
+          <div className="space-y-3 mt-2">
             <div>
-              <Label>City</Label>
-              <Input value={locCity} onChange={e => setLocCity(e.target.value)} className="mt-1" placeholder="e.g. Austin" />
+              <Label>Country</Label>
+              <select
+                value={locCountry}
+                onChange={e => setLocCountry(e.target.value)}
+                className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="US">United States</option>
+                <option value="CA">Canada</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>City</Label>
+                <Input value={locCity} onChange={e => setLocCity(e.target.value)} className="mt-1" placeholder={locCountry === "CA" ? "e.g. Toronto" : "e.g. Austin"} />
+              </div>
+              <div>
+                <Label>{locCountry === "CA" ? "Province" : "State"}</Label>
+                <Input value={locState} onChange={e => setLocState(e.target.value)} className="mt-1" placeholder={locCountry === "CA" ? "e.g. ON" : "e.g. TX"} />
+              </div>
             </div>
             <div>
-              <Label>State</Label>
-              <Input value={locState} onChange={e => setLocState(e.target.value)} className="mt-1" placeholder="e.g. TX" />
+              <Label>{locCountry === "CA" ? "Postal Code" : "ZIP Code"} <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <Input
+                value={locPostal}
+                onChange={e => setLocPostal(e.target.value)}
+                className="mt-1"
+                placeholder={locCountry === "CA" ? "e.g. M5V 2T6" : "e.g. 78701"}
+              />
             </div>
           </div>
           <DialogFooter>
