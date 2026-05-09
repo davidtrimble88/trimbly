@@ -97,6 +97,7 @@ const ProDashboard = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<Partial<ProviderProfile>>({});
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState("bids");
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
