@@ -438,6 +438,35 @@ const PostJob = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Message Pro dialog (no acceptance required) */}
+      <Dialog open={!!messageBid} onOpenChange={(o) => { if (!o) { setMessageBid(null); setMessageBody(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare size={18} /> Message {messageBid?.provider?.business_name || "Pro"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Send a message without accepting the bid. The pro will be able to reply, but cannot call you unless you also accept and approve calling.
+            </p>
+            <Textarea
+              placeholder="Hi, I'd like to ask a few questions about your bid..."
+              value={messageBody}
+              onChange={(e) => setMessageBody(e.target.value)}
+              className="min-h-[120px]"
+              maxLength={2000}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setMessageBid(null); setMessageBody(""); }}>Cancel</Button>
+            <Button onClick={sendMessageToPro} disabled={sendingMessage || !messageBody.trim()} className="gap-1">
+              <MessageSquare size={14} /> {sendingMessage ? "Sending..." : "Send Message"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Footer />
     </div>
   );
