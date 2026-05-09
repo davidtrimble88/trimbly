@@ -109,11 +109,72 @@ const JobBoard = () => {
     })();
   }, [user]);
 
-  const filteredJobs = jobs.filter((j) => {
-    if (filterCategory !== "All" && j.category !== filterCategory) return false;
-    if (filterCity && !j.city.toLowerCase().includes(filterCity.toLowerCase())) return false;
-    return true;
-  });
+  // Geocode helper using OpenStreetMap Nominatim (free, no key)
+  const geocode = async (q: string): Promise<{ lat: number; lon: number } | null> => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`,
+        { headers: { "Accept": "application/json" } }
+      );
+      const data = await res.json();
+      if (Array.isArray(data) && data[0]) {
+        return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+      }
+    } catch (e) {
+      console.error("geocode failed", e);
+    }
+    return null;
+  };
+
+  const distanceMiles = (a: { lat: number; lon: number }, b: { lat: number; lon: number }) => {
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const R = 3958.8;
+    const dLat = toRad(b.lat - a.lat);
+    const dLon = toRad(b.lon - a.lon);
+    const lat1 = toRad(a.lat);
+    const lat2 = toRad(b.lat);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  };
+
+  const handleLocationSearch = async () => {
+    if (!locationQuery.trim()) {
+      setSearchCenter(null);
+      return;
+    }
+    setGeocodingSearch(true);
+    const center = await geocode(locationQuery.trim());
+    setSearchCenter(center);
+    setGeocodingSearch(false);
+    if (!center) {
+      toast({ title: "Location not found", description: "Try a different city, state, or zip code.", variant: "destructive" });
+      return;
+    }
+    // Geocode unique job locations not yet cached
+    const uniqueLocs = Array.from(new Set(jobs.map((j) => `${j.city}, ${j.state}, ${j.country}`)));
+    const toFetch = uniqueLocs.filter((k) => !(k in jobCoords));
+    if (toFetch.length === 0) return;
+    const results: Record<string, { lat: number; lon: number } | null> = {};
+    for (const loc of toFetch) {
+      results[loc] = await geocode(loc);
+      // small delay to be polite to Nominatim (1 req/sec policy)
+      await new Promise((r) => setTimeout(r, 1100));
+    }
+    setJobCoords((prev) => ({ ...prev, ...results }));
+  };
+
+  const filteredJobs = useMemo(() => {
+    return jobs.filter((j) => {
+      if (filterCategory !== "All" && j.category !== filterCategory) return false;
+      if (searchCenter && radiusMiles !== "any") {
+        const key = `${j.city}, ${j.state}, ${j.country}`;
+        const c = jobCoords[key];
+        if (!c) return false;
+        if (distanceMiles(searchCenter, c) > parseFloat(radiusMiles)) return false;
+      }
+      return true;
+    });
+  }, [jobs, filterCategory, searchCenter, radiusMiles, jobCoords]);
 
   const handleBidSubmit = async () => {
     if (!user || !providerId || !bidJob || !bidForm.message.trim()) {
