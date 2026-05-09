@@ -51,6 +51,7 @@ type Bid = {
   phone_number: string | null;
   created_at: string;
   provider?: {
+    user_id: string;
     business_name: string;
     category: string;
     city: string;
