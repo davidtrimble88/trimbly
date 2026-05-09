@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,7 +57,11 @@ const JobBoard = () => {
   const [providerId, setProviderId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [filterCategory, setFilterCategory] = useState("All");
-  const [filterCity, setFilterCity] = useState("");
+  const [locationQuery, setLocationQuery] = useState("");
+  const [radiusMiles, setRadiusMiles] = useState<string>("any");
+  const [searchCenter, setSearchCenter] = useState<{ lat: number; lon: number } | null>(null);
+  const [geocodingSearch, setGeocodingSearch] = useState(false);
+  const [jobCoords, setJobCoords] = useState<Record<string, { lat: number; lon: number } | null>>({});
 
   // Bid form
   const [bidJob, setBidJob] = useState<Job | null>(null);
@@ -105,11 +109,72 @@ const JobBoard = () => {
     })();
   }, [user]);
 
-  const filteredJobs = jobs.filter((j) => {
-    if (filterCategory !== "All" && j.category !== filterCategory) return false;
-    if (filterCity && !j.city.toLowerCase().includes(filterCity.toLowerCase())) return false;
-    return true;
-  });
+  // Geocode helper using OpenStreetMap Nominatim (free, no key)
+  const geocode = async (q: string): Promise<{ lat: number; lon: number } | null> => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`,
+        { headers: { "Accept": "application/json" } }
+      );
+      const data = await res.json();
+      if (Array.isArray(data) && data[0]) {
+        return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+      }
+    } catch (e) {
+      console.error("geocode failed", e);
+    }
+    return null;
+  };
+
+  const distanceMiles = (a: { lat: number; lon: number }, b: { lat: number; lon: number }) => {
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const R = 3958.8;
+    const dLat = toRad(b.lat - a.lat);
+    const dLon = toRad(b.lon - a.lon);
+    const lat1 = toRad(a.lat);
+    const lat2 = toRad(b.lat);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  };
+
+  const handleLocationSearch = async () => {
+    if (!locationQuery.trim()) {
+      setSearchCenter(null);
+      return;
+    }
+    setGeocodingSearch(true);
+    const center = await geocode(locationQuery.trim());
+    setSearchCenter(center);
+    setGeocodingSearch(false);
+    if (!center) {
+      toast({ title: "Location not found", description: "Try a different city, state, or zip code.", variant: "destructive" });
+      return;
+    }
+    // Geocode unique job locations not yet cached
+    const uniqueLocs = Array.from(new Set(jobs.map((j) => `${j.city}, ${j.state}, ${j.country}`)));
+    const toFetch = uniqueLocs.filter((k) => !(k in jobCoords));
+    if (toFetch.length === 0) return;
+    const results: Record<string, { lat: number; lon: number } | null> = {};
+    for (const loc of toFetch) {
+      results[loc] = await geocode(loc);
+      // small delay to be polite to Nominatim (1 req/sec policy)
+      await new Promise((r) => setTimeout(r, 1100));
+    }
+    setJobCoords((prev) => ({ ...prev, ...results }));
+  };
+
+  const filteredJobs = useMemo(() => {
+    return jobs.filter((j) => {
+      if (filterCategory !== "All" && j.category !== filterCategory) return false;
+      if (searchCenter && radiusMiles !== "any") {
+        const key = `${j.city}, ${j.state}, ${j.country}`;
+        const c = jobCoords[key];
+        if (!c) return false;
+        if (distanceMiles(searchCenter, c) > parseFloat(radiusMiles)) return false;
+      }
+      return true;
+    });
+  }, [jobs, filterCategory, searchCenter, radiusMiles, jobCoords]);
 
   const handleBidSubmit = async () => {
     if (!user || !providerId || !bidJob || !bidForm.message.trim()) {
@@ -197,12 +262,43 @@ const JobBoard = () => {
               </SelectContent>
             </Select>
           </div>
-          <Input
-            placeholder="Filter by city..."
-            value={filterCity}
-            onChange={(e) => setFilterCity(e.target.value)}
-            className="w-48"
-          />
+          <div className="flex items-center gap-2">
+            <MapPin size={14} className="text-muted-foreground" />
+            <Input
+              placeholder="City, state, or zip..."
+              value={locationQuery}
+              onChange={(e) => setLocationQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleLocationSearch()}
+              className="w-52"
+            />
+          </div>
+          <Select value={radiusMiles} onValueChange={setRadiusMiles}>
+            <SelectTrigger className="w-36"><SelectValue placeholder="Radius" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="any">Any distance</SelectItem>
+              <SelectItem value="10">Within 10 mi</SelectItem>
+              <SelectItem value="20">Within 20 mi</SelectItem>
+              <SelectItem value="50">Within 50 mi</SelectItem>
+              <SelectItem value="100">Within 100 mi</SelectItem>
+              <SelectItem value="250">Within 250 mi</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            size="sm"
+            onClick={handleLocationSearch}
+            disabled={geocodingSearch || !locationQuery.trim()}
+          >
+            {geocodingSearch ? "Searching..." : "Search"}
+          </Button>
+          {searchCenter && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => { setLocationQuery(""); setSearchCenter(null); setRadiusMiles("any"); }}
+            >
+              Clear
+            </Button>
+          )}
           <Badge variant="outline" className="self-center">{filteredJobs.length} jobs</Badge>
         </div>
 
