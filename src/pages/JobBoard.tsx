@@ -57,7 +57,11 @@ const JobBoard = () => {
   const [providerId, setProviderId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [filterCategory, setFilterCategory] = useState("All");
-  const [filterCity, setFilterCity] = useState("");
+  const [locationQuery, setLocationQuery] = useState("");
+  const [radiusMiles, setRadiusMiles] = useState<string>("any");
+  const [searchCenter, setSearchCenter] = useState<{ lat: number; lon: number } | null>(null);
+  const [geocodingSearch, setGeocodingSearch] = useState(false);
+  const [jobCoords, setJobCoords] = useState<Record<string, { lat: number; lon: number } | null>>({});
 
   // Bid form
   const [bidJob, setBidJob] = useState<Job | null>(null);
