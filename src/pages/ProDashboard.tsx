@@ -18,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building2, MapPin, Phone, Globe, DollarSign, Shield, Star,
   Briefcase, MessageSquare, Clock, CheckCircle,
-  Eye, Zap, Crown, Pencil, Award, PhoneOff,
+  Eye, Zap, Crown, Pencil, Award, PhoneOff, MapPinned,
 } from "lucide-react";
 
 type ProviderProfile = {
