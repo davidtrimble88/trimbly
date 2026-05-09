@@ -79,6 +79,20 @@ const PostJob = () => {
   });
 
   useEffect(() => {
+    if (!showForm) {
+      document.body.style.pointerEvents = "";
+      document.body.style.overflow = "";
+      document.body.removeAttribute("data-scroll-locked");
+    }
+
+    return () => {
+      document.body.style.pointerEvents = "";
+      document.body.style.overflow = "";
+      document.body.removeAttribute("data-scroll-locked");
+    };
+  }, [showForm]);
+
+  useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading]);
 
