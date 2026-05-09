@@ -636,6 +636,32 @@ const ProDashboard = () => {
         </div>
       </main>
 
+      {/* Change Location Dialog */}
+      <Dialog open={locationOpen} onOpenChange={setLocationOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><MapPinned size={18} /> Change Service Location</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Update where homeowners find you. Your listing and job-board results will use this location.
+          </p>
+          <div className="grid grid-cols-2 gap-3 mt-2">
+            <div>
+              <Label>City</Label>
+              <Input value={locCity} onChange={e => setLocCity(e.target.value)} className="mt-1" placeholder="e.g. Austin" />
+            </div>
+            <div>
+              <Label>State</Label>
+              <Input value={locState} onChange={e => setLocState(e.target.value)} className="mt-1" placeholder="e.g. TX" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLocationOpen(false)}>Cancel</Button>
+            <Button onClick={saveLocation} disabled={savingLoc}>{savingLoc ? "Saving…" : "Save Location"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Profile Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
