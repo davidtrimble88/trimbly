@@ -97,7 +97,7 @@ const JobBoard = () => {
       const { data: jobsData } = await supabase
         .from("jobs")
         .select("*")
-        .eq("status", "open")
+        .in("status", ["pending", "open"])
         .neq("homeowner_id", user.id)
         .order("created_at", { ascending: false });
       setJobs((jobsData as Job[]) || []);

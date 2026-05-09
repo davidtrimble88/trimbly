@@ -133,7 +133,7 @@ const PostJob = () => {
       city: form.city,
       state: form.state,
       country: form.country,
-      status: "open",
+      status: "pending",
     });
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -165,7 +165,7 @@ const PostJob = () => {
   };
 
   const statusColor = (s: string) => {
-    if (s === "open") return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+    if (s === "pending" || s === "open") return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
     if (s === "in_progress") return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
     if (s === "completed") return "bg-muted text-muted-foreground";
     return "bg-secondary text-secondary-foreground";
