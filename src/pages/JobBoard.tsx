@@ -62,6 +62,8 @@ const JobBoard = () => {
   const [searchCenter, setSearchCenter] = useState<{ lat: number; lon: number } | null>(null);
   const [geocodingSearch, setGeocodingSearch] = useState(false);
   const [jobCoords, setJobCoords] = useState<Record<string, { lat: number; lon: number } | null>>({});
+  // Map of homeowner_id -> { count, unread } of messages from that homeowner
+  const [homeownerMessages, setHomeownerMessages] = useState<Record<string, { count: number; unread: number }>>({});
 
   // Bid form
   const [bidJob, setBidJob] = useState<Job | null>(null);
@@ -105,6 +107,20 @@ const JobBoard = () => {
         .neq("homeowner_id", user.id)
         .order("created_at", { ascending: false });
       setJobs((jobsData as Job[]) || []);
+
+      // Load messages this pro has received (to surface conversations on jobs)
+      const { data: msgsData } = await supabase
+        .from("messages")
+        .select("sender_id, read")
+        .eq("recipient_id", user.id);
+      const msgMap: Record<string, { count: number; unread: number }> = {};
+      (msgsData || []).forEach((m: any) => {
+        if (!msgMap[m.sender_id]) msgMap[m.sender_id] = { count: 0, unread: 0 };
+        msgMap[m.sender_id].count += 1;
+        if (!m.read) msgMap[m.sender_id].unread += 1;
+      });
+      setHomeownerMessages(msgMap);
+
       setLoading(false);
     })();
   }, [user]);
@@ -315,12 +331,29 @@ const JobBoard = () => {
           <div className="space-y-4">
             {filteredJobs.map((job) => {
               const myBid = myBids[job.id];
+              const msgInfo = homeownerMessages[job.homeowner_id];
               return (
                 <Card key={job.id} className="hover:border-primary/20 transition-colors">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-foreground mb-1">{job.title}</h3>
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-foreground">{job.title}</h3>
+                          {msgInfo && msgInfo.count > 0 && (
+                            <button
+                              onClick={() => navigate("/messages")}
+                              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
+                                msgInfo.unread > 0
+                                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                  : "bg-primary/10 text-primary hover:bg-primary/20"
+                              }`}
+                              title="Open conversation"
+                            >
+                              <MessageSquare size={12} />
+                              {msgInfo.unread > 0 ? `${msgInfo.unread} new message${msgInfo.unread === 1 ? "" : "s"}` : "Message"}
+                            </button>
+                          )}
+                        </div>
                         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-2">
                           <span className="flex items-center gap-1"><Briefcase size={12} /> {job.category}</span>
                           <span className="flex items-center gap-1"><MapPin size={12} /> {job.city}, {job.state}</span>
