@@ -119,7 +119,7 @@ const PostJob = () => {
   const loadBids = async (jobId: string) => {
     const { data } = await supabase
       .from("job_bids")
-      .select("*, provider:providers(business_name, category, city, state, years_experience, licensed, insured, phone)")
+      .select("*, provider:providers(user_id, business_name, category, city, state, years_experience, licensed, insured, phone)")
       .eq("job_id", jobId)
       .order("created_at", { ascending: false });
     setBids((prev) => ({ ...prev, [jobId]: (data as unknown as Bid[]) || [] }));
