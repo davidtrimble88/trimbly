@@ -178,6 +178,26 @@ const PostJob = () => {
     toast({ title: !current ? "Call approved" : "Call permission revoked" });
   };
 
+  const sendMessageToPro = async () => {
+    if (!user || !messageBid?.provider?.user_id || !messageBody.trim()) return;
+    setSendingMessage(true);
+    const { error } = await supabase.from("messages").insert({
+      sender_id: user.id,
+      recipient_id: messageBid.provider.user_id,
+      provider_id: messageBid.provider_id,
+      subject: `Re: ${messageBid.message?.slice(0, 60) || "Your bid"}`,
+      body: messageBody.trim(),
+    });
+    setSendingMessage(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Message sent", description: "The pro can now reply to you in Messages." });
+    setMessageBid(null);
+    setMessageBody("");
+  };
+
   const deleteJob = async (jobId: string) => {
     await supabase.from("jobs").delete().eq("id", jobId);
     setJobs((prev) => prev.filter((j) => j.id !== jobId));
