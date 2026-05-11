@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.coverage-chat]
 verify_jwt = false
+
+[functions.manual-proxy]
+verify_jwt = false
+
+[functions.find-manual]
+verify_jwt = false
