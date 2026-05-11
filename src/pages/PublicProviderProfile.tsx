@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import StatsGrid from "@/components/profile/StatsGrid";
+import ProviderPlansList from "@/components/pro/ProviderPlansList";
 
 interface ProviderRow {
   id: string;
