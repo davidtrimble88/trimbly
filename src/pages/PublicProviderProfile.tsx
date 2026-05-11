@@ -53,7 +53,7 @@ const PublicProviderProfile = () => {
     (async () => {
       const { data: prov } = await supabase
         .from("providers")
-        .select("id, user_id, business_name, category, description, bio, city, state, country, years_experience, licensed, insured, verified, gallery_urls, emergency_available, emergency_rate_multiplier")
+        .select("id, user_id, business_name, category, description, bio, city, state, country, years_experience, licensed, insured, verified, gallery_urls, emergency_available, emergency_rate_multiplier, service_radius_miles")
         .eq("id", providerId)
         .maybeSingle();
 
