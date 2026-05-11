@@ -147,6 +147,11 @@ const PublicProviderProfile = () => {
                   {[provider.city, provider.state, provider.country].filter(Boolean).join(", ")}
                 </div>
                 <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
+                  {provider.emergency_available && (
+                    <Badge className="bg-red-500 text-white hover:bg-red-600 gap-1">
+                      <Zap size={12} /> Available for urgent jobs
+                    </Badge>
+                  )}
                   {provider.verified && (
                     <Badge variant="secondary"><ShieldCheck size={12} className="mr-1" /> Verified</Badge>
                   )}
