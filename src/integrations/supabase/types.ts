@@ -189,6 +189,8 @@ export type Database = {
           id: string
           item_type: string
           location_in_home: string | null
+          manual_title: string | null
+          manual_url: string | null
           model_number: string | null
           name: string
           notes: string | null
@@ -208,6 +210,8 @@ export type Database = {
           id?: string
           item_type?: string
           location_in_home?: string | null
+          manual_title?: string | null
+          manual_url?: string | null
           model_number?: string | null
           name: string
           notes?: string | null
@@ -227,6 +231,8 @@ export type Database = {
           id?: string
           item_type?: string
           location_in_home?: string | null
+          manual_title?: string | null
+          manual_url?: string | null
           model_number?: string | null
           name?: string
           notes?: string | null
