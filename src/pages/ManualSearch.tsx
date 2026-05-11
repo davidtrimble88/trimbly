@@ -1,22 +1,28 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Search, FileText, ExternalLink, Loader2, Download, BookOpen } from "lucide-react";
+import { ArrowLeft, Search, Loader2, Download, BookOpen, FileX } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-type Result = {
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+
+type ManualResult = {
   title: string;
   url: string;
   description?: string;
   isPdf: boolean;
   source: string;
+};
+
+const buildProxyUrl = (manualUrl: string, mode: "inline" | "download", filename: string) => {
+  const params = new URLSearchParams({ url: manualUrl, mode, filename });
+  return `${SUPABASE_URL}/functions/v1/manual-proxy?${params.toString()}`;
 };
 
 const ManualSearch = () => {
@@ -25,8 +31,10 @@ const ManualSearch = () => {
   const [model, setModel] = useState("");
   const [productType, setProductType] = useState("");
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<Result[]>([]);
-  const [searched, setSearched] = useState(false);
+  const [manual, setManual] = useState<ManualResult | null>(null);
+  const [notFound, setNotFound] = useState(false);
+
+  const filename = `${brand}-${model}-manual`.replace(/\s+/g, "-").toLowerCase() || "user-manual";
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,17 +43,21 @@ const ManualSearch = () => {
       return;
     }
     setLoading(true);
-    setSearched(true);
-    setResults([]);
+    setManual(null);
+    setNotFound(false);
     try {
       const { data, error } = await supabase.functions.invoke("find-manual", {
         body: { brand, model, productType },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      setResults(data?.results || []);
-      if (!data?.results?.length) {
-        toast({ title: "No manuals found", description: "Try a different model number or add a product type." });
+      const results: ManualResult[] = data?.results || [];
+      const topPdf = results.find((r) => r.isPdf) || null;
+      if (topPdf) {
+        setManual(topPdf);
+      } else {
+        setNotFound(true);
+        toast({ title: "No manual PDF found", description: "Try a different model number or add the product type." });
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Search failed";
@@ -55,11 +67,14 @@ const ManualSearch = () => {
     }
   };
 
+  const viewerUrl = manual ? buildProxyUrl(manual.url, "inline", filename) : "";
+  const downloadUrl = manual ? buildProxyUrl(manual.url, "download", filename) : "";
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1 pt-24 pb-16">
-        <div className="container mx-auto px-4 max-w-3xl">
+        <div className="container mx-auto px-4 max-w-4xl">
           <Link to="/dashboard" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
             <ArrowLeft size={16} /> Back to dashboard
           </Link>
@@ -72,7 +87,7 @@ const ManualSearch = () => {
               User Manual Finder
             </h1>
             <p className="text-muted-foreground">
-              Enter the brand and model number of any appliance or device — we'll find the user manual and make it downloadable.
+              Enter the brand and model number — we'll find the official manual and let you view or download it right here.
             </p>
           </div>
 
@@ -81,33 +96,16 @@ const ManualSearch = () => {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="brand">Brand *</Label>
-                  <Input
-                    id="brand"
-                    value={brand}
-                    onChange={(e) => setBrand(e.target.value)}
-                    placeholder="e.g., Whirlpool"
-                    required
-                  />
+                  <Input id="brand" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="e.g., Whirlpool" required />
                 </div>
                 <div>
                   <Label htmlFor="model">Model Number *</Label>
-                  <Input
-                    id="model"
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                    placeholder="e.g., WRF555SDFZ"
-                    required
-                  />
+                  <Input id="model" value={model} onChange={(e) => setModel(e.target.value)} placeholder="e.g., WRF555SDFZ" required />
                 </div>
               </div>
               <div>
                 <Label htmlFor="type">Product Type (optional)</Label>
-                <Input
-                  id="type"
-                  value={productType}
-                  onChange={(e) => setProductType(e.target.value)}
-                  placeholder="e.g., refrigerator, dishwasher, HVAC"
-                />
+                <Input id="type" value={productType} onChange={(e) => setProductType(e.target.value)} placeholder="e.g., refrigerator, dishwasher, HVAC" />
               </div>
               <Button type="submit" disabled={loading} className="w-full" size="lg">
                 {loading ? (
@@ -119,38 +117,35 @@ const ManualSearch = () => {
             </form>
           </Card>
 
-          {searched && !loading && (
-            <div className="space-y-3">
-              <h2 className="text-lg font-semibold text-foreground">
-                {results.length > 0 ? `${results.length} result${results.length === 1 ? "" : "s"}` : "No results"}
-              </h2>
-              {results.map((r, i) => (
-                <Card key={i} className="p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-start gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${r.isPdf ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-                      <FileText size={18} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h3 className="font-medium text-foreground truncate">{r.title}</h3>
-                        {r.isPdf && <Badge variant="secondary" className="text-[10px]">PDF</Badge>}
-                      </div>
-                      {r.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{r.description}</p>
-                      )}
-                      <p className="text-xs text-muted-foreground mb-3">{r.source}</p>
-                      <div className="flex gap-2 flex-wrap">
-                        <Button asChild size="sm" variant={r.isPdf ? "default" : "outline"}>
-                          <a href={r.url} target="_blank" rel="noopener noreferrer" download={r.isPdf}>
-                            {r.isPdf ? <><Download size={14} className="mr-1.5" /> Download</> : <><ExternalLink size={14} className="mr-1.5" /> Open</>}
-                          </a>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+          {manual && (
+            <Card className="overflow-hidden">
+              <div className="flex items-start justify-between gap-3 p-4 border-b border-border">
+                <div className="min-w-0">
+                  <h2 className="font-semibold text-foreground truncate">{brand} {model} — User Manual</h2>
+                  <p className="text-xs text-muted-foreground truncate">{manual.title}</p>
+                </div>
+                <Button asChild size="sm">
+                  <a href={downloadUrl} download={`${filename}.pdf`}>
+                    <Download size={14} className="mr-1.5" /> Download
+                  </a>
+                </Button>
+              </div>
+              <iframe
+                src={viewerUrl}
+                title="User Manual"
+                className="w-full h-[75vh] bg-muted"
+              />
+            </Card>
+          )}
+
+          {notFound && !loading && (
+            <Card className="p-8 text-center">
+              <FileX className="mx-auto text-muted-foreground mb-3" size={32} />
+              <h3 className="font-semibold text-foreground mb-1">No manual found</h3>
+              <p className="text-sm text-muted-foreground">
+                We couldn't locate an official PDF manual for that model. Try adjusting the brand, model, or product type.
+              </p>
+            </Card>
           )}
         </div>
       </main>

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft, FolderOpen, Plus, Loader2, Pencil, Trash2, FileText, Upload,
-  X, Search, Package, Wrench, Shield, Receipt, Home as HomeIcon, Download, BookOpen, ExternalLink
+  X, Search, Package, Wrench, Shield, Receipt, Home as HomeIcon, Download, BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
 import { useToast } from "@/hooks/use-toast";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const buildManualProxy = (manualUrl: string, mode: "inline" | "download", filename: string) => {
+  const params = new URLSearchParams({ url: manualUrl, mode, filename });
+  return `${SUPABASE_URL}/functions/v1/manual-proxy?${params.toString()}`;
+};
 
 const itemTypes = [
   { value: "appliance", label: "Appliance", icon: Package },
@@ -542,18 +548,28 @@ const HomeBinder = () => {
                           </button>
                         )}
 
-                        {item.manual_url && (
-                          <a
-                            href={item.manual_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-2 flex items-center gap-1 text-xs text-primary hover:underline"
-                            title={item.manual_title || "User Manual"}
-                          >
-                            <BookOpen size={12} /> User Manual
-                            <ExternalLink size={10} />
-                          </a>
-                        )}
+                        {item.manual_url && (() => {
+                          const fname = `${item.brand || "manual"}-${item.model_number || item.name}`.replace(/\s+/g, "-").toLowerCase();
+                          return (
+                            <div className="mt-2 flex items-center gap-3 text-xs">
+                              <a
+                                href={buildManualProxy(item.manual_url, "inline", fname)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-primary hover:underline"
+                              >
+                                <BookOpen size={12} /> View Manual
+                              </a>
+                              <a
+                                href={buildManualProxy(item.manual_url, "download", fname)}
+                                download={`${fname}.pdf`}
+                                className="flex items-center gap-1 text-primary hover:underline"
+                              >
+                                <Download size={12} /> Download
+                              </a>
+                            </div>
+                          );
+                        })()}
                       </div>
                     );
                   })}
