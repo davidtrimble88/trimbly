@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -19,7 +19,9 @@ import {
   Building2, MapPin, Phone, Globe, DollarSign, Shield, Star,
   Briefcase, MessageSquare, Clock, CheckCircle,
   Eye, Zap, Crown, Pencil, Award, PhoneOff, MapPinned, Sparkles,
+  LayoutDashboard, MoreVertical, ArrowRight, ExternalLink,
 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ProGalleryEditor from "@/components/profile/ProGalleryEditor";
 import ProFeaturesPanel from "@/components/pro/ProFeaturesPanel";
 import ServiceAreaPanel from "@/components/pro/ServiceAreaPanel";
@@ -100,6 +102,7 @@ const ProDashboard = () => {
   const { user, loading: authLoading, profileName } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [provider, setProvider] = useState<ProviderProfile | null>(null);
   const [stats, setStats] = useState<ProviderStats | null>(null);
@@ -110,7 +113,16 @@ const ProDashboard = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<Partial<ProviderProfile>>({});
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState("bids");
+  const activeTab = searchParams.get("tab") || "overview";
+  const setActiveTab = (tab: string) => {
+    if (tab === "overview") {
+      searchParams.delete("tab");
+    } else {
+      searchParams.set("tab", tab);
+    }
+    setSearchParams(searchParams, { replace: true });
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const [locationOpen, setLocationOpen] = useState(false);
   const [locCity, setLocCity] = useState("");
   const [locState, setLocState] = useState("");
@@ -299,23 +311,20 @@ const ProDashboard = () => {
       <Navbar />
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-5xl">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-            <div>
-              <h1 className="text-3xl font-extrabold text-foreground flex items-center gap-3">
-                <Building2 className="h-8 w-8 text-primary" />
-                {displayName}
+          {/* Header — compact */}
+          <div className="flex items-start justify-between mb-6 gap-3">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl md:text-3xl font-extrabold text-foreground flex items-center gap-2 md:gap-3">
+                <Building2 className="h-7 w-7 md:h-8 md:w-8 text-primary shrink-0" />
+                <span className="truncate">{displayName}</span>
               </h1>
-              <div className="flex items-center gap-3 mt-2">
-                <Badge variant="secondary" className="text-sm">
-                  {provider.category}
-                </Badge>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <Badge variant="secondary" className="text-xs">{provider.category}</Badge>
                 <button
                   onClick={openLocation}
-                  className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-1 underline-offset-2 hover:underline"
-                  title="Change location"
+                  className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 underline-offset-2 hover:underline"
                 >
-                  <MapPin size={13} /> {provider.city}, {provider.state}
+                  <MapPin size={12} /> {provider.city}, {provider.state}
                 </button>
                 {provider.subscription_tier === "pro" && (
                   <Badge className="bg-primary text-primary-foreground text-xs gap-1">
@@ -324,83 +333,157 @@ const ProDashboard = () => {
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Available</span>
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="hidden sm:flex items-center gap-2 mr-1">
+                <span className="text-xs text-muted-foreground">Available</span>
                 <Switch checked={provider.available} onCheckedChange={toggleAvailability} />
               </div>
-              <Button variant="outline" onClick={openLocation} className="gap-1.5">
-                <MapPinned size={14} /> Change Location
-              </Button>
-              <Button variant="outline" onClick={openEdit} className="gap-1.5">
-                <Pencil size={14} /> Edit Profile
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <MoreVertical size={16} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={toggleAvailability} className="sm:hidden">
+                    <Zap size={14} className="mr-2" />
+                    {provider.available ? "Set Unavailable" : "Set Available"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={openEdit}>
+                    <Pencil size={14} className="mr-2" /> Edit Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={openLocation}>
+                    <MapPinned size={14} className="mr-2" /> Change Location
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate(`/pro/${provider.id}`)}>
+                    <ExternalLink size={14} className="mr-2" /> View Public Profile
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
-          {/* Public Profile & Gallery */}
-          <div className="mb-8">
-            <ProGalleryEditor userId={user!.id} providerId={provider.id} businessName={provider.business_name} />
-          </div>
-
-          {/* Credential expiry alert */}
+          {/* Credential expiry alert — always visible */}
           <CredentialAlertBanner
             licenseExpiry={provider.license_expiry}
             insuranceExpiry={provider.insurance_expiry}
             onGoToTools={() => setActiveTab("tools")}
           />
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <Card onClick={() => setActiveTab("reviews")} className="cursor-pointer hover:border-primary transition-colors">
-              <CardContent className="p-4 text-center">
-                <Star className="mx-auto h-6 w-6 text-yellow-500 mb-1" />
-                <p className="text-2xl font-bold text-foreground">{avgRating}</p>
-                <p className="text-xs text-muted-foreground">{reviewCount} review{reviewCount !== 1 ? "s" : ""}</p>
-              </CardContent>
-            </Card>
-            <Card onClick={() => setActiveTab("bids")} className="cursor-pointer hover:border-primary transition-colors">
-              <CardContent className="p-4 text-center">
-                <Briefcase className="mx-auto h-6 w-6 text-primary mb-1" />
-                <p className="text-2xl font-bold text-foreground">{totalBids}</p>
-                <p className="text-xs text-muted-foreground">Total bids</p>
-              </CardContent>
-            </Card>
-            <Card onClick={() => setActiveTab("bids")} className="cursor-pointer hover:border-primary transition-colors">
-              <CardContent className="p-4 text-center">
-                <CheckCircle className="mx-auto h-6 w-6 text-green-500 mb-1" />
-                <p className="text-2xl font-bold text-foreground">{acceptedBids}</p>
-                <p className="text-xs text-muted-foreground">Accepted</p>
-              </CardContent>
-            </Card>
-            <Card onClick={() => navigate("/messages")} className="cursor-pointer hover:border-primary transition-colors">
-              <CardContent className="p-4 text-center">
-                <MessageSquare className="mx-auto h-6 w-6 text-blue-500 mb-1" />
-                <p className="text-2xl font-bold text-foreground">{unreadMessages}</p>
-                <p className="text-xs text-muted-foreground">Unread messages</p>
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="w-full md:w-auto flex-wrap h-auto">
-              <TabsTrigger value="bids" className="gap-1.5">
-                <Briefcase size={14} /> Bids {pendingBids > 0 && <Badge variant="secondary" className="text-xs ml-1">{pendingBids}</Badge>}
+            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+              <TabsList className="inline-flex w-auto h-auto">
+                <TabsTrigger value="overview" className="gap-1.5">
+                  <LayoutDashboard size={14} /> Overview
+                </TabsTrigger>
+                <TabsTrigger value="bids" className="gap-1.5">
+                  <Briefcase size={14} /> Bids {pendingBids > 0 && <Badge variant="secondary" className="text-xs ml-1">{pendingBids}</Badge>}
+                </TabsTrigger>
+                <TabsTrigger value="tools" className="gap-1.5">
+                  <Sparkles size={14} /> Tools
+                </TabsTrigger>
+                <TabsTrigger value="reviews" className="gap-1.5">
+                  <Star size={14} /> Reviews
+                </TabsTrigger>
+                <TabsTrigger value="messages" className="gap-1.5">
+                  <MessageSquare size={14} /> Messages {unreadMessages > 0 && <Badge variant="secondary" className="text-xs ml-1">{unreadMessages}</Badge>}
               </TabsTrigger>
-              <TabsTrigger value="tools" className="gap-1.5">
-                <Sparkles size={14} /> Tools
-              </TabsTrigger>
-              <TabsTrigger value="reviews" className="gap-1.5">
-                <Star size={14} /> Reviews
-              </TabsTrigger>
-              <TabsTrigger value="messages" className="gap-1.5">
-                <MessageSquare size={14} /> Messages {unreadMessages > 0 && <Badge variant="secondary" className="text-xs ml-1">{unreadMessages}</Badge>}
-              </TabsTrigger>
-              <TabsTrigger value="profile" className="gap-1.5">
-                <Building2 size={14} /> Profile
-              </TabsTrigger>
-            </TabsList>
+                <TabsTrigger value="profile" className="gap-1.5">
+                  <Building2 size={14} /> Profile
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* Overview Tab */}
+            <TabsContent value="overview">
+              <div className="space-y-6">
+                {/* Quick stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <button onClick={() => setActiveTab("reviews")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/40 hover:shadow-sm transition-all">
+                    <Star className="mx-auto h-5 w-5 text-yellow-500 mb-1" />
+                    <p className="text-xl font-bold text-foreground">{avgRating}</p>
+                    <p className="text-xs text-muted-foreground">{reviewCount} review{reviewCount !== 1 ? "s" : ""}</p>
+                  </button>
+                  <button onClick={() => setActiveTab("bids")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/40 hover:shadow-sm transition-all">
+                    <Briefcase className="mx-auto h-5 w-5 text-primary mb-1" />
+                    <p className="text-xl font-bold text-foreground">{pendingBids}</p>
+                    <p className="text-xs text-muted-foreground">Pending bids</p>
+                  </button>
+                  <button onClick={() => setActiveTab("bids")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/40 hover:shadow-sm transition-all">
+                    <CheckCircle className="mx-auto h-5 w-5 text-green-500 mb-1" />
+                    <p className="text-xl font-bold text-foreground">{acceptedBids}</p>
+                    <p className="text-xs text-muted-foreground">Accepted</p>
+                  </button>
+                  <button onClick={() => setActiveTab("messages")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/40 hover:shadow-sm transition-all">
+                    <MessageSquare className="mx-auto h-5 w-5 text-blue-500 mb-1" />
+                    <p className="text-xl font-bold text-foreground">{unreadMessages}</p>
+                    <p className="text-xs text-muted-foreground">Unread</p>
+                  </button>
+                </div>
+
+                {/* Quick actions */}
+                <div>
+                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Quick Actions</h2>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {[
+                      { icon: Eye, label: "Browse Job Board", desc: "Find new jobs and send bids", onClick: () => navigate("/job-board"), accent: "text-primary bg-primary/10" },
+                      { icon: Briefcase, label: "My Bids", desc: "Track bids and their status", onClick: () => setActiveTab("bids"), accent: "text-primary bg-primary/10" },
+                      { icon: Sparkles, label: "Pro Tools", desc: "Quotes, plans, service area, analytics", onClick: () => setActiveTab("tools"), accent: "text-orange-600 bg-orange-500/10 dark:text-orange-400" },
+                      { icon: MessageSquare, label: "Messages", desc: "Reply to homeowner inquiries", onClick: () => navigate("/messages"), accent: "text-blue-600 bg-blue-500/10 dark:text-blue-400" },
+                      { icon: Star, label: "Reviews", desc: "See what homeowners are saying", onClick: () => setActiveTab("reviews"), accent: "text-yellow-600 bg-yellow-500/10 dark:text-yellow-400" },
+                      { icon: ExternalLink, label: "Public Profile", desc: "How homeowners see your business", onClick: () => navigate(`/pro/${provider.id}`), accent: "text-foreground bg-muted" },
+                    ].map((a) => (
+                      <button
+                        key={a.label}
+                        onClick={a.onClick}
+                        className="group rounded-lg border border-border bg-card p-4 text-left hover:border-primary/40 hover:shadow-sm transition-all"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`w-9 h-9 rounded-md flex items-center justify-center shrink-0 ${a.accent}`}>
+                            <a.icon size={18} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-sm text-foreground flex items-center justify-between">
+                              {a.label}
+                              <ArrowRight size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-0.5">{a.desc}</div>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Recent activity */}
+                {bids.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Recent Bids</h2>
+                      <button onClick={() => setActiveTab("bids")} className="text-xs text-primary hover:underline">View all</button>
+                    </div>
+                    <div className="space-y-2">
+                      {bids.slice(0, 3).map((b) => (
+                        <button
+                          key={b.id}
+                          onClick={() => setActiveTab("bids")}
+                          className="w-full rounded-lg border border-border bg-card p-3 text-left hover:border-primary/40 transition-colors flex items-center justify-between gap-3"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium text-sm text-foreground truncate">{b.job?.title || "Job"}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {b.job?.city}, {b.job?.state} · {new Date(b.created_at).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <Badge className={`text-xs ${bidStatusColor(b.status)}`}>{b.status}</Badge>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
 
             <TabsContent value="tools">
               <div className="space-y-6">
@@ -583,8 +666,9 @@ const ProDashboard = () => {
             </TabsContent>
 
             {/* Profile Tab */}
-            <TabsContent value="profile">
-              <h2 className="text-lg font-bold text-foreground mb-4">Business Profile</h2>
+            <TabsContent value="profile" className="space-y-6">
+              <ProGalleryEditor userId={user!.id} providerId={provider.id} businessName={provider.business_name} />
+              <h2 className="text-lg font-bold text-foreground">Business Profile</h2>
               <Card>
                 <CardContent className="p-6 space-y-6">
                   {/* Business info */}

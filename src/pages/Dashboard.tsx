@@ -24,17 +24,30 @@ import {
 } from "lucide-react";
 
 // ─── Service definitions ───
-const allServices = [
-  { icon: Wrench, title: "Find Local Pros", description: "Search by service, distance, rating, and availability.", route: "/search", minTier: "free" },
-  { icon: Brain, title: "AI Job Estimator", description: "Unlimited instant cost estimates, material lists, and DIY vs. pro recommendations.", route: "/estimator", minTier: "homeowner_pro" },
-  { icon: CalendarCheck, title: "Maintenance Autopilot", description: "Advanced automated schedules based on your home profile.", route: "/maintenance", minTier: "free" },
-  { icon: FolderOpen, title: "Digital Home Binder", description: "Store appliance info, warranties, past jobs, and documents (5 items).", route: "/binder", minTier: "homeowner_pro" },
-  { icon: MessageSquare, title: "In-App Messaging", description: "Chat directly with pros, share photos, and track job status.", route: "/messages", minTier: "free" },
-  { icon: Star, title: "Verified Reviews", description: "Read and leave honest reviews from real homeowners.", route: "/search", minTier: "free" },
-  { icon: Shield, title: "Coverage Advisor", description: "Upload warranty & insurance docs and ask AI about your coverage.", route: "/coverage", minTier: "homeowner_pro" },
-  { icon: Briefcase, title: "Post a Job", description: "Post job requests for pros to bid on. Control who can message and call you.", route: "/post-job", minTier: "free" },
-  { icon: BookOpen, title: "User Manual Finder", description: "Enter brand & model — instantly find and download the user manual.", route: "/manual-search", minTier: "free" },
+type ServiceCategory = "home_care" | "get_help" | "tools" | "communication";
+const allServices: Array<{
+  icon: any; title: string; description: string; route: string; minTier: string; group: ServiceCategory;
+}> = [
+  { icon: CalendarCheck, title: "Maintenance Autopilot", description: "Automated, personalized maintenance schedules for your home.", route: "/maintenance", minTier: "free", group: "home_care" },
+  { icon: FolderOpen, title: "Digital Home Binder", description: "Store appliance info, warranties, and documents.", route: "/binder", minTier: "homeowner_pro", group: "home_care" },
+  { icon: Shield, title: "Coverage Advisor", description: "Upload warranty & insurance docs and ask AI about your coverage.", route: "/coverage", minTier: "homeowner_pro", group: "home_care" },
+
+  { icon: Wrench, title: "Find Local Pros", description: "Search by service, distance, rating, and availability.", route: "/search", minTier: "free", group: "get_help" },
+  { icon: Briefcase, title: "Post a Job", description: "Post job requests for pros to bid on.", route: "/post-job", minTier: "free", group: "get_help" },
+  { icon: Star, title: "Verified Reviews", description: "Read honest reviews from real homeowners.", route: "/search", minTier: "free", group: "get_help" },
+
+  { icon: Brain, title: "AI Job Estimator", description: "Instant cost estimates, material lists, DIY vs. pro recommendations.", route: "/estimator", minTier: "homeowner_pro", group: "tools" },
+  { icon: BookOpen, title: "User Manual Finder", description: "Enter brand & model — instantly find and download the user manual.", route: "/manual-search", minTier: "free", group: "tools" },
+
+  { icon: MessageSquare, title: "In-App Messaging", description: "Chat directly with pros, share photos, and track jobs.", route: "/messages", minTier: "free", group: "communication" },
 ];
+
+const groupTitles: Record<ServiceCategory, string> = {
+  home_care: "Home Care",
+  get_help: "Get Help",
+  tools: "Tools",
+  communication: "Communication",
+};
 
 const tierOrder: Record<string, number> = { free: 0, homeowner_pro: 1, multi_pro: 2 };
 const tierLabels: Record<string, string> = { free: "Free", homeowner_pro: "Homeowner Pro", multi_pro: "Multi-Homeowner Pro" };
@@ -570,52 +583,53 @@ const Dashboard = () => {
             );
           })()}
 
-          {/* ─── Services Section ─── */}
-          <div>
-            <h2 className="text-xl font-bold text-foreground mb-4">Services</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {allServices.map((service) => {
-                const unlocked = isUnlocked(service.minTier);
-                const comingSoon = !service.route;
-
-                return (
-                  <Card
-                    key={service.title}
-                    className={`relative transition-all duration-200 ${
-                      unlocked && !comingSoon
-                        ? "hover:border-primary/30 hover:shadow-lg cursor-pointer"
-                        : "opacity-60"
-                    }`}
-                  >
-                    {!unlocked && (
-                      <div className="absolute top-4 right-4">
-                        <Lock size={18} className="text-muted-foreground" />
-                      </div>
-                    )}
-                    <CardHeader>
-                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
-                        <service.icon size={24} className="text-primary" />
-                      </div>
-                      <CardTitle className="text-lg">{service.title}</CardTitle>
-                      <CardDescription>{service.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {comingSoon ? (
-                        <Badge variant="outline" className="text-muted-foreground">Coming Soon</Badge>
-                      ) : unlocked ? (
-                        <Button onClick={() => navigate(service.route!)} className="w-full">
-                          Open
-                        </Button>
-                      ) : (
-                        <Button variant="outline" className="w-full" onClick={() => navigate("/#pricing")}>
-                          Upgrade to Unlock
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+          {/* ─── Services Section (grouped) ─── */}
+          <div className="space-y-8">
+            {(Object.keys(groupTitles) as ServiceCategory[]).map((group) => {
+              const items = allServices.filter((s) => s.group === group);
+              if (items.length === 0) return null;
+              return (
+                <div key={group}>
+                  <h2 className="text-lg font-bold text-foreground mb-3">{groupTitles[group]}</h2>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {items.map((service) => {
+                      const unlocked = isUnlocked(service.minTier);
+                      const comingSoon = !service.route;
+                      return (
+                        <button
+                          key={service.title}
+                          onClick={() => unlocked && !comingSoon ? navigate(service.route!) : navigate("/#pricing")}
+                          className={`group relative text-left rounded-lg border border-border bg-card p-4 transition-all ${
+                            unlocked && !comingSoon
+                              ? "hover:border-primary/40 hover:shadow-sm"
+                              : "opacity-70 hover:opacity-100"
+                          }`}
+                        >
+                          {!unlocked && (
+                            <Lock size={14} className="absolute top-3 right-3 text-muted-foreground" />
+                          )}
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+                              <service.icon size={20} className="text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold text-sm text-foreground">{service.title}</div>
+                              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{service.description}</div>
+                              {!unlocked && (
+                                <div className="text-xs text-primary mt-2 font-medium">Upgrade to unlock →</div>
+                              )}
+                              {comingSoon && (
+                                <Badge variant="outline" className="text-xs mt-2">Coming Soon</Badge>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </main>
