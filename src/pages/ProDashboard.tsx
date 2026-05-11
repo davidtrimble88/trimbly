@@ -24,6 +24,7 @@ import ProGalleryEditor from "@/components/profile/ProGalleryEditor";
 import ProFeaturesPanel from "@/components/pro/ProFeaturesPanel";
 import ServiceAreaPanel from "@/components/pro/ServiceAreaPanel";
 import QuotesPanel from "@/components/pro/QuotesPanel";
+import ServicePlansPanel from "@/components/pro/ServicePlansPanel";
 
 type ProviderProfile = {
   id: string;
