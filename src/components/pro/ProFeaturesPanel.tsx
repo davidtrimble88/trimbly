@@ -430,25 +430,74 @@ const ProFeaturesPanel = ({ provider, userId, onUpdated }: Props) => {
         </DialogContent>
       </Dialog>
 
-      {/* Emergency rate Dialog */}
+      {/* Emergency settings Dialog */}
       <Dialog open={emerOpen} onOpenChange={setEmerOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Emergency Rate Multiplier</DialogTitle>
+            <DialogTitle>Emergency / After-Hours Settings</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2">
-            <Label>Multiplier (1.0 – 5.0)</Label>
-            <Input
-              type="number"
-              step="0.1"
-              min="1"
-              max="5"
-              value={emerMult}
-              onChange={(e) => setEmerMult(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              For example, 1.5 means you charge 1.5x your normal hourly rate for emergency/after-hours work.
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>After-hours starts</Label>
+                <Input
+                  type="time"
+                  value={emerStart}
+                  onChange={(e) => setEmerStart(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>After-hours ends</Label>
+                <Input
+                  type="time"
+                  value={emerEnd}
+                  onChange={(e) => setEmerEnd(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground -mt-2">
+              Define when your after-hours window starts and ends. Crossing midnight is fine (e.g. 6:00 PM → 7:00 AM).
             </p>
+
+            <div className="flex items-center justify-between bg-muted/40 rounded-lg p-3">
+              <div>
+                <p className="text-sm font-medium text-foreground">Include weekends</p>
+                <p className="text-xs text-muted-foreground">Treat all of Saturday & Sunday as after-hours.</p>
+              </div>
+              <Switch checked={emerWeekends} onCheckedChange={setEmerWeekends} />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between">
+                <Label>Rate multiplier</Label>
+                {emerMult !== "1.5" && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 text-xs"
+                    onClick={() => setEmerMult("1.5")}
+                  >
+                    Use suggested 1.5x
+                  </Button>
+                )}
+              </div>
+              <Input
+                type="number"
+                step="0.1"
+                min="1"
+                max="5"
+                value={emerMult}
+                onChange={(e) => setEmerMult(e.target.value)}
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Enter <strong>1.0</strong> to charge your normal rate after-hours.
+                Suggested: <strong>1.5x</strong> for emergency/after-hours work.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEmerOpen(false)}>Cancel</Button>
