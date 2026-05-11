@@ -291,6 +291,11 @@ const Dashboard = () => {
             </div>
           </div>
 
+          {/* ─── Public Profile ─── */}
+          <div className="mb-12">
+            <ProfileEditor userId={user.id} displayName={displayName} />
+          </div>
+
           {/* ─── Home Analysis Section ─── */}
           <div className="mb-12">
             <div className="flex items-center justify-between mb-4">
