@@ -21,7 +21,7 @@ const tiers = [
     highlighted: false,
   },
   {
-    name: "Homeowner Pro",
+    name: "Home Hero",
     price: "$5",
     period: "/month",
     description: "Full-powered home maintenance on autopilot",
@@ -40,7 +40,7 @@ const tiers = [
     highlighted: true,
   },
   {
-    name: "Multi-Homeowner Pro",
+    name: "Home Super Hero",
     price: "$20",
     period: "/month",
     description: "Manage up to 10 properties from one account",
