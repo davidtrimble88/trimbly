@@ -227,6 +227,33 @@ const tabs = [
       },
     ],
   },
+  {
+    id: "triage",
+    label: "Symptom Triage",
+    icon: Stethoscope,
+    steps: [
+      {
+        icon: Stethoscope, step: "01", title: "Describe the Symptom",
+        description: "Type what you're seeing, hearing, or smelling — a strange noise, leak, smell, or odd behavior from any home system.",
+        route: "/symptom-triage",
+      },
+      {
+        icon: Sparkles, step: "02", title: "AI Diagnoses Instantly",
+        description: "Our AI analyzes the symptom, identifies the likely cause, and flags any urgent safety warnings.",
+        route: "/symptom-triage",
+      },
+      {
+        icon: AlertTriangle, step: "03", title: "Get an Urgency Level",
+        description: "From Emergency to Monitor — know if you need to act now, schedule a pro, or just keep an eye on it.",
+        route: "/symptom-triage",
+      },
+      {
+        icon: Hammer, step: "04", title: "DIY or Hire a Pro",
+        description: "Follow the AI's step-by-step DIY guidance, or jump straight to finding the right local pro.",
+        route: "/symptom-triage",
+      },
+    ],
+  },
 ];
 
 const HowItWorksSection = () => {
