@@ -523,6 +523,9 @@ const ProDashboard = () => {
                   businessName={provider.business_name}
                   userId={user!.id}
                 />
+                <SkillBadgesPanel providerId={provider.id} userId={user!.id} />
+                <MileageLogPanel providerId={provider.id} userId={user!.id} />
+                <NotificationPrefsPanel userId={user!.id} />
                 <ServicePlansPanel providerId={provider.id} />
               </div>
             </TabsContent>
