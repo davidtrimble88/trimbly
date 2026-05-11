@@ -52,7 +52,7 @@ const PublicProviderProfile = () => {
     (async () => {
       const { data: prov } = await supabase
         .from("providers")
-        .select("id, user_id, business_name, category, description, bio, city, state, country, years_experience, licensed, insured, verified, gallery_urls")
+        .select("id, user_id, business_name, category, description, bio, city, state, country, years_experience, licensed, insured, verified, gallery_urls, emergency_available, emergency_rate_multiplier")
         .eq("id", providerId)
         .maybeSingle();
 
@@ -60,6 +60,13 @@ const PublicProviderProfile = () => {
         setLoading(false);
         return;
       }
+
+      // Track profile view (fire-and-forget; ignore failures)
+      const { data: authData } = await supabase.auth.getUser();
+      supabase.from("profile_views").insert({
+        provider_id: prov.id,
+        viewer_id: authData.user?.id ?? null,
+      }).then(() => {}, () => {});
 
       const [{ data: prof }, { count: completed }, { count: bids }, { data: revs }] = await Promise.all([
         supabase.from("profiles").select("avatar_url").eq("id", prov.user_id).maybeSingle(),
