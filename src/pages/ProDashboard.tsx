@@ -20,6 +20,7 @@ import {
   Briefcase, MessageSquare, Clock, CheckCircle,
   Eye, Zap, Crown, Pencil, Award, PhoneOff, MapPinned,
 } from "lucide-react";
+import ProGalleryEditor from "@/components/profile/ProGalleryEditor";
 
 type ProviderProfile = {
   id: string;
@@ -324,6 +325,11 @@ const ProDashboard = () => {
                 <Pencil size={14} /> Edit Profile
               </Button>
             </div>
+          </div>
+
+          {/* Public Profile & Gallery */}
+          <div className="mb-8">
+            <ProGalleryEditor userId={user!.id} providerId={provider.id} businessName={provider.business_name} />
           </div>
 
           {/* Stats Cards */}
