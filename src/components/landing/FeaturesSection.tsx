@@ -35,7 +35,7 @@ const features = [
     icon: MessageSquare,
     title: "In-App Messaging",
     description: "Chat directly with pros, share photos, negotiate quotes, and track job status from request to completion.",
-    tab: "pros",
+    tab: "messages",
   },
   {
     icon: Briefcase,
