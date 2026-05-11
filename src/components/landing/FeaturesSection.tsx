@@ -1,4 +1,4 @@
-import { Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield, Briefcase } from "lucide-react";
+import { Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield, Briefcase, BookOpen } from "lucide-react";
 
 const features = [
   {
@@ -11,7 +11,7 @@ const features = [
     icon: Brain,
     title: "AI Job Estimator",
     description: "Snap a photo, describe the issue, and get instant cost estimates, material lists, and DIY vs. pro recommendations.",
-    tab: "pros",
+    tab: "estimator",
   },
   {
     icon: CalendarCheck,
@@ -35,13 +35,19 @@ const features = [
     icon: MessageSquare,
     title: "In-App Messaging",
     description: "Chat directly with pros, share photos, negotiate quotes, and track job status from request to completion.",
-    tab: "pros",
+    tab: "messages",
   },
   {
     icon: Briefcase,
     title: "Job Requests & Bidding",
     description: "Post a job and let pros come to you. Review bids, messages, and credentials — you control who can call.",
     tab: "jobs",
+  },
+  {
+    icon: BookOpen,
+    title: "User Manual Finder",
+    description: "Enter any brand and model number and we'll find the official user manual — viewable and downloadable right on HomeHero.",
+    tab: "manuals",
   },
   {
     icon: Star,
