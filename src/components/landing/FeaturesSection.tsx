@@ -11,7 +11,7 @@ const features = [
     icon: Brain,
     title: "AI Job Estimator",
     description: "Snap a photo, describe the issue, and get instant cost estimates, material lists, and DIY vs. pro recommendations.",
-    tab: "pros",
+    tab: "estimator",
   },
   {
     icon: CalendarCheck,
