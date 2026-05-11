@@ -146,6 +146,87 @@ const tabs = [
       },
     ],
   },
+  {
+    id: "estimator",
+    label: "AI Estimator",
+    icon: Brain,
+    steps: [
+      {
+        icon: Camera, step: "01", title: "Snap or Describe",
+        description: "Upload a photo of the issue or just describe it — our AI figures out what's going on.",
+        route: "/estimator",
+      },
+      {
+        icon: Sparkles, step: "02", title: "AI Analyzes the Job",
+        description: "We identify the problem, list materials, and estimate the labor and time needed.",
+        route: "/estimator",
+      },
+      {
+        icon: DollarSign, step: "03", title: "Get a Cost Range",
+        description: "Receive a realistic price range plus a DIY-vs-Pro recommendation tailored to the job.",
+        route: "/estimator",
+      },
+      {
+        icon: UserCheck, step: "04", title: "DIY or Hire a Pro",
+        description: "Tackle it yourself with our guidance, or send the estimate to local pros for bids.",
+        route: "/estimator",
+      },
+    ],
+  },
+  {
+    id: "manuals",
+    label: "Manual Finder",
+    icon: BookOpen,
+    steps: [
+      {
+        icon: FileSearch, step: "01", title: "Enter Brand & Model",
+        description: "Type the brand and model number of any appliance, tool, or home system.",
+        route: "/manual-search",
+      },
+      {
+        icon: Bot, step: "02", title: "AI Locates the Manual",
+        description: "Our AI scours the web to find the official PDF user manual for your exact product.",
+        route: "/manual-search",
+      },
+      {
+        icon: BookOpen, step: "03", title: "View On-Site",
+        description: "Read the manual right inside HomeHero — no shady redirects, no ads, no signup walls.",
+        route: "/manual-search",
+      },
+      {
+        icon: Download, step: "04", title: "Download & Save",
+        description: "Download the PDF or attach it to an item in your Digital Home Binder for later.",
+        route: "/manual-search",
+      },
+    ],
+  },
+  {
+    id: "messages",
+    label: "Messaging",
+    icon: MessageSquare,
+    steps: [
+      {
+        icon: Inbox, step: "01", title: "Reach Out Privately",
+        description: "Message any pro directly from their profile — your phone number stays private until you approve it.",
+        route: "/messages",
+      },
+      {
+        icon: ImageIcon, step: "02", title: "Share Photos & Details",
+        description: "Send pictures of the job, ask questions, and get tailored quotes without a phone call.",
+        route: "/messages",
+      },
+      {
+        icon: UserCheck, step: "03", title: "Approve a Call",
+        description: "Like the pro? Approve them to call you. Don't like the vibe? Just stop replying — you're in control.",
+        route: "/messages",
+      },
+      {
+        icon: CheckCircle, step: "04", title: "Track Job Status",
+        description: "Keep the full conversation, photos, and quotes in one thread from request to completion.",
+        route: "/messages",
+      },
+    ],
+  },
 ];
 
 const HowItWorksSection = () => {
