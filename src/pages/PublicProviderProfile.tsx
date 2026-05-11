@@ -193,6 +193,16 @@ const PublicProviderProfile = () => {
                   {provider.verified && (
                     <Badge variant="secondary"><ShieldCheck size={12} className="mr-1" /> Verified</Badge>
                   )}
+                  {provider.subscription_tier === "pro" && (
+                    <Badge className="bg-primary text-primary-foreground gap-1">
+                      <Zap size={12} /> Pro
+                    </Badge>
+                  )}
+                  {avgReplyMinutes !== null && avgReplyMinutes <= 60 && (
+                    <Badge className="bg-green-600 text-white hover:bg-green-700 gap-1">
+                      <Clock size={12} /> Replies in under {avgReplyMinutes < 15 ? "15 min" : avgReplyMinutes < 30 ? "30 min" : "1 hr"}
+                    </Badge>
+                  )}
                   {provider.licensed && <Badge variant="secondary">Licensed</Badge>}
                   {provider.insured && <Badge variant="secondary">Insured</Badge>}
                   {provider.years_experience ? (
