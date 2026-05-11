@@ -24,10 +24,12 @@ interface ProviderRow {
   city: string;
   state: string;
   country: string;
+  slug: string | null;
   years_experience: number | null;
   licensed: boolean;
   insured: boolean;
   verified: boolean;
+  subscription_tier: string;
   gallery_urls: string[];
   emergency_available: boolean;
   emergency_rate_multiplier: number;
