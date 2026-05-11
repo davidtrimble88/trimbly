@@ -364,6 +364,13 @@ export type Database = {
             foreignKeyName: "job_bids_provider_id_fkey"
             columns: ["provider_id"]
             isOneToOne: false
+            referencedRelation: "provider_response_times"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "job_bids_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
             referencedRelation: "provider_stats"
             referencedColumns: ["provider_id"]
           },
@@ -420,6 +427,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "jobs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_response_times"
+            referencedColumns: ["provider_id"]
+          },
           {
             foreignKeyName: "jobs_provider_id_fkey"
             columns: ["provider_id"]
@@ -542,6 +556,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contact_messages"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_response_times"
+            referencedColumns: ["provider_id"]
           },
           {
             foreignKeyName: "messages_provider_id_fkey"
@@ -843,6 +864,7 @@ export type Database = {
           phone: string | null
           postal_code: string | null
           service_radius_miles: number
+          slug: string | null
           state: string
           subscription_tier: string
           updated_at: string
@@ -882,6 +904,7 @@ export type Database = {
           phone?: string | null
           postal_code?: string | null
           service_radius_miles?: number
+          slug?: string | null
           state: string
           subscription_tier?: string
           updated_at?: string
@@ -921,6 +944,7 @@ export type Database = {
           phone?: string | null
           postal_code?: string | null
           service_radius_miles?: number
+          slug?: string | null
           state?: string
           subscription_tier?: string
           updated_at?: string
@@ -1021,27 +1045,78 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          code: string
+          created_at: string
+          credit_months: number
+          credited_at: string | null
+          id: string
+          referee_email: string | null
+          referee_user_id: string | null
+          referrer_provider_id: string
+          referrer_user_id: string
+          signed_up_at: string | null
+          status: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          credit_months?: number
+          credited_at?: string | null
+          id?: string
+          referee_email?: string | null
+          referee_user_id?: string | null
+          referrer_provider_id: string
+          referrer_user_id: string
+          signed_up_at?: string | null
+          status?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          credit_months?: number
+          credited_at?: string | null
+          id?: string
+          referee_email?: string | null
+          referee_user_id?: string | null
+          referrer_provider_id?: string
+          referrer_user_id?: string
+          signed_up_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       review_requests: {
         Row: {
+          channel: string
+          completed_at: string | null
           homeowner_id: string
           id: string
           job_id: string | null
           provider_id: string
           sent_at: string
+          status: string
         }
         Insert: {
+          channel?: string
+          completed_at?: string | null
           homeowner_id: string
           id?: string
           job_id?: string | null
           provider_id: string
           sent_at?: string
+          status?: string
         }
         Update: {
+          channel?: string
+          completed_at?: string | null
           homeowner_id?: string
           id?: string
           job_id?: string | null
           provider_id?: string
           sent_at?: string
+          status?: string
         }
         Relationships: []
       }
@@ -1080,6 +1155,13 @@ export type Database = {
           reviewer_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "reviews_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_response_times"
+            referencedColumns: ["provider_id"]
+          },
           {
             foreignKeyName: "reviews_provider_id_fkey"
             columns: ["provider_id"]
@@ -1218,6 +1300,14 @@ export type Database = {
       }
     }
     Views: {
+      provider_response_times: {
+        Row: {
+          avg_reply_minutes: number | null
+          provider_id: string | null
+          sample_size: number | null
+        }
+        Relationships: []
+      }
       provider_stats: {
         Row: {
           avg_rating: number | null
@@ -1235,6 +1325,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      pro_active_bids_this_month: {
+        Args: { _provider_id: string }
+        Returns: number
       }
     }
     Enums: {
