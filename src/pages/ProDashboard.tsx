@@ -25,6 +25,7 @@ import ProFeaturesPanel from "@/components/pro/ProFeaturesPanel";
 import ServiceAreaPanel from "@/components/pro/ServiceAreaPanel";
 import QuotesPanel from "@/components/pro/QuotesPanel";
 import ServicePlansPanel from "@/components/pro/ServicePlansPanel";
+import CredentialAlertBanner from "@/components/pro/CredentialAlertBanner";
 
 type ProviderProfile = {
   id: string;
@@ -341,6 +342,13 @@ const ProDashboard = () => {
           <div className="mb-8">
             <ProGalleryEditor userId={user!.id} providerId={provider.id} businessName={provider.business_name} />
           </div>
+
+          {/* Credential expiry alert */}
+          <CredentialAlertBanner
+            licenseExpiry={provider.license_expiry}
+            insuranceExpiry={provider.insurance_expiry}
+            onGoToTools={() => setActiveTab("tools")}
+          />
 
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
