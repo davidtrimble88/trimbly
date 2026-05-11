@@ -19,7 +19,7 @@ import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star,
   Lock, Crown, Home, AlertTriangle, CheckCircle2, Clock, Shield,
   MapPin, Ruler, Calendar, Thermometer, Plus, MoreVertical, Pencil, Trash2,
-  Briefcase
+  Briefcase, BookOpen
 } from "lucide-react";
 
 // ─── Service definitions ───
@@ -32,6 +32,7 @@ const allServices = [
   { icon: Star, title: "Verified Reviews", description: "Read and leave honest reviews from real homeowners.", route: "/search", minTier: "free" },
   { icon: Shield, title: "Coverage Advisor", description: "Upload warranty & insurance docs and ask AI about your coverage.", route: "/coverage", minTier: "homeowner_pro" },
   { icon: Briefcase, title: "Post a Job", description: "Post job requests for pros to bid on. Control who can message and call you.", route: "/post-job", minTier: "free" },
+  { icon: BookOpen, title: "User Manual Finder", description: "Enter brand & model — instantly find and download the user manual.", route: "/manual-search", minTier: "free" },
 ];
 
 const tierOrder: Record<string, number> = { free: 0, homeowner_pro: 1, multi_pro: 2 };
