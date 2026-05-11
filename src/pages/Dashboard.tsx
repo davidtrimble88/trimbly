@@ -15,6 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ProfileEditor from "@/components/profile/ProfileEditor";
 import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star,
   Lock, Crown, Home, AlertTriangle, CheckCircle2, Clock, Shield,
