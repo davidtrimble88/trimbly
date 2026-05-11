@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   MapPin, Briefcase, CheckCircle, Star, Loader2, ShieldCheck, Award,
-  MessageSquare, Inbox
+  MessageSquare, Inbox, Zap,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import StatsGrid from "@/components/profile/StatsGrid";
