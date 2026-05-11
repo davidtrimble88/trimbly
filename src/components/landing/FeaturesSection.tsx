@@ -44,6 +44,12 @@ const features = [
     tab: "jobs",
   },
   {
+    icon: BookOpen,
+    title: "User Manual Finder",
+    description: "Enter any brand and model number and we'll find the official user manual — viewable and downloadable right on HomeHero.",
+    tab: "manuals",
+  },
+  {
     icon: Star,
     title: "Verified Reviews",
     description: "Read honest reviews from real homeowners. Rate your experience and help the community find the best pros.",
