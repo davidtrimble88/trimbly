@@ -444,6 +444,21 @@ const JobBoard = () => {
                 <p className="text-sm font-medium">{bidJob.title}</p>
                 <p className="text-xs text-muted-foreground">{bidJob.category} · {bidJob.city}, {bidJob.state}</p>
               </div>
+              {!isPaid && (
+                <div className={`rounded-lg p-3 text-xs ${bidsLeft <= 1 ? "bg-orange-500/10 border border-orange-500/30" : "bg-primary/5 border border-primary/20"}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-medium text-foreground">
+                      {bidsLeft === 0
+                        ? "Monthly bid limit reached"
+                        : `${bidsLeft} of ${FREE_BID_LIMIT} free bids left this month`}
+                    </span>
+                    <Button size="sm" variant="link" className="h-auto p-0 text-primary" onClick={() => navigate("/pro-pricing")}>
+                      Upgrade →
+                    </Button>
+                  </div>
+                  <p className="text-muted-foreground mt-1">Pro pros get unlimited bids and faster homeowner approvals.</p>
+                </div>
+              )}
               <div>
                 <Label>Message to Homeowner *</Label>
                 <Textarea
