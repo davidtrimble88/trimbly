@@ -1,6 +1,13 @@
-import { Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield, Briefcase, BookOpen, Stethoscope } from "lucide-react";
+import { useState } from "react";
+import {
+  Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield,
+  Briefcase, BookOpen, Stethoscope, Home, Hammer,
+  Inbox, BadgeCheck, Users, QrCode, TrendingUp, Sparkles, FileText, Gauge
+} from "lucide-react";
 
-const features = [
+type Audience = "homeowner" | "pro";
+
+const homeownerFeatures = [
   {
     icon: Wrench,
     title: "Find Local Pros",
@@ -63,8 +70,75 @@ const features = [
   },
 ];
 
+const proFeatures = [
+  {
+    icon: Inbox,
+    title: "Local Job Leads",
+    description: "Get matched with homeowners near you posting real jobs. Send bids directly from your dashboard — no cold calls.",
+  },
+  {
+    icon: FileText,
+    title: "Unlimited Bids",
+    description: "Free pros get 5 active bids per month. Paid pros bid as much as they want and never miss an opportunity.",
+  },
+  {
+    icon: BadgeCheck,
+    title: "Verified Badge & Faster Approvals",
+    description: "Show a trust badge on your profile and get faster homeowner phone-call approvals to close jobs quickly.",
+  },
+  {
+    icon: Gauge,
+    title: "Response-Time Badge",
+    description: "Auto-calculated 'Replies in under 1 hr' badge on your listing — proven speed wins more jobs.",
+  },
+  {
+    icon: Star,
+    title: "Auto-Request Reviews",
+    description: "After a completed job, an automated text and email goes out asking the homeowner for a review.",
+  },
+  {
+    icon: Users,
+    title: "Referral Program",
+    description: "Share your unique link with other pros and earn credit toward your subscription for every signup.",
+  },
+  {
+    icon: Home,
+    title: "Local SEO Microsite",
+    description: "Your own page at homehero.com/pros/your-business — designed to rank in Google for your service area.",
+  },
+  {
+    icon: QrCode,
+    title: "Yard Sign QR Codes",
+    description: "Printable yard sign QR that scans straight to your HomeHero profile — turn every job into a marketing channel.",
+  },
+  {
+    icon: Sparkles,
+    title: "AI Follow-Up Sequences",
+    description: "Automatic nudges to homeowners who went quiet — recover lost leads while you're out on the job.",
+  },
+  {
+    icon: TrendingUp,
+    title: "AI Competitor Pricing Intel",
+    description: "See what other pros in your zip charge per hour and per job so you can price competitively and confidently.",
+  },
+  {
+    icon: MessageSquare,
+    title: "Message Copilot",
+    description: "AI drafts professional replies to homeowner messages — clear, polite, and ready to send in one tap.",
+  },
+  {
+    icon: Hammer,
+    title: "Pro Dashboard",
+    description: "Manage leads, quotes, service area, business hours, mileage, gallery, and credentials all in one place.",
+  },
+];
+
 const FeaturesSection = () => {
-  const handleClick = (feature: typeof features[0]) => {
+  const [audience, setAudience] = useState<Audience>("homeowner");
+  const features = audience === "homeowner" ? homeownerFeatures : proFeatures;
+
+  const handleClick = (feature: { tab?: string }) => {
+    if (audience !== "homeowner" || !feature.tab) return;
     window.dispatchEvent(new CustomEvent("how-it-works:set-tab", { detail: feature.tab }));
     const el = document.getElementById("how-it-works");
     if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -73,30 +147,62 @@ const FeaturesSection = () => {
   return (
     <section id="features" className="py-20 md:py-28">
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-2xl mx-auto mb-16">
+        <div className="text-center max-w-2xl mx-auto mb-10">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Features</p>
           <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
-            Everything your home needs
+            Everything you need
           </h2>
           <p className="text-muted-foreground text-lg">
-            From finding a plumber to automating your seasonal maintenance — HomeHero has you covered.
+            Choose your view — we built HomeHero for both sides of the job.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((f) => (
+        {/* Audience toggle */}
+        <div className="flex justify-center mb-12">
+          <div className="inline-flex p-1 rounded-full bg-secondary border border-border">
             <button
-              key={f.title}
-              onClick={() => handleClick(f)}
-              className="group p-6 rounded-xl bg-card border border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg text-left cursor-pointer"
+              onClick={() => setAudience("homeowner")}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                audience === "homeowner"
+                  ? "bg-primary text-primary-foreground shadow"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
             >
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                <f.icon size={24} className="text-primary" />
-              </div>
-              <h3 className="font-bold text-lg text-card-foreground mb-2">{f.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">{f.description}</p>
+              Homeowner
             </button>
-          ))}
+            <button
+              onClick={() => setAudience("pro")}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                audience === "pro"
+                  ? "bg-primary text-primary-foreground shadow"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Pro Provider
+            </button>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((f) => {
+            const clickable = audience === "homeowner" && "tab" in f && !!f.tab;
+            const Tag = clickable ? "button" : "div";
+            return (
+              <Tag
+                key={f.title}
+                onClick={clickable ? () => handleClick(f as any) : undefined}
+                className={`group p-6 rounded-xl bg-card border border-border transition-all duration-300 text-left ${
+                  clickable ? "hover:border-primary/30 hover:shadow-lg cursor-pointer" : ""
+                }`}
+              >
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                  <f.icon size={24} className="text-primary" />
+                </div>
+                <h3 className="font-bold text-lg text-card-foreground mb-2">{f.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{f.description}</p>
+              </Tag>
+            );
+          })}
         </div>
       </div>
     </section>
