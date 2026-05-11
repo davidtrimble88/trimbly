@@ -1,4 +1,4 @@
-import { Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield, Briefcase } from "lucide-react";
+import { Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield, Briefcase, BookOpen } from "lucide-react";
 
 const features = [
   {
