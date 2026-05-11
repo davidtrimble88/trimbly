@@ -243,6 +243,22 @@ const HomeBinder = () => {
         documentName = file.name;
       }
 
+      // Auto-find manual if brand+model present and none selected yet
+      let manualUrl = selectedManual?.url || null;
+      let manualTitle = selectedManual?.title || null;
+      if (!manualUrl && form.brand.trim() && form.model_number.trim()) {
+        try {
+          const { data } = await supabase.functions.invoke("find-manual", {
+            body: { brand: form.brand, model: form.model_number, productType: form.item_type },
+          });
+          const top = (data?.results || []).find((r: ManualResult) => r.isPdf) || (data?.results || [])[0];
+          if (top) {
+            manualUrl = top.url;
+            manualTitle = top.title;
+          }
+        } catch { /* ignore manual lookup failures */ }
+      }
+
       const row = {
         home_id: homeId,
         user_id: user.id,
@@ -258,6 +274,8 @@ const HomeBinder = () => {
         notes: form.notes,
         document_url: documentUrl,
         document_name: documentName,
+        manual_url: manualUrl,
+        manual_title: manualTitle,
         updated_at: new Date().toISOString(),
       };
 
