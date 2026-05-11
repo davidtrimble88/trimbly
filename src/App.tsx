@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import SearchPros from "./pages/SearchPros";
 import EstimatorPage from "./pages/EstimatorPage";
+import SymptomTriage from "./pages/SymptomTriage";
 import MaintenancePage from "./pages/MaintenancePage";
 import HomeBinder from "./pages/HomeBinder";
 import ProPricing from "./pages/ProPricing";
@@ -71,6 +72,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/search" element={<SearchPros />} />
             <Route path="/estimator" element={<EstimatorPage />} />
+            <Route path="/symptom-triage" element={<SymptomTriage />} />
             <Route path="/maintenance" element={<MaintenancePage />} />
             <Route path="/binder" element={<HomeBinder />} />
             <Route path="/pro-pricing" element={<ProPricing />} />
