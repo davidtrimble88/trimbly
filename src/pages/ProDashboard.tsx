@@ -29,6 +29,7 @@ import QuotesPanel from "@/components/pro/QuotesPanel";
 import ServicePlansPanel from "@/components/pro/ServicePlansPanel";
 import CredentialAlertBanner from "@/components/pro/CredentialAlertBanner";
 import BusinessHoursPanel from "@/components/pro/BusinessHoursPanel";
+import UpsellPanel from "@/components/pro/UpsellPanel";
 
 type ProviderProfile = {
   id: string;
@@ -511,6 +512,12 @@ const ProDashboard = () => {
                   providerId={provider.id}
                   providerUserId={user!.id}
                   businessName={provider.business_name}
+                />
+                <UpsellPanel
+                  providerId={provider.id}
+                  providerCategory={provider.category}
+                  businessName={provider.business_name}
+                  userId={user!.id}
                 />
                 <ServicePlansPanel providerId={provider.id} />
               </div>
