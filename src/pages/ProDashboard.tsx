@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import ProGalleryEditor from "@/components/profile/ProGalleryEditor";
 import ProFeaturesPanel from "@/components/pro/ProFeaturesPanel";
+import ServiceAreaPanel from "@/components/pro/ServiceAreaPanel";
+import QuotesPanel from "@/components/pro/QuotesPanel";
 
 type ProviderProfile = {
   id: string;
