@@ -55,6 +55,8 @@ const JobBoard = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [myBids, setMyBids] = useState<Record<string, MyBid>>({});
   const [providerId, setProviderId] = useState<string | null>(null);
+  const [providerTier, setProviderTier] = useState<string>("free");
+  const [activeBidsThisMonth, setActiveBidsThisMonth] = useState(0);
   const [loading, setLoading] = useState(true);
   const [filterCategory, setFilterCategory] = useState("All");
   const [locationQuery, setLocationQuery] = useState("");
@@ -83,20 +85,31 @@ const JobBoard = () => {
       // Get provider profile
       const { data: providerData } = await supabase
         .from("providers")
-        .select("id")
+        .select("id, subscription_tier")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (providerData) {
         setProviderId(providerData.id);
+        setProviderTier(providerData.subscription_tier || "free");
         // Load my bids
         const { data: bidsData } = await supabase
           .from("job_bids")
-          .select("id, job_id, status, call_approved, message, bid_amount")
+          .select("id, job_id, status, call_approved, message, bid_amount, created_at")
           .eq("provider_id", providerData.id);
         const bidsMap: Record<string, MyBid> = {};
-        (bidsData || []).forEach((b: any) => { bidsMap[b.job_id] = b; });
+        const monthStart = new Date();
+        monthStart.setDate(1);
+        monthStart.setHours(0, 0, 0, 0);
+        let activeCount = 0;
+        (bidsData || []).forEach((b: any) => {
+          bidsMap[b.job_id] = b;
+          if (["pending", "accepted"].includes(b.status) && new Date(b.created_at) >= monthStart) {
+            activeCount += 1;
+          }
+        });
         setMyBids(bidsMap);
+        setActiveBidsThisMonth(activeCount);
       }
 
       // Load open jobs (exclude own jobs)
