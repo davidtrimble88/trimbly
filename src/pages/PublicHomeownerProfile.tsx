@@ -32,7 +32,7 @@ const PublicHomeownerProfile = () => {
     (async () => {
       const { data: prof } = await supabase
         .from("profiles")
-        .select("id, full_name, avatar_url, bio, is_public, created_at, user_type")
+        .select("id, full_name, avatar_url, bio, is_public, created_at, user_type, gallery_urls")
         .eq("id", userId)
         .maybeSingle();
 
