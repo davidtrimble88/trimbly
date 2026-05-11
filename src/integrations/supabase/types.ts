@@ -749,7 +749,10 @@ export type Database = {
           currency: string
           description: string | null
           emergency_available: boolean
+          emergency_end_time: string
           emergency_rate_multiplier: number
+          emergency_start_time: string
+          emergency_weekends: boolean
           featured: boolean
           gallery_urls: string[]
           hidden: boolean
@@ -785,7 +788,10 @@ export type Database = {
           currency?: string
           description?: string | null
           emergency_available?: boolean
+          emergency_end_time?: string
           emergency_rate_multiplier?: number
+          emergency_start_time?: string
+          emergency_weekends?: boolean
           featured?: boolean
           gallery_urls?: string[]
           hidden?: boolean
@@ -821,7 +827,10 @@ export type Database = {
           currency?: string
           description?: string | null
           emergency_available?: boolean
+          emergency_end_time?: string
           emergency_rate_multiplier?: number
+          emergency_start_time?: string
+          emergency_weekends?: boolean
           featured?: boolean
           gallery_urls?: string[]
           hidden?: boolean

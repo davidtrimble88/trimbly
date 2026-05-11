@@ -52,6 +52,9 @@ type ProviderProfile = {
   subscription_tier: string;
   emergency_available: boolean;
   emergency_rate_multiplier: number;
+  emergency_start_time: string;
+  emergency_end_time: string;
+  emergency_weekends: boolean;
   license_expiry: string | null;
   insurance_expiry: string | null;
   service_radius_miles: number;

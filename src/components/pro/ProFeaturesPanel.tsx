@@ -21,6 +21,9 @@ interface ProviderRow {
   business_name: string;
   emergency_available: boolean;
   emergency_rate_multiplier: number;
+  emergency_start_time: string;
+  emergency_end_time: string;
+  emergency_weekends: boolean;
   license_expiry: string | null;
   insurance_expiry: string | null;
   licensed: boolean;
@@ -63,6 +66,9 @@ const ProFeaturesPanel = ({ provider, userId, onUpdated }: Props) => {
   // Emergency dialog
   const [emerOpen, setEmerOpen] = useState(false);
   const [emerMult, setEmerMult] = useState(String(provider.emergency_rate_multiplier ?? 1.5));
+  const [emerStart, setEmerStart] = useState(provider.emergency_start_time || "18:00");
+  const [emerEnd, setEmerEnd] = useState(provider.emergency_end_time || "07:00");
+  const [emerWeekends, setEmerWeekends] = useState(provider.emergency_weekends ?? true);
   const [savingEmer, setSavingEmer] = useState(false);
 
   useEffect(() => {
@@ -123,15 +129,21 @@ const ProFeaturesPanel = ({ provider, userId, onUpdated }: Props) => {
       setSavingEmer(false);
       return toast({ title: "Enter a multiplier between 1.0 and 5.0", variant: "destructive" });
     }
+    const patch = {
+      emergency_rate_multiplier: mult,
+      emergency_start_time: emerStart,
+      emergency_end_time: emerEnd,
+      emergency_weekends: emerWeekends,
+    };
     const { error } = await supabase
       .from("providers")
-      .update({ emergency_rate_multiplier: mult })
+      .update(patch)
       .eq("id", provider.id);
     setSavingEmer(false);
     if (error) return toast({ title: "Error", description: error.message, variant: "destructive" });
-    onUpdated({ emergency_rate_multiplier: mult });
+    onUpdated(patch);
     setEmerOpen(false);
-    toast({ title: "Emergency rate saved" });
+    toast({ title: "Emergency settings saved" });
   };
 
   const saveCreds = async () => {
@@ -265,13 +277,31 @@ const ProFeaturesPanel = ({ provider, userId, onUpdated }: Props) => {
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
                 Show a red "Available for urgent jobs" badge on your profile and rank higher in urgent searches.
-                Charge <strong>{provider.emergency_rate_multiplier}x</strong> your normal rate.
               </p>
+              <div className="mt-3 grid sm:grid-cols-2 gap-2 text-xs">
+                <div className="bg-muted/40 rounded-md px-2 py-1.5">
+                  <span className="text-muted-foreground">After-hours window: </span>
+                  <span className="font-medium text-foreground">
+                    {provider.emergency_start_time} – {provider.emergency_end_time}
+                  </span>
+                </div>
+                <div className="bg-muted/40 rounded-md px-2 py-1.5">
+                  <span className="text-muted-foreground">Rate: </span>
+                  <span className="font-medium text-foreground">
+                    {provider.emergency_rate_multiplier === 1
+                      ? "Normal rate"
+                      : `${provider.emergency_rate_multiplier}x normal`}
+                  </span>
+                  {provider.emergency_weekends && (
+                    <span className="text-muted-foreground"> · weekends included</span>
+                  )}
+                </div>
+              </div>
             </div>
             <div className="flex flex-col items-end gap-2 shrink-0">
               <Switch checked={provider.emergency_available} onCheckedChange={toggleEmergency} />
               <Button size="sm" variant="ghost" onClick={() => setEmerOpen(true)} className="gap-1">
-                <Pencil size={12} /> Rate
+                <Pencil size={12} /> Edit
               </Button>
             </div>
           </div>
@@ -400,25 +430,74 @@ const ProFeaturesPanel = ({ provider, userId, onUpdated }: Props) => {
         </DialogContent>
       </Dialog>
 
-      {/* Emergency rate Dialog */}
+      {/* Emergency settings Dialog */}
       <Dialog open={emerOpen} onOpenChange={setEmerOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Emergency Rate Multiplier</DialogTitle>
+            <DialogTitle>Emergency / After-Hours Settings</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2">
-            <Label>Multiplier (1.0 – 5.0)</Label>
-            <Input
-              type="number"
-              step="0.1"
-              min="1"
-              max="5"
-              value={emerMult}
-              onChange={(e) => setEmerMult(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              For example, 1.5 means you charge 1.5x your normal hourly rate for emergency/after-hours work.
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>After-hours starts</Label>
+                <Input
+                  type="time"
+                  value={emerStart}
+                  onChange={(e) => setEmerStart(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>After-hours ends</Label>
+                <Input
+                  type="time"
+                  value={emerEnd}
+                  onChange={(e) => setEmerEnd(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground -mt-2">
+              Define when your after-hours window starts and ends. Crossing midnight is fine (e.g. 6:00 PM → 7:00 AM).
             </p>
+
+            <div className="flex items-center justify-between bg-muted/40 rounded-lg p-3">
+              <div>
+                <p className="text-sm font-medium text-foreground">Include weekends</p>
+                <p className="text-xs text-muted-foreground">Treat all of Saturday & Sunday as after-hours.</p>
+              </div>
+              <Switch checked={emerWeekends} onCheckedChange={setEmerWeekends} />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between">
+                <Label>Rate multiplier</Label>
+                {emerMult !== "1.5" && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 text-xs"
+                    onClick={() => setEmerMult("1.5")}
+                  >
+                    Use suggested 1.5x
+                  </Button>
+                )}
+              </div>
+              <Input
+                type="number"
+                step="0.1"
+                min="1"
+                max="5"
+                value={emerMult}
+                onChange={(e) => setEmerMult(e.target.value)}
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Enter <strong>1.0</strong> to charge your normal rate after-hours.
+                Suggested: <strong>1.5x</strong> for emergency/after-hours work.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEmerOpen(false)}>Cancel</Button>
