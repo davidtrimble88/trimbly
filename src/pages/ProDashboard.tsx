@@ -311,23 +311,20 @@ const ProDashboard = () => {
       <Navbar />
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-5xl">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-            <div>
-              <h1 className="text-3xl font-extrabold text-foreground flex items-center gap-3">
-                <Building2 className="h-8 w-8 text-primary" />
-                {displayName}
+          {/* Header — compact */}
+          <div className="flex items-start justify-between mb-6 gap-3">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl md:text-3xl font-extrabold text-foreground flex items-center gap-2 md:gap-3">
+                <Building2 className="h-7 w-7 md:h-8 md:w-8 text-primary shrink-0" />
+                <span className="truncate">{displayName}</span>
               </h1>
-              <div className="flex items-center gap-3 mt-2">
-                <Badge variant="secondary" className="text-sm">
-                  {provider.category}
-                </Badge>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <Badge variant="secondary" className="text-xs">{provider.category}</Badge>
                 <button
                   onClick={openLocation}
-                  className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-1 underline-offset-2 hover:underline"
-                  title="Change location"
+                  className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 underline-offset-2 hover:underline"
                 >
-                  <MapPin size={13} /> {provider.city}, {provider.state}
+                  <MapPin size={12} /> {provider.city}, {provider.state}
                 </button>
                 {provider.subscription_tier === "pro" && (
                   <Badge className="bg-primary text-primary-foreground text-xs gap-1">
@@ -336,78 +333,61 @@ const ProDashboard = () => {
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Available</span>
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="hidden sm:flex items-center gap-2 mr-1">
+                <span className="text-xs text-muted-foreground">Available</span>
                 <Switch checked={provider.available} onCheckedChange={toggleAvailability} />
               </div>
-              <Button variant="outline" onClick={openLocation} className="gap-1.5">
-                <MapPinned size={14} /> Change Location
-              </Button>
-              <Button variant="outline" onClick={openEdit} className="gap-1.5">
-                <Pencil size={14} /> Edit Profile
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <MoreVertical size={16} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={toggleAvailability} className="sm:hidden">
+                    <Zap size={14} className="mr-2" />
+                    {provider.available ? "Set Unavailable" : "Set Available"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={openEdit}>
+                    <Pencil size={14} className="mr-2" /> Edit Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={openLocation}>
+                    <MapPinned size={14} className="mr-2" /> Change Location
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate(`/pro/${provider.id}`)}>
+                    <ExternalLink size={14} className="mr-2" /> View Public Profile
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
-          {/* Public Profile & Gallery */}
-          <div className="mb-8">
-            <ProGalleryEditor userId={user!.id} providerId={provider.id} businessName={provider.business_name} />
-          </div>
-
-          {/* Credential expiry alert */}
+          {/* Credential expiry alert — always visible */}
           <CredentialAlertBanner
             licenseExpiry={provider.license_expiry}
             insuranceExpiry={provider.insurance_expiry}
             onGoToTools={() => setActiveTab("tools")}
           />
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <Card onClick={() => setActiveTab("reviews")} className="cursor-pointer hover:border-primary transition-colors">
-              <CardContent className="p-4 text-center">
-                <Star className="mx-auto h-6 w-6 text-yellow-500 mb-1" />
-                <p className="text-2xl font-bold text-foreground">{avgRating}</p>
-                <p className="text-xs text-muted-foreground">{reviewCount} review{reviewCount !== 1 ? "s" : ""}</p>
-              </CardContent>
-            </Card>
-            <Card onClick={() => setActiveTab("bids")} className="cursor-pointer hover:border-primary transition-colors">
-              <CardContent className="p-4 text-center">
-                <Briefcase className="mx-auto h-6 w-6 text-primary mb-1" />
-                <p className="text-2xl font-bold text-foreground">{totalBids}</p>
-                <p className="text-xs text-muted-foreground">Total bids</p>
-              </CardContent>
-            </Card>
-            <Card onClick={() => setActiveTab("bids")} className="cursor-pointer hover:border-primary transition-colors">
-              <CardContent className="p-4 text-center">
-                <CheckCircle className="mx-auto h-6 w-6 text-green-500 mb-1" />
-                <p className="text-2xl font-bold text-foreground">{acceptedBids}</p>
-                <p className="text-xs text-muted-foreground">Accepted</p>
-              </CardContent>
-            </Card>
-            <Card onClick={() => navigate("/messages")} className="cursor-pointer hover:border-primary transition-colors">
-              <CardContent className="p-4 text-center">
-                <MessageSquare className="mx-auto h-6 w-6 text-blue-500 mb-1" />
-                <p className="text-2xl font-bold text-foreground">{unreadMessages}</p>
-                <p className="text-xs text-muted-foreground">Unread messages</p>
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="w-full md:w-auto flex-wrap h-auto">
-              <TabsTrigger value="bids" className="gap-1.5">
-                <Briefcase size={14} /> Bids {pendingBids > 0 && <Badge variant="secondary" className="text-xs ml-1">{pendingBids}</Badge>}
-              </TabsTrigger>
-              <TabsTrigger value="tools" className="gap-1.5">
-                <Sparkles size={14} /> Tools
-              </TabsTrigger>
-              <TabsTrigger value="reviews" className="gap-1.5">
-                <Star size={14} /> Reviews
-              </TabsTrigger>
-              <TabsTrigger value="messages" className="gap-1.5">
-                <MessageSquare size={14} /> Messages {unreadMessages > 0 && <Badge variant="secondary" className="text-xs ml-1">{unreadMessages}</Badge>}
+            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+              <TabsList className="inline-flex w-auto h-auto">
+                <TabsTrigger value="overview" className="gap-1.5">
+                  <LayoutDashboard size={14} /> Overview
+                </TabsTrigger>
+                <TabsTrigger value="bids" className="gap-1.5">
+                  <Briefcase size={14} /> Bids {pendingBids > 0 && <Badge variant="secondary" className="text-xs ml-1">{pendingBids}</Badge>}
+                </TabsTrigger>
+                <TabsTrigger value="tools" className="gap-1.5">
+                  <Sparkles size={14} /> Tools
+                </TabsTrigger>
+                <TabsTrigger value="reviews" className="gap-1.5">
+                  <Star size={14} /> Reviews
+                </TabsTrigger>
+                <TabsTrigger value="messages" className="gap-1.5">
+                  <MessageSquare size={14} /> Messages {unreadMessages > 0 && <Badge variant="secondary" className="text-xs ml-1">{unreadMessages}</Badge>}
               </TabsTrigger>
               <TabsTrigger value="profile" className="gap-1.5">
                 <Building2 size={14} /> Profile
