@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Shield, Clock, BadgeCheck, Crown, Globe, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Star, MapPin, Shield, Clock, BadgeCheck, Crown, Globe, ExternalLink, UserCircle } from "lucide-react";
 import type { ProviderWithStats } from "@/lib/api/providers";
 
 interface ProviderCardProps {
