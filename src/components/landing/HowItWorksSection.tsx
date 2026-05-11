@@ -4,7 +4,9 @@ import {
   Search, FileText, MessageSquare, CheckCircle,
   Home, ClipboardList, CalendarCheck, Bell,
   Wrench, ShieldCheck, PackageSearch, RotateCcw,
-  Upload, Bot, Shield, Briefcase, Send, Phone, UserCheck
+  Upload, Bot, Shield, Briefcase, Send, Phone, UserCheck,
+  Brain, Camera, DollarSign, BookOpen, Download, FileSearch,
+  Image as ImageIcon, Sparkles, Inbox
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
