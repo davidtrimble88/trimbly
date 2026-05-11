@@ -28,6 +28,7 @@ import ServiceAreaPanel from "@/components/pro/ServiceAreaPanel";
 import QuotesPanel from "@/components/pro/QuotesPanel";
 import ServicePlansPanel from "@/components/pro/ServicePlansPanel";
 import CredentialAlertBanner from "@/components/pro/CredentialAlertBanner";
+import BusinessHoursPanel from "@/components/pro/BusinessHoursPanel";
 
 type ProviderProfile = {
   id: string;
@@ -498,6 +499,10 @@ const ProDashboard = () => {
                   state={provider.state}
                   initialRadius={provider.service_radius_miles}
                   onUpdated={(r) => setProvider((p) => p ? { ...p, service_radius_miles: r } : p)}
+                />
+                <BusinessHoursPanel
+                  providerId={provider.id}
+                  initial={(provider as any).business_hours}
                 />
                 <QuotesPanel
                   providerId={provider.id}
