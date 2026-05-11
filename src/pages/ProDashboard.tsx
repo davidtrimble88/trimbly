@@ -30,6 +30,10 @@ import ServicePlansPanel from "@/components/pro/ServicePlansPanel";
 import CredentialAlertBanner from "@/components/pro/CredentialAlertBanner";
 import BusinessHoursPanel from "@/components/pro/BusinessHoursPanel";
 import UpsellPanel from "@/components/pro/UpsellPanel";
+import MileageLogPanel from "@/components/pro/MileageLogPanel";
+import SkillBadgesPanel from "@/components/pro/SkillBadgesPanel";
+import NotificationPrefsPanel from "@/components/pro/NotificationPrefsPanel";
+import { useProNotifications } from "@/hooks/useProNotifications";
 
 type ProviderProfile = {
   id: string;
