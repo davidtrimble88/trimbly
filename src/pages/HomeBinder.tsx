@@ -165,6 +165,8 @@ const HomeBinder = () => {
     setEditingItem(null);
     setForm(emptyItem);
     setFile(null);
+    setManualResults([]);
+    setSelectedManual(null);
     setDialogOpen(true);
   };
 
@@ -183,7 +185,39 @@ const HomeBinder = () => {
       notes: item.notes || "",
     });
     setFile(null);
+    setManualResults([]);
+    setSelectedManual(item.manual_url ? { url: item.manual_url, title: item.manual_title || "User Manual" } : null);
     setDialogOpen(true);
+  };
+
+  const findManual = async () => {
+    if (!form.brand.trim() || !form.model_number.trim()) {
+      toast({ title: "Brand & model needed", description: "Enter brand and model number to find the manual.", variant: "destructive" });
+      return;
+    }
+    setFindingManual(true);
+    setManualResults([]);
+    try {
+      const { data, error } = await supabase.functions.invoke("find-manual", {
+        body: { brand: form.brand, model: form.model_number, productType: form.item_type },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const results: ManualResult[] = data?.results || [];
+      setManualResults(results);
+      if (results.length === 0) {
+        toast({ title: "No manuals found", description: "Try a different model number." });
+      } else if (results[0].isPdf) {
+        // Auto-select top PDF result
+        setSelectedManual({ url: results[0].url, title: results[0].title });
+        toast({ title: "Manual found", description: results[0].title });
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Search failed";
+      toast({ title: "Search error", description: msg, variant: "destructive" });
+    } finally {
+      setFindingManual(false);
+    }
   };
 
   const saveItem = async () => {
