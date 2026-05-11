@@ -102,6 +102,7 @@ const ProDashboard = () => {
   const { user, loading: authLoading, profileName } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [provider, setProvider] = useState<ProviderProfile | null>(null);
   const [stats, setStats] = useState<ProviderStats | null>(null);
