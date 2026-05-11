@@ -380,11 +380,37 @@ const HowItWorksSection = () => {
   return (
     <section id="how-it-works" className="py-20 md:py-28 bg-secondary/50">
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-2xl mx-auto mb-10">
+        <div className="text-center max-w-2xl mx-auto mb-8">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">How It Works</p>
           <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
-            Simple steps to a well-maintained home
+            {audience === "homeowner" ? "Simple steps to a well-maintained home" : "Simple steps to grow your business"}
           </h2>
+        </div>
+
+        {/* Audience toggle */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex p-1 rounded-full bg-background border border-border">
+            <button
+              onClick={() => setAudience("homeowner")}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                audience === "homeowner"
+                  ? "bg-primary text-primary-foreground shadow"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Homeowner
+            </button>
+            <button
+              onClick={() => setAudience("pro")}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                audience === "pro"
+                  ? "bg-primary text-primary-foreground shadow"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Pro Provider
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
