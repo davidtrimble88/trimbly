@@ -6,7 +6,7 @@ import {
   Wrench, ShieldCheck, PackageSearch, RotateCcw,
   Upload, Bot, Shield, Briefcase, Send, Phone, UserCheck,
   Brain, Camera, DollarSign, BookOpen, Download, FileSearch,
-  Image as ImageIcon, Sparkles, Inbox
+  Image as ImageIcon, Sparkles, Inbox, Stethoscope, AlertTriangle, Hammer
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
