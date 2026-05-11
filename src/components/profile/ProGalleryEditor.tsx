@@ -16,7 +16,7 @@ interface Props {
   businessName: string;
 }
 
-const MAX_GALLERY = 8;
+const MAX_GALLERY = 10;
 
 const ProGalleryEditor = ({ userId, providerId, businessName }: Props) => {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
