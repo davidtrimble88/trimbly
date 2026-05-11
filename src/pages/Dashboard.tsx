@@ -31,13 +31,13 @@ const allServices: Array<{
   { icon: CalendarCheck, title: "Maintenance Autopilot", description: "Automated, personalized maintenance schedules for your home.", route: "/maintenance", minTier: "free", group: "home_care" },
   { icon: FolderOpen, title: "Digital Home Binder", description: "Store appliance info, warranties, and documents.", route: "/binder", minTier: "homeowner_pro", group: "home_care" },
   { icon: Shield, title: "Coverage Advisor", description: "Upload warranty & insurance docs and ask AI about your coverage.", route: "/coverage", minTier: "homeowner_pro", group: "home_care" },
+  { icon: Stethoscope, title: "AI Symptom Triage", description: "Describe a noise, smell, or issue — get instant diagnosis, urgency, and DIY vs. pro guidance.", route: "/symptom-triage", minTier: "homeowner_pro", group: "home_care" },
 
   { icon: Wrench, title: "Find Local Pros", description: "Search by service, distance, rating, and availability.", route: "/search", minTier: "free", group: "get_help" },
   { icon: Briefcase, title: "Post a Job", description: "Post job requests for pros to bid on.", route: "/post-job", minTier: "free", group: "get_help" },
   { icon: Star, title: "Verified Reviews", description: "Read honest reviews from real homeowners.", route: "/search", minTier: "free", group: "get_help" },
 
   { icon: Brain, title: "AI Job Estimator", description: "Instant cost estimates, material lists, DIY vs. pro recommendations.", route: "/estimator", minTier: "homeowner_pro", group: "tools" },
-  { icon: Stethoscope, title: "AI Symptom Triage", description: "Describe a noise, smell, or issue — get instant diagnosis, urgency, and DIY vs. pro guidance.", route: "/symptom-triage", minTier: "homeowner_pro", group: "tools" },
   { icon: BookOpen, title: "User Manual Finder", description: "Enter brand & model — instantly find and download the user manual.", route: "/manual-search", minTier: "free", group: "tools" },
 
   { icon: MessageSquare, title: "In-App Messaging", description: "Chat directly with pros, share photos, and track jobs.", route: "/messages", minTier: "free", group: "communication" },
