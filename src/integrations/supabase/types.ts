@@ -740,6 +740,7 @@ export type Database = {
         Row: {
           available: boolean
           bio: string | null
+          business_hours: Json
           business_name: string
           category: string
           city: string
@@ -775,6 +776,7 @@ export type Database = {
         Insert: {
           available?: boolean
           bio?: string | null
+          business_hours?: Json
           business_name: string
           category: string
           city: string
@@ -810,6 +812,7 @@ export type Database = {
         Update: {
           available?: boolean
           bio?: string | null
+          business_hours?: Json
           business_name?: string
           category?: string
           city?: string
