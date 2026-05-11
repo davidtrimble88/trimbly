@@ -38,6 +38,7 @@ import Help from "./pages/Help";
 import ManualSearch from "./pages/ManualSearch";
 import PublicHomeownerProfile from "./pages/PublicHomeownerProfile";
 import PublicProviderProfile from "./pages/PublicProviderProfile";
+import QuoteView from "./pages/QuoteView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -90,6 +91,7 @@ const App = () => (
             <Route path="/manual-search" element={<ManualSearch />} />
             <Route path="/u/:userId" element={<PublicHomeownerProfile />} />
             <Route path="/pro/:providerId" element={<PublicProviderProfile />} />
+            <Route path="/quote/:quoteId" element={<QuoteView />} />
             <Route path="/staff" element={<StaffLayout />}>
               <Route index element={<StaffDashboard />} />
               <Route path="contacts" element={<StaffContacts />} />

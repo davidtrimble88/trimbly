@@ -30,6 +30,7 @@ interface ProviderRow {
   gallery_urls: string[];
   emergency_available: boolean;
   emergency_rate_multiplier: number;
+  service_radius_miles: number;
 }
 
 interface Review {
@@ -52,7 +53,7 @@ const PublicProviderProfile = () => {
     (async () => {
       const { data: prov } = await supabase
         .from("providers")
-        .select("id, user_id, business_name, category, description, bio, city, state, country, years_experience, licensed, insured, verified, gallery_urls, emergency_available, emergency_rate_multiplier")
+        .select("id, user_id, business_name, category, description, bio, city, state, country, years_experience, licensed, insured, verified, gallery_urls, emergency_available, emergency_rate_multiplier, service_radius_miles")
         .eq("id", providerId)
         .maybeSingle();
 
@@ -145,6 +146,9 @@ const PublicProviderProfile = () => {
                 <div className="flex items-center justify-center sm:justify-start gap-2 text-sm text-muted-foreground mt-2">
                   <MapPin size={14} />
                   {[provider.city, provider.state, provider.country].filter(Boolean).join(", ")}
+                  {provider.service_radius_miles > 0 && (
+                    <span className="text-xs">· serves within {provider.service_radius_miles} mi</span>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
                   {provider.emergency_available && (

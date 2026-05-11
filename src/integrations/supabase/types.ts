@@ -727,6 +727,7 @@ export type Database = {
           licensed: boolean
           phone: string | null
           postal_code: string | null
+          service_radius_miles: number
           state: string
           subscription_tier: string
           updated_at: string
@@ -761,6 +762,7 @@ export type Database = {
           licensed?: boolean
           phone?: string | null
           postal_code?: string | null
+          service_radius_miles?: number
           state: string
           subscription_tier?: string
           updated_at?: string
@@ -795,6 +797,7 @@ export type Database = {
           licensed?: boolean
           phone?: string | null
           postal_code?: string | null
+          service_radius_miles?: number
           state?: string
           subscription_tier?: string
           updated_at?: string
@@ -802,6 +805,63 @@ export type Database = {
           verified?: boolean
           website?: string | null
           years_experience?: number | null
+        }
+        Relationships: []
+      }
+      quotes: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          homeowner_id: string
+          id: string
+          job_id: string | null
+          line_items: Json
+          notes: string | null
+          provider_id: string
+          sent_at: string | null
+          status: string
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          title: string
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          homeowner_id: string
+          id?: string
+          job_id?: string | null
+          line_items?: Json
+          notes?: string | null
+          provider_id: string
+          sent_at?: string | null
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          title: string
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          homeowner_id?: string
+          id?: string
+          job_id?: string | null
+          line_items?: Json
+          notes?: string | null
+          provider_id?: string
+          sent_at?: string | null
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          title?: string
+          total?: number
+          updated_at?: string
         }
         Relationships: []
       }

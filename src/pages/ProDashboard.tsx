@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import ProGalleryEditor from "@/components/profile/ProGalleryEditor";
 import ProFeaturesPanel from "@/components/pro/ProFeaturesPanel";
+import ServiceAreaPanel from "@/components/pro/ServiceAreaPanel";
+import QuotesPanel from "@/components/pro/QuotesPanel";
 
 type ProviderProfile = {
   id: string;
@@ -47,6 +49,7 @@ type ProviderProfile = {
   emergency_rate_multiplier: number;
   license_expiry: string | null;
   insurance_expiry: string | null;
+  service_radius_miles: number;
   user_id: string;
 };
 
@@ -391,11 +394,25 @@ const ProDashboard = () => {
             </TabsList>
 
             <TabsContent value="tools">
-              <ProFeaturesPanel
-                provider={provider}
-                userId={user!.id}
-                onUpdated={(patch) => setProvider((p) => p ? { ...p, ...patch } : p)}
-              />
+              <div className="space-y-6">
+                <ProFeaturesPanel
+                  provider={provider}
+                  userId={user!.id}
+                  onUpdated={(patch) => setProvider((p) => p ? { ...p, ...patch } : p)}
+                />
+                <ServiceAreaPanel
+                  providerId={provider.id}
+                  city={provider.city}
+                  state={provider.state}
+                  initialRadius={provider.service_radius_miles}
+                  onUpdated={(r) => setProvider((p) => p ? { ...p, service_radius_miles: r } : p)}
+                />
+                <QuotesPanel
+                  providerId={provider.id}
+                  providerUserId={user!.id}
+                  businessName={provider.business_name}
+                />
+              </div>
             </TabsContent>
 
 
