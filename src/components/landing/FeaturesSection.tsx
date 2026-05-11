@@ -1,4 +1,4 @@
-import { Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield, Briefcase, BookOpen } from "lucide-react";
+import { Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield, Briefcase, BookOpen, Stethoscope } from "lucide-react";
 
 const features = [
   {
@@ -48,6 +48,12 @@ const features = [
     title: "User Manual Finder",
     description: "Enter any brand and model number and we'll find the official user manual — viewable and downloadable right on HomeHero.",
     tab: "manuals",
+  },
+  {
+    icon: Stethoscope,
+    title: "AI Symptom Triage",
+    description: "Describe a noise, smell, or odd behavior — get an instant AI diagnosis, urgency level, safety warnings, and DIY-vs-Pro guidance.",
+    tab: "triage",
   },
   {
     icon: Star,
