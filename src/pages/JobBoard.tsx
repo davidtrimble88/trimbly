@@ -244,22 +244,19 @@ const JobBoard = () => {
         .from("job_bids")
         .select("id, job_id, status, call_approved, message, bid_amount, created_at")
         .eq("provider_id", providerId);
-    if (error) {
-      if (error.code === "23505") {
-        toast({ title: "Already bid", description: "You've already submitted a bid on this job.", variant: "destructive" });
-      } else {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
-      }
-    } else {
-      toast({ title: "Bid sent!", description: "The homeowner will review your message." });
-      // Refresh my bids
-      const { data: bidsData } = await supabase
-        .from("job_bids")
-        .select("id, job_id, status, call_approved, message, bid_amount")
-        .eq("provider_id", providerId);
       const bidsMap: Record<string, MyBid> = {};
-      (bidsData || []).forEach((b: any) => { bidsMap[b.job_id] = b; });
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
+      let activeCount = 0;
+      (bidsData || []).forEach((b: any) => {
+        bidsMap[b.job_id] = b;
+        if (["pending", "accepted"].includes(b.status) && new Date(b.created_at) >= monthStart) {
+          activeCount += 1;
+        }
+      });
       setMyBids(bidsMap);
+      setActiveBidsThisMonth(activeCount);
       setBidJob(null);
       setBidForm({ message: "", bid_amount: "", estimated_hours: "", phone_number: "" });
     }
