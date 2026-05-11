@@ -277,13 +277,31 @@ const ProFeaturesPanel = ({ provider, userId, onUpdated }: Props) => {
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
                 Show a red "Available for urgent jobs" badge on your profile and rank higher in urgent searches.
-                Charge <strong>{provider.emergency_rate_multiplier}x</strong> your normal rate.
               </p>
+              <div className="mt-3 grid sm:grid-cols-2 gap-2 text-xs">
+                <div className="bg-muted/40 rounded-md px-2 py-1.5">
+                  <span className="text-muted-foreground">After-hours window: </span>
+                  <span className="font-medium text-foreground">
+                    {provider.emergency_start_time} – {provider.emergency_end_time}
+                  </span>
+                </div>
+                <div className="bg-muted/40 rounded-md px-2 py-1.5">
+                  <span className="text-muted-foreground">Rate: </span>
+                  <span className="font-medium text-foreground">
+                    {provider.emergency_rate_multiplier === 1
+                      ? "Normal rate"
+                      : `${provider.emergency_rate_multiplier}x normal`}
+                  </span>
+                  {provider.emergency_weekends && (
+                    <span className="text-muted-foreground"> · weekends included</span>
+                  )}
+                </div>
+              </div>
             </div>
             <div className="flex flex-col items-end gap-2 shrink-0">
               <Switch checked={provider.emergency_available} onCheckedChange={toggleEmergency} />
               <Button size="sm" variant="ghost" onClick={() => setEmerOpen(true)} className="gap-1">
-                <Pencil size={12} /> Rate
+                <Pencil size={12} /> Edit
               </Button>
             </div>
           </div>
