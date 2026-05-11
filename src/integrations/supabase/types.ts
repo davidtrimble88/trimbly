@@ -559,6 +559,81 @@ export type Database = {
           },
         ]
       }
+      mileage_logs: {
+        Row: {
+          created_at: string
+          end_location: string
+          id: string
+          job_id: string | null
+          miles: number
+          notes: string
+          provider_id: string
+          purpose: string
+          rate_per_mile: number
+          start_location: string
+          trip_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_location?: string
+          id?: string
+          job_id?: string | null
+          miles?: number
+          notes?: string
+          provider_id: string
+          purpose?: string
+          rate_per_mile?: number
+          start_location?: string
+          trip_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_location?: string
+          id?: string
+          job_id?: string | null
+          miles?: number
+          notes?: string
+          provider_id?: string
+          purpose?: string
+          rate_per_mile?: number
+          start_location?: string
+          trip_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notification_prefs: {
+        Row: {
+          created_at: string
+          push_bid_accepted: boolean
+          push_new_job: boolean
+          push_new_message: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          push_bid_accepted?: boolean
+          push_new_job?: boolean
+          push_new_message?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          push_bid_accepted?: boolean
+          push_new_job?: boolean
+          push_new_message?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pending_messages: {
         Row: {
           body: string
