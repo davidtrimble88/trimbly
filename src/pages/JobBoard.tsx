@@ -205,9 +205,21 @@ const JobBoard = () => {
     });
   }, [jobs, filterCategory, searchCenter, radiusMiles, jobCoords]);
 
+  const FREE_BID_LIMIT = 5;
+  const isPaid = providerTier !== "free";
+  const bidsLeft = isPaid ? Infinity : Math.max(0, FREE_BID_LIMIT - activeBidsThisMonth);
+
   const handleBidSubmit = async () => {
     if (!user || !providerId || !bidJob || !bidForm.message.trim()) {
       toast({ title: "Message required", description: "You must write a message to the homeowner.", variant: "destructive" });
+      return;
+    }
+    if (!isPaid && activeBidsThisMonth >= FREE_BID_LIMIT) {
+      toast({
+        title: "Monthly bid limit reached",
+        description: `Free pros get ${FREE_BID_LIMIT} active bids per month. Upgrade for unlimited bids.`,
+        variant: "destructive",
+      });
       return;
     }
     setSubmitting(true);
@@ -219,6 +231,19 @@ const JobBoard = () => {
       estimated_hours: bidForm.estimated_hours ? parseFloat(bidForm.estimated_hours) : null,
       phone_number: bidForm.phone_number || null,
     });
+    if (error) {
+      if (error.code === "23505") {
+        toast({ title: "Already bid", description: "You've already submitted a bid on this job.", variant: "destructive" });
+      } else {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      }
+    } else {
+      toast({ title: "Bid sent!", description: "The homeowner will review your message." });
+      // Refresh my bids
+      const { data: bidsData } = await supabase
+        .from("job_bids")
+        .select("id, job_id, status, call_approved, message, bid_amount, created_at")
+        .eq("provider_id", providerId);
     if (error) {
       if (error.code === "23505") {
         toast({ title: "Already bid", description: "You've already submitted a bid on this job.", variant: "destructive" });
