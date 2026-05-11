@@ -413,6 +413,7 @@ const ProDashboard = () => {
                   providerUserId={user!.id}
                   businessName={provider.business_name}
                 />
+                <ServicePlansPanel providerId={provider.id} />
               </div>
             </TabsContent>
 
