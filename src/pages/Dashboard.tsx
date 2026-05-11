@@ -583,52 +583,53 @@ const Dashboard = () => {
             );
           })()}
 
-          {/* ─── Services Section ─── */}
-          <div>
-            <h2 className="text-xl font-bold text-foreground mb-4">Services</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {allServices.map((service) => {
-                const unlocked = isUnlocked(service.minTier);
-                const comingSoon = !service.route;
-
-                return (
-                  <Card
-                    key={service.title}
-                    className={`relative transition-all duration-200 ${
-                      unlocked && !comingSoon
-                        ? "hover:border-primary/30 hover:shadow-lg cursor-pointer"
-                        : "opacity-60"
-                    }`}
-                  >
-                    {!unlocked && (
-                      <div className="absolute top-4 right-4">
-                        <Lock size={18} className="text-muted-foreground" />
-                      </div>
-                    )}
-                    <CardHeader>
-                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
-                        <service.icon size={24} className="text-primary" />
-                      </div>
-                      <CardTitle className="text-lg">{service.title}</CardTitle>
-                      <CardDescription>{service.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {comingSoon ? (
-                        <Badge variant="outline" className="text-muted-foreground">Coming Soon</Badge>
-                      ) : unlocked ? (
-                        <Button onClick={() => navigate(service.route!)} className="w-full">
-                          Open
-                        </Button>
-                      ) : (
-                        <Button variant="outline" className="w-full" onClick={() => navigate("/#pricing")}>
-                          Upgrade to Unlock
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+          {/* ─── Services Section (grouped) ─── */}
+          <div className="space-y-8">
+            {(Object.keys(groupTitles) as ServiceCategory[]).map((group) => {
+              const items = allServices.filter((s) => s.group === group);
+              if (items.length === 0) return null;
+              return (
+                <div key={group}>
+                  <h2 className="text-lg font-bold text-foreground mb-3">{groupTitles[group]}</h2>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {items.map((service) => {
+                      const unlocked = isUnlocked(service.minTier);
+                      const comingSoon = !service.route;
+                      return (
+                        <button
+                          key={service.title}
+                          onClick={() => unlocked && !comingSoon ? navigate(service.route!) : navigate("/#pricing")}
+                          className={`group relative text-left rounded-lg border border-border bg-card p-4 transition-all ${
+                            unlocked && !comingSoon
+                              ? "hover:border-primary/40 hover:shadow-sm"
+                              : "opacity-70 hover:opacity-100"
+                          }`}
+                        >
+                          {!unlocked && (
+                            <Lock size={14} className="absolute top-3 right-3 text-muted-foreground" />
+                          )}
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+                              <service.icon size={20} className="text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold text-sm text-foreground">{service.title}</div>
+                              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{service.description}</div>
+                              {!unlocked && (
+                                <div className="text-xs text-primary mt-2 font-medium">Upgrade to unlock →</div>
+                              )}
+                              {comingSoon && (
+                                <Badge variant="outline" className="text-xs mt-2">Coming Soon</Badge>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </main>
