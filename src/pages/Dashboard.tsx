@@ -24,17 +24,30 @@ import {
 } from "lucide-react";
 
 // ─── Service definitions ───
-const allServices = [
-  { icon: Wrench, title: "Find Local Pros", description: "Search by service, distance, rating, and availability.", route: "/search", minTier: "free" },
-  { icon: Brain, title: "AI Job Estimator", description: "Unlimited instant cost estimates, material lists, and DIY vs. pro recommendations.", route: "/estimator", minTier: "homeowner_pro" },
-  { icon: CalendarCheck, title: "Maintenance Autopilot", description: "Advanced automated schedules based on your home profile.", route: "/maintenance", minTier: "free" },
-  { icon: FolderOpen, title: "Digital Home Binder", description: "Store appliance info, warranties, past jobs, and documents (5 items).", route: "/binder", minTier: "homeowner_pro" },
-  { icon: MessageSquare, title: "In-App Messaging", description: "Chat directly with pros, share photos, and track job status.", route: "/messages", minTier: "free" },
-  { icon: Star, title: "Verified Reviews", description: "Read and leave honest reviews from real homeowners.", route: "/search", minTier: "free" },
-  { icon: Shield, title: "Coverage Advisor", description: "Upload warranty & insurance docs and ask AI about your coverage.", route: "/coverage", minTier: "homeowner_pro" },
-  { icon: Briefcase, title: "Post a Job", description: "Post job requests for pros to bid on. Control who can message and call you.", route: "/post-job", minTier: "free" },
-  { icon: BookOpen, title: "User Manual Finder", description: "Enter brand & model — instantly find and download the user manual.", route: "/manual-search", minTier: "free" },
+type ServiceCategory = "home_care" | "get_help" | "tools" | "communication";
+const allServices: Array<{
+  icon: any; title: string; description: string; route: string; minTier: string; group: ServiceCategory;
+}> = [
+  { icon: CalendarCheck, title: "Maintenance Autopilot", description: "Automated, personalized maintenance schedules for your home.", route: "/maintenance", minTier: "free", group: "home_care" },
+  { icon: FolderOpen, title: "Digital Home Binder", description: "Store appliance info, warranties, and documents.", route: "/binder", minTier: "homeowner_pro", group: "home_care" },
+  { icon: Shield, title: "Coverage Advisor", description: "Upload warranty & insurance docs and ask AI about your coverage.", route: "/coverage", minTier: "homeowner_pro", group: "home_care" },
+
+  { icon: Wrench, title: "Find Local Pros", description: "Search by service, distance, rating, and availability.", route: "/search", minTier: "free", group: "get_help" },
+  { icon: Briefcase, title: "Post a Job", description: "Post job requests for pros to bid on.", route: "/post-job", minTier: "free", group: "get_help" },
+  { icon: Star, title: "Verified Reviews", description: "Read honest reviews from real homeowners.", route: "/search", minTier: "free", group: "get_help" },
+
+  { icon: Brain, title: "AI Job Estimator", description: "Instant cost estimates, material lists, DIY vs. pro recommendations.", route: "/estimator", minTier: "homeowner_pro", group: "tools" },
+  { icon: BookOpen, title: "User Manual Finder", description: "Enter brand & model — instantly find and download the user manual.", route: "/manual-search", minTier: "free", group: "tools" },
+
+  { icon: MessageSquare, title: "In-App Messaging", description: "Chat directly with pros, share photos, and track jobs.", route: "/messages", minTier: "free", group: "communication" },
 ];
+
+const groupTitles: Record<ServiceCategory, string> = {
+  home_care: "Home Care",
+  get_help: "Get Help",
+  tools: "Tools",
+  communication: "Communication",
+};
 
 const tierOrder: Record<string, number> = { free: 0, homeowner_pro: 1, multi_pro: 2 };
 const tierLabels: Record<string, string> = { free: "Free", homeowner_pro: "Homeowner Pro", multi_pro: "Multi-Homeowner Pro" };
