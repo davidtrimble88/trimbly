@@ -49,6 +49,7 @@ type ProviderProfile = {
   emergency_rate_multiplier: number;
   license_expiry: string | null;
   insurance_expiry: string | null;
+  service_radius_miles: number;
   user_id: string;
 };
 
