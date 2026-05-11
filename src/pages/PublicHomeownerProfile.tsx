@@ -18,6 +18,7 @@ interface ProfileData {
   is_public: boolean;
   created_at: string;
   user_type: string;
+  gallery_urls: string[];
 }
 
 const PublicHomeownerProfile = () => {
@@ -31,7 +32,7 @@ const PublicHomeownerProfile = () => {
     (async () => {
       const { data: prof } = await supabase
         .from("profiles")
-        .select("id, full_name, avatar_url, bio, is_public, created_at, user_type")
+        .select("id, full_name, avatar_url, bio, is_public, created_at, user_type, gallery_urls")
         .eq("id", userId)
         .maybeSingle();
 
@@ -135,6 +136,21 @@ const PublicHomeownerProfile = () => {
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground mt-3">Street addresses are never shown.</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {profile.gallery_urls?.length > 0 && (
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="font-bold text-lg text-foreground mb-4">Photos</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {profile.gallery_urls.map((url) => (
+                    <a key={url} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden bg-muted hover:opacity-90 transition-opacity">
+                      <img src={url} alt="Gallery" className="object-cover w-full h-full" loading="lazy" />
+                    </a>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           )}

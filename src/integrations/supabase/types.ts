@@ -640,6 +640,7 @@ export type Database = {
           bio: string | null
           created_at: string
           full_name: string
+          gallery_urls: string[]
           id: string
           is_public: boolean
           subscription_tier: string
@@ -653,6 +654,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           full_name?: string
+          gallery_urls?: string[]
           id: string
           is_public?: boolean
           subscription_tier?: string
@@ -666,6 +668,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           full_name?: string
+          gallery_urls?: string[]
           id?: string
           is_public?: boolean
           subscription_tier?: string
