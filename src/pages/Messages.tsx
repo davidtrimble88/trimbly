@@ -20,6 +20,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { AIFeedback } from "@/components/messages/AIFeedback";
+import MessageCopilot from "@/components/messages/MessageCopilot";
 
 interface Message {
   id: string;
