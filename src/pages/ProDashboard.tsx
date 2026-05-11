@@ -18,9 +18,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building2, MapPin, Phone, Globe, DollarSign, Shield, Star,
   Briefcase, MessageSquare, Clock, CheckCircle,
-  Eye, Zap, Crown, Pencil, Award, PhoneOff, MapPinned,
+  Eye, Zap, Crown, Pencil, Award, PhoneOff, MapPinned, Sparkles,
 } from "lucide-react";
 import ProGalleryEditor from "@/components/profile/ProGalleryEditor";
+import ProFeaturesPanel from "@/components/pro/ProFeaturesPanel";
 
 type ProviderProfile = {
   id: string;
