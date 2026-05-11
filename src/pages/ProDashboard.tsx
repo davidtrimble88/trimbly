@@ -18,9 +18,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building2, MapPin, Phone, Globe, DollarSign, Shield, Star,
   Briefcase, MessageSquare, Clock, CheckCircle,
-  Eye, Zap, Crown, Pencil, Award, PhoneOff, MapPinned,
+  Eye, Zap, Crown, Pencil, Award, PhoneOff, MapPinned, Sparkles,
 } from "lucide-react";
 import ProGalleryEditor from "@/components/profile/ProGalleryEditor";
+import ProFeaturesPanel from "@/components/pro/ProFeaturesPanel";
 
 type ProviderProfile = {
   id: string;
@@ -42,6 +43,11 @@ type ProviderProfile = {
   insurance_details: string | null;
   available: boolean;
   subscription_tier: string;
+  emergency_available: boolean;
+  emergency_rate_multiplier: number;
+  license_expiry: string | null;
+  insurance_expiry: string | null;
+  user_id: string;
 };
 
 type BidWithJob = {
@@ -366,9 +372,12 @@ const ProDashboard = () => {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="w-full md:w-auto">
+            <TabsList className="w-full md:w-auto flex-wrap h-auto">
               <TabsTrigger value="bids" className="gap-1.5">
                 <Briefcase size={14} /> Bids {pendingBids > 0 && <Badge variant="secondary" className="text-xs ml-1">{pendingBids}</Badge>}
+              </TabsTrigger>
+              <TabsTrigger value="tools" className="gap-1.5">
+                <Sparkles size={14} /> Tools
               </TabsTrigger>
               <TabsTrigger value="reviews" className="gap-1.5">
                 <Star size={14} /> Reviews
@@ -380,6 +389,15 @@ const ProDashboard = () => {
                 <Building2 size={14} /> Profile
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="tools">
+              <ProFeaturesPanel
+                provider={provider}
+                userId={user!.id}
+                onUpdated={(patch) => setProvider((p) => p ? { ...p, ...patch } : p)}
+              />
+            </TabsContent>
+
 
             {/* Bids Tab */}
             <TabsContent value="bids">

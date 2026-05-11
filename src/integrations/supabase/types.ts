@@ -634,6 +634,27 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_views: {
+        Row: {
+          id: string
+          provider_id: string
+          viewed_at: string
+          viewer_id: string | null
+        }
+        Insert: {
+          id?: string
+          provider_id: string
+          viewed_at?: string
+          viewer_id?: string | null
+        }
+        Update: {
+          id?: string
+          provider_id?: string
+          viewed_at?: string
+          viewer_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -690,6 +711,8 @@ export type Database = {
           created_at: string
           currency: string
           description: string | null
+          emergency_available: boolean
+          emergency_rate_multiplier: number
           featured: boolean
           gallery_urls: string[]
           hidden: boolean
@@ -697,7 +720,9 @@ export type Database = {
           hourly_rate_min: number
           id: string
           insurance_details: string | null
+          insurance_expiry: string | null
           insured: boolean
+          license_expiry: string | null
           license_number: string | null
           licensed: boolean
           phone: string | null
@@ -720,6 +745,8 @@ export type Database = {
           created_at?: string
           currency?: string
           description?: string | null
+          emergency_available?: boolean
+          emergency_rate_multiplier?: number
           featured?: boolean
           gallery_urls?: string[]
           hidden?: boolean
@@ -727,7 +754,9 @@ export type Database = {
           hourly_rate_min?: number
           id?: string
           insurance_details?: string | null
+          insurance_expiry?: string | null
           insured?: boolean
+          license_expiry?: string | null
           license_number?: string | null
           licensed?: boolean
           phone?: string | null
@@ -750,6 +779,8 @@ export type Database = {
           created_at?: string
           currency?: string
           description?: string | null
+          emergency_available?: boolean
+          emergency_rate_multiplier?: number
           featured?: boolean
           gallery_urls?: string[]
           hidden?: boolean
@@ -757,7 +788,9 @@ export type Database = {
           hourly_rate_min?: number
           id?: string
           insurance_details?: string | null
+          insurance_expiry?: string | null
           insured?: boolean
+          license_expiry?: string | null
           license_number?: string | null
           licensed?: boolean
           phone?: string | null
@@ -769,6 +802,30 @@ export type Database = {
           verified?: boolean
           website?: string | null
           years_experience?: number | null
+        }
+        Relationships: []
+      }
+      review_requests: {
+        Row: {
+          homeowner_id: string
+          id: string
+          job_id: string | null
+          provider_id: string
+          sent_at: string
+        }
+        Insert: {
+          homeowner_id: string
+          id?: string
+          job_id?: string | null
+          provider_id: string
+          sent_at?: string
+        }
+        Update: {
+          homeowner_id?: string
+          id?: string
+          job_id?: string | null
+          provider_id?: string
+          sent_at?: string
         }
         Relationships: []
       }

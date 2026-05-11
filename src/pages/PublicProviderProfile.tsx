@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   MapPin, Briefcase, CheckCircle, Star, Loader2, ShieldCheck, Award,
-  MessageSquare, Inbox
+  MessageSquare, Inbox, Zap,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import StatsGrid from "@/components/profile/StatsGrid";
@@ -28,6 +28,8 @@ interface ProviderRow {
   insured: boolean;
   verified: boolean;
   gallery_urls: string[];
+  emergency_available: boolean;
+  emergency_rate_multiplier: number;
 }
 
 interface Review {
@@ -50,7 +52,7 @@ const PublicProviderProfile = () => {
     (async () => {
       const { data: prov } = await supabase
         .from("providers")
-        .select("id, user_id, business_name, category, description, bio, city, state, country, years_experience, licensed, insured, verified, gallery_urls")
+        .select("id, user_id, business_name, category, description, bio, city, state, country, years_experience, licensed, insured, verified, gallery_urls, emergency_available, emergency_rate_multiplier")
         .eq("id", providerId)
         .maybeSingle();
 
@@ -58,6 +60,13 @@ const PublicProviderProfile = () => {
         setLoading(false);
         return;
       }
+
+      // Track profile view (fire-and-forget; ignore failures)
+      const { data: authData } = await supabase.auth.getUser();
+      supabase.from("profile_views").insert({
+        provider_id: prov.id,
+        viewer_id: authData.user?.id ?? null,
+      }).then(() => {}, () => {});
 
       const [{ data: prof }, { count: completed }, { count: bids }, { data: revs }] = await Promise.all([
         supabase.from("profiles").select("avatar_url").eq("id", prov.user_id).maybeSingle(),
@@ -138,6 +147,11 @@ const PublicProviderProfile = () => {
                   {[provider.city, provider.state, provider.country].filter(Boolean).join(", ")}
                 </div>
                 <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
+                  {provider.emergency_available && (
+                    <Badge className="bg-red-500 text-white hover:bg-red-600 gap-1">
+                      <Zap size={12} /> Available for urgent jobs
+                    </Badge>
+                  )}
                   {provider.verified && (
                     <Badge variant="secondary"><ShieldCheck size={12} className="mr-1" /> Verified</Badge>
                   )}
