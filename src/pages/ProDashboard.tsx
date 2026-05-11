@@ -19,7 +19,9 @@ import {
   Building2, MapPin, Phone, Globe, DollarSign, Shield, Star,
   Briefcase, MessageSquare, Clock, CheckCircle,
   Eye, Zap, Crown, Pencil, Award, PhoneOff, MapPinned, Sparkles,
+  LayoutDashboard, MoreVertical, ArrowRight, ExternalLink,
 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ProGalleryEditor from "@/components/profile/ProGalleryEditor";
 import ProFeaturesPanel from "@/components/pro/ProFeaturesPanel";
 import ServiceAreaPanel from "@/components/pro/ServiceAreaPanel";
