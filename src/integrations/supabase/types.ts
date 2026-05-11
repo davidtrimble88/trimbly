@@ -637,9 +637,11 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           full_name: string
           id: string
+          is_public: boolean
           subscription_tier: string
           suspended: boolean
           suspended_reason: string | null
@@ -648,9 +650,11 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           full_name?: string
           id: string
+          is_public?: boolean
           subscription_tier?: string
           suspended?: boolean
           suspended_reason?: string | null
@@ -659,9 +663,11 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           full_name?: string
           id?: string
+          is_public?: boolean
           subscription_tier?: string
           suspended?: boolean
           suspended_reason?: string | null
@@ -673,6 +679,7 @@ export type Database = {
       providers: {
         Row: {
           available: boolean
+          bio: string | null
           business_name: string
           category: string
           city: string
@@ -681,6 +688,7 @@ export type Database = {
           currency: string
           description: string | null
           featured: boolean
+          gallery_urls: string[]
           hidden: boolean
           hourly_rate_max: number
           hourly_rate_min: number
@@ -701,6 +709,7 @@ export type Database = {
         }
         Insert: {
           available?: boolean
+          bio?: string | null
           business_name: string
           category: string
           city: string
@@ -709,6 +718,7 @@ export type Database = {
           currency?: string
           description?: string | null
           featured?: boolean
+          gallery_urls?: string[]
           hidden?: boolean
           hourly_rate_max?: number
           hourly_rate_min?: number
@@ -729,6 +739,7 @@ export type Database = {
         }
         Update: {
           available?: boolean
+          bio?: string | null
           business_name?: string
           category?: string
           city?: string
@@ -737,6 +748,7 @@ export type Database = {
           currency?: string
           description?: string | null
           featured?: boolean
+          gallery_urls?: string[]
           hidden?: boolean
           hourly_rate_max?: number
           hourly_rate_min?: number
