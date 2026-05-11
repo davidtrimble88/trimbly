@@ -249,12 +249,22 @@ const EstimatorPage = () => {
                 </h3>
                 <div className="space-y-2">
                   {estimate.materials.map((m, i) => (
-                    <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                      <div>
+                    <div key={i} className="flex flex-wrap items-center justify-between gap-2 py-2 border-b border-border last:border-0">
+                      <div className="min-w-0 flex-1">
                         <span className="text-sm text-foreground font-medium">{m.name}</span>
                         {m.quantity && <span className="text-xs text-muted-foreground ml-2">({m.quantity})</span>}
                       </div>
-                      <span className="text-sm font-semibold text-foreground">${m.estimated_cost.toLocaleString()}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-semibold text-foreground">${m.estimated_cost.toLocaleString()}</span>
+                        <a
+                          href={`https://www.amazon.com/s?k=${encodeURIComponent(m.name)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 hover:underline whitespace-nowrap"
+                        >
+                          <ShoppingCart size={12} /> Shop <ExternalLink size={10} />
+                        </a>
+                      </div>
                     </div>
                   ))}
                   <div className="flex items-center justify-between pt-3 mt-2 border-t border-border">
