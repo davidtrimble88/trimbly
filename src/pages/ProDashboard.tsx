@@ -148,6 +148,13 @@ const ProDashboard = () => {
     loadAll();
   }, [user]);
 
+  useProNotifications({
+    userId: user?.id || null,
+    providerId: provider?.id || null,
+    providerState: provider?.state || null,
+    providerCategory: provider?.category || null,
+  });
+
   const loadAll = async () => {
     if (!user) return;
     setLoading(true);
