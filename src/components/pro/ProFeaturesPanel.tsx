@@ -129,15 +129,21 @@ const ProFeaturesPanel = ({ provider, userId, onUpdated }: Props) => {
       setSavingEmer(false);
       return toast({ title: "Enter a multiplier between 1.0 and 5.0", variant: "destructive" });
     }
+    const patch = {
+      emergency_rate_multiplier: mult,
+      emergency_start_time: emerStart,
+      emergency_end_time: emerEnd,
+      emergency_weekends: emerWeekends,
+    };
     const { error } = await supabase
       .from("providers")
-      .update({ emergency_rate_multiplier: mult })
+      .update(patch)
       .eq("id", provider.id);
     setSavingEmer(false);
     if (error) return toast({ title: "Error", description: error.message, variant: "destructive" });
-    onUpdated({ emergency_rate_multiplier: mult });
+    onUpdated(patch);
     setEmerOpen(false);
-    toast({ title: "Emergency rate saved" });
+    toast({ title: "Emergency settings saved" });
   };
 
   const saveCreds = async () => {
