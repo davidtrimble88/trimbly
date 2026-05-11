@@ -34,6 +34,11 @@ import MileageLogPanel from "@/components/pro/MileageLogPanel";
 import SkillBadgesPanel from "@/components/pro/SkillBadgesPanel";
 import NotificationPrefsPanel from "@/components/pro/NotificationPrefsPanel";
 import InstallAppPanel from "@/components/pro/InstallAppPanel";
+import YardSignQRPanel from "@/components/pro/YardSignQRPanel";
+import ReferralPanel from "@/components/pro/ReferralPanel";
+import AutoReviewPanel from "@/components/pro/AutoReviewPanel";
+import AIFollowUpPanel from "@/components/pro/AIFollowUpPanel";
+import CompetitorPricingPanel from "@/components/pro/CompetitorPricingPanel";
 import { useProNotifications } from "@/hooks/useProNotifications";
 
 type ProviderProfile = {
@@ -65,6 +70,7 @@ type ProviderProfile = {
   insurance_expiry: string | null;
   service_radius_miles: number;
   user_id: string;
+  slug?: string | null;
 };
 
 type BidWithJob = {
@@ -532,6 +538,24 @@ const ProDashboard = () => {
                   userId={user!.id}
                 />
                 <SkillBadgesPanel providerId={provider.id} userId={user!.id} />
+                <CompetitorPricingPanel
+                  category={provider.category}
+                  city={provider.city}
+                  state={provider.state}
+                  hourlyMin={provider.hourly_rate_min}
+                  hourlyMax={provider.hourly_rate_max}
+                />
+                <AIFollowUpPanel providerId={provider.id} userId={user!.id} businessName={provider.business_name} />
+                <AutoReviewPanel providerId={provider.id} userId={user!.id} />
+                <ReferralPanel providerId={provider.id} userId={user!.id} />
+                <YardSignQRPanel
+                  providerSlug={(provider as any).slug || null}
+                  providerId={provider.id}
+                  businessName={provider.business_name}
+                  category={provider.category}
+                  city={provider.city}
+                  state={provider.state}
+                />
                 <MileageLogPanel providerId={provider.id} userId={user!.id} />
                 <NotificationPrefsPanel userId={user!.id} />
                 <InstallAppPanel />

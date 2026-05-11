@@ -55,6 +55,8 @@ const JobBoard = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [myBids, setMyBids] = useState<Record<string, MyBid>>({});
   const [providerId, setProviderId] = useState<string | null>(null);
+  const [providerTier, setProviderTier] = useState<string>("free");
+  const [activeBidsThisMonth, setActiveBidsThisMonth] = useState(0);
   const [loading, setLoading] = useState(true);
   const [filterCategory, setFilterCategory] = useState("All");
   const [locationQuery, setLocationQuery] = useState("");
@@ -83,20 +85,31 @@ const JobBoard = () => {
       // Get provider profile
       const { data: providerData } = await supabase
         .from("providers")
-        .select("id")
+        .select("id, subscription_tier")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (providerData) {
         setProviderId(providerData.id);
+        setProviderTier(providerData.subscription_tier || "free");
         // Load my bids
         const { data: bidsData } = await supabase
           .from("job_bids")
-          .select("id, job_id, status, call_approved, message, bid_amount")
+          .select("id, job_id, status, call_approved, message, bid_amount, created_at")
           .eq("provider_id", providerData.id);
         const bidsMap: Record<string, MyBid> = {};
-        (bidsData || []).forEach((b: any) => { bidsMap[b.job_id] = b; });
+        const monthStart = new Date();
+        monthStart.setDate(1);
+        monthStart.setHours(0, 0, 0, 0);
+        let activeCount = 0;
+        (bidsData || []).forEach((b: any) => {
+          bidsMap[b.job_id] = b;
+          if (["pending", "accepted"].includes(b.status) && new Date(b.created_at) >= monthStart) {
+            activeCount += 1;
+          }
+        });
         setMyBids(bidsMap);
+        setActiveBidsThisMonth(activeCount);
       }
 
       // Load open jobs (exclude own jobs)
@@ -192,9 +205,21 @@ const JobBoard = () => {
     });
   }, [jobs, filterCategory, searchCenter, radiusMiles, jobCoords]);
 
+  const FREE_BID_LIMIT = 5;
+  const isPaid = providerTier !== "free";
+  const bidsLeft = isPaid ? Infinity : Math.max(0, FREE_BID_LIMIT - activeBidsThisMonth);
+
   const handleBidSubmit = async () => {
     if (!user || !providerId || !bidJob || !bidForm.message.trim()) {
       toast({ title: "Message required", description: "You must write a message to the homeowner.", variant: "destructive" });
+      return;
+    }
+    if (!isPaid && activeBidsThisMonth >= FREE_BID_LIMIT) {
+      toast({
+        title: "Monthly bid limit reached",
+        description: `Free pros get ${FREE_BID_LIMIT} active bids per month. Upgrade for unlimited bids.`,
+        variant: "destructive",
+      });
       return;
     }
     setSubmitting(true);
@@ -217,11 +242,21 @@ const JobBoard = () => {
       // Refresh my bids
       const { data: bidsData } = await supabase
         .from("job_bids")
-        .select("id, job_id, status, call_approved, message, bid_amount")
+        .select("id, job_id, status, call_approved, message, bid_amount, created_at")
         .eq("provider_id", providerId);
       const bidsMap: Record<string, MyBid> = {};
-      (bidsData || []).forEach((b: any) => { bidsMap[b.job_id] = b; });
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
+      let activeCount = 0;
+      (bidsData || []).forEach((b: any) => {
+        bidsMap[b.job_id] = b;
+        if (["pending", "accepted"].includes(b.status) && new Date(b.created_at) >= monthStart) {
+          activeCount += 1;
+        }
+      });
       setMyBids(bidsMap);
+      setActiveBidsThisMonth(activeCount);
       setBidJob(null);
       setBidForm({ message: "", bid_amount: "", estimated_hours: "", phone_number: "" });
     }
@@ -409,6 +444,21 @@ const JobBoard = () => {
                 <p className="text-sm font-medium">{bidJob.title}</p>
                 <p className="text-xs text-muted-foreground">{bidJob.category} · {bidJob.city}, {bidJob.state}</p>
               </div>
+              {!isPaid && (
+                <div className={`rounded-lg p-3 text-xs ${bidsLeft <= 1 ? "bg-orange-500/10 border border-orange-500/30" : "bg-primary/5 border border-primary/20"}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-medium text-foreground">
+                      {bidsLeft === 0
+                        ? "Monthly bid limit reached"
+                        : `${bidsLeft} of ${FREE_BID_LIMIT} free bids left this month`}
+                    </span>
+                    <Button size="sm" variant="link" className="h-auto p-0 text-primary" onClick={() => navigate("/pro-pricing")}>
+                      Upgrade →
+                    </Button>
+                  </div>
+                  <p className="text-muted-foreground mt-1">Pro pros get unlimited bids and faster homeowner approvals.</p>
+                </div>
+              )}
               <div>
                 <Label>Message to Homeowner *</Label>
                 <Textarea
@@ -457,7 +507,7 @@ const JobBoard = () => {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setBidJob(null)}>Cancel</Button>
-            <Button onClick={handleBidSubmit} disabled={submitting} className="gap-1">
+            <Button onClick={handleBidSubmit} disabled={submitting || (!isPaid && bidsLeft === 0)} className="gap-1">
               <Send size={14} /> {submitting ? "Sending..." : "Send Bid"}
             </Button>
           </DialogFooter>

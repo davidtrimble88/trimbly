@@ -24,10 +24,12 @@ interface ProviderRow {
   city: string;
   state: string;
   country: string;
+  slug: string | null;
   years_experience: number | null;
   licensed: boolean;
   insured: boolean;
   verified: boolean;
+  subscription_tier: string;
   gallery_urls: string[];
   emergency_available: boolean;
   emergency_rate_multiplier: number;
@@ -43,26 +45,47 @@ interface Review {
 }
 
 const PublicProviderProfile = () => {
-  const { providerId = "" } = useParams();
+  const { providerId = "", slug = "" } = useParams();
   const navigate = useNavigate();
   const [provider, setProvider] = useState<ProviderRow | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [stats, setStats] = useState({ completed: 0, bids: 0, reviews: 0, avgRating: 0 });
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [avgReplyMinutes, setAvgReplyMinutes] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const { data: prov } = await supabase
+      const lookup = supabase
         .from("providers")
-        .select("id, user_id, business_name, category, description, bio, city, state, country, years_experience, licensed, insured, verified, gallery_urls, emergency_available, emergency_rate_multiplier, service_radius_miles, business_hours")
-        .eq("id", providerId)
-        .maybeSingle();
+        .select("id, user_id, business_name, category, description, bio, city, state, country, slug, years_experience, licensed, insured, verified, subscription_tier, gallery_urls, emergency_available, emergency_rate_multiplier, service_radius_miles, business_hours");
+      const { data: prov } = slug
+        ? await lookup.eq("slug", slug).maybeSingle()
+        : await lookup.eq("id", providerId).maybeSingle();
 
       if (!prov) {
         setLoading(false);
         return;
       }
+
+      // Update SEO meta tags for the microsite
+      const title = `${prov.business_name} — ${prov.category} in ${prov.city}, ${prov.state} | HomeHero`;
+      const desc = (prov.bio || prov.description || `Hire ${prov.business_name}, a ${prov.category.toLowerCase()} pro serving ${prov.city}, ${prov.state}. View reviews, photos, and get a quote on HomeHero.`).slice(0, 158);
+      document.title = title;
+      const metaDesc = document.querySelector('meta[name="description"]') || (() => {
+        const m = document.createElement("meta");
+        m.setAttribute("name", "description");
+        document.head.appendChild(m);
+        return m;
+      })();
+      metaDesc.setAttribute("content", desc);
+      let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+      if (!canonical) {
+        canonical = document.createElement("link");
+        canonical.setAttribute("rel", "canonical");
+        document.head.appendChild(canonical);
+      }
+      if (prov.slug) canonical.setAttribute("href", `${window.location.origin}/pros/${prov.slug}`);
 
       // Track profile view (fire-and-forget; ignore failures)
       const { data: authData } = await supabase.auth.getUser();
@@ -71,7 +94,7 @@ const PublicProviderProfile = () => {
         viewer_id: authData.user?.id ?? null,
       }).then(() => {}, () => {});
 
-      const [{ data: prof }, { count: completed }, { count: bids }, { data: revs }] = await Promise.all([
+      const [{ data: prof }, { count: completed }, { count: bids }, { data: revs }, { data: rt }] = await Promise.all([
         supabase.from("profiles").select("avatar_url").eq("id", prov.user_id).maybeSingle(),
         supabase
           .from("jobs")
@@ -86,6 +109,11 @@ const PublicProviderProfile = () => {
           .eq("hidden", false)
           .order("created_at", { ascending: false })
           .limit(10),
+        supabase
+          .from("provider_response_times" as any)
+          .select("avg_reply_minutes, sample_size")
+          .eq("provider_id", prov.id)
+          .maybeSingle(),
       ]);
 
       const reviewList = revs ?? [];
@@ -96,6 +124,10 @@ const PublicProviderProfile = () => {
       setProvider(prov as ProviderRow);
       setAvatarUrl(prof?.avatar_url ?? null);
       setReviews(reviewList);
+      const rtRow = rt as { avg_reply_minutes?: number; sample_size?: number } | null;
+      if (rtRow?.avg_reply_minutes != null && (rtRow.sample_size || 0) >= 3) {
+        setAvgReplyMinutes(Number(rtRow.avg_reply_minutes));
+      }
       setStats({
         completed: completed ?? 0,
         bids: bids ?? 0,
@@ -104,7 +136,7 @@ const PublicProviderProfile = () => {
       });
       setLoading(false);
     })();
-  }, [providerId]);
+  }, [providerId, slug]);
 
   if (loading) {
     return (
@@ -129,10 +161,30 @@ const PublicProviderProfile = () => {
   }
 
   const bioText = provider.bio?.trim() || provider.description?.trim() || "";
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: provider.business_name,
+    description: bioText || `${provider.category} pro in ${provider.city}, ${provider.state}`,
+    image: avatarUrl || undefined,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: provider.city,
+      addressRegion: provider.state,
+      addressCountry: provider.country,
+    },
+    aggregateRating: stats.reviews > 0 ? {
+      "@type": "AggregateRating",
+      ratingValue: stats.avgRating,
+      reviewCount: stats.reviews,
+    } : undefined,
+    url: provider.slug ? `${typeof window !== "undefined" ? window.location.origin : ""}/pros/${provider.slug}` : undefined,
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-4xl space-y-6">
           {/* Header */}
@@ -160,6 +212,16 @@ const PublicProviderProfile = () => {
                   )}
                   {provider.verified && (
                     <Badge variant="secondary"><ShieldCheck size={12} className="mr-1" /> Verified</Badge>
+                  )}
+                  {provider.subscription_tier === "pro" && (
+                    <Badge className="bg-primary text-primary-foreground gap-1">
+                      <Zap size={12} /> Pro
+                    </Badge>
+                  )}
+                  {avgReplyMinutes !== null && avgReplyMinutes <= 60 && (
+                    <Badge className="bg-green-600 text-white hover:bg-green-700 gap-1">
+                      <Clock size={12} /> Replies in under {avgReplyMinutes < 15 ? "15 min" : avgReplyMinutes < 30 ? "30 min" : "1 hr"}
+                    </Badge>
                   )}
                   {provider.licensed && <Badge variant="secondary">Licensed</Badge>}
                   {provider.insured && <Badge variant="secondary">Insured</Badge>}
