@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const tabs = [
+const homeownerTabs = [
   {
     id: "pros",
     label: "Find a Pro",
