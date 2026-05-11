@@ -66,6 +66,9 @@ const ProFeaturesPanel = ({ provider, userId, onUpdated }: Props) => {
   // Emergency dialog
   const [emerOpen, setEmerOpen] = useState(false);
   const [emerMult, setEmerMult] = useState(String(provider.emergency_rate_multiplier ?? 1.5));
+  const [emerStart, setEmerStart] = useState(provider.emergency_start_time || "18:00");
+  const [emerEnd, setEmerEnd] = useState(provider.emergency_end_time || "07:00");
+  const [emerWeekends, setEmerWeekends] = useState(provider.emergency_weekends ?? true);
   const [savingEmer, setSavingEmer] = useState(false);
 
   useEffect(() => {
