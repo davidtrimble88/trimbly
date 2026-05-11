@@ -257,21 +257,117 @@ const homeownerTabs = [
   },
 ];
 
+const proTabs = [
+  {
+    id: "signup",
+    label: "Join & Get Verified",
+    icon: UserPlus,
+    steps: [
+      {
+        icon: UserPlus, step: "01", title: "Create Your Pro Profile",
+        description: "Sign up as a Pro Provider, add your services, photos, and credentials in minutes.",
+        route: "/pro-register",
+      },
+      {
+        icon: BadgeCheck, step: "02", title: "Get Verified",
+        description: "Submit your license and insurance for review — earn a Verified Badge that boosts homeowner trust.",
+        route: "/pro-register",
+      },
+      {
+        icon: Home, step: "03", title: "Set Your Service Area",
+        description: "Choose the zip codes and radius you cover so you only see leads that fit your business.",
+        route: "/pro-dashboard",
+      },
+      {
+        icon: ListChecks, step: "04", title: "Pick Your Plan",
+        description: "Start free with 5 bids/month or upgrade for unlimited bids, AI tools, and marketing perks.",
+        route: "/pro-pricing",
+      },
+    ],
+  },
+  {
+    id: "leads",
+    label: "Get Leads & Bid",
+    icon: Inbox,
+    steps: [
+      {
+        icon: Inbox, step: "01", title: "See Local Job Requests",
+        description: "Browse real homeowner jobs in your area — filtered by category, distance, and budget.",
+        route: "/jobs",
+      },
+      {
+        icon: SendIcon, step: "02", title: "Send a Bid + Message",
+        description: "Pitch the homeowner directly with your price, timeline, and experience — no cold calls.",
+        route: "/jobs",
+      },
+      {
+        icon: Sparkles, step: "03", title: "AI Message Copilot",
+        description: "Let AI draft professional, friendly replies so you respond fast and win more jobs.",
+        route: "/pro-dashboard",
+      },
+      {
+        icon: UserCheck, step: "04", title: "Get Approved to Call",
+        description: "Once the homeowner approves, their phone unlocks — and your Verified Badge speeds it up.",
+        route: "/pro-dashboard",
+      },
+    ],
+  },
+  {
+    id: "grow",
+    label: "Grow Your Business",
+    icon: TrendingUp,
+    steps: [
+      {
+        icon: Star, step: "01", title: "Auto-Request Reviews",
+        description: "After every completed job, an automated text and email asks the homeowner to leave a review.",
+        route: "/pro-dashboard",
+      },
+      {
+        icon: QrCode, step: "02", title: "Yard Sign QR Codes",
+        description: "Print a yard sign QR that scans to your HomeHero profile — every job becomes a marketing channel.",
+        route: "/pro-dashboard",
+      },
+      {
+        icon: Users, step: "03", title: "Referral Credit",
+        description: "Share your referral link with other pros and earn credit toward your subscription.",
+        route: "/pro-dashboard",
+      },
+      {
+        icon: TrendingUp, step: "04", title: "AI Pricing Intel",
+        description: "See what pros in your zip charge per hour and per job so you price competitively.",
+        route: "/pro-dashboard",
+      },
+    ],
+  },
+];
+
 const HowItWorksSection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("pros");
+  const [audience, setAudience] = useState<"homeowner" | "pro">("homeowner");
+  const tabs = audience === "homeowner" ? homeownerTabs : proTabs;
+  const [activeTab, setActiveTab] = useState(tabs[0].id);
+
+  useEffect(() => {
+    setActiveTab(tabs[0].id);
+  }, [audience]);
 
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<string>).detail;
-      if (detail && tabs.some((t) => t.id === detail)) setActiveTab(detail);
+      if (detail && homeownerTabs.some((t) => t.id === detail)) {
+        setAudience("homeowner");
+        setActiveTab(detail);
+      } else if (detail && proTabs.some((t) => t.id === detail)) {
+        setAudience("pro");
+        setActiveTab(detail);
+      }
     };
     window.addEventListener("how-it-works:set-tab", handler);
     return () => window.removeEventListener("how-it-works:set-tab", handler);
   }, []);
 
-  const activeData = tabs.find(t => t.id === activeTab)!;
+  const activeData = tabs.find(t => t.id === activeTab) ?? tabs[0];
 
   const handleClick = (step: typeof activeData.steps[0]) => {
     if (step.route) {
