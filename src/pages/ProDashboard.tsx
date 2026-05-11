@@ -113,7 +113,16 @@ const ProDashboard = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<Partial<ProviderProfile>>({});
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState("bids");
+  const activeTab = searchParams.get("tab") || "overview";
+  const setActiveTab = (tab: string) => {
+    if (tab === "overview") {
+      searchParams.delete("tab");
+    } else {
+      searchParams.set("tab", tab);
+    }
+    setSearchParams(searchParams, { replace: true });
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const [locationOpen, setLocationOpen] = useState(false);
   const [locCity, setLocCity] = useState("");
   const [locState, setLocState] = useState("");
