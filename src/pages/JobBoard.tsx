@@ -507,7 +507,7 @@ const JobBoard = () => {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setBidJob(null)}>Cancel</Button>
-            <Button onClick={handleBidSubmit} disabled={submitting} className="gap-1">
+            <Button onClick={handleBidSubmit} disabled={submitting || (!isPaid && bidsLeft === 0)} className="gap-1">
               <Send size={14} /> {submitting ? "Sending..." : "Send Bid"}
             </Button>
           </DialogFooter>
