@@ -51,6 +51,16 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
         <div>
           <h3 className="font-bold text-card-foreground">{provider.business_name}</h3>
           <span className="text-xs text-muted-foreground">{provider.category}</span>
+          {!isWeb && provider.id && (
+            <div className="mt-1">
+              <Link
+                to={`/pro/${provider.id}`}
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+              >
+                <UserCircle size={12} /> View profile
+              </Link>
+            </div>
+          )}
         </div>
         <span className="text-xs">{provider.country === "US" ? "🇺🇸" : "🇨🇦"}</span>
       </div>
