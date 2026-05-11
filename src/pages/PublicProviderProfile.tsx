@@ -161,10 +161,30 @@ const PublicProviderProfile = () => {
   }
 
   const bioText = provider.bio?.trim() || provider.description?.trim() || "";
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: provider.business_name,
+    description: bioText || `${provider.category} pro in ${provider.city}, ${provider.state}`,
+    image: avatarUrl || undefined,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: provider.city,
+      addressRegion: provider.state,
+      addressCountry: provider.country,
+    },
+    aggregateRating: stats.reviews > 0 ? {
+      "@type": "AggregateRating",
+      ratingValue: stats.avgRating,
+      reviewCount: stats.reviews,
+    } : undefined,
+    url: provider.slug ? `${typeof window !== "undefined" ? window.location.origin : ""}/pros/${provider.slug}` : undefined,
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-4xl space-y-6">
           {/* Header */}
