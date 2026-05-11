@@ -198,6 +198,39 @@ const PublicProviderProfile = () => {
             </Card>
           )}
 
+          {/* Business Hours */}
+          {provider.business_hours && (
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="font-bold text-lg text-foreground mb-3 flex items-center gap-2">
+                  <Clock size={18} className="text-primary" /> Business Hours
+                </h2>
+                <ul className="divide-y divide-border">
+                  {([
+                    ["mon", "Monday"], ["tue", "Tuesday"], ["wed", "Wednesday"],
+                    ["thu", "Thursday"], ["fri", "Friday"], ["sat", "Saturday"], ["sun", "Sunday"],
+                  ] as const).map(([k, label]) => {
+                    const h = provider.business_hours?.[k];
+                    const fmt = (t: string) => {
+                      const [hh, mm] = t.split(":").map(Number);
+                      const period = hh >= 12 ? "PM" : "AM";
+                      const h12 = ((hh + 11) % 12) + 1;
+                      return `${h12}:${String(mm).padStart(2, "0")} ${period}`;
+                    };
+                    return (
+                      <li key={k} className="flex justify-between items-center py-2 text-sm">
+                        <span className="text-foreground font-medium">{label}</span>
+                        <span className={h?.closed ? "text-muted-foreground italic" : "text-muted-foreground"}>
+                          {!h || h.closed ? "Closed" : `${fmt(h.open)} – ${fmt(h.close)}`}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Recurring Plans */}
           <ProviderPlansList providerId={provider.id} />
 
