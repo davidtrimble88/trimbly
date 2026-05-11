@@ -88,6 +88,8 @@ const App = () => (
             <Route path="/portal-choice" element={<PortalChoice />} />
             <Route path="/help" element={<Help />} />
             <Route path="/manual-search" element={<ManualSearch />} />
+            <Route path="/u/:userId" element={<PublicHomeownerProfile />} />
+            <Route path="/pro/:providerId" element={<PublicProviderProfile />} />
             <Route path="/staff" element={<StaffLayout />}>
               <Route index element={<StaffDashboard />} />
               <Route path="contacts" element={<StaffContacts />} />
