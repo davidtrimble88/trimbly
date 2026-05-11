@@ -18,6 +18,7 @@ interface ProfileData {
   is_public: boolean;
   created_at: string;
   user_type: string;
+  gallery_urls: string[];
 }
 
 const PublicHomeownerProfile = () => {
