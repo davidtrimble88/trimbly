@@ -30,6 +30,7 @@ interface ProviderRow {
   gallery_urls: string[];
   emergency_available: boolean;
   emergency_rate_multiplier: number;
+  service_radius_miles: number;
 }
 
 interface Review {
