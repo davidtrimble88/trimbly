@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft, FolderOpen, Plus, Loader2, Pencil, Trash2, FileText, Upload,
-  X, Search, Package, Wrench, Shield, Receipt, Home as HomeIcon, Download, BookOpen, ExternalLink
+  X, Search, Package, Wrench, Shield, Receipt, Home as HomeIcon, Download, BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
