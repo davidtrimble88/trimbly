@@ -28,6 +28,7 @@ import ServiceAreaPanel from "@/components/pro/ServiceAreaPanel";
 import QuotesPanel from "@/components/pro/QuotesPanel";
 import ServicePlansPanel from "@/components/pro/ServicePlansPanel";
 import CredentialAlertBanner from "@/components/pro/CredentialAlertBanner";
+import BusinessHoursPanel from "@/components/pro/BusinessHoursPanel";
 
 type ProviderProfile = {
   id: string;
