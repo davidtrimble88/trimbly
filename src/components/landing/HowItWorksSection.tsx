@@ -151,6 +151,15 @@ const HowItWorksSection = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("pros");
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<string>).detail;
+      if (detail && tabs.some((t) => t.id === detail)) setActiveTab(detail);
+    };
+    window.addEventListener("how-it-works:set-tab", handler);
+    return () => window.removeEventListener("how-it-works:set-tab", handler);
+  }, []);
+
   const activeData = tabs.find(t => t.id === activeTab)!;
 
   const handleClick = (step: typeof activeData.steps[0]) => {
