@@ -139,6 +139,21 @@ const PublicHomeownerProfile = () => {
               </CardContent>
             </Card>
           )}
+
+          {profile.gallery_urls?.length > 0 && (
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="font-bold text-lg text-foreground mb-4">Photos</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {profile.gallery_urls.map((url) => (
+                    <a key={url} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden bg-muted hover:opacity-90 transition-opacity">
+                      <img src={url} alt="Gallery" className="object-cover w-full h-full" loading="lazy" />
+                    </a>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
       <Footer />
