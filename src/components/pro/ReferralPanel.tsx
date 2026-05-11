@@ -47,7 +47,7 @@ const ReferralPanel = ({ providerId, userId }: Props) => {
           .order("created_at", { ascending: false }),
       ]);
       setBusinessName(provRow?.business_name || "");
-      const list = (refs as Referral[]) || [];
+      const list = (refs as unknown as Referral[]) || [];
       setReferrals(list);
       // Use the most recent code as "my code", or create one
       if (list.length > 0) {
