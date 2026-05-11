@@ -1,68 +1,61 @@
-import { useNavigate } from "react-router-dom";
 import { Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield, Briefcase } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
 const features = [
   {
     icon: Wrench,
     title: "Find Local Pros",
     description: "Search by service, distance, rating, and availability. Get matched with vetted professionals near you.",
-    route: "/search",
+    tab: "pros",
   },
   {
     icon: Brain,
     title: "AI Job Estimator",
     description: "Snap a photo, describe the issue, and get instant cost estimates, material lists, and DIY vs. pro recommendations.",
-    route: "/estimator",
+    tab: "pros",
   },
   {
     icon: CalendarCheck,
     title: "Maintenance Autopilot",
     description: "Automated schedules based on your home profile. Never forget an HVAC filter, gutter clean, or seasonal checkup.",
-    route: "/maintenance",
+    tab: "maintenance",
   },
   {
     icon: FolderOpen,
     title: "Digital Home Binder",
     description: "Store appliance info, warranties, past jobs, receipts, and documents — all organized in one dashboard.",
-    route: "/binder",
+    tab: "binder",
   },
   {
     icon: Shield,
     title: "Coverage Advisor",
     description: "Upload your home warranty and insurance docs, then ask AI questions about what's covered and how to file claims.",
-    route: "/coverage",
+    tab: "coverage",
   },
   {
     icon: MessageSquare,
     title: "In-App Messaging",
     description: "Chat directly with pros, share photos, negotiate quotes, and track job status from request to completion.",
-    route: "/messages",
+    tab: "pros",
   },
   {
     icon: Briefcase,
     title: "Job Requests & Bidding",
     description: "Post a job and let pros come to you. Review bids, messages, and credentials — you control who can call.",
-    route: "/post-job",
+    tab: "jobs",
   },
   {
     icon: Star,
     title: "Verified Reviews",
     description: "Read honest reviews from real homeowners. Rate your experience and help the community find the best pros.",
-    route: "/search",
+    tab: "pros",
   },
 ];
 
 const FeaturesSection = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
   const handleClick = (feature: typeof features[0]) => {
-    if (feature.route) {
-      navigate(feature.route);
-    } else {
-      toast({ title: "Coming Soon", description: `${feature.title} is under development. Stay tuned!` });
-    }
+    window.dispatchEvent(new CustomEvent("how-it-works:set-tab", { detail: feature.tab }));
+    const el = document.getElementById("how-it-works");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -90,9 +83,6 @@ const FeaturesSection = () => {
               </div>
               <h3 className="font-bold text-lg text-card-foreground mb-2">{f.title}</h3>
               <p className="text-muted-foreground text-sm leading-relaxed">{f.description}</p>
-              {!f.route && (
-                <span className="inline-block mt-3 text-xs font-medium text-muted-foreground bg-secondary px-2 py-1 rounded-full">Coming Soon</span>
-              )}
             </button>
           ))}
         </div>
