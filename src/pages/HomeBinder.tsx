@@ -541,6 +541,19 @@ const HomeBinder = () => {
                             <Download size={12} /> {item.document_name}
                           </button>
                         )}
+
+                        {item.manual_url && (
+                          <a
+                            href={item.manual_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 flex items-center gap-1 text-xs text-primary hover:underline"
+                            title={item.manual_title || "User Manual"}
+                          >
+                            <BookOpen size={12} /> User Manual
+                            <ExternalLink size={10} />
+                          </a>
+                        )}
                       </div>
                     );
                   })}
@@ -578,8 +591,56 @@ const HomeBinder = () => {
                   </div>
                   <div>
                     <Label>Model Number</Label>
-                    <Input value={form.model_number} onChange={e => setForm({ ...form, model_number: e.target.value })} placeholder="RF28R7351SR" />
+                    <Input value={form.model_number} onChange={e => { setForm({ ...form, model_number: e.target.value }); setSelectedManual(null); setManualResults([]); }} placeholder="RF28R7351SR" />
                   </div>
+                </div>
+
+                {/* User Manual */}
+                <div className="rounded-lg border border-border bg-secondary/30 p-3">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <Label className="flex items-center gap-1.5 text-sm">
+                      <BookOpen size={14} className="text-primary" /> User Manual
+                    </Label>
+                    <Button type="button" size="sm" variant="outline" onClick={findManual} disabled={findingManual || !form.brand.trim() || !form.model_number.trim()}>
+                      {findingManual ? <><Loader2 size={12} className="animate-spin mr-1.5" /> Searching</> : <><Search size={12} className="mr-1.5" /> Find Manual</>}
+                    </Button>
+                  </div>
+                  {selectedManual ? (
+                    <div className="flex items-center gap-2 text-xs bg-card border border-border rounded px-2 py-1.5">
+                      <FileText size={12} className="text-primary shrink-0" />
+                      <a href={selectedManual.url} target="_blank" rel="noopener noreferrer" className="truncate hover:underline flex-1">{selectedManual.title}</a>
+                      <button onClick={() => setSelectedManual(null)} className="text-muted-foreground hover:text-destructive shrink-0"><X size={12} /></button>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      {form.brand && form.model_number
+                        ? "We'll auto-attach the manual when you save, or click Find Manual to choose."
+                        : "Enter brand + model to attach the user manual."}
+                    </p>
+                  )}
+                  {manualResults.length > 0 && (
+                    <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                      {manualResults.slice(0, 6).map((r, i) => {
+                        const isSelected = selectedManual?.url === r.url;
+                        return (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setSelectedManual({ url: r.url, title: r.title })}
+                            className={`w-full text-left text-xs rounded px-2 py-1.5 border flex items-start gap-2 ${
+                              isSelected ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/30"
+                            }`}
+                          >
+                            <FileText size={12} className={`mt-0.5 shrink-0 ${r.isPdf ? "text-primary" : "text-muted-foreground"}`} />
+                            <span className="flex-1 min-w-0">
+                              <span className="block truncate font-medium text-foreground">{r.title}</span>
+                              <span className="block text-[10px] text-muted-foreground">{r.source}{r.isPdf ? " · PDF" : ""}</span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
