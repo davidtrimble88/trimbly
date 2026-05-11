@@ -146,6 +146,9 @@ const PublicProviderProfile = () => {
                 <div className="flex items-center justify-center sm:justify-start gap-2 text-sm text-muted-foreground mt-2">
                   <MapPin size={14} />
                   {[provider.city, provider.state, provider.country].filter(Boolean).join(", ")}
+                  {provider.service_radius_miles > 0 && (
+                    <span className="text-xs">· serves within {provider.service_radius_miles} mi</span>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
                   {provider.emergency_available && (
