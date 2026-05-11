@@ -30,6 +30,10 @@ import ServicePlansPanel from "@/components/pro/ServicePlansPanel";
 import CredentialAlertBanner from "@/components/pro/CredentialAlertBanner";
 import BusinessHoursPanel from "@/components/pro/BusinessHoursPanel";
 import UpsellPanel from "@/components/pro/UpsellPanel";
+import MileageLogPanel from "@/components/pro/MileageLogPanel";
+import SkillBadgesPanel from "@/components/pro/SkillBadgesPanel";
+import NotificationPrefsPanel from "@/components/pro/NotificationPrefsPanel";
+import { useProNotifications } from "@/hooks/useProNotifications";
 
 type ProviderProfile = {
   id: string;
@@ -143,6 +147,13 @@ const ProDashboard = () => {
     if (!user) return;
     loadAll();
   }, [user]);
+
+  useProNotifications({
+    userId: user?.id || null,
+    providerId: provider?.id || null,
+    providerState: provider?.state || null,
+    providerCategory: provider?.category || null,
+  });
 
   const loadAll = async () => {
     if (!user) return;
@@ -519,6 +530,9 @@ const ProDashboard = () => {
                   businessName={provider.business_name}
                   userId={user!.id}
                 />
+                <SkillBadgesPanel providerId={provider.id} userId={user!.id} />
+                <MileageLogPanel providerId={provider.id} userId={user!.id} />
+                <NotificationPrefsPanel userId={user!.id} />
                 <ServicePlansPanel providerId={provider.id} />
               </div>
             </TabsContent>

@@ -20,6 +20,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { AIFeedback } from "@/components/messages/AIFeedback";
+import MessageCopilot from "@/components/messages/MessageCopilot";
 
 interface Message {
   id: string;
@@ -597,6 +598,15 @@ const Messages = () => {
                     })}
                   </div>
 
+                  {/* AI Co-pilot */}
+                  {!isPendingConversation && selectedPartner?.chatStatus !== "blocked" && activeConversation.length > 0 && user && (
+                    <MessageCopilot
+                      thread={activeConversation.map(m => ({ sender_id: m.sender_id, body: m.body, created_at: m.created_at }))}
+                      currentUserId={user.id}
+                      partnerName={selectedPartner?.name || "homeowner"}
+                      onUseDraft={(text) => setNewMessage(text)}
+                    />
+                  )}
                   {/* Composer */}
                   <div className="p-3 border-t border-border">
                     {selectedPartner?.chatStatus === "blocked" ? (
