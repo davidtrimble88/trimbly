@@ -343,6 +343,13 @@ const ProDashboard = () => {
             <ProGalleryEditor userId={user!.id} providerId={provider.id} businessName={provider.business_name} />
           </div>
 
+          {/* Credential expiry alert */}
+          <CredentialAlertBanner
+            licenseExpiry={provider.license_expiry}
+            insuranceExpiry={provider.insurance_expiry}
+            onGoToTools={() => setActiveTab("tools")}
+          />
+
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <Card onClick={() => setActiveTab("reviews")} className="cursor-pointer hover:border-primary transition-colors">
