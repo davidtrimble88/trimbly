@@ -500,6 +500,10 @@ const ProDashboard = () => {
                   initialRadius={provider.service_radius_miles}
                   onUpdated={(r) => setProvider((p) => p ? { ...p, service_radius_miles: r } : p)}
                 />
+                <BusinessHoursPanel
+                  providerId={provider.id}
+                  initial={(provider as any).business_hours}
+                />
                 <QuotesPanel
                   providerId={provider.id}
                   providerUserId={user!.id}
