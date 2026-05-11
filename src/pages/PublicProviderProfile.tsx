@@ -196,6 +196,9 @@ const PublicProviderProfile = () => {
             </Card>
           )}
 
+          {/* Recurring Plans */}
+          <ProviderPlansList providerId={provider.id} />
+
           {/* Gallery */}
           {provider.gallery_urls?.length > 0 && (
             <Card>
