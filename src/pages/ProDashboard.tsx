@@ -34,6 +34,11 @@ import MileageLogPanel from "@/components/pro/MileageLogPanel";
 import SkillBadgesPanel from "@/components/pro/SkillBadgesPanel";
 import NotificationPrefsPanel from "@/components/pro/NotificationPrefsPanel";
 import InstallAppPanel from "@/components/pro/InstallAppPanel";
+import YardSignQRPanel from "@/components/pro/YardSignQRPanel";
+import ReferralPanel from "@/components/pro/ReferralPanel";
+import AutoReviewPanel from "@/components/pro/AutoReviewPanel";
+import AIFollowUpPanel from "@/components/pro/AIFollowUpPanel";
+import CompetitorPricingPanel from "@/components/pro/CompetitorPricingPanel";
 import { useProNotifications } from "@/hooks/useProNotifications";
 
 type ProviderProfile = {
@@ -65,6 +70,7 @@ type ProviderProfile = {
   insurance_expiry: string | null;
   service_radius_miles: number;
   user_id: string;
+  slug?: string | null;
 };
 
 type BidWithJob = {
