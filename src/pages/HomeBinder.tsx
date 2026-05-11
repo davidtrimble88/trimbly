@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft, FolderOpen, Plus, Loader2, Pencil, Trash2, FileText, Upload,
-  X, Search, Package, Wrench, Shield, Receipt, Home as HomeIcon, Download
+  X, Search, Package, Wrench, Shield, Receipt, Home as HomeIcon, Download, BookOpen, ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +51,16 @@ type BinderItem = {
   notes: string;
   document_url: string | null;
   document_name: string | null;
+  manual_url: string | null;
+  manual_title: string | null;
+};
+
+type ManualResult = {
+  title: string;
+  url: string;
+  description?: string;
+  isPdf: boolean;
+  source: string;
 };
 
 const emptyItem = {
@@ -83,6 +93,9 @@ const HomeBinder = () => {
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const [findingManual, setFindingManual] = useState(false);
+  const [manualResults, setManualResults] = useState<ManualResult[]>([]);
+  const [selectedManual, setSelectedManual] = useState<{ url: string; title: string } | null>(null);
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
@@ -152,6 +165,8 @@ const HomeBinder = () => {
     setEditingItem(null);
     setForm(emptyItem);
     setFile(null);
+    setManualResults([]);
+    setSelectedManual(null);
     setDialogOpen(true);
   };
 
@@ -170,7 +185,39 @@ const HomeBinder = () => {
       notes: item.notes || "",
     });
     setFile(null);
+    setManualResults([]);
+    setSelectedManual(item.manual_url ? { url: item.manual_url, title: item.manual_title || "User Manual" } : null);
     setDialogOpen(true);
+  };
+
+  const findManual = async () => {
+    if (!form.brand.trim() || !form.model_number.trim()) {
+      toast({ title: "Brand & model needed", description: "Enter brand and model number to find the manual.", variant: "destructive" });
+      return;
+    }
+    setFindingManual(true);
+    setManualResults([]);
+    try {
+      const { data, error } = await supabase.functions.invoke("find-manual", {
+        body: { brand: form.brand, model: form.model_number, productType: form.item_type },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const results: ManualResult[] = data?.results || [];
+      setManualResults(results);
+      if (results.length === 0) {
+        toast({ title: "No manuals found", description: "Try a different model number." });
+      } else if (results[0].isPdf) {
+        // Auto-select top PDF result
+        setSelectedManual({ url: results[0].url, title: results[0].title });
+        toast({ title: "Manual found", description: results[0].title });
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Search failed";
+      toast({ title: "Search error", description: msg, variant: "destructive" });
+    } finally {
+      setFindingManual(false);
+    }
   };
 
   const saveItem = async () => {
@@ -196,6 +243,22 @@ const HomeBinder = () => {
         documentName = file.name;
       }
 
+      // Auto-find manual if brand+model present and none selected yet
+      let manualUrl = selectedManual?.url || null;
+      let manualTitle = selectedManual?.title || null;
+      if (!manualUrl && form.brand.trim() && form.model_number.trim()) {
+        try {
+          const { data } = await supabase.functions.invoke("find-manual", {
+            body: { brand: form.brand, model: form.model_number, productType: form.item_type },
+          });
+          const top = (data?.results || []).find((r: ManualResult) => r.isPdf) || (data?.results || [])[0];
+          if (top) {
+            manualUrl = top.url;
+            manualTitle = top.title;
+          }
+        } catch { /* ignore manual lookup failures */ }
+      }
+
       const row = {
         home_id: homeId,
         user_id: user.id,
@@ -211,6 +274,8 @@ const HomeBinder = () => {
         notes: form.notes,
         document_url: documentUrl,
         document_name: documentName,
+        manual_url: manualUrl,
+        manual_title: manualTitle,
         updated_at: new Date().toISOString(),
       };
 
@@ -476,6 +541,19 @@ const HomeBinder = () => {
                             <Download size={12} /> {item.document_name}
                           </button>
                         )}
+
+                        {item.manual_url && (
+                          <a
+                            href={item.manual_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 flex items-center gap-1 text-xs text-primary hover:underline"
+                            title={item.manual_title || "User Manual"}
+                          >
+                            <BookOpen size={12} /> User Manual
+                            <ExternalLink size={10} />
+                          </a>
+                        )}
                       </div>
                     );
                   })}
@@ -513,8 +591,56 @@ const HomeBinder = () => {
                   </div>
                   <div>
                     <Label>Model Number</Label>
-                    <Input value={form.model_number} onChange={e => setForm({ ...form, model_number: e.target.value })} placeholder="RF28R7351SR" />
+                    <Input value={form.model_number} onChange={e => { setForm({ ...form, model_number: e.target.value }); setSelectedManual(null); setManualResults([]); }} placeholder="RF28R7351SR" />
                   </div>
+                </div>
+
+                {/* User Manual */}
+                <div className="rounded-lg border border-border bg-secondary/30 p-3">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <Label className="flex items-center gap-1.5 text-sm">
+                      <BookOpen size={14} className="text-primary" /> User Manual
+                    </Label>
+                    <Button type="button" size="sm" variant="outline" onClick={findManual} disabled={findingManual || !form.brand.trim() || !form.model_number.trim()}>
+                      {findingManual ? <><Loader2 size={12} className="animate-spin mr-1.5" /> Searching</> : <><Search size={12} className="mr-1.5" /> Find Manual</>}
+                    </Button>
+                  </div>
+                  {selectedManual ? (
+                    <div className="flex items-center gap-2 text-xs bg-card border border-border rounded px-2 py-1.5">
+                      <FileText size={12} className="text-primary shrink-0" />
+                      <a href={selectedManual.url} target="_blank" rel="noopener noreferrer" className="truncate hover:underline flex-1">{selectedManual.title}</a>
+                      <button onClick={() => setSelectedManual(null)} className="text-muted-foreground hover:text-destructive shrink-0"><X size={12} /></button>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      {form.brand && form.model_number
+                        ? "We'll auto-attach the manual when you save, or click Find Manual to choose."
+                        : "Enter brand + model to attach the user manual."}
+                    </p>
+                  )}
+                  {manualResults.length > 0 && (
+                    <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                      {manualResults.slice(0, 6).map((r, i) => {
+                        const isSelected = selectedManual?.url === r.url;
+                        return (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setSelectedManual({ url: r.url, title: r.title })}
+                            className={`w-full text-left text-xs rounded px-2 py-1.5 border flex items-start gap-2 ${
+                              isSelected ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/30"
+                            }`}
+                          >
+                            <FileText size={12} className={`mt-0.5 shrink-0 ${r.isPdf ? "text-primary" : "text-muted-foreground"}`} />
+                            <span className="flex-1 min-w-0">
+                              <span className="block truncate font-medium text-foreground">{r.title}</span>
+                              <span className="block text-[10px] text-muted-foreground">{r.source}{r.isPdf ? " · PDF" : ""}</span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
