@@ -43,6 +43,11 @@ type ProviderProfile = {
   insurance_details: string | null;
   available: boolean;
   subscription_tier: string;
+  emergency_available: boolean;
+  emergency_rate_multiplier: number;
+  license_expiry: string | null;
+  insurance_expiry: string | null;
+  user_id: string;
 };
 
 type BidWithJob = {
