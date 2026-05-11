@@ -20,6 +20,7 @@ import {
   Briefcase, MessageSquare, Clock, CheckCircle,
   Eye, Zap, Crown, Pencil, Award, PhoneOff, MapPinned,
 } from "lucide-react";
+import ProGalleryEditor from "@/components/profile/ProGalleryEditor";
 
 type ProviderProfile = {
   id: string;
