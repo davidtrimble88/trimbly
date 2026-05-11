@@ -372,9 +372,12 @@ const ProDashboard = () => {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="w-full md:w-auto">
+            <TabsList className="w-full md:w-auto flex-wrap h-auto">
               <TabsTrigger value="bids" className="gap-1.5">
                 <Briefcase size={14} /> Bids {pendingBids > 0 && <Badge variant="secondary" className="text-xs ml-1">{pendingBids}</Badge>}
+              </TabsTrigger>
+              <TabsTrigger value="tools" className="gap-1.5">
+                <Sparkles size={14} /> Tools
               </TabsTrigger>
               <TabsTrigger value="reviews" className="gap-1.5">
                 <Star size={14} /> Reviews
@@ -386,6 +389,15 @@ const ProDashboard = () => {
                 <Building2 size={14} /> Profile
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="tools">
+              <ProFeaturesPanel
+                provider={provider}
+                userId={user!.id}
+                onUpdated={(patch) => setProvider((p) => p ? { ...p, ...patch } : p)}
+              />
+            </TabsContent>
+
 
             {/* Bids Tab */}
             <TabsContent value="bids">
