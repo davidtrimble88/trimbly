@@ -28,6 +28,8 @@ interface ProviderRow {
   insured: boolean;
   verified: boolean;
   gallery_urls: string[];
+  emergency_available: boolean;
+  emergency_rate_multiplier: number;
 }
 
 interface Review {
