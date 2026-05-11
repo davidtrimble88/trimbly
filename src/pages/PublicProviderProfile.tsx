@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import StatsGrid from "@/components/profile/StatsGrid";
+import ProviderPlansList from "@/components/pro/ProviderPlansList";
 
 interface ProviderRow {
   id: string;
@@ -195,6 +196,9 @@ const PublicProviderProfile = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Recurring Plans */}
+          <ProviderPlansList providerId={provider.id} />
 
           {/* Gallery */}
           {provider.gallery_urls?.length > 0 && (

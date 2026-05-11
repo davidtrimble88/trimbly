@@ -607,6 +607,42 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_subscriptions: {
+        Row: {
+          created_at: string
+          homeowner_id: string
+          id: string
+          next_service_date: string | null
+          notes: string
+          plan_id: string
+          provider_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          homeowner_id: string
+          id?: string
+          next_service_date?: string | null
+          notes?: string
+          plan_id: string
+          provider_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          homeowner_id?: string
+          id?: string
+          next_service_date?: string | null
+          notes?: string
+          plan_id?: string
+          provider_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_preferences: {
         Row: {
           created_at: string
@@ -939,6 +975,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      service_plans: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          currency: string
+          description: string
+          frequency: string
+          id: string
+          name: string
+          price: number
+          provider_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          currency?: string
+          description?: string
+          frequency?: string
+          id?: string
+          name: string
+          price?: number
+          provider_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          currency?: string
+          description?: string
+          frequency?: string
+          id?: string
+          name?: string
+          price?: number
+          provider_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       staff_activity_log: {
         Row: {

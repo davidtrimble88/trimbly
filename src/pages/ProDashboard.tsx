@@ -24,6 +24,7 @@ import ProGalleryEditor from "@/components/profile/ProGalleryEditor";
 import ProFeaturesPanel from "@/components/pro/ProFeaturesPanel";
 import ServiceAreaPanel from "@/components/pro/ServiceAreaPanel";
 import QuotesPanel from "@/components/pro/QuotesPanel";
+import ServicePlansPanel from "@/components/pro/ServicePlansPanel";
 
 type ProviderProfile = {
   id: string;
@@ -412,6 +413,7 @@ const ProDashboard = () => {
                   providerUserId={user!.id}
                   businessName={provider.business_name}
                 />
+                <ServicePlansPanel providerId={provider.id} />
               </div>
             </TabsContent>
 
