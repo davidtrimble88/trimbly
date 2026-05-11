@@ -33,6 +33,7 @@ import UpsellPanel from "@/components/pro/UpsellPanel";
 import MileageLogPanel from "@/components/pro/MileageLogPanel";
 import SkillBadgesPanel from "@/components/pro/SkillBadgesPanel";
 import NotificationPrefsPanel from "@/components/pro/NotificationPrefsPanel";
+import InstallAppPanel from "@/components/pro/InstallAppPanel";
 import { useProNotifications } from "@/hooks/useProNotifications";
 
 type ProviderProfile = {
@@ -533,6 +534,7 @@ const ProDashboard = () => {
                 <SkillBadgesPanel providerId={provider.id} userId={user!.id} />
                 <MileageLogPanel providerId={provider.id} userId={user!.id} />
                 <NotificationPrefsPanel userId={user!.id} />
+                <InstallAppPanel />
                 <ServicePlansPanel providerId={provider.id} />
               </div>
             </TabsContent>
