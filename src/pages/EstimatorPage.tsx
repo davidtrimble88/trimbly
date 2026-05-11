@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Brain, Loader2, DollarSign, Clock, Wrench, Lightbulb, ShieldCheck, AlertTriangle, ChevronRight, Crown } from "lucide-react";
+import { ArrowLeft, Brain, Loader2, DollarSign, Clock, Wrench, Lightbulb, ShieldCheck, AlertTriangle, ChevronRight, Crown, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -218,6 +218,19 @@ const EstimatorPage = () => {
                       {estimate.diy_recommended ? "DIY Recommended ✓" : "Hire a Pro Recommended"}
                     </h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">{estimate.diy_reasoning}</p>
+                    {estimate.diy_recommended && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="mt-3 gap-1.5"
+                        onClick={() => {
+                          const query = encodeURIComponent(`how to ${estimate.job_title} DIY tutorial`);
+                          window.open(`https://www.youtube.com/results?search_query=${query}`, "_blank", "noopener,noreferrer");
+                        }}
+                      >
+                        <PlayCircle size={14} /> Show Me How
+                      </Button>
+                    )}
                     {!estimate.diy_recommended && (
                       <Button variant="outline" size="sm" className="mt-3 gap-1" asChild>
                         <Link to="/search">
