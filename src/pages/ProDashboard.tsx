@@ -666,8 +666,9 @@ const ProDashboard = () => {
             </TabsContent>
 
             {/* Profile Tab */}
-            <TabsContent value="profile">
-              <h2 className="text-lg font-bold text-foreground mb-4">Business Profile</h2>
+            <TabsContent value="profile" className="space-y-6">
+              <ProGalleryEditor userId={user!.id} providerId={provider.id} businessName={provider.business_name} />
+              <h2 className="text-lg font-bold text-foreground">Business Profile</h2>
               <Card>
                 <CardContent className="p-6 space-y-6">
                   {/* Business info */}
