@@ -29,7 +29,7 @@ export async function reportError(opts: ReportOpts) {
       route: window.location.pathname,
       component: opts.component ?? null,
       user_agent: navigator.userAgent,
-      metadata: opts.metadata ?? {},
+      metadata: (opts.metadata ?? {}) as any,
     }]);
   } catch {
     /* best-effort */
