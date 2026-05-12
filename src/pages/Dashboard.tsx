@@ -287,6 +287,22 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <OnboardingTour
+        storageKey={`hh-tour-homeowner-${user.id}`}
+        intro={{
+          title: `Welcome to HomeHero, ${displayName?.split(" ")[0] || "friend"}!`,
+          body: "Let's take a quick tour of your dashboard so you know where everything lives. It'll only take a minute.",
+        }}
+        steps={[
+          { title: "Your Public Profile", body: "Personalize your name, photo, and bio. Other homeowners and pros can see this when you connect with them." },
+          { title: "Your Homes", body: "Add and manage your home profiles here. Each home gets its own maintenance schedule, binder, and AI insights tailored to its size, age, and systems." },
+          { title: "Job Posts", body: "Post a job to get bids from local pros. Track pending, accepted, and completed jobs at a glance — tap any tile to jump to the job board." },
+          { title: "Home Care Tools", body: "Generate a maintenance schedule, get AI symptom triage when something breaks, and keep your Digital Home Binder of manuals and warranties up to date." },
+          { title: "Get Help", body: "Search trusted pros, post a job, use the AI Job Estimator for cost ranges, and the Coverage Advisor to check what your warranty or insurance covers." },
+          { title: "Messages & Reviews", body: "Chat with pros directly in-app — your phone number stays private until you approve sharing it. Leave reviews after a job is complete." },
+          { title: "Upgrade Anytime", body: "Free covers the basics. Upgrade to Pro for unlimited estimates, AI tools, and binder items, or Multi-Home Pro to manage up to 10 properties." },
+        ]}
+      />
       <Navbar />
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4">
