@@ -82,7 +82,7 @@ const proTiers = [
     route: "/pro-register?tier=free",
   },
   {
-    name: "Pro",
+    name: "Pro Provider",
     price: "$29",
     period: "/month",
     description: "More visibility, more leads, more growth",
