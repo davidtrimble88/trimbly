@@ -25,7 +25,7 @@ export async function logSearch(params: LogParams): Promise<void> {
       category: params.category ?? null,
       location: params.location ?? null,
       results_count: params.results_count ?? null,
-      metadata: params.metadata ?? {},
+      metadata: (params.metadata ?? {}) as any,
     }]);
   } catch {
     // ignore — analytics best-effort
