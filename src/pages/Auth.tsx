@@ -218,7 +218,13 @@ function AuthForm({
         if (error) {
           toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
         } else {
-          toast({ title: "Check your email", description: "We sent you a confirmation link to verify your account." });
+          if (userType === "provider") {
+            toast({ title: "Check your email", description: "We sent you a confirmation link to verify your account." });
+          } else {
+            // For homeowners, skip straight to home setup during onboarding
+            toast({ title: "Welcome!", description: "Let's set up your home." });
+            navigate("/maintenance?onboarding=1");
+          }
         }
       } else {
         const { error } = await signIn(form.email, form.password);
