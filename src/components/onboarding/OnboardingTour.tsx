@@ -112,5 +112,6 @@ export function OnboardingTour({ storageKey, steps, intro }: Props) {
         </div>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
