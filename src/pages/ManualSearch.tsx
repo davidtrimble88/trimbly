@@ -54,6 +54,13 @@ const ManualSearch = () => {
       if (data?.error) throw new Error(data.error);
       const results: ManualResult[] = data?.results || [];
       const topPdf = results.find((r) => r.isPdf) || null;
+      logSearch({
+        search_type: "manual",
+        query: `${brand} ${model}`.trim(),
+        category: productType || null,
+        results_count: results.length,
+        metadata: { brand, model, productType, foundPdf: !!topPdf },
+      });
       if (topPdf) {
         setManual(topPdf);
       } else {
