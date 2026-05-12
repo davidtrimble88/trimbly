@@ -17,6 +17,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ProfileEditor from "@/components/profile/ProfileEditor";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
+import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
+import { NotificationPermissionPrompt } from "@/components/NotificationPermissionPrompt";
 import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star,
   Lock, Crown, Home, AlertTriangle, CheckCircle2, Clock, Shield,
@@ -127,6 +129,7 @@ const Dashboard = () => {
   const [allBinderItems, setAllBinderItems] = useState<BinderRow[]>([]);
   const [drilldown, setDrilldown] = useState<DrilldownInfo | null>(null);
   const [jobStats, setJobStats] = useState({ total: 0, pending: 0, withBids: 0, accepted: 0, completed: 0 });
+  const [showWizard, setShowWizard] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -176,7 +179,12 @@ const Dashboard = () => {
     const homesList = (homesData as HomeData[]) || [];
     setHomes(homesList);
 
-    if (homesList.length === 0) { setLoadingHomes(false); return; }
+    if (homesList.length === 0) {
+      const skipped = localStorage.getItem("hh_wizard_skipped");
+      if (!skipped) setShowWizard(true);
+      setLoadingHomes(false);
+      return;
+    }
 
     const homeIds = homesList.map(h => h.id);
 
@@ -304,8 +312,17 @@ const Dashboard = () => {
         ]}
       />
       <Navbar />
+      {user && (
+        <OnboardingWizard
+          open={showWizard}
+          userId={user.id}
+          onComplete={(id) => { setShowWizard(false); loadHomesAndStats(); }}
+          onSkip={() => { setShowWizard(false); localStorage.setItem("hh_wizard_skipped", "1"); }}
+        />
+      )}
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4">
+          <NotificationPermissionPrompt />
           {/* Header */}
           <div className="mb-10">
             <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
@@ -347,9 +364,14 @@ const Dashboard = () => {
             ) : homes.length === 0 ? (
               <Card className="text-center py-10">
                 <CardContent>
-                  <Home size={40} className="mx-auto text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground mb-4">No homes added yet. Set up your first home to get personalized insights.</p>
-                  <Button onClick={() => navigate("/maintenance")}>Add Your Home</Button>
+                  <Home size={40} className="mx-auto text-primary mb-3" />
+                  <h3 className="font-display font-bold text-lg mb-1">Add your first home</h3>
+                  <p className="text-muted-foreground text-sm mb-4 max-w-sm mx-auto">
+                    HomeHero tailors every recommendation to your home's age, size, and systems. Takes under a minute.
+                  </p>
+                  <Button onClick={() => setShowWizard(true)}>
+                    <Plus size={14} className="mr-1.5" /> Set up my home
+                  </Button>
                 </CardContent>
               </Card>
             ) : (

@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { installGlobalErrorReporting } from "@/lib/errorReporting";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import SearchPros from "./pages/SearchPros";
@@ -66,6 +68,11 @@ function ScrollToTop() {
   return null;
 }
 
+function GlobalListeners() {
+  useRealtimeNotifications();
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ErrorBoundary>
@@ -75,6 +82,8 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
+          <GlobalListeners />
+          <div className="pb-16 md:pb-0">
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
@@ -119,6 +128,8 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </div>
+          <MobileBottomNav />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
