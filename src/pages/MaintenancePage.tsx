@@ -214,6 +214,17 @@ const MaintenancePage = () => {
     const allHomes = (data || []).map(h => ({ ...h, year_built: h.year_built ?? null, square_feet: h.square_feet ?? null }));
     setHomes(allHomes);
 
+    if (onboarding) {
+      // Force setup wizard for onboarding flow
+      setShowSetup(true);
+      setWizardStep(0);
+      setHome(emptyHome);
+      setHomeLoaded(false);
+      setIsAddingNew(true);
+      setLoadingHome(false);
+      return;
+    }
+
     if (allHomes.length > 0) {
       setHome(allHomes[0]);
       setHomeLoaded(true);
