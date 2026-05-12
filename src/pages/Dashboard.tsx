@@ -17,6 +17,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ProfileEditor from "@/components/profile/ProfileEditor";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
+import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
+import { NotificationPermissionPrompt } from "@/components/NotificationPermissionPrompt";
 import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star,
   Lock, Crown, Home, AlertTriangle, CheckCircle2, Clock, Shield,
@@ -127,6 +129,7 @@ const Dashboard = () => {
   const [allBinderItems, setAllBinderItems] = useState<BinderRow[]>([]);
   const [drilldown, setDrilldown] = useState<DrilldownInfo | null>(null);
   const [jobStats, setJobStats] = useState({ total: 0, pending: 0, withBids: 0, accepted: 0, completed: 0 });
+  const [showWizard, setShowWizard] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -176,7 +179,12 @@ const Dashboard = () => {
     const homesList = (homesData as HomeData[]) || [];
     setHomes(homesList);
 
-    if (homesList.length === 0) { setLoadingHomes(false); return; }
+    if (homesList.length === 0) {
+      const skipped = localStorage.getItem("hh_wizard_skipped");
+      if (!skipped) setShowWizard(true);
+      setLoadingHomes(false);
+      return;
+    }
 
     const homeIds = homesList.map(h => h.id);
 
