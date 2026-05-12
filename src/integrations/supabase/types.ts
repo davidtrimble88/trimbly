@@ -1178,6 +1178,42 @@ export type Database = {
           },
         ]
       }
+      search_logs: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          location: string | null
+          metadata: Json
+          query: string
+          results_count: number | null
+          search_type: string
+          user_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          metadata?: Json
+          query?: string
+          results_count?: number | null
+          search_type?: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          metadata?: Json
+          query?: string
+          results_count?: number | null
+          search_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       service_plans: {
         Row: {
           active: boolean
