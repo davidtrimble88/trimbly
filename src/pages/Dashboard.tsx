@@ -20,6 +20,8 @@ import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { NotificationPermissionPrompt } from "@/components/NotificationPermissionPrompt";
 import { ShareHomeHeroCard } from "@/components/ShareHomeHeroCard";
+import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
+import SavedProvidersCard from "@/components/SavedProvidersCard";
 import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star,
   Lock, Crown, Home, AlertTriangle, CheckCircle2, Clock, Shield,
@@ -673,8 +675,12 @@ const Dashboard = () => {
             })}
           </div>
 
-          {/* Invite a friend */}
-          <div className="mt-8">
+          {/* Profile completeness + Saved pros + Invite */}
+          <div className="mt-8 grid md:grid-cols-2 gap-4">
+            <ProfileCompletenessCard />
+            <SavedProvidersCard />
+          </div>
+          <div className="mt-4">
             <ShareHomeHeroCard />
           </div>
         </div>
