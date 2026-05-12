@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,50 +9,62 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { installGlobalErrorReporting } from "@/lib/errorReporting";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import CookieConsent from "@/components/CookieConsent";
+
+// Eager: high-traffic landing + auth + dashboards
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import SearchPros from "./pages/SearchPros";
-import EstimatorPage from "./pages/EstimatorPage";
-import SymptomTriage from "./pages/SymptomTriage";
-import MaintenancePage from "./pages/MaintenancePage";
-import HomeBinder from "./pages/HomeBinder";
-import ProPricing from "./pages/ProPricing";
-import ProRegister from "./pages/ProRegister";
-import About from "./pages/About";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
-import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
-import Messages from "./pages/Messages";
-import CoverageAdvisor from "./pages/CoverageAdvisor";
-import PostJob from "./pages/PostJob";
-import JobBoard from "./pages/JobBoard";
 import ProDashboard from "./pages/ProDashboard";
-import Contact from "./pages/Contact";
-import StaffLayout from "./pages/staff/StaffLayout";
-import StaffDashboard from "./pages/staff/Dashboard";
-import StaffContacts from "./pages/staff/Contacts";
-import StaffUsers from "./pages/staff/Users";
-import StaffProviders from "./pages/staff/Providers";
-import StaffJobs from "./pages/staff/Jobs";
-import StaffOutreach from "./pages/staff/Outreach";
-import StaffModeration from "./pages/staff/Moderation";
-import StaffBroadcasts from "./pages/staff/Broadcasts";
-import StaffSearches from "./pages/staff/Searches";
-import StaffErrors from "./pages/staff/Errors";
-import PortalChoice from "./pages/PortalChoice";
-import Help from "./pages/Help";
-import ManualSearch from "./pages/ManualSearch";
-import PublicHomeownerProfile from "./pages/PublicHomeownerProfile";
-import PublicProviderProfile from "./pages/PublicProviderProfile";
-import QuoteView from "./pages/QuoteView";
 import NotFound from "./pages/NotFound";
-import CancelSubscription from "./pages/CancelSubscription";
-import SeoServiceLanding from "./pages/SeoServiceLanding";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
 
-const queryClient = new QueryClient();
+// Lazy-load secondary routes for smaller initial bundle
+const SearchPros = lazy(() => import("./pages/SearchPros"));
+const EstimatorPage = lazy(() => import("./pages/EstimatorPage"));
+const SymptomTriage = lazy(() => import("./pages/SymptomTriage"));
+const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
+const HomeBinder = lazy(() => import("./pages/HomeBinder"));
+const ProPricing = lazy(() => import("./pages/ProPricing"));
+const ProRegister = lazy(() => import("./pages/ProRegister"));
+const About = lazy(() => import("./pages/About"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Messages = lazy(() => import("./pages/Messages"));
+const CoverageAdvisor = lazy(() => import("./pages/CoverageAdvisor"));
+const PostJob = lazy(() => import("./pages/PostJob"));
+const JobBoard = lazy(() => import("./pages/JobBoard"));
+const Contact = lazy(() => import("./pages/Contact"));
+const StaffLayout = lazy(() => import("./pages/staff/StaffLayout"));
+const StaffDashboard = lazy(() => import("./pages/staff/Dashboard"));
+const StaffContacts = lazy(() => import("./pages/staff/Contacts"));
+const StaffUsers = lazy(() => import("./pages/staff/Users"));
+const StaffProviders = lazy(() => import("./pages/staff/Providers"));
+const StaffJobs = lazy(() => import("./pages/staff/Jobs"));
+const StaffOutreach = lazy(() => import("./pages/staff/Outreach"));
+const StaffModeration = lazy(() => import("./pages/staff/Moderation"));
+const StaffBroadcasts = lazy(() => import("./pages/staff/Broadcasts"));
+const StaffSearches = lazy(() => import("./pages/staff/Searches"));
+const StaffErrors = lazy(() => import("./pages/staff/Errors"));
+const PortalChoice = lazy(() => import("./pages/PortalChoice"));
+const Help = lazy(() => import("./pages/Help"));
+const ManualSearch = lazy(() => import("./pages/ManualSearch"));
+const PublicHomeownerProfile = lazy(() => import("./pages/PublicHomeownerProfile"));
+const PublicProviderProfile = lazy(() => import("./pages/PublicProviderProfile"));
+const QuoteView = lazy(() => import("./pages/QuoteView"));
+const CancelSubscription = lazy(() => import("./pages/CancelSubscription"));
+const SeoServiceLanding = lazy(() => import("./pages/SeoServiceLanding"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 if (typeof window !== "undefined") installGlobalErrorReporting();
 
@@ -76,6 +88,12 @@ function GlobalListeners() {
   return null;
 }
 
+const RouteLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ErrorBoundary>
@@ -87,6 +105,7 @@ const App = () => (
           <ScrollToTop />
           <GlobalListeners />
           <div className="pb-16 md:pb-0">
+          <Suspense fallback={<RouteLoader />}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
@@ -134,8 +153,10 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
           </div>
           <MobileBottomNav />
+          <CookieConsent />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
