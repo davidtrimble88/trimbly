@@ -84,7 +84,7 @@ const TOPICS: Topic[] = [
       },
       {
         q: "How many items can I add?",
-        a: "Free: 0 items. Pro: 5 items. Home Super Hero: unlimited items across all your homes.",
+        a: "Free: 0 items. Home Hero: 5 items. Home Super Hero: unlimited items across all your homes.",
       },
     ],
   },
@@ -174,7 +174,7 @@ const TOPICS: Topic[] = [
     faqs: [
       {
         q: "What's included in each plan?",
-        a: "Free: 1 home, basic maintenance, browse and message pros. Pro: full features (Estimator, Coverage Advisor, Binder up to 5 items). Home Super Hero: 10 homes, unlimited binder.",
+        a: "Free: 1 home, basic maintenance, browse and message pros. Home Hero: full features (Estimator, Coverage Advisor, Binder up to 5 items). Home Super Hero: 10 homes, unlimited binder.",
       },
       {
         q: "How do I upgrade or cancel?",
