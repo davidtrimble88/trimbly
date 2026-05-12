@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { installGlobalErrorReporting } from "@/lib/errorReporting";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import SearchPros from "./pages/SearchPros";
@@ -63,6 +65,11 @@ function ScrollToTop() {
       window.scrollTo(0, 0);
     }
   }, [pathname, hash]);
+  return null;
+}
+
+function GlobalListeners() {
+  useRealtimeNotifications();
   return null;
 }
 
