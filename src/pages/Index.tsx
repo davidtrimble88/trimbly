@@ -7,6 +7,7 @@ import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import PricingSection from "@/components/landing/PricingSection";
 import ForProsSection from "@/components/landing/ForProsSection";
 import CTASection from "@/components/landing/CTASection";
+import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -27,6 +28,7 @@ const Index = () => {
         <HeroSection />
         <FeaturesSection />
         <HowItWorksSection />
+        <TestimonialsSection />
         <PricingSection />
         <ForProsSection />
         <CTASection />
