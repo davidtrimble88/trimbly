@@ -45,6 +45,7 @@ import PublicHomeownerProfile from "./pages/PublicHomeownerProfile";
 import PublicProviderProfile from "./pages/PublicProviderProfile";
 import QuoteView from "./pages/QuoteView";
 import NotFound from "./pages/NotFound";
+import CancelSubscription from "./pages/CancelSubscription";
 
 const queryClient = new QueryClient();
 
@@ -102,6 +103,7 @@ const App = () => (
             <Route path="/pro/:providerId" element={<PublicProviderProfile />} />
             <Route path="/pros/:slug" element={<PublicProviderProfile />} />
             <Route path="/quote/:quoteId" element={<QuoteView />} />
+            <Route path="/cancel-subscription" element={<CancelSubscription />} />
             <Route path="/staff" element={<StaffLayout />}>
               <Route index element={<StaffDashboard />} />
               <Route path="contacts" element={<StaffContacts />} />

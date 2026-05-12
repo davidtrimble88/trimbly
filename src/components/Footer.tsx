@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const Footer = () => {
+  const { user } = useAuth();
   return (
     <footer className="border-t border-border py-12">
       <div className="container mx-auto px-4">
@@ -45,6 +47,14 @@ const Footer = () => {
         </div>
         <div className="border-t border-border pt-6 text-center text-xs text-muted-foreground">
           © {new Date().getFullYear()} HomeHero. All rights reserved.
+          {user && (
+            <>
+              <span className="mx-2 text-muted-foreground/30">·</span>
+              <Link to="/cancel-subscription" className="text-muted-foreground/50 hover:text-muted-foreground transition-colors">
+                Cancel subscription
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </footer>
