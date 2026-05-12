@@ -47,10 +47,10 @@ export function OnboardingTour({ storageKey, steps, intro }: Props) {
       {!open && (
         <button
           onClick={replay}
-          className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-3.5 py-2 text-xs font-medium shadow-lg hover:opacity-90 transition"
+          className="fixed bottom-6 right-6 z-[100] inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-4 py-2.5 text-sm font-medium shadow-xl hover:opacity-90 transition border-2 border-primary-foreground/20"
           aria-label="Replay tour"
         >
-          <HelpCircle size={14} /> Replay tour
+          <HelpCircle size={16} /> Replay tour
         </button>
       )}
     <Dialog open={open} onOpenChange={(o) => { if (!o) finish(); }}>
