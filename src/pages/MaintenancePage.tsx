@@ -141,6 +141,8 @@ const MaintenancePage = () => {
   const isMultiPro = subscriptionTier === "multi_pro";
   // For multi-home users, include the name step; for single-home, skip it
   const wizardSteps = isMultiPro ? baseWizardSteps : baseWizardSteps.filter(s => s.key !== "home_name");
+  const [searchParams] = useSearchParams();
+  const onboarding = searchParams.get("onboarding") === "1";
   const [allHomesView, setAllHomesView] = useState(false);
 
   const [homes, setHomes] = useState<HomeProfile[]>([]);
