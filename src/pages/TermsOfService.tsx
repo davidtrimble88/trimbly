@@ -206,7 +206,90 @@ const TermsOfService = () => {
             </section>
 
             <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-4">
-              <h2 className="text-xl font-bold text-foreground">20. Contact</h2>
+              <h2 className="text-xl font-bold text-foreground">20. Mobile App License</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                Subject to your compliance with these Terms, HomeHero grants you a limited, non-exclusive, non-transferable, non-sublicensable, revocable license to install and use one copy of the HomeHero mobile application on a device that you own or control, solely for your personal, non-commercial use (or, for Pros, internal business use). You may not copy, modify, decompile, reverse engineer, lease, sell, sublicense, or create derivative works of the app, except to the extent expressly permitted by law.
+              </p>
+            </section>
+
+            <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-4">
+              <h2 className="text-xl font-bold text-foreground">21. Apple App Store Addendum</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                If you download the HomeHero app from the Apple App Store, the following terms apply in addition to the rest of these Terms:
+              </p>
+              <ul className="list-disc list-inside text-muted-foreground space-y-2">
+                <li>These Terms are between you and HomeHero only, and not with Apple Inc. ("Apple"). HomeHero, not Apple, is solely responsible for the app and its content.</li>
+                <li>Your license to use the app is limited to use on Apple-branded products that you own or control and as permitted by the Apple Media Services Terms.</li>
+                <li>Apple has no obligation to provide any maintenance or support services for the app.</li>
+                <li>In the event of any failure of the app to conform to any applicable warranty, you may notify Apple, and Apple will refund the purchase price (if any) for the app to you. To the maximum extent permitted by applicable law, Apple has no other warranty obligation whatsoever with respect to the app.</li>
+                <li>HomeHero, not Apple, is responsible for addressing any claims by you or any third party relating to the app, including product liability claims, claims that the app fails to conform to any applicable legal or regulatory requirement, and claims arising under consumer-protection or similar legislation.</li>
+                <li>In the event of any third-party claim that the app or your possession and use of the app infringes that third party's intellectual property rights, HomeHero, not Apple, is solely responsible for the investigation, defense, settlement, and discharge of that claim.</li>
+                <li>You represent and warrant that you are not located in a country that is subject to a U.S. Government embargo or designated as a "terrorist supporting" country, and that you are not listed on any U.S. Government list of prohibited or restricted parties.</li>
+                <li>Apple and Apple's subsidiaries are third-party beneficiaries of these Terms, and upon your acceptance of these Terms, Apple will have the right (and will be deemed to have accepted the right) to enforce these Terms against you as a third-party beneficiary.</li>
+              </ul>
+            </section>
+
+            <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-4">
+              <h2 className="text-xl font-bold text-foreground">22. Google Play Addendum</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                If you download the HomeHero app from Google Play, you acknowledge that these Terms are between you and HomeHero only, and not with Google LLC. Your use of the app must also comply with the Google Play Terms of Service. HomeHero — not Google — is solely responsible for the app, its content, and any claims related to it. Google has no obligation to provide support or maintenance for the app.
+              </p>
+            </section>
+
+            <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-4">
+              <h2 className="text-xl font-bold text-foreground">23. Subscription Auto-Renewal Disclosure</h2>
+              <ul className="list-disc list-inside text-muted-foreground space-y-2">
+                <li>Paid subscriptions are <strong>automatically renewed</strong> at the end of each billing period (monthly or annual) using the payment method on file.</li>
+                <li>The renewal price equals the then-current published price for your tier; we will give at least 30 days' notice of any price change.</li>
+                <li>You can cancel at any time before the next renewal in Settings → Billing (or, for App Store purchases, in your Apple ID subscription settings; for Google Play purchases, in your Google Play account).</li>
+                <li>Cancellation takes effect at the end of the current paid period; access continues until then.</li>
+                <li>For App Store and Google Play purchases, refund requests are handled by Apple and Google under their respective policies. For purchases made directly on our website, see Section 5.</li>
+              </ul>
+            </section>
+
+            <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-4">
+              <h2 className="text-xl font-bold text-foreground">24. Acceptable Use</h2>
+              <p className="text-muted-foreground leading-relaxed">You agree not to:</p>
+              <ul className="list-disc list-inside text-muted-foreground space-y-2">
+                <li>Use the Platform for any illegal, fraudulent, or harmful activity.</li>
+                <li>Impersonate any person or business or misrepresent your credentials, licenses, or insurance.</li>
+                <li>Solicit users to transact off-platform to evade fees, ratings, or safety protections.</li>
+                <li>Harass, threaten, defame, or stalk other users; share sexually explicit, hateful, or violent content.</li>
+                <li>Upload viruses, malware, or any code designed to disrupt the Platform.</li>
+                <li>Scrape, crawl, or use automated means to access the Platform except via documented APIs.</li>
+                <li>Reverse-engineer, copy, or attempt to extract source code or model weights.</li>
+                <li>Use the Platform to spam, send unsolicited communications, or violate anti-spam laws.</li>
+                <li>Infringe any intellectual property, privacy, or other right of any third party.</li>
+              </ul>
+              <p className="text-muted-foreground leading-relaxed">
+                We may suspend or terminate accounts that violate this policy, and may report unlawful activity to authorities.
+              </p>
+            </section>
+
+            <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-4">
+              <h2 className="text-xl font-bold text-foreground">25. DMCA / Copyright Complaints</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                If you believe content on the Platform infringes your copyright, send a notice to <strong>dmca@homehero.com</strong> including: (a) a physical or electronic signature of the rights owner or authorized agent; (b) identification of the copyrighted work; (c) the URL or location of the allegedly infringing material; (d) your contact information; (e) a statement of good-faith belief that the use is unauthorized; and (f) a statement, under penalty of perjury, that the information is accurate and you are authorized to act. We will respond to valid notices in accordance with the Digital Millennium Copyright Act.
+              </p>
+            </section>
+
+            <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-4">
+              <h2 className="text-xl font-bold text-foreground">26. Export Controls & Sanctions</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                You may not use or export the Platform in violation of U.S. export laws and regulations. You represent that you are not located in, under the control of, or a national or resident of any country subject to U.S. embargo, and that you are not on any U.S. Government list of restricted parties.
+              </p>
+            </section>
+
+            <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-4">
+              <h2 className="text-xl font-bold text-foreground">27. Privacy</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                Your use of the Platform is also governed by our{" "}
+                <Link to="/privacy" className="text-primary hover:underline font-medium">Privacy Policy</Link>, which is incorporated into these Terms by reference.
+              </p>
+            </section>
+
+            <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-4">
+              <h2 className="text-xl font-bold text-foreground">28. Contact</h2>
               <p className="text-muted-foreground leading-relaxed">
                 For questions about these Terms of Service, please{" "}
                 <Link to="/contact" className="text-primary hover:underline font-medium">
