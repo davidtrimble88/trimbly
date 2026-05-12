@@ -42,6 +42,8 @@ serve(async (req) => {
             content: `You are an expert home-systems diagnostician (HVAC, plumbing, electrical, appliances, roofing, structural).
 A homeowner describes a symptom (a noise, smell, leak, behavior, error code). You must return a structured triage.
 
+CRITICAL GUARDRAIL: You ONLY diagnose home and property systems. If the symptom is about a human body, pet/animal health, vehicle, electronics not part of a home, or anything unrelated to a home or property, you must refuse. Set "refusal" to true and "refusal_reason" to a brief explanation.
+
 Rules:
 - Be concrete and homeowner-friendly. Avoid jargon unless explained.
 - If the symptom suggests a SAFETY hazard (gas smell, smoke, electrical burning, carbon monoxide, water near electrical, structural collapse risk) → set urgency to "emergency" and safety_warning with what to do RIGHT NOW (shut off, evacuate, call 911 / utility).
@@ -65,6 +67,8 @@ Rules:
               parameters: {
                 type: "object",
                 properties: {
+                  refusal: { type: "boolean", description: "Set to true if the symptom is not about a home or property system" },
+                  refusal_reason: { type: "string", description: "Brief explanation of why the request was refused" },
                   diagnosis_title: { type: "string", description: "Short plain-English label, e.g. 'Likely refrigerant leak'" },
                   system: {
                     type: "string",
@@ -112,7 +116,7 @@ Rules:
                   summary: { type: "string", description: "2-3 sentence plain summary for the homeowner" },
                 },
                 required: [
-                  "diagnosis_title", "system", "urgency", "urgency_reasoning", "safety_warning",
+                  "refusal", "diagnosis_title", "system", "urgency", "urgency_reasoning", "safety_warning",
                   "likely_causes", "diy_recommended", "diy_steps", "when_to_call_pro",
                   "recommended_pro_type", "estimated_cost_low", "estimated_cost_high", "summary"
                 ],
@@ -154,6 +158,13 @@ Rules:
     }
 
     const triage = JSON.parse(toolCall.function.arguments);
+
+    if (triage.refusal) {
+      return new Response(JSON.stringify({ error: triage.refusal_reason || "I can only help with home and property systems. Please describe a symptom related to your home (e.g., HVAC, plumbing, electrical, appliances, roofing, or structural issues)." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ triage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
