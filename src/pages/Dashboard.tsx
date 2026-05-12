@@ -300,7 +300,7 @@ const Dashboard = () => {
           { title: "Home Care Tools", body: "Generate a maintenance schedule, get AI symptom triage when something breaks, and keep your Digital Home Binder of manuals and warranties up to date." },
           { title: "Get Help", body: "Search trusted pros, post a job, use the AI Job Estimator for cost ranges, and the Coverage Advisor to check what your warranty or insurance covers." },
           { title: "Messages & Reviews", body: "Chat with pros directly in-app — your phone number stays private until you approve sharing it. Leave reviews after a job is complete." },
-          { title: "Upgrade Anytime", body: "Free covers the basics. Upgrade to Home Super Hero for unlimited estimates, AI tools, and binder items, or Multi-Home Super Hero to manage up to 10 properties." },
+          { title: "Upgrade Anytime", body: "Free covers the basics. Upgrade to Homeowner Pro for unlimited estimates, AI tools, and binder items, or Multi-Homeowner Pro to manage up to 10 properties." },
         ]}
       />
       <Navbar />
