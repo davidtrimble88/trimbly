@@ -57,8 +57,14 @@ const ProRegister = () => {
     insurance_details: "",
   });
 
+  const [acceptedTos, setAcceptedTos] = useState(false);
+
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptedTos) {
+      toast({ title: "Please accept the Terms", description: "You must agree to the Terms of Service and Privacy Policy to create an account.", variant: "destructive" });
+      return;
+    }
     setLoading(true);
     try {
       const { error } = await signUp(authForm.email, authForm.password, {
@@ -177,7 +183,21 @@ const ProRegister = () => {
                 <Label htmlFor="password">Password</Label>
                 <Input id="password" type="password" placeholder="Min 6 characters" value={authForm.password} onChange={e => setAuthForm(f => ({ ...f, password: e.target.value }))} required minLength={6} />
               </div>
-              <Button type="submit" className="w-full" size="lg" disabled={loading}>
+              <label className="flex items-start gap-2.5 text-sm text-muted-foreground cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={acceptedTos}
+                  onChange={(e) => setAcceptedTos(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-border accent-primary"
+                />
+                <span>
+                  I agree to the{" "}
+                  <Link to="/terms" target="_blank" className="text-primary hover:underline font-medium">Terms of Service</Link>
+                  {" "}and{" "}
+                  <Link to="/privacy" target="_blank" className="text-primary hover:underline font-medium">Privacy Policy</Link>. I understand HomeHero is a marketplace only and is not responsible for the work I perform, disputes with homeowners, or AI-generated content.
+                </span>
+              </label>
+              <Button type="submit" className="w-full" size="lg" disabled={loading || !acceptedTos}>
                 {loading ? <><Loader2 size={16} className="animate-spin mr-2" /> Creating account...</> : "Create Account"}
               </Button>
               <p className="text-center text-sm text-muted-foreground">

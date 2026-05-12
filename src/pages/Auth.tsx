@@ -204,9 +204,14 @@ function AuthForm({
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [acceptedTos, setAcceptedTos] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "signup" && !acceptedTos) {
+      toast({ title: "Please accept the Terms", description: "You must agree to the Terms of Service and Privacy Policy to create an account.", variant: "destructive" });
+      return;
+    }
     setLoading(true);
 
     try {
@@ -321,7 +326,24 @@ function AuthForm({
         </div>
       )}
 
-      <Button type="submit" className="w-full h-11" size="lg" disabled={loading}>
+      {mode === "signup" && (
+        <label className="flex items-start gap-2.5 text-sm text-muted-foreground cursor-pointer">
+          <input
+            type="checkbox"
+            checked={acceptedTos}
+            onChange={(e) => setAcceptedTos(e.target.checked)}
+            className="mt-0.5 w-4 h-4 rounded border-border accent-primary"
+          />
+          <span>
+            I agree to the{" "}
+            <Link to="/terms" target="_blank" className="text-primary hover:underline font-medium">Terms of Service</Link>
+            {" "}and{" "}
+            <Link to="/privacy" target="_blank" className="text-primary hover:underline font-medium">Privacy Policy</Link>, and I understand HomeHero is not responsible for services rendered by providers, AI-generated content, or any DIY work I choose to perform.
+          </span>
+        </label>
+      )}
+
+      <Button type="submit" className="w-full h-11" size="lg" disabled={loading || (mode === "signup" && !acceptedTos)}>
         {loading ? "Please wait..." : mode === "login" ? "Log In" : "Create Account"}
       </Button>
     </form>
