@@ -298,6 +298,18 @@ const PostJob = () => {
                         <span className="flex items-center gap-1"><Clock size={12} /> {new Date(job.created_at).toLocaleDateString()}</span>
                       </div>
                       {job.description && <p className="text-sm text-muted-foreground mt-1">{job.description}</p>}
+                      {job.photo_urls && job.photo_urls.length > 0 && (
+                        <div className="flex gap-1.5 mt-2">
+                          {job.photo_urls.slice(0, 4).map((u) => (
+                            <a key={u} href={u} target="_blank" rel="noreferrer" className="block w-12 h-12 rounded border border-border overflow-hidden">
+                              <img src={u} alt="Job" className="w-full h-full object-cover" loading="lazy" />
+                            </a>
+                          ))}
+                          {job.photo_urls.length > 4 && (
+                            <div className="w-12 h-12 rounded border border-border bg-muted flex items-center justify-center text-xs text-muted-foreground">+{job.photo_urls.length - 4}</div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-1">
                       <Button variant="ghost" size="icon" onClick={() => toggleExpand(job.id)}>
