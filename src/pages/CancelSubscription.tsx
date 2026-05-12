@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import Navigation from "@/components/Navigation";
+import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,7 +60,7 @@ export default function CancelSubscription() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Navigation />
+      <Navbar />
       <main className="flex-1 container mx-auto px-4 py-12 max-w-2xl">
         <Card>
           <CardHeader>
