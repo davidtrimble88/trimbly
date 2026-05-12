@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 const TermsOfService = () => {
-  const lastUpdated = "March 6, 2026";
+  const lastUpdated = "May 12, 2026";
 
   return (
     <div className="min-h-screen">
