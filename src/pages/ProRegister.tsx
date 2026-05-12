@@ -57,8 +57,14 @@ const ProRegister = () => {
     insurance_details: "",
   });
 
+  const [acceptedTos, setAcceptedTos] = useState(false);
+
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptedTos) {
+      toast({ title: "Please accept the Terms", description: "You must agree to the Terms of Service and Privacy Policy to create an account.", variant: "destructive" });
+      return;
+    }
     setLoading(true);
     try {
       const { error } = await signUp(authForm.email, authForm.password, {
