@@ -18,7 +18,7 @@ interface LogParams {
 export async function logSearch(params: LogParams): Promise<void> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    await supabase.from("search_logs").insert({
+    await supabase.from("search_logs").insert([{
       user_id: user?.id ?? null,
       search_type: params.search_type,
       query: (params.query || "").slice(0, 500),
@@ -26,7 +26,7 @@ export async function logSearch(params: LogParams): Promise<void> {
       location: params.location ?? null,
       results_count: params.results_count ?? null,
       metadata: params.metadata ?? {},
-    });
+    }]);
   } catch {
     // ignore — analytics best-effort
   }
