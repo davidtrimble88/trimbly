@@ -13,6 +13,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import StatsGrid from "@/components/profile/StatsGrid";
 import ProviderPlansList from "@/components/pro/ProviderPlansList";
+import SaveProviderButton from "@/components/SaveProviderButton";
 
 interface ProviderRow {
   id: string;
@@ -235,6 +236,7 @@ const PublicProviderProfile = () => {
                   <Button onClick={() => navigate(`/search?provider=${provider.id}`)}>
                     <MessageSquare size={14} className="mr-1.5" /> Message
                   </Button>
+                  <SaveProviderButton providerId={provider.id} />
                 </div>
               </div>
             </CardContent>

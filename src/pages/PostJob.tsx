@@ -20,6 +20,7 @@ import {
   PhoneOff, CheckCircle, XCircle, Trash2, Eye, ChevronDown, ChevronUp,
   User, Star, Shield,
 } from "lucide-react";
+import JobPhotoUploader from "@/components/JobPhotoUploader";
 
 const categories = [
   "Appliance Repair", "Carpentry", "Cleaning", "Drywall", "Electrical",
@@ -36,6 +37,7 @@ type Job = {
   state: string;
   country: string;
   status: string;
+  photo_urls?: string[] | null;
   created_at: string;
 };
 
@@ -84,6 +86,7 @@ const PostJob = () => {
   const [form, setForm] = useState({
     title: "", description: "", category: "", city: "", state: "", country: "US",
   });
+  const [photos, setPhotos] = useState<string[]>([]);
 
   useEffect(() => {
     if (!showForm) {
@@ -169,12 +172,14 @@ const PostJob = () => {
       state: form.state,
       country: form.country,
       status: "pending",
+      photo_urls: photos,
     });
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Job posted!", description: "Pros can now see and bid on your job." });
       setForm({ title: "", description: "", category: "", city: "", state: "", country: "US" });
+      setPhotos([]);
       setShowForm(false);
       loadJobs();
     }
@@ -293,6 +298,18 @@ const PostJob = () => {
                         <span className="flex items-center gap-1"><Clock size={12} /> {new Date(job.created_at).toLocaleDateString()}</span>
                       </div>
                       {job.description && <p className="text-sm text-muted-foreground mt-1">{job.description}</p>}
+                      {job.photo_urls && job.photo_urls.length > 0 && (
+                        <div className="flex gap-1.5 mt-2">
+                          {job.photo_urls.slice(0, 4).map((u) => (
+                            <a key={u} href={u} target="_blank" rel="noreferrer" className="block w-12 h-12 rounded border border-border overflow-hidden">
+                              <img src={u} alt="Job" className="w-full h-full object-cover" loading="lazy" />
+                            </a>
+                          ))}
+                          {job.photo_urls.length > 4 && (
+                            <div className="w-12 h-12 rounded border border-border bg-muted flex items-center justify-center text-xs text-muted-foreground">+{job.photo_urls.length - 4}</div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-1">
                       <Button variant="ghost" size="icon" onClick={() => toggleExpand(job.id)}>
@@ -450,9 +467,15 @@ const PostJob = () => {
                 <Input placeholder="ON" value={form.state} onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))} className="mt-1" />
               </div>
             </div>
+            <div>
+              <Label>Photos (optional)</Label>
+              <div className="mt-1">
+                <JobPhotoUploader value={photos} onChange={setPhotos} />
+              </div>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setShowForm(false); setPhotos([]); }}>Cancel</Button>
             <Button onClick={handleSubmit} disabled={submitting}>{submitting ? "Posting..." : "Post Job"}</Button>
           </DialogFooter>
         </DialogContent>

@@ -5,6 +5,9 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
 import { supabase } from "@/integrations/supabase/client";
+import UniversalSearch from "@/components/UniversalSearch";
+import NotificationPreferencesDialog from "@/components/NotificationPreferencesDialog";
+import { Bell } from "lucide-react";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -175,6 +178,7 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
+          {user && <UniversalSearch />}
           {user ? (
             <>
               {isAdmin && inStaffPortal && (
@@ -194,6 +198,9 @@ const Navbar = () => {
                   {!isProvider && isPro && <span className="ml-1.5 text-primary font-medium">PRO</span>}
                 </span>
               )}
+              <NotificationPreferencesDialog
+                trigger={<Button variant="ghost" size="icon" aria-label="Notifications"><Bell size={16} /></Button>}
+              />
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut size={16} className="mr-1" /> Sign Out
               </Button>

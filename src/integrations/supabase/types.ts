@@ -446,6 +446,7 @@ export type Database = {
           description: string | null
           homeowner_id: string
           id: string
+          photo_urls: string[]
           provider_id: string | null
           state: string
           status: string
@@ -460,6 +461,7 @@ export type Database = {
           description?: string | null
           homeowner_id: string
           id?: string
+          photo_urls?: string[]
           provider_id?: string | null
           state: string
           status?: string
@@ -474,6 +476,7 @@ export type Database = {
           description?: string | null
           homeowner_id?: string
           id?: string
+          photo_urls?: string[]
           provider_id?: string | null
           state?: string
           status?: string
@@ -1231,6 +1234,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saved_providers: {
+        Row: {
+          created_at: string
+          id: string
+          provider_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          provider_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          provider_id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       search_logs: {
         Row: {
