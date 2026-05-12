@@ -178,6 +178,60 @@ export type Database = {
         }
         Relationships: []
       }
+      error_logs: {
+        Row: {
+          ai_suggestion: string | null
+          component: string | null
+          created_at: string
+          id: string
+          message: string
+          metadata: Json
+          resolved_at: string | null
+          route: string | null
+          severity: string
+          source: string
+          stack: string | null
+          status: string
+          url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          ai_suggestion?: string | null
+          component?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json
+          resolved_at?: string | null
+          route?: string | null
+          severity?: string
+          source?: string
+          stack?: string | null
+          status?: string
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          ai_suggestion?: string | null
+          component?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json
+          resolved_at?: string | null
+          route?: string | null
+          severity?: string
+          source?: string
+          stack?: string | null
+          status?: string
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       home_binder_items: {
         Row: {
           brand: string | null

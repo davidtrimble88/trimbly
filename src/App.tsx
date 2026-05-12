@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { installGlobalErrorReporting } from "@/lib/errorReporting";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import SearchPros from "./pages/SearchPros";
@@ -35,6 +37,7 @@ import StaffOutreach from "./pages/staff/Outreach";
 import StaffModeration from "./pages/staff/Moderation";
 import StaffBroadcasts from "./pages/staff/Broadcasts";
 import StaffSearches from "./pages/staff/Searches";
+import StaffErrors from "./pages/staff/Errors";
 import PortalChoice from "./pages/PortalChoice";
 import Help from "./pages/Help";
 import ManualSearch from "./pages/ManualSearch";
@@ -44,6 +47,8 @@ import QuoteView from "./pages/QuoteView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+if (typeof window !== "undefined") installGlobalErrorReporting();
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -62,7 +67,8 @@ function ScrollToTop() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -106,6 +112,7 @@ const App = () => (
               <Route path="moderation" element={<StaffModeration />} />
               <Route path="broadcasts" element={<StaffBroadcasts />} />
               <Route path="searches" element={<StaffSearches />} />
+              <Route path="errors" element={<StaffErrors />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
@@ -113,6 +120,7 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
+    </ErrorBoundary>
   </QueryClientProvider>
 );
 
