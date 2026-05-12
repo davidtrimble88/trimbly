@@ -9,6 +9,7 @@ import ProviderCard from "@/components/search/ProviderCard";
 import ProviderDetailDialog from "@/components/search/ProviderDetailDialog";
 
 import { fetchProviders, discoverWebProviders, type ProviderWithStats } from "@/lib/api/providers";
+import { logSearch } from "@/lib/analytics/searchLog";
 import { useToast } from "@/hooks/use-toast";
 
 const categories = [
