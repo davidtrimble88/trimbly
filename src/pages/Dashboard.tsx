@@ -364,9 +364,14 @@ const Dashboard = () => {
             ) : homes.length === 0 ? (
               <Card className="text-center py-10">
                 <CardContent>
-                  <Home size={40} className="mx-auto text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground mb-4">No homes added yet. Set up your first home to get personalized insights.</p>
-                  <Button onClick={() => navigate("/maintenance")}>Add Your Home</Button>
+                  <Home size={40} className="mx-auto text-primary mb-3" />
+                  <h3 className="font-display font-bold text-lg mb-1">Add your first home</h3>
+                  <p className="text-muted-foreground text-sm mb-4 max-w-sm mx-auto">
+                    HomeHero tailors every recommendation to your home's age, size, and systems. Takes under a minute.
+                  </p>
+                  <Button onClick={() => setShowWizard(true)}>
+                    <Plus size={14} className="mr-1.5" /> Set up my home
+                  </Button>
                 </CardContent>
               </Card>
             ) : (
