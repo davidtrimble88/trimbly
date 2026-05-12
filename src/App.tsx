@@ -48,6 +48,9 @@ import PublicProviderProfile from "./pages/PublicProviderProfile";
 import QuoteView from "./pages/QuoteView";
 import NotFound from "./pages/NotFound";
 import CancelSubscription from "./pages/CancelSubscription";
+import SeoServiceLanding from "./pages/SeoServiceLanding";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 
 const queryClient = new QueryClient();
 
@@ -113,6 +116,9 @@ const App = () => (
             <Route path="/pros/:slug" element={<PublicProviderProfile />} />
             <Route path="/quote/:quoteId" element={<QuoteView />} />
             <Route path="/cancel-subscription" element={<CancelSubscription />} />
+            <Route path="/services/:category/:location" element={<SeoServiceLanding />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/staff" element={<StaffLayout />}>
               <Route index element={<StaffDashboard />} />
               <Route path="contacts" element={<StaffContacts />} />

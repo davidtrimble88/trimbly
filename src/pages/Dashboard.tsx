@@ -19,6 +19,7 @@ import ProfileEditor from "@/components/profile/ProfileEditor";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { NotificationPermissionPrompt } from "@/components/NotificationPermissionPrompt";
+import { ShareHomeHeroCard } from "@/components/ShareHomeHeroCard";
 import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star,
   Lock, Crown, Home, AlertTriangle, CheckCircle2, Clock, Shield,
@@ -670,6 +671,11 @@ const Dashboard = () => {
                 </div>
               );
             })}
+          </div>
+
+          {/* Invite a friend */}
+          <div className="mt-8">
+            <ShareHomeHeroCard />
           </div>
         </div>
       </main>
