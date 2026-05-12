@@ -15,6 +15,7 @@ const AISearchBar = () => {
   const handleAISearch = async () => {
     if (!query.trim()) return;
     setLoading(true);
+    logSearch({ search_type: "ai", query: query.trim() });
     try {
       const recommendation = await searchProvidersWithAI(query);
       setResult(recommendation);
