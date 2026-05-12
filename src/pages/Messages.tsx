@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft, MessageSquare, Send, Crown, Clock, CheckCheck, User, Search, Globe,
-  Trash2, ShieldBan, MoreVertical, MessageCircle, AlertCircle, Bot
+  Trash2, ShieldBan, MoreVertical, MessageCircle, AlertCircle, Bot, Flag
 } from "lucide-react";
+import ReportDialog from "@/components/ReportDialog";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import {
