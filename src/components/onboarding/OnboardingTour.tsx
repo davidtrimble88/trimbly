@@ -43,6 +43,16 @@ export function OnboardingTour({ storageKey, steps, intro }: Props) {
   const current = !isIntro ? steps[index] : null;
 
   return (
+    <>
+      {!open && (
+        <button
+          onClick={replay}
+          className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-3.5 py-2 text-xs font-medium shadow-lg hover:opacity-90 transition"
+          aria-label="Replay tour"
+        >
+          <HelpCircle size={14} /> Replay tour
+        </button>
+      )}
     <Dialog open={open} onOpenChange={(o) => { if (!o) finish(); }}>
       <DialogContent className="max-w-md">
         <DialogHeader>
