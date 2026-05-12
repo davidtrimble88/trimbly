@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import StatsGrid from "@/components/profile/StatsGrid";
 import ProviderPlansList from "@/components/pro/ProviderPlansList";
 import SaveProviderButton from "@/components/SaveProviderButton";
+import ReportDialog from "@/components/ReportDialog";
 
 interface ProviderRow {
   id: string;
