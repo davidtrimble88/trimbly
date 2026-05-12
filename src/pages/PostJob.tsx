@@ -20,6 +20,7 @@ import {
   PhoneOff, CheckCircle, XCircle, Trash2, Eye, ChevronDown, ChevronUp,
   User, Star, Shield,
 } from "lucide-react";
+import JobPhotoUploader from "@/components/JobPhotoUploader";
 
 const categories = [
   "Appliance Repair", "Carpentry", "Cleaning", "Drywall", "Electrical",
@@ -36,6 +37,7 @@ type Job = {
   state: string;
   country: string;
   status: string;
+  photo_urls?: string[] | null;
   created_at: string;
 };
 
@@ -84,6 +86,7 @@ const PostJob = () => {
   const [form, setForm] = useState({
     title: "", description: "", category: "", city: "", state: "", country: "US",
   });
+  const [photos, setPhotos] = useState<string[]>([]);
 
   useEffect(() => {
     if (!showForm) {
@@ -169,12 +172,14 @@ const PostJob = () => {
       state: form.state,
       country: form.country,
       status: "pending",
+      photo_urls: photos,
     });
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Job posted!", description: "Pros can now see and bid on your job." });
       setForm({ title: "", description: "", category: "", city: "", state: "", country: "US" });
+      setPhotos([]);
       setShowForm(false);
       loadJobs();
     }
@@ -450,9 +455,15 @@ const PostJob = () => {
                 <Input placeholder="ON" value={form.state} onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))} className="mt-1" />
               </div>
             </div>
+            <div>
+              <Label>Photos (optional)</Label>
+              <div className="mt-1">
+                <JobPhotoUploader value={photos} onChange={setPhotos} />
+              </div>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setShowForm(false); setPhotos([]); }}>Cancel</Button>
             <Button onClick={handleSubmit} disabled={submitting}>{submitting ? "Posting..." : "Post Job"}</Button>
           </DialogFooter>
         </DialogContent>
