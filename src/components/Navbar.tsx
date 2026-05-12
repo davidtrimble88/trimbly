@@ -224,6 +224,11 @@ const Navbar = () => {
               <HomeIcon size={14} /> User View
             </Button>
           )}
+          <div className="flex items-center gap-3 pt-2 border-t border-border mt-2 text-xs text-muted-foreground">
+            <Link to="/terms" onClick={() => setOpen(false)} className="hover:text-foreground transition-colors">Terms of Service</Link>
+            <span aria-hidden>·</span>
+            <Link to="/privacy" onClick={() => setOpen(false)} className="hover:text-foreground transition-colors">Privacy Policy</Link>
+          </div>
           <div className="flex gap-2 pt-2 border-t border-border mt-2">
             {user ? (
               <Button variant="ghost" size="sm" className="flex-1" onClick={() => { setOpen(false); handleSignOut(); }}>
