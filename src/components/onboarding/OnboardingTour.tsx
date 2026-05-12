@@ -27,6 +27,11 @@ export function OnboardingTour({ storageKey, steps, intro }: Props) {
     } catch {}
   }, [storageKey, intro]);
 
+  const replay = () => {
+    setIndex(intro ? -1 : 0);
+    setOpen(true);
+  };
+
   const finish = () => {
     try { localStorage.setItem(storageKey, "1"); } catch {}
     setOpen(false);
