@@ -12,3 +12,9 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /staff
+Disallow: /dashboard
+Disallow: /pro-dashboard
+Disallow: /messages
+
+Sitemap: https://mrideliutnlaxsvbabyk.supabase.co/functions/v1/sitemap
