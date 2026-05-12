@@ -18,7 +18,9 @@ import { useHomeLimit } from "@/hooks/useHomeLimit";
 
 const systemOptions = [
   "HVAC", "Plumbing", "Electrical", "Appliance",
-  "Roofing", "Structural", "Water Heater", "Other",
+  "Roofing", "Structural", "Water Heater",
+  "Fencing", "Landscaping", "Trees", "Pool", "Deck", "Shed",
+  "Outdoor Structure", "Driveway", "Irrigation", "Other",
 ];
 
 const urgencyMeta: Record<
