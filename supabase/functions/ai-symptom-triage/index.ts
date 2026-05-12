@@ -67,6 +67,8 @@ Rules:
               parameters: {
                 type: "object",
                 properties: {
+                  refusal: { type: "boolean", description: "Set to true if the symptom is not about a home or property system" },
+                  refusal_reason: { type: "string", description: "Brief explanation of why the request was refused" },
                   diagnosis_title: { type: "string", description: "Short plain-English label, e.g. 'Likely refrigerant leak'" },
                   system: {
                     type: "string",
@@ -114,7 +116,7 @@ Rules:
                   summary: { type: "string", description: "2-3 sentence plain summary for the homeowner" },
                 },
                 required: [
-                  "diagnosis_title", "system", "urgency", "urgency_reasoning", "safety_warning",
+                  "refusal", "diagnosis_title", "system", "urgency", "urgency_reasoning", "safety_warning",
                   "likely_causes", "diy_recommended", "diy_steps", "when_to_call_pro",
                   "recommended_pro_type", "estimated_cost_low", "estimated_cost_high", "summary"
                 ],
