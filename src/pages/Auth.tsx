@@ -204,9 +204,14 @@ function AuthForm({
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [acceptedTos, setAcceptedTos] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "signup" && !acceptedTos) {
+      toast({ title: "Please accept the Terms", description: "You must agree to the Terms of Service and Privacy Policy to create an account.", variant: "destructive" });
+      return;
+    }
     setLoading(true);
 
     try {
