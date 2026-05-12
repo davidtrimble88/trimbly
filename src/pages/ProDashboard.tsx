@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ProGalleryEditor from "@/components/profile/ProGalleryEditor";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import ProFeaturesPanel from "@/components/pro/ProFeaturesPanel";
 import ServiceAreaPanel from "@/components/pro/ServiceAreaPanel";
 import QuotesPanel from "@/components/pro/QuotesPanel";
