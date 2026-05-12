@@ -50,7 +50,7 @@ const TOPICS: Topic[] = [
     faqs: [
       {
         q: "How many homes can I add?",
-        a: "Free and Pro tiers support 1 home. Multi-Home Pro supports up to 10 homes with all Pro features unlocked for each.",
+        a: "Free and Home Hero tiers support 1 home. Home Super Hero supports up to 10 homes with all features unlocked for each.",
       },
       {
         q: "Can I auto-fill my home details?",
@@ -84,7 +84,7 @@ const TOPICS: Topic[] = [
       },
       {
         q: "How many items can I add?",
-        a: "Free: 0 items. Pro: 5 items. Multi-Home Pro: unlimited items across all your homes.",
+        a: "Free: 0 items. Home Hero: 5 items. Home Super Hero: unlimited items across all your homes.",
       },
     ],
   },
@@ -174,7 +174,7 @@ const TOPICS: Topic[] = [
     faqs: [
       {
         q: "What's included in each plan?",
-        a: "Free: 1 home, basic maintenance, browse and message pros. Pro: full features (Estimator, Coverage Advisor, Binder up to 5 items). Multi-Home Pro: 10 homes, unlimited binder.",
+        a: "Free: 1 home, basic maintenance, browse and message pros. Home Hero: full features (Estimator, Coverage Advisor, Binder up to 5 items). Home Super Hero: 10 homes, unlimited binder.",
       },
       {
         q: "How do I upgrade or cancel?",

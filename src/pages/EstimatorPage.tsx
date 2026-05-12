@@ -54,7 +54,7 @@ const EstimatorPage = () => {
             <Crown size={48} className="mx-auto text-primary mb-4" />
             <h2 className="text-2xl font-bold text-foreground mb-2">Upgrade to Use AI Job Estimator</h2>
             <p className="text-muted-foreground mb-6">
-              The AI Job Estimator is available on Homeowner Pro and Multi-Homeowner Pro plans.
+              The AI Job Estimator is available on Home Hero and Home Super Hero plans.
               Get unlimited instant cost estimates, material breakdowns, and DIY vs. pro recommendations.
             </p>
             <div className="flex gap-3 justify-center">

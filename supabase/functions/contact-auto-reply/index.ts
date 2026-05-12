@@ -13,7 +13,7 @@ HomeHero is a platform connecting homeowners with local home-service professiona
 CORE FEATURES:
 - Dashboard (/dashboard): Central hub for homeowners, summary of homes, tasks, messages.
 - Maintenance Autopilot (/maintenance): Auto-generated seasonal maintenance schedule per home. Free tier gets basic schedule; Pro gets advanced reminders and product suggestions.
-- Digital Home Binder (/binder): Track appliances, warranties, serial numbers, receipts. Free tier: 0 items. Pro: 5 items. Multi-Home Pro: unlimited.
+- Digital Home Binder (/binder): Track appliances, warranties, serial numbers, receipts. Free tier: 0 items. Pro: 5 items. Home Super Hero: unlimited.
 - Find Pros / Search (/search): Browse and message local providers. AI-powered search.
 - AI Job Estimator (/estimator): Pro-only. Upload a photo + description, get cost estimate and DIY-vs-Pro recommendation.
 - Coverage Advisor (/coverage): Pro-only. Upload warranty/insurance docs, AI tells you what's covered.
@@ -24,7 +24,7 @@ CORE FEATURES:
 SUBSCRIPTION TIERS (homeowners):
 - Free: 1 home, basic maintenance schedule, browse pros, message pros, post jobs.
 - Pro: 1 home, full features (Estimator, Coverage Advisor, Binder up to 5 items, advanced maintenance).
-- Multi-Home Pro: up to 10 homes, unlimited binder items, all Pro features.
+- Home Super Hero: up to 10 homes, unlimited binder items, all Pro features.
 - Manage subscription: currently handled by contacting support (billing not yet self-serve).
 
 ACCOUNT:

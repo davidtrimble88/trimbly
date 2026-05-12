@@ -218,7 +218,7 @@ const CoverageAdvisor = () => {
             <Crown className="mx-auto h-8 w-8 text-primary mb-2" />
             <h3 className="font-semibold mb-1">Pro Feature</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Upgrade to Homeowner Pro to unlock the Coverage Advisor with AI-powered document analysis.
+              Upgrade to Home Hero to unlock the Coverage Advisor with AI-powered document analysis.
             </p>
             <Button onClick={() => navigate("/#pricing")}>View Plans</Button>
           </div>

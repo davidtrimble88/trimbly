@@ -131,8 +131,8 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                <SubRow name="Homeowner Pro" audience="Homeowners" count={stats.homeownerPro} price={PRICING.homeowner_pro} />
-                <SubRow name="Multi-Homeowner Pro" audience="Homeowners" count={stats.multiHomeownerPro} price={PRICING.multi_homeowner_pro} />
+                <SubRow name="Home Hero" audience="Homeowners" count={stats.homeownerPro} price={PRICING.homeowner_pro} />
+                <SubRow name="Home Super Hero" audience="Homeowners" count={stats.multiHomeownerPro} price={PRICING.multi_homeowner_pro} />
                 <SubRow name="Provider Pro" audience="Service Providers" count={stats.providerPro} price={PRICING.pro} />
                 <tr className="font-semibold bg-muted/40">
                   <td className="py-3 px-2" colSpan={2}>Total Recurring Revenue</td>
