@@ -332,6 +332,9 @@ const PublicProviderProfile = () => {
                         <span className="text-xs text-muted-foreground">
                           {new Date(r.created_at).toLocaleDateString()}
                         </span>
+                        <div className="ml-auto">
+                          <ReportDialog targetType="review" targetId={r.id} />
+                        </div>
                       </div>
                       {r.comment && <p className="text-sm text-muted-foreground">{r.comment}</p>}
                     </div>

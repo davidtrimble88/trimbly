@@ -583,6 +583,13 @@ const Messages = () => {
                               <Clock size={9} />
                               {format(new Date(m.created_at), "h:mm a")}
                               {isMine && m.read && <CheckCheck size={10} className="ml-1" />}
+                              {!isMine && !isAI && !isAIEscalation && (
+                                <ReportDialog
+                                  targetType="message"
+                                  targetId={m.id}
+                                  trigger={<button className="ml-1 text-muted-foreground/60 hover:text-foreground" aria-label="Report message"><Flag size={9} /></button>}
+                                />
+                              )}
                             </div>
                             {awaitingFeedback && msg.contact_message_id && (
                               <AIFeedback
