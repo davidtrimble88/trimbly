@@ -50,7 +50,7 @@ const TOPICS: Topic[] = [
     faqs: [
       {
         q: "How many homes can I add?",
-        a: "Free and Pro tiers support 1 home. Home Super Hero supports up to 10 homes with all Pro features unlocked for each.",
+        a: "Free and Home Hero tiers support 1 home. Home Super Hero supports up to 10 homes with all features unlocked for each.",
       },
       {
         q: "Can I auto-fill my home details?",
