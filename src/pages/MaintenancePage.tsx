@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft, CalendarCheck, Loader2, Home, Check, Clock,
   AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus, CalendarPlus, Download, ShoppingCart, ExternalLink, Search, ArrowUpDown
@@ -141,6 +141,8 @@ const MaintenancePage = () => {
   const isMultiPro = subscriptionTier === "multi_pro";
   // For multi-home users, include the name step; for single-home, skip it
   const wizardSteps = isMultiPro ? baseWizardSteps : baseWizardSteps.filter(s => s.key !== "home_name");
+  const [searchParams] = useSearchParams();
+  const onboarding = searchParams.get("onboarding") === "1";
   const [allHomesView, setAllHomesView] = useState(false);
 
   const [homes, setHomes] = useState<HomeProfile[]>([]);
@@ -211,6 +213,17 @@ const MaintenancePage = () => {
 
     const allHomes = (data || []).map(h => ({ ...h, year_built: h.year_built ?? null, square_feet: h.square_feet ?? null }));
     setHomes(allHomes);
+
+    if (onboarding) {
+      // Force setup wizard for onboarding flow
+      setShowSetup(true);
+      setWizardStep(0);
+      setHome(emptyHome);
+      setHomeLoaded(false);
+      setIsAddingNew(true);
+      setLoadingHome(false);
+      return;
+    }
 
     if (allHomes.length > 0) {
       setHome(allHomes[0]);
