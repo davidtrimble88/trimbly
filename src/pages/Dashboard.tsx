@@ -52,7 +52,7 @@ const groupTitles: Record<ServiceCategory, string> = {
 };
 
 const tierOrder: Record<string, number> = { free: 0, homeowner_pro: 1, multi_pro: 2 };
-const tierLabels: Record<string, string> = { free: "Free", homeowner_pro: "Homeowner Pro", multi_pro: "Multi-Homeowner Pro" };
+const tierLabels: Record<string, string> = { free: "Free", homeowner_pro: "Home Hero", multi_pro: "Home Super Hero" };
 
 const homeTypeLabels: Record<string, string> = {
   single_family: "Single Family",
@@ -300,7 +300,7 @@ const Dashboard = () => {
           { title: "Home Care Tools", body: "Generate a maintenance schedule, get AI symptom triage when something breaks, and keep your Digital Home Binder of manuals and warranties up to date." },
           { title: "Get Help", body: "Search trusted pros, post a job, use the AI Job Estimator for cost ranges, and the Coverage Advisor to check what your warranty or insurance covers." },
           { title: "Messages & Reviews", body: "Chat with pros directly in-app — your phone number stays private until you approve sharing it. Leave reviews after a job is complete." },
-          { title: "Upgrade Anytime", body: "Free covers the basics. Upgrade to Homeowner Pro for unlimited estimates, AI tools, and binder items, or Multi-Homeowner Pro to manage up to 10 properties." },
+          { title: "Upgrade Anytime", body: "Free covers the basics. Upgrade to Home Hero for unlimited estimates, AI tools, and binder items, or Home Super Hero to manage up to 10 properties." },
         ]}
       />
       <Navbar />
@@ -542,7 +542,7 @@ const Dashboard = () => {
             const nextTier = subscriptionTier === "free" ? "homeowner_pro" : "multi_pro";
             const upgradeConfig: Record<string, { name: string; price: string; period: string; cta: string; newFeatures: string[]; }> = {
               homeowner_pro: {
-                name: "Homeowner Pro",
+                name: "Home Hero",
                 price: "$5",
                 period: "/month",
                 cta: "Start Free Trial",
@@ -558,7 +558,7 @@ const Dashboard = () => {
                 ],
               },
               multi_pro: {
-                name: "Multi-Homeowner Pro",
+                name: "Home Super Hero",
                 price: "$20",
                 period: "/month",
                 cta: "Upgrade Now",

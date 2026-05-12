@@ -97,7 +97,7 @@ const SymptomTriagePage = () => {
             <Crown size={48} className="mx-auto text-primary mb-4" />
             <h2 className="text-2xl font-bold text-foreground mb-2">Upgrade to Use AI Symptom Triage</h2>
             <p className="text-muted-foreground mb-6">
-              AI Symptom Triage is available on Homeowner Pro and Multi-Homeowner Pro plans.
+              AI Symptom Triage is available on Home Hero and Home Super Hero plans.
               Get instant diagnosis, urgency level, safety guidance, and DIY vs Pro recommendations whenever something goes wrong.
             </p>
             <div className="flex gap-3 justify-center">
