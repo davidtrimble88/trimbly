@@ -37,6 +37,7 @@ import StaffOutreach from "./pages/staff/Outreach";
 import StaffModeration from "./pages/staff/Moderation";
 import StaffBroadcasts from "./pages/staff/Broadcasts";
 import StaffSearches from "./pages/staff/Searches";
+import StaffErrors from "./pages/staff/Errors";
 import PortalChoice from "./pages/PortalChoice";
 import Help from "./pages/Help";
 import ManualSearch from "./pages/ManualSearch";
@@ -111,6 +112,7 @@ const App = () => (
               <Route path="moderation" element={<StaffModeration />} />
               <Route path="broadcasts" element={<StaffBroadcasts />} />
               <Route path="searches" element={<StaffSearches />} />
+              <Route path="errors" element={<StaffErrors />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
