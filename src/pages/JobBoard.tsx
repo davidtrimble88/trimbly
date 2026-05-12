@@ -18,6 +18,7 @@ import {
   Briefcase, MapPin, Clock, DollarSign, MessageSquare, Send,
   Phone, PhoneOff, CheckCircle, User, Filter,
 } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 
 const categories = [
   "All", "Plumbing", "Electrical", "HVAC", "Roofing", "Painting", "Carpentry",
@@ -355,11 +356,15 @@ const JobBoard = () => {
 
         {/* Job Cards */}
         {filteredJobs.length === 0 ? (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Briefcase className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-              <h3 className="font-semibold text-lg mb-1">No open jobs</h3>
-              <p className="text-sm text-muted-foreground">Check back later for new job postings from homeowners.</p>
+          <Card>
+            <CardContent className="p-0">
+              <EmptyState
+                icon={Briefcase}
+                title="No open jobs match your filters"
+                description="Try expanding your search radius or selecting a different category. New jobs from homeowners are posted often."
+                actionLabel="Clear filters"
+                onAction={() => { setFilterCategory("All"); setLocationQuery(""); setSearchCenter(null); setRadiusMiles("any"); }}
+              />
             </CardContent>
           </Card>
         ) : (

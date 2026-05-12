@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
 import { useToast } from "@/hooks/use-toast";
+import { EmptyState } from "@/components/EmptyState";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const buildManualProxy = (manualUrl: string, mode: "inline" | "download", filename: string) => {
@@ -477,15 +478,25 @@ const HomeBinder = () => {
 
               {/* Empty state */}
               {items.length === 0 && (
-                <div className="text-center py-16 rounded-xl border border-border bg-card">
-                  <FolderOpen size={40} className="mx-auto text-muted-foreground mb-4" />
-                  <h3 className="font-bold text-lg text-foreground mb-2">Your binder is empty</h3>
-                  <p className="text-muted-foreground text-sm mb-6 max-w-md mx-auto">
-                    Start adding appliances, warranties, receipts, and documents to keep everything organized.
-                  </p>
-                  <Button onClick={openNew} className="gap-2">
-                    <Plus size={16} /> Add Your First Item
-                  </Button>
+                <div className="rounded-xl border border-border bg-card">
+                  <EmptyState
+                    icon={FolderOpen}
+                    title="Your binder is empty"
+                    description="Start adding appliances, warranties, receipts, and documents to keep everything organized."
+                    actionLabel="Add Your First Item"
+                    onAction={openNew}
+                  />
+                </div>
+              )}
+              {items.length > 0 && filteredItems.length === 0 && (
+                <div className="rounded-xl border border-border bg-card">
+                  <EmptyState
+                    icon={Search}
+                    title="No items match your search"
+                    description="Try clearing your filters or searching for a different keyword."
+                    actionLabel="Clear filters"
+                    onAction={() => { setSearchQuery(""); setFilterType("all"); }}
+                  />
                 </div>
               )}
 
