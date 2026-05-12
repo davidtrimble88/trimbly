@@ -158,6 +158,13 @@ Rules:
     }
 
     const triage = JSON.parse(toolCall.function.arguments);
+
+    if (triage.refusal) {
+      return new Response(JSON.stringify({ error: triage.refusal_reason || "I can only help with home and property systems. Please describe a symptom related to your home (e.g., HVAC, plumbing, electrical, appliances, roofing, or structural issues)." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ triage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
