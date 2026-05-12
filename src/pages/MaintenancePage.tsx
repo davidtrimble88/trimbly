@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
 import { useToast } from "@/hooks/use-toast";
+import { EmptyState } from "@/components/EmptyState";
 
 type HomeProfile = {
   id?: string;
@@ -798,15 +799,14 @@ const MaintenancePage = () => {
                   )}
 
                   {!generating && tasks.length === 0 && (
-                    <div className="text-center py-16 rounded-xl border border-border bg-card">
-                      <CalendarCheck size={40} className="mx-auto text-muted-foreground mb-4" />
-                      <h3 className="font-bold text-lg text-foreground mb-2">No maintenance tasks yet</h3>
-                      <p className="text-muted-foreground text-sm mb-6 max-w-md mx-auto">
-                        Generate an AI-powered maintenance schedule based on your home profile.
-                      </p>
-                      <Button onClick={generateSchedule} disabled={generating} className="gap-2">
-                        <CalendarCheck size={16} /> Generate My Schedule
-                      </Button>
+                    <div className="rounded-xl border border-border bg-card">
+                      <EmptyState
+                        icon={CalendarCheck}
+                        title="No maintenance tasks yet"
+                        description="Generate an AI-powered maintenance schedule tailored to your home profile, climate, and systems."
+                        actionLabel="Generate My Schedule"
+                        onAction={generateSchedule}
+                      />
                     </div>
                   )}
 

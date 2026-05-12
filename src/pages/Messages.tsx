@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { AIFeedback } from "@/components/messages/AIFeedback";
 import MessageCopilot from "@/components/messages/MessageCopilot";
+import { EmptyState } from "@/components/EmptyState";
 
 interface Message {
   id: string;
@@ -393,13 +394,13 @@ const Messages = () => {
                 {loading ? (
                   <div className="p-6 text-center text-sm text-muted-foreground">Loading...</div>
                 ) : conversations.length === 0 ? (
-                  <div className="p-6 text-center">
-                    <MessageSquare size={32} className="mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">No conversations yet</p>
-                    <Button asChild size="sm" className="mt-3 gap-2">
-                      <Link to="/search"><Search size={12} /> Find a Pro to Message</Link>
-                    </Button>
-                  </div>
+                  <EmptyState
+                    icon={MessageSquare}
+                    title="No conversations yet"
+                    description="Reach out to a local pro to start a conversation. Replies will show up here."
+                    actionLabel="Find a Pro to Message"
+                    actionHref="/search"
+                  />
                 ) : (
                   conversations.map((conv) => (
                     <div
