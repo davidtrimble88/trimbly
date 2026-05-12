@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard, Inbox, Users, Briefcase, ShieldCheck, Megaphone, Send,
-  MessageSquareWarning, ShieldAlert, LogOut, Home,
+  MessageSquareWarning, ShieldAlert, LogOut, Home, Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,6 +19,7 @@ const navItems = [
   { to: "/staff/users", label: "Users", icon: Users },
   { to: "/staff/providers", label: "Providers", icon: ShieldCheck },
   { to: "/staff/jobs", label: "Jobs", icon: Briefcase },
+  { to: "/staff/searches", label: "Search Analytics", icon: Search },
   { to: "/staff/outreach", label: "Pro Outreach", icon: Send },
   { to: "/staff/moderation", label: "Moderation", icon: MessageSquareWarning },
   { to: "/staff/broadcasts", label: "Broadcasts", icon: Megaphone },

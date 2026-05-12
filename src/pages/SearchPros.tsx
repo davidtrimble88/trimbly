@@ -9,6 +9,7 @@ import ProviderCard from "@/components/search/ProviderCard";
 import ProviderDetailDialog from "@/components/search/ProviderDetailDialog";
 
 import { fetchProviders, discoverWebProviders, type ProviderWithStats } from "@/lib/api/providers";
+import { logSearch } from "@/lib/analytics/searchLog";
 import { useToast } from "@/hooks/use-toast";
 
 const categories = [
@@ -35,7 +36,19 @@ const SearchPros = () => {
   const [searchTrigger, setSearchTrigger] = useState(0);
   const hasSearched = searchTrigger > 0;
 
-  const triggerSearch = () => setSearchTrigger((n) => n + 1);
+  const triggerSearch = () => {
+    setSearchTrigger((n) => n + 1);
+    const q = searchMode === "provider" ? searchQuery : locationQuery;
+    if (q && q.trim()) {
+      logSearch({
+        search_type: "provider",
+        query: q.trim(),
+        category: activeCategory === "All" ? null : activeCategory,
+        location: searchMode === "location" ? locationQuery : null,
+        metadata: { mode: searchMode, country: countryFilter },
+      });
+    }
+  };
 
   // Load registered DB providers only after user searches
   useEffect(() => {

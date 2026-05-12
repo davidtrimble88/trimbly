@@ -34,6 +34,7 @@ import StaffJobs from "./pages/staff/Jobs";
 import StaffOutreach from "./pages/staff/Outreach";
 import StaffModeration from "./pages/staff/Moderation";
 import StaffBroadcasts from "./pages/staff/Broadcasts";
+import StaffSearches from "./pages/staff/Searches";
 import PortalChoice from "./pages/PortalChoice";
 import Help from "./pages/Help";
 import ManualSearch from "./pages/ManualSearch";
@@ -104,6 +105,7 @@ const App = () => (
               <Route path="outreach" element={<StaffOutreach />} />
               <Route path="moderation" element={<StaffModeration />} />
               <Route path="broadcasts" element={<StaffBroadcasts />} />
+              <Route path="searches" element={<StaffSearches />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sparkles, X } from "lucide-react";
 import { searchProvidersWithAI } from "@/lib/api/providers";
+import { logSearch } from "@/lib/analytics/searchLog";
 import { useToast } from "@/hooks/use-toast";
 
 const AISearchBar = () => {
@@ -14,6 +15,7 @@ const AISearchBar = () => {
   const handleAISearch = async () => {
     if (!query.trim()) return;
     setLoading(true);
+    logSearch({ search_type: "ai", query: query.trim() });
     try {
       const recommendation = await searchProvidersWithAI(query);
       setResult(recommendation);
