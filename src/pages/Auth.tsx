@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,14 +13,26 @@ type AuthMode = "login" | "signup" | "forgot";
 type UserType = "homeowner" | "provider";
 
 const Auth = () => {
-  const [mode, setMode] = useState<AuthMode>("login");
-  const [userType, setUserType] = useState<UserType>("homeowner");
+  const [searchParams] = useSearchParams();
+  const initialMode = (searchParams.get("mode") as AuthMode) === "signup" ? "signup" : "login";
+  const initialType: UserType = searchParams.get("type") === "provider" ? "provider" : "homeowner";
+
+  const [mode, setMode] = useState<AuthMode>(initialMode);
+  const [userType, setUserType] = useState<UserType>(initialType);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Sync mode/type if URL changes
+  useEffect(() => {
+    const m = searchParams.get("mode");
+    if (m === "signup" || m === "login") setMode(m);
+    const t = searchParams.get("type");
+    if (t === "provider" || t === "homeowner") setUserType(t);
+  }, [searchParams]);
 
   // Redirect if already logged in — handled after login via navigate
 
