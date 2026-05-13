@@ -42,7 +42,7 @@ const homeownerTiers = [
     ],
     cta: "Start Free Trial",
     highlighted: true,
-    route: "/auth",
+    route: "/auth?mode=signup&type=homeowner&tier=homeowner_pro",
   },
   {
     name: "Home Super Hero",
