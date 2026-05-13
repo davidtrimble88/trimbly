@@ -22,7 +22,7 @@ const homeownerTiers = [
     ],
     cta: "Get Started Free",
     highlighted: false,
-    route: "/auth",
+    route: "/auth?mode=signup&type=homeowner&tier=free",
   },
   {
     name: "Home Hero",
