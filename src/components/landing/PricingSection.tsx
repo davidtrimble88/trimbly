@@ -22,7 +22,7 @@ const homeownerTiers = [
     ],
     cta: "Get Started Free",
     highlighted: false,
-    route: "/auth",
+    route: "/auth?mode=signup&type=homeowner&tier=free",
   },
   {
     name: "Home Hero",
@@ -42,7 +42,7 @@ const homeownerTiers = [
     ],
     cta: "Start Free Trial",
     highlighted: true,
-    route: "/auth",
+    route: "/auth?mode=signup&type=homeowner&tier=homeowner_pro",
   },
   {
     name: "Home Super Hero",
@@ -60,7 +60,7 @@ const homeownerTiers = [
     ],
     cta: "Start Free Trial",
     highlighted: false,
-    route: "/auth",
+    route: "/auth?mode=signup&type=homeowner&tier=multi_pro",
   },
 ];
 
