@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Check, Star, Zap, Crown, ArrowRight, Loader2 } from "lucide-react";
+import { Check, Zap, Crown, ArrowRight, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
@@ -10,29 +10,6 @@ import { useAuth } from "@/hooks/useAuth";
 
 const tiers = [
   {
-    name: "Free",
-    dbKey: "free",
-    icon: Star,
-    price: "$0",
-    period: "/mo",
-    description: "Essential tools to get started",
-    features: [
-      "1 home",
-      "Basic maintenance schedules",
-      "Search & message pros",
-      "Post jobs to the board",
-      "AI symptom triage",
-    ],
-    missing: [
-      "Digital Home Binder",
-      "Coverage Advisor (AI doc review)",
-      "Advanced maintenance schedules",
-      "Seasonal checklists",
-    ],
-    cta: "Continue Free",
-    highlighted: false,
-  },
-  {
     name: "Home Hero",
     dbKey: "homeowner_pro",
     icon: Zap,
@@ -40,13 +17,14 @@ const tiers = [
     period: "/mo",
     description: "Unlock AI-powered home management",
     features: [
-      "Everything in Free",
       "1 home",
       "Digital Home Binder (5 items)",
       "Coverage Advisor — AI doc review",
       "Unlimited AI job estimates",
       "Advanced maintenance schedules",
       "Seasonal checklists",
+      "Search & message pros",
+      "Post jobs to the board",
     ],
     cta: "Start 14-Day Free Trial",
     highlighted: true,
@@ -128,11 +106,11 @@ export default function HomeownerUpsell() {
               Unlock the full power of HomeHero
             </h1>
             <p className="text-muted-foreground text-lg">
-              Free gets you started. Paid tiers give you AI-powered maintenance, a Digital Home Binder, and unlimited job estimates.
+              Upgrade to AI-powered maintenance, a Digital Home Binder, and unlimited job estimates.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {tiers.map((tier) => (
               <div
                 key={tier.name}
@@ -166,13 +144,6 @@ export default function HomeownerUpsell() {
                       {f}
                     </li>
                   ))}
-                  {"missing" in tier &&
-                    tier.missing.map((f) => (
-                      <li key={f} className="flex items-start gap-2.5 text-sm text-muted-foreground/60">
-                        <span className="w-4 text-center text-muted-foreground/40">—</span>
-                        {f}
-                      </li>
-                    ))}
                 </ul>
 
                 <Button
@@ -204,13 +175,13 @@ export default function HomeownerUpsell() {
           {/* Trust signals */}
           <div className="flex flex-wrap items-center justify-center gap-6 mt-12 text-sm text-muted-foreground">
             <span className="flex items-center gap-1.5">
-              <Check size={14} className="text-primary" /> No credit card required for Free
-            </span>
-            <span className="flex items-center gap-1.5">
               <Check size={14} className="text-primary" /> Cancel anytime
             </span>
             <span className="flex items-center gap-1.5">
-              <Check size={14} className="text-primary" /> 14-day free trial on paid plans
+              <Check size={14} className="text-primary" /> 14-day free trial
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Check size={14} className="text-primary" /> No credit card required to start trial
             </span>
           </div>
         </div>
