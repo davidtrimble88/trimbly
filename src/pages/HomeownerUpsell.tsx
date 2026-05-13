@@ -175,13 +175,13 @@ export default function HomeownerUpsell() {
           {/* Trust signals */}
           <div className="flex flex-wrap items-center justify-center gap-6 mt-12 text-sm text-muted-foreground">
             <span className="flex items-center gap-1.5">
-              <Check size={14} className="text-primary" /> No credit card required for Free
-            </span>
-            <span className="flex items-center gap-1.5">
               <Check size={14} className="text-primary" /> Cancel anytime
             </span>
             <span className="flex items-center gap-1.5">
-              <Check size={14} className="text-primary" /> 14-day free trial on paid plans
+              <Check size={14} className="text-primary" /> 14-day free trial
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Check size={14} className="text-primary" /> No credit card required to start trial
             </span>
           </div>
         </div>
