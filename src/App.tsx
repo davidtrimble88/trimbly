@@ -54,6 +54,7 @@ const PublicProviderProfile = lazy(() => import("./pages/PublicProviderProfile")
 const QuoteView = lazy(() => import("./pages/QuoteView"));
 const CancelSubscription = lazy(() => import("./pages/CancelSubscription"));
 const SeoServiceLanding = lazy(() => import("./pages/SeoServiceLanding"));
+const HomeownerUpsell = lazy(() => import("./pages/HomeownerUpsell"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 
