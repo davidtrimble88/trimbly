@@ -226,9 +226,9 @@ function AuthForm({
           if (userType === "provider") {
             toast({ title: "Check your email", description: "We sent you a confirmation link to verify your account." });
           } else {
-            // For homeowners, skip straight to home setup during onboarding
-            toast({ title: "Welcome!", description: "Let's set up your home." });
-            navigate("/maintenance?onboarding=1");
+            // Upsell homeowners before onboarding
+            toast({ title: "Welcome!", description: "Let's pick the right plan for you." });
+            navigate("/homeowner-upsell?onboarding=1");
           }
         }
       } else {
