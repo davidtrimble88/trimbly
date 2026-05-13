@@ -54,6 +54,7 @@ const PublicProviderProfile = lazy(() => import("./pages/PublicProviderProfile")
 const QuoteView = lazy(() => import("./pages/QuoteView"));
 const CancelSubscription = lazy(() => import("./pages/CancelSubscription"));
 const SeoServiceLanding = lazy(() => import("./pages/SeoServiceLanding"));
+const HomeownerUpsell = lazy(() => import("./pages/HomeownerUpsell"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 
@@ -116,6 +117,7 @@ const App = () => (
             <Route path="/binder" element={<HomeBinder />} />
             <Route path="/pro-pricing" element={<ProPricing />} />
             <Route path="/pro-register" element={<ProRegister />} />
+            <Route path="/homeowner-upsell" element={<HomeownerUpsell />} />
             <Route path="/about" element={<About />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
