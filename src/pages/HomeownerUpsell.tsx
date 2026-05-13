@@ -110,7 +110,7 @@ export default function HomeownerUpsell() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {tiers.map((tier) => (
               <div
                 key={tier.name}
@@ -144,13 +144,6 @@ export default function HomeownerUpsell() {
                       {f}
                     </li>
                   ))}
-                  {"missing" in tier &&
-                    tier.missing.map((f) => (
-                      <li key={f} className="flex items-start gap-2.5 text-sm text-muted-foreground/60">
-                        <span className="w-4 text-center text-muted-foreground/40">—</span>
-                        {f}
-                      </li>
-                    ))}
                 </ul>
 
                 <Button
