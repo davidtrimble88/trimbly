@@ -106,7 +106,7 @@ export default function HomeownerUpsell() {
               Unlock the full power of HomeHero
             </h1>
             <p className="text-muted-foreground text-lg">
-              Free gets you started. Paid tiers give you AI-powered maintenance, a Digital Home Binder, and unlimited job estimates.
+              Upgrade to AI-powered maintenance, a Digital Home Binder, and unlimited job estimates.
             </p>
           </div>
 
