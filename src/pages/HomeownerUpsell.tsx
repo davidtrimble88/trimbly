@@ -10,29 +10,6 @@ import { useAuth } from "@/hooks/useAuth";
 
 const tiers = [
   {
-    name: "Free",
-    dbKey: "free",
-    icon: Star,
-    price: "$0",
-    period: "/mo",
-    description: "Essential tools to get started",
-    features: [
-      "1 home",
-      "Basic maintenance schedules",
-      "Search & message pros",
-      "Post jobs to the board",
-      "AI symptom triage",
-    ],
-    missing: [
-      "Digital Home Binder",
-      "Coverage Advisor (AI doc review)",
-      "Advanced maintenance schedules",
-      "Seasonal checklists",
-    ],
-    cta: "Continue Free",
-    highlighted: false,
-  },
-  {
     name: "Home Hero",
     dbKey: "homeowner_pro",
     icon: Zap,
@@ -40,13 +17,14 @@ const tiers = [
     period: "/mo",
     description: "Unlock AI-powered home management",
     features: [
-      "Everything in Free",
       "1 home",
       "Digital Home Binder (5 items)",
       "Coverage Advisor — AI doc review",
       "Unlimited AI job estimates",
       "Advanced maintenance schedules",
       "Seasonal checklists",
+      "Search & message pros",
+      "Post jobs to the board",
     ],
     cta: "Start 14-Day Free Trial",
     highlighted: true,
