@@ -56,7 +56,7 @@ export default function InstallAppPanel() {
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="font-semibold text-foreground">Install HomeHero</h3>
+                <h3 className="font-semibold text-foreground">Install Trimbly</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Add to your phone for instant access and push notifications when jobs come in.
                 </p>

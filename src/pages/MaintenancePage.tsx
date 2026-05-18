@@ -76,9 +76,9 @@ const generateICSEvent = (task: { id: string; title: string; description: string
     ? `\nRRULE:FREQ=MONTHLY;INTERVAL=${task.recurrence_months}`
     : "";
 
-  const alarm = `\nBEGIN:VALARM\nTRIGGER:${task.priority === "high" ? "-P1D" : "-P3D"}\nACTION:DISPLAY\nDESCRIPTION:${task.title} - HomeHero Maintenance\nEND:VALARM`;
+  const alarm = `\nBEGIN:VALARM\nTRIGGER:${task.priority === "high" ? "-P1D" : "-P3D"}\nACTION:DISPLAY\nDESCRIPTION:${task.title} - Trimbly Maintenance\nEND:VALARM`;
 
-  return `BEGIN:VEVENT\nUID:${task.id}@homehero\nSUMMARY:🏠 ${task.title}\nDESCRIPTION:${(task.description || "").replace(/\n/g, "\\n")}\\nCategory: ${task.category}\\nPriority: ${task.priority}\\nSeason: ${task.season}\n${dtStart}\n${dtEnd}${rrule}${alarm}\nEND:VEVENT`;
+  return `BEGIN:VEVENT\nUID:${task.id}@trimbly\nSUMMARY:🏠 ${task.title}\nDESCRIPTION:${(task.description || "").replace(/\n/g, "\\n")}\\nCategory: ${task.category}\\nPriority: ${task.priority}\\nSeason: ${task.season}\n${dtStart}\n${dtEnd}${rrule}${alarm}\nEND:VEVENT`;
 };
 
 const downloadICS = (filename: string, content: string) => {
@@ -472,7 +472,7 @@ const MaintenancePage = () => {
       toast({ title: "No due date", description: "This task has no due date to add to your calendar.", variant: "destructive" });
       return;
     }
-    const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//HomeHero//Maintenance//EN\nCALSCALE:GREGORIAN\n${generateICSEvent(task)}\nEND:VCALENDAR`;
+    const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Trimbly//Maintenance//EN\nCALSCALE:GREGORIAN\n${generateICSEvent(task)}\nEND:VCALENDAR`;
     downloadICS(`${task.title.replace(/\s+/g, "-").toLowerCase()}.ics`, ics);
     toast({ title: "Calendar event downloaded", description: "Open the file to add it to your calendar app." });
   };
@@ -484,8 +484,8 @@ const MaintenancePage = () => {
       return;
     }
     const events = upcomingTasks.map(t => generateICSEvent(t)).join("\n");
-    const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//HomeHero//Maintenance//EN\nCALSCALE:GREGORIAN\n${events}\nEND:VCALENDAR`;
-    downloadICS("homehero-maintenance.ics", ics);
+    const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Trimbly//Maintenance//EN\nCALSCALE:GREGORIAN\n${events}\nEND:VCALENDAR`;
+    downloadICS("trimbly-maintenance.ics", ics);
     toast({ title: "Calendar exported!", description: `${upcomingTasks.length} tasks exported. Open the file to add them to your calendar.` });
   };
 

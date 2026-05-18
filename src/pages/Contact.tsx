@@ -117,7 +117,7 @@ const Contact = () => {
               <div>
                 <p className="font-semibold text-sm text-foreground">Instant AI replies, plus humans within 48 hours</p>
                 <p className="text-sm text-muted-foreground">
-                  Our AI assistant may answer common questions about HomeHero immediately. Anything else gets a human reply in your{" "}
+                  Our AI assistant may answer common questions about Trimbly immediately. Anything else gets a human reply in your{" "}
                   <a href="/messages" className="underline text-primary">Messages</a> inbox within 48 hours.
                 </p>
               </div>

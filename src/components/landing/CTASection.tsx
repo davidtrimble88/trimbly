@@ -12,7 +12,7 @@ const CTASection = () => {
             Ready to be your home's hero?
           </h2>
           <p className="text-primary-foreground/80 text-lg max-w-xl mx-auto mb-8">
-            Join HomeHero today and take control of your home maintenance — with trusted pros and smart AI at your fingertips.
+            Join Trimbly today and take control of your home maintenance — with trusted pros and smart AI at your fingertips.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button size="lg" variant="secondary" className="text-base px-8 h-12 gap-2" onClick={() => navigate("/auth")}>

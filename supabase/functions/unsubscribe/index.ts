@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
     return new Response(
       renderPage(
         "You've been unsubscribed",
-        "You won't receive any more notification emails from HomeHero. If you change your mind, you can always sign up at homehero.com."
+        "You won't receive any more notification emails from Trimbly. If you change your mind, you can always sign up at trimbly.com."
       ),
       { headers: { "Content-Type": "text/html" } }
     );
@@ -82,7 +82,7 @@ function renderPage(title: string, message: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title} — HomeHero</title>
+  <title>${title} — Trimbly</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: #f9fafb; color: #1f2937; }
     .card { background: white; border-radius: 12px; padding: 48px; max-width: 480px; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }

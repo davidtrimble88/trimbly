@@ -122,7 +122,7 @@ const PricingSection = () => {
           </h2>
           <p className="text-muted-foreground text-lg">
             {audience === "homeowner"
-              ? "Start free. Upgrade when you want the full power of HomeHero."
+              ? "Start free. Upgrade when you want the full power of Trimbly."
               : "Get listed for free. Upgrade to unlock unlimited leads and AI tools."}
           </p>
         </div>

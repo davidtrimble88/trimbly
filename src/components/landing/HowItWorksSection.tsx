@@ -191,7 +191,7 @@ const homeownerTabs = [
       },
       {
         icon: BookOpen, step: "03", title: "View On-Site",
-        description: "Read the manual right inside HomeHero — no shady redirects, no ads, no signup walls.",
+        description: "Read the manual right inside Trimbly — no shady redirects, no ads, no signup walls.",
         route: "/manual-search",
       },
       {
@@ -324,7 +324,7 @@ const proTabs = [
       },
       {
         icon: QrCode, step: "02", title: "Yard Sign QR Codes",
-        description: "Print a yard sign QR that scans to your HomeHero profile — every job becomes a marketing channel.",
+        description: "Print a yard sign QR that scans to your Trimbly profile — every job becomes a marketing channel.",
         route: "/pro-dashboard",
       },
       {

@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 
 // Lightweight, untracked invite surface for homeowners.
 // (Server-side referral crediting is currently Pro-only; this exposes the share action.)
-export const ShareHomeHeroCard = () => {
+export const ShareTrimblyCard = () => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const url = typeof window !== "undefined" ? `${window.location.origin}/?invited=1` : "";
@@ -20,9 +20,9 @@ export const ShareHomeHeroCard = () => {
   };
 
   const share = async () => {
-    const text = `I'm using HomeHero to stay on top of home maintenance and find trusted local pros — thought you'd like it too: ${url}`;
+    const text = `I'm using Trimbly to stay on top of home maintenance and find trusted local pros — thought you'd like it too: ${url}`;
     if (navigator.share) {
-      try { await navigator.share({ title: "HomeHero", text, url }); } catch { /* user cancelled */ }
+      try { await navigator.share({ title: "Trimbly", text, url }); } catch { /* user cancelled */ }
     } else {
       await navigator.clipboard.writeText(text);
       toast({ title: "Message copied", description: "Paste it into a text or email." });
@@ -37,7 +37,7 @@ export const ShareHomeHeroCard = () => {
           <h3 className="font-bold text-foreground">Know someone who owns a home?</h3>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
-          HomeHero is better when your neighbors use it too — more local pros, faster bids, real reviews. Share the link.
+          Trimbly is better when your neighbors use it too — more local pros, faster bids, real reviews. Share the link.
         </p>
         <div className="flex gap-2">
           <Input readOnly value={url} className="font-mono text-xs" />
@@ -53,4 +53,4 @@ export const ShareHomeHeroCard = () => {
   );
 };
 
-export default ShareHomeHeroCard;
+export default ShareTrimblyCard;

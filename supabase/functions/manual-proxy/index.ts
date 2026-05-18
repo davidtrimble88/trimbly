@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
     const upstream = await fetch(parsed.toString(), {
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (compatible; HomeHero/1.0; +https://homehero.app)",
+          "Mozilla/5.0 (compatible; Trimbly/1.0; +https://trimbly.app)",
         Accept: "application/pdf,*/*;q=0.8",
       },
       redirect: "follow",

@@ -11,7 +11,7 @@ import { setSeo, injectJsonLd } from "@/lib/seo";
 const Blog = () => {
   useEffect(() => {
     setSeo({
-      title: "HomeHero Blog — Home Maintenance, Pricing & DIY Guides",
+      title: "Trimbly Blog — Home Maintenance, Pricing & DIY Guides",
       description:
         "Practical guides on home maintenance, repair pricing, and when to DIY vs. hire a pro — written for actual homeowners.",
       canonical: `${window.location.origin}/blog`,
@@ -19,7 +19,7 @@ const Blog = () => {
     injectJsonLd("ld-blog", {
       "@context": "https://schema.org",
       "@type": "Blog",
-      name: "HomeHero Blog",
+      name: "Trimbly Blog",
       url: `${window.location.origin}/blog`,
       blogPost: blogPosts.map((p) => ({
         "@type": "BlogPosting",
@@ -38,7 +38,7 @@ const Blog = () => {
         <div className="container mx-auto px-4 max-w-4xl">
           <header className="mb-8">
             <div className="inline-flex items-center gap-2 text-sm text-primary font-semibold mb-2">
-              <BookOpen size={16} /> HomeHero Blog
+              <BookOpen size={16} /> Trimbly Blog
             </div>
             <h1 className="text-3xl md:text-4xl font-extrabold font-display text-foreground">
               Home maintenance, pricing & DIY guides

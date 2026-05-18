@@ -35,7 +35,7 @@ const PrivacyPolicy = () => {
           <div className="prose prose-sm max-w-none space-y-8">
             <Section title="1. Introduction">
               <p>
-                HomeHero ("we," "our," or "us") operates the HomeHero website and mobile application (collectively, the "Platform"). This Privacy Policy describes how we collect, use, share, and protect personal information about you, and the rights and choices available to you. This policy applies to homeowners, service providers ("Pros"), and visitors, and covers both our website and our iOS and Android apps.
+                Trimbly ("we," "our," or "us") operates the Trimbly website and mobile application (collectively, the "Platform"). This Privacy Policy describes how we collect, use, share, and protect personal information about you, and the rights and choices available to you. This policy applies to homeowners, service providers ("Pros"), and visitors, and covers both our website and our iOS and Android apps.
               </p>
               <p>
                 By using the Platform, you consent to the practices described in this Policy. If you do not agree, please do not use the Platform.
@@ -154,7 +154,7 @@ const PrivacyPolicy = () => {
                 <li><strong>Non-discrimination</strong> — we will not deny service or charge different prices for exercising your rights.</li>
               </ul>
               <p>
-                To exercise these rights, email <strong>privacy@homehero.com</strong> from the address on your account, or use the in-app data tools in Settings. We will verify your identity and respond within the time required by applicable law (typically 30–45 days).
+                To exercise these rights, email <strong>privacy@trimbly.com</strong> from the address on your account, or use the in-app data tools in Settings. We will verify your identity and respond within the time required by applicable law (typically 30–45 days).
               </p>
               <h3 className="text-base font-semibold text-foreground">California (CCPA / CPRA) Notice</h3>
               <p>
@@ -174,7 +174,7 @@ const PrivacyPolicy = () => {
 
             <Section title="12. Children's Privacy">
               <p>
-                The Platform is intended for users <strong>18 years of age or older</strong>. We do not knowingly collect personal information from children under 13 (or under 16 in the EEA/UK). If you believe a child has provided us with personal information, contact us at <strong>privacy@homehero.com</strong> and we will delete it.
+                The Platform is intended for users <strong>18 years of age or older</strong>. We do not knowingly collect personal information from children under 13 (or under 16 in the EEA/UK). If you believe a child has provided us with personal information, contact us at <strong>privacy@trimbly.com</strong> and we will delete it.
               </p>
             </Section>
 
@@ -211,7 +211,7 @@ const PrivacyPolicy = () => {
 
             <Section title="18. Contact Us">
               <p>
-                Questions, requests, or complaints? Email <strong>privacy@homehero.com</strong> or write to us through our{" "}
+                Questions, requests, or complaints? Email <strong>privacy@trimbly.com</strong> or write to us through our{" "}
                 <Link to="/contact" className="text-primary hover:underline font-medium">contact page</Link>.
               </p>
             </Section>

@@ -335,7 +335,7 @@ const ProDashboard = () => {
       <OnboardingTour
         storageKey={`hh-tour-pro-${user?.id ?? "anon"}`}
         intro={{
-          title: `Welcome to HomeHero Pro, ${provider?.business_name || "there"}!`,
+          title: `Welcome to Trimbly Pro, ${provider?.business_name || "there"}!`,
           body: "Here's a quick walkthrough of your Pro Dashboard so you can start landing jobs right away.",
         }}
         steps={[

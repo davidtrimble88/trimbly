@@ -88,10 +88,10 @@ const ReferralPanel = ({ providerId, userId }: Props) => {
     const code = await ensureCode();
     if (!code) return;
     const url = `${window.location.origin}/pro-register?ref=${code}`;
-    const text = `Join me on HomeHero — homeowners are looking for ${businessName ? "pros like " + businessName : "local pros"} right now. Use my link and we both get a free month: ${url}`;
+    const text = `Join me on Trimbly — homeowners are looking for ${businessName ? "pros like " + businessName : "local pros"} right now. Use my link and we both get a free month: ${url}`;
     if (navigator.share) {
       try {
-        await navigator.share({ title: "HomeHero referral", text, url });
+        await navigator.share({ title: "Trimbly referral", text, url });
       } catch {}
     } else {
       await navigator.clipboard.writeText(text);

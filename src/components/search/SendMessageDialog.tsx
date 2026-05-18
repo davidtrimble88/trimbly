@@ -117,7 +117,7 @@ const SendMessageDialog = ({ provider, open, onOpenChange }: SendMessageDialogPr
             ) : (
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  {provider.business_name} isn't registered on HomeHero yet. We've noted your interest and will reach out to invite them to the platform.
+                  {provider.business_name} isn't registered on Trimbly yet. We've noted your interest and will reach out to invite them to the platform.
                 </p>
                 <div className="flex items-start gap-2 bg-secondary/50 rounded-lg p-3 mt-3">
                   <Clock size={14} className="text-muted-foreground mt-0.5 shrink-0" />
@@ -151,7 +151,7 @@ const SendMessageDialog = ({ provider, open, onOpenChange }: SendMessageDialogPr
             {!isRegistered && (
               <div className="flex items-start gap-2 bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
                 <Crown size={12} className="mt-0.5 shrink-0" />
-                <span>This provider was found online and isn't registered on HomeHero yet. We'll invite them to join so they can respond to you.</span>
+                <span>This provider was found online and isn't registered on Trimbly yet. We'll invite them to join so they can respond to you.</span>
               </div>
             )}
 

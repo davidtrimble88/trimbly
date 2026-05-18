@@ -52,8 +52,8 @@ const SeoServiceLanding = () => {
   }, [category, location, city, categoryLabel]);
 
   useEffect(() => {
-    const title = `${categoryLabel} in ${locationLabel} | Vetted Local Pros — HomeHero`;
-    const description = `Find trusted ${categoryLabel.toLowerCase()} pros in ${locationLabel}. Compare reviews, response times, and bids on HomeHero.`.slice(0, 158);
+    const title = `${categoryLabel} in ${locationLabel} | Vetted Local Pros — Trimbly`;
+    const description = `Find trusted ${categoryLabel.toLowerCase()} pros in ${locationLabel}. Compare reviews, response times, and bids on Trimbly.`.slice(0, 158);
     const canonical = `${window.location.origin}/services/${slugify(categoryLabel)}/${location}`;
     setSeo({ title, description, canonical });
 
@@ -96,7 +96,7 @@ const SeoServiceLanding = () => {
               {categoryLabel} pros in {locationLabel || "your area"}
             </h1>
             <p className="text-muted-foreground mt-2 max-w-2xl">
-              Compare vetted local {categoryLabel.toLowerCase()} pros{locationLabel ? ` near ${locationLabel}` : ""}. See reviews, licensing, and typical response times — then message them directly through HomeHero.
+              Compare vetted local {categoryLabel.toLowerCase()} pros{locationLabel ? ` near ${locationLabel}` : ""}. See reviews, licensing, and typical response times — then message them directly through Trimbly.
             </p>
             <div className="flex gap-2 mt-4">
               <Button asChild><Link to={`/search?category=${encodeURIComponent(categoryLabel)}&location=${encodeURIComponent(locationLabel)}`}>Browse all pros</Link></Button>
@@ -148,9 +148,9 @@ const SeoServiceLanding = () => {
           )}
 
           <section className="mt-12 prose prose-sm max-w-none text-muted-foreground">
-            <h2 className="text-xl font-bold text-foreground font-display">How HomeHero works in {locationLabel || "your area"}</h2>
+            <h2 className="text-xl font-bold text-foreground font-display">How Trimbly works in {locationLabel || "your area"}</h2>
             <p>
-              Every pro on HomeHero is verified and reviewed by real homeowners. Messaging is in-app for your safety — pros only get your phone number after you approve it. No spam calls, no surprise charges.
+              Every pro on Trimbly is verified and reviewed by real homeowners. Messaging is in-app for your safety — pros only get your phone number after you approve it. No spam calls, no surprise charges.
             </p>
             <ol>
               <li><strong className="text-foreground">Tell us what you need.</strong> Post a job or browse {categoryLabel.toLowerCase()} pros above.</li>

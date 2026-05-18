@@ -67,7 +67,7 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-display flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" /> Welcome to HomeHero
+            <Sparkles className="w-5 h-5 text-primary" /> Welcome to Trimbly
           </DialogTitle>
           <DialogDescription>Step {step} of 3 — let's set up your first home.</DialogDescription>
         </DialogHeader>

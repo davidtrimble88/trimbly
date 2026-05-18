@@ -71,7 +71,7 @@ export default function HomeownerUpsell() {
       }
 
       if (tierKey === "free") {
-        toast({ title: "Welcome to HomeHero!", description: "You're all set with the Free plan." });
+        toast({ title: "Welcome to Trimbly!", description: "You're all set with the Free plan." });
       } else {
         // Payments not fully wired yet — let them use the tier during a grace period
         toast({
@@ -103,7 +103,7 @@ export default function HomeownerUpsell() {
               Choose Your Plan
             </p>
             <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4 font-display">
-              Unlock the full power of HomeHero
+              Unlock the full power of Trimbly
             </h1>
             <p className="text-muted-foreground text-lg">
               Upgrade to AI-powered maintenance, a Digital Home Binder, and unlimited job estimates.

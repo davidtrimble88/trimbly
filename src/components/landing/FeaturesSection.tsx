@@ -53,7 +53,7 @@ const homeownerFeatures = [
   {
     icon: BookOpen,
     title: "User Manual Finder",
-    description: "Enter any brand and model number and we'll find the official user manual — viewable and downloadable right on HomeHero.",
+    description: "Enter any brand and model number and we'll find the official user manual — viewable and downloadable right on Trimbly.",
     tab: "manuals",
   },
   {
@@ -104,12 +104,12 @@ const proFeatures = [
   {
     icon: Home,
     title: "Local SEO Microsite",
-    description: "Your own page at homehero.com/pros/your-business — designed to rank in Google for your service area.",
+    description: "Your own page at trimbly.com/pros/your-business — designed to rank in Google for your service area.",
   },
   {
     icon: QrCode,
     title: "Yard Sign QR Codes",
-    description: "Printable yard sign QR that scans straight to your HomeHero profile — turn every job into a marketing channel.",
+    description: "Printable yard sign QR that scans straight to your Trimbly profile — turn every job into a marketing channel.",
   },
   {
     icon: Sparkles,
@@ -153,7 +153,7 @@ const FeaturesSection = () => {
             Everything you need
           </h2>
           <p className="text-muted-foreground text-lg">
-            Choose your view — we built HomeHero for both sides of the job.
+            Choose your view — we built Trimbly for both sides of the job.
           </p>
         </div>
 

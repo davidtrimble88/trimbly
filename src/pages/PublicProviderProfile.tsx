@@ -71,8 +71,8 @@ const PublicProviderProfile = () => {
       }
 
       // Update SEO meta tags for the microsite
-      const title = `${prov.business_name} — ${prov.category} in ${prov.city}, ${prov.state} | HomeHero`;
-      const desc = (prov.bio || prov.description || `Hire ${prov.business_name}, a ${prov.category.toLowerCase()} pro serving ${prov.city}, ${prov.state}. View reviews, photos, and get a quote on HomeHero.`).slice(0, 158);
+      const title = `${prov.business_name} — ${prov.category} in ${prov.city}, ${prov.state} | Trimbly`;
+      const desc = (prov.bio || prov.description || `Hire ${prov.business_name}, a ${prov.category.toLowerCase()} pro serving ${prov.city}, ${prov.state}. View reviews, photos, and get a quote on Trimbly.`).slice(0, 158);
       document.title = title;
       const metaDesc = document.querySelector('meta[name="description"]') || (() => {
         const m = document.createElement("meta");

@@ -41,7 +41,7 @@ export default function NotificationPrefsPanel({ userId }: { userId: string }) {
     setPermission(result);
     if (result === "granted") {
       toast({ title: "Notifications enabled" });
-      new Notification("HomeHero", { body: "You'll get pinged for new jobs, messages, and accepted bids." });
+      new Notification("Trimbly", { body: "You'll get pinged for new jobs, messages, and accepted bids." });
     } else if (result === "denied") {
       toast({ title: "Blocked", description: "Enable notifications in your browser settings.", variant: "destructive" });
     }
@@ -64,7 +64,7 @@ export default function NotificationPrefsPanel({ userId }: { userId: string }) {
 
         {permission !== "granted" && (
           <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
-            Turn on notifications to get instant alerts on this device — works best when you install HomeHero as an app from your browser menu.
+            Turn on notifications to get instant alerts on this device — works best when you install Trimbly as an app from your browser menu.
           </p>
         )}
 

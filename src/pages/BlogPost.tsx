@@ -96,7 +96,7 @@ const BlogPostPage = () => {
   useEffect(() => {
     if (!post) return;
     setSeo({
-      title: `${post.title} | HomeHero Blog`,
+      title: `${post.title} | Trimbly Blog`,
       description: post.description,
       canonical: `${window.location.origin}/blog/${post.slug}`,
     });
@@ -107,7 +107,7 @@ const BlogPostPage = () => {
       description: post.description,
       datePublished: post.publishedAt,
       url: `${window.location.origin}/blog/${post.slug}`,
-      author: { "@type": "Organization", name: "HomeHero" },
+      author: { "@type": "Organization", name: "Trimbly" },
     });
   }, [post]);
 

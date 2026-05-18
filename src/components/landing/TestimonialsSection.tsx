@@ -65,7 +65,7 @@ const TestimonialsSection = () => {
           <h2 className="text-3xl md:text-4xl font-extrabold font-display text-foreground">
             What homeowners are saying
           </h2>
-          <p className="text-muted-foreground mt-2">Real reviews from people who hired real pros on HomeHero.</p>
+          <p className="text-muted-foreground mt-2">Real reviews from people who hired real pros on Trimbly.</p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {reviews.map((r) => (

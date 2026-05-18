@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
   <div style="max-width: 560px; margin: 0 auto; padding: 40px 20px;">
     <div style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
       <div style="background: linear-gradient(135deg, #2563eb, #1d4ed8); padding: 24px 24px; text-align: center;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 20px;">🏠 HomeHero Maintenance Reminder</h1>
+        <h1 style="color: #ffffff; margin: 0; font-size: 20px;">🏠 Trimbly Maintenance Reminder</h1>
         <p style="color: #bfdbfe; margin: 8px 0 0; font-size: 14px;">${urgencyLabel}</p>
       </div>
       <div style="padding: 24px;">
@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
         </div>
       </div>
       <div style="background: #f9fafb; padding: 16px 24px; text-align: center;">
-        <p style="color: #9ca3af; font-size: 12px; margin: 0;">HomeHero — Your AI-powered home maintenance assistant</p>
+        <p style="color: #9ca3af; font-size: 12px; margin: 0;">Trimbly — Your AI-powered home maintenance assistant</p>
       </div>
     </div>
   </div>

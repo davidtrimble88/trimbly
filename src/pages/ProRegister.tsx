@@ -194,7 +194,7 @@ const ProRegister = () => {
                   I agree to the{" "}
                   <Link to="/terms" target="_blank" className="text-primary hover:underline font-medium">Terms of Service</Link>
                   {" "}and{" "}
-                  <Link to="/privacy" target="_blank" className="text-primary hover:underline font-medium">Privacy Policy</Link>. I understand HomeHero is a marketplace only and is not responsible for the work I perform, disputes with homeowners, or AI-generated content.
+                  <Link to="/privacy" target="_blank" className="text-primary hover:underline font-medium">Privacy Policy</Link>. I understand Trimbly is a marketplace only and is not responsible for the work I perform, disputes with homeowners, or AI-generated content.
                 </span>
               </label>
               <Button type="submit" className="w-full" size="lg" disabled={loading || !acceptedTos}>
