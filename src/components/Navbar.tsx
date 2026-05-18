@@ -168,7 +168,7 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <Link to={user ? dashboardRoute : "/"} className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-display font-bold text-sm">H</span>
+            <span className="text-primary-foreground font-display font-bold text-sm">T</span>
           </div>
           <span className="font-display font-bold text-xl text-foreground">Trimbly</span>
         </Link>

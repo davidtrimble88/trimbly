@@ -65,7 +65,7 @@ const Auth = () => {
         <div className="relative z-10 text-center">
           <Link to="/" className="inline-flex items-center gap-2 mb-8">
             <div className="w-12 h-12 rounded-xl bg-primary-foreground/20 flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-2xl">H</span>
+              <span className="text-primary-foreground font-display font-bold text-2xl">T</span>
             </div>
           </Link>
           <h1 className="text-4xl font-extrabold text-primary-foreground mb-4 font-display">
@@ -90,7 +90,7 @@ const Auth = () => {
 
           <div className="lg:hidden flex items-center gap-2 mb-6">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-sm">H</span>
+              <span className="text-primary-foreground font-display font-bold text-sm">T</span>
             </div>
             <span className="font-display font-bold text-xl text-foreground">Trimbly</span>
           </div>

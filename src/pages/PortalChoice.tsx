@@ -52,7 +52,7 @@ const PortalChoice = () => {
       <div className="w-full max-w-3xl">
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center mx-auto mb-4">
-            <span className="text-primary-foreground font-display font-bold text-xl">H</span>
+            <span className="text-primary-foreground font-display font-bold text-xl">T</span>
           </div>
           <h1 className="font-display text-3xl font-bold text-foreground mb-2">Welcome back</h1>
           <p className="text-muted-foreground">Where would you like to go?</p>

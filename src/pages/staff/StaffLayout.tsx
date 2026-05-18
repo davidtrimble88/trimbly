@@ -35,7 +35,7 @@ function StaffSidebar() {
         <div className="px-3 py-4 border-b border-sidebar-border">
           <RRNavLink to="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-              <span className="text-primary-foreground font-display font-bold text-sm">H</span>
+              <span className="text-primary-foreground font-display font-bold text-sm">T</span>
             </div>
             {!collapsed && (
               <div className="min-w-0">
