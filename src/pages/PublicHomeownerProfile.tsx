@@ -103,7 +103,7 @@ const PublicHomeownerProfile = () => {
                 <AvatarFallback>{profile.full_name?.[0]?.toUpperCase() ?? "U"}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <h1 className="text-3xl font-extrabold text-foreground">{profile.full_name || "HomeHero User"}</h1>
+                <h1 className="text-3xl font-extrabold text-foreground">{profile.full_name || "Trimbly User"}</h1>
                 <Badge variant="secondary" className="mt-2">
                   <Calendar size={12} className="mr-1.5" />
                   Member since {memberSince}

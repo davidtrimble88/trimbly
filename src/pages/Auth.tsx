@@ -69,7 +69,7 @@ const Auth = () => {
             </div>
           </Link>
           <h1 className="text-4xl font-extrabold text-primary-foreground mb-4 font-display">
-            {mode === "login" ? "Welcome back" : mode === "signup" ? "Join HomeHero" : "Reset password"}
+            {mode === "login" ? "Welcome back" : mode === "signup" ? "Join Trimbly" : "Reset password"}
           </h1>
           <p className="text-primary-foreground/70 text-lg max-w-md">
             {mode === "login"
@@ -92,7 +92,7 @@ const Auth = () => {
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-display font-bold text-sm">H</span>
             </div>
-            <span className="font-display font-bold text-xl text-foreground">HomeHero</span>
+            <span className="font-display font-bold text-xl text-foreground">Trimbly</span>
           </div>
 
           <h2 className="text-2xl font-bold text-foreground mb-1 font-display">
@@ -350,7 +350,7 @@ function AuthForm({
             I agree to the{" "}
             <Link to="/terms" target="_blank" className="text-primary hover:underline font-medium">Terms of Service</Link>
             {" "}and{" "}
-            <Link to="/privacy" target="_blank" className="text-primary hover:underline font-medium">Privacy Policy</Link>, and I understand HomeHero is not responsible for services rendered by providers, AI-generated content, or any DIY work I choose to perform.
+            <Link to="/privacy" target="_blank" className="text-primary hover:underline font-medium">Privacy Policy</Link>, and I understand Trimbly is not responsible for services rendered by providers, AI-generated content, or any DIY work I choose to perform.
           </span>
         </label>
       )}

@@ -43,7 +43,7 @@ export default function ProfileCompletenessCard() {
     <Card>
       <CardContent className="p-5">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-foreground">Get the most out of HomeHero</h3>
+          <h3 className="font-semibold text-foreground">Get the most out of Trimbly</h3>
           <span className="text-xs text-muted-foreground">{pct}% complete</span>
         </div>
         <Progress value={pct} className="h-2 mb-4" />

@@ -56,7 +56,7 @@ const ProPricing = () => {
           <div className="text-center max-w-2xl mx-auto mb-16">
             <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">For Service Providers</p>
             <h1 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4 font-display">
-              Grow your business with HomeHero
+              Grow your business with Trimbly
             </h1>
             <p className="text-muted-foreground text-lg">
               Choose the plan that matches your ambition. Upgrade or downgrade anytime.

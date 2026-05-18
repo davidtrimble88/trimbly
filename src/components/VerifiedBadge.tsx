@@ -11,7 +11,7 @@ export default function VerifiedBadge({ size = 12 }: { size?: number }) {
         </Badge>
       </TooltipTrigger>
       <TooltipContent>
-        <p className="text-xs max-w-xs">License and insurance documents reviewed by HomeHero.</p>
+        <p className="text-xs max-w-xs">License and insurance documents reviewed by Trimbly.</p>
       </TooltipContent>
     </Tooltip>
   );

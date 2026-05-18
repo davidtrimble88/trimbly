@@ -8,7 +8,7 @@ const corsHeaders = {
 const MAX_ATTEMPTS = 3;
 
 const SITE_KNOWLEDGE = `
-HomeHero is a platform connecting homeowners with local home-service professionals (handymen, plumbers, electricians, etc.) and providing AI-driven home maintenance tools.
+Trimbly is a platform connecting homeowners with local home-service professionals (handymen, plumbers, electricians, etc.) and providing AI-driven home maintenance tools.
 
 CORE FEATURES:
 - Dashboard (/dashboard): Central hub for homeowners, summary of homes, tasks, messages.
@@ -58,17 +58,17 @@ async function callAI(
   const messages = [
     {
       role: "system",
-      content: `You are a careful support triage AI for HomeHero. Decide if you can confidently answer the user's question using ONLY the provided site knowledge.
+      content: `You are a careful support triage AI for Trimbly. Decide if you can confidently answer the user's question using ONLY the provided site knowledge.
 
 Reply ONLY when ALL of these are true:
-1. The question is directly about HomeHero (the site, its features, pricing, account, how-to).
+1. The question is directly about Trimbly (the site, its features, pricing, account, how-to).
 2. The answer is unambiguously contained in the site knowledge below.
 3. There is NO billing dispute, refund request, bug report needing investigation, complaint, or anything requiring a human.
 4. You are 90%+ confident the reply fully resolves the question.
 
 If the user previously said your last reply was NOT helpful, you'll see their follow-up details. Use those to give a better, more specific answer. If you still cannot confidently answer, set should_reply=false.
 
-Tone: friendly, concise (under 150 words), use the user's first name if available, sign off as "The HomeHero Team". Markdown allowed (links, lists).
+Tone: friendly, concise (under 150 words), use the user's first name if available, sign off as "The Trimbly Team". Markdown allowed (links, lists).
 
 SITE KNOWLEDGE:
 ${SITE_KNOWLEDGE}`,
@@ -147,7 +147,7 @@ async function escalateToStaff(supabase: any, contactMsg: any, reason: string) {
     sender_id: senderId,
     recipient_id: contactMsg.user_id,
     subject: `Re: ${contactMsg.subject}`,
-    body: `Thanks for the extra detail! I'm handing this off to our human team — someone will reply within 48 hours.\n\n— The HomeHero Team`,
+    body: `Thanks for the extra detail! I'm handing this off to our human team — someone will reply within 48 hours.\n\n— The Trimbly Team`,
     contact_message_id: contactMsg.id,
     ai_meta: { kind: "escalation_notice", reason },
     read: false,

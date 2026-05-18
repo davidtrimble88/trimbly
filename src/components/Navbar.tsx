@@ -170,7 +170,7 @@ const Navbar = () => {
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
             <span className="text-primary-foreground font-display font-bold text-sm">H</span>
           </div>
-          <span className="font-display font-bold text-xl text-foreground">HomeHero</span>
+          <span className="font-display font-bold text-xl text-foreground">Trimbly</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-6">

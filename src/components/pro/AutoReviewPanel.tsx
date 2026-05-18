@@ -72,7 +72,7 @@ const AutoReviewPanel = ({ providerId, userId }: Props) => {
         recipient_id: job.homeowner_id,
         provider_id: providerId,
         subject: `Quick favor — review for "${job.title}"?`,
-        body: `Hey! Thanks again for trusting me with "${job.title}". If you have 30 seconds, a quick review on HomeHero means everything for my small business. Just tap your dashboard → Pros → leave a rating. 🙏`,
+        body: `Hey! Thanks again for trusting me with "${job.title}". If you have 30 seconds, a quick review on Trimbly means everything for my small business. Just tap your dashboard → Pros → leave a rating. 🙏`,
       }),
     ]);
     setSendingId(null);

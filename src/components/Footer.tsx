@@ -12,7 +12,7 @@ const Footer = () => {
               <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
                 <span className="text-primary-foreground font-display font-bold text-xs">H</span>
               </div>
-              <span className="font-display font-bold text-lg text-foreground">HomeHero</span>
+              <span className="font-display font-bold text-lg text-foreground">Trimbly</span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-sm">Your home, handled. AI-powered maintenance and trusted local pros.</p>
           </div>
@@ -47,7 +47,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="border-t border-border pt-6 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} HomeHero. All rights reserved.
+          © {new Date().getFullYear()} Trimbly. All rights reserved.
           {user && (
             <>
               <span className="mx-2 text-muted-foreground/30">·</span>

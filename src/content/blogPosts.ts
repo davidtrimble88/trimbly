@@ -57,7 +57,7 @@ Most home repairs that cost five figures started as ten-dollar problems. A clogg
 
 Anything involving structural work, electrical inside walls, gas lines, or roof penetrations is worth a licensed pro. Most other items on this list are 20-minute homeowner tasks once you have the routine.
 
-> Tip: HomeHero's Maintenance Autopilot turns this checklist into reminders tied to your home's specific systems and climate.
+> Tip: Trimbly's Maintenance Autopilot turns this checklist into reminders tied to your home's specific systems and climate.
 `,
   },
   {
@@ -107,7 +107,7 @@ There are three common pricing structures:
 - Buy the materials yourself if you're picky about brands.
 - Send photos when you request a quote — pros estimate faster and more accurately with context.
 
-HomeHero's AI Job Estimator uses real labor and material costs to give you a ballpark before you even message a pro — so you can sanity-check the bids you get.
+Trimbly's AI Job Estimator uses real labor and material costs to give you a ballpark before you even message a pro — so you can sanity-check the bids you get.
 `,
   },
   {
@@ -156,7 +156,7 @@ Before you pick up a wrench, run the job through these four:
 
 ## The honest middle ground
 
-The biggest mistake we see is homeowners getting 80% through a project, realizing they're stuck, and then calling a pro to finish what's now a more expensive job. If you're not sure, run the job through HomeHero's AI Symptom Triage first — it tells you which bucket the job belongs in before you commit.
+The biggest mistake we see is homeowners getting 80% through a project, realizing they're stuck, and then calling a pro to finish what's now a more expensive job. If you're not sure, run the job through Trimbly's AI Symptom Triage first — it tells you which bucket the job belongs in before you commit.
 `,
   },
 ];

@@ -39,7 +39,7 @@ function StaffSidebar() {
             </div>
             {!collapsed && (
               <div className="min-w-0">
-                <p className="font-display font-bold text-sm text-sidebar-foreground truncate">HomeHero</p>
+                <p className="font-display font-bold text-sm text-sidebar-foreground truncate">Trimbly</p>
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Staff Portal</p>
               </div>
             )}

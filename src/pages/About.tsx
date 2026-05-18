@@ -23,12 +23,12 @@ const About = () => {
 
           {/* Hero */}
           <div className="text-center max-w-3xl mx-auto mb-20">
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">About HomeHero</p>
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">About Trimbly</p>
             <h1 className="text-4xl md:text-5xl font-extrabold text-foreground mb-6 font-display">
               Your home, handled.
             </h1>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              HomeHero is an AI-powered home management platform that helps homeowners stay on top of maintenance, 
+              Trimbly is an AI-powered home management platform that helps homeowners stay on top of maintenance, 
               find trusted local professionals, and keep every detail of their home organized — all in one place.
             </p>
           </div>
@@ -43,11 +43,11 @@ const About = () => {
                 <h2 className="text-2xl font-bold text-foreground font-display">Our Mission</h2>
               </div>
               <p className="text-muted-foreground text-lg leading-relaxed mb-4">
-                Home maintenance shouldn't be stressful, confusing, or expensive. We built HomeHero to give every 
+                Home maintenance shouldn't be stressful, confusing, or expensive. We built Trimbly to give every 
                 homeowner a personal maintenance expert — powered by AI, backed by real professionals.
               </p>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                Whether you just bought your first home or you've been a homeowner for decades, HomeHero helps you 
+                Whether you just bought your first home or you've been a homeowner for decades, Trimbly helps you 
                 protect your investment with personalized maintenance schedules, instant cost estimates, and a 
                 curated network of verified local pros.
               </p>
@@ -73,7 +73,7 @@ const About = () => {
           <div className="text-center max-w-2xl mx-auto">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Heart size={20} className="text-primary" />
-              <h2 className="text-2xl font-bold text-foreground font-display">Join the HomeHero Community</h2>
+              <h2 className="text-2xl font-bold text-foreground font-display">Join the Trimbly Community</h2>
             </div>
             <p className="text-muted-foreground mb-6">
               Whether you're a homeowner looking for peace of mind or a pro looking to grow, we'd love to have you.

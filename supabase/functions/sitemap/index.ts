@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const origin = new URL(req.url).searchParams.get("origin") || "https://homehero.app";
+  const origin = new URL(req.url).searchParams.get("origin") || "https://trimbly.app";
 
   try {
     const supabase = createClient(

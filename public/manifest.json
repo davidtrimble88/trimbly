@@ -1,6 +1,6 @@
 {
-  "name": "HomeHero — Your Home, Handled",
-  "short_name": "HomeHero",
+  "name": "Trimbly — Your Home, Handled",
+  "short_name": "Trimbly",
   "description": "Find trusted local pros and automate your home maintenance.",
   "start_url": "/",
   "display": "standalone",

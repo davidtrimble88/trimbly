@@ -19,7 +19,7 @@ import ProfileEditor from "@/components/profile/ProfileEditor";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { NotificationPermissionPrompt } from "@/components/NotificationPermissionPrompt";
-import { ShareHomeHeroCard } from "@/components/ShareHomeHeroCard";
+import { ShareTrimblyCard } from "@/components/ShareTrimblyCard";
 import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
 import SavedProvidersCard from "@/components/SavedProvidersCard";
 import {
@@ -301,7 +301,7 @@ const Dashboard = () => {
       <OnboardingTour
         storageKey={`hh-tour-homeowner-${user.id}`}
         intro={{
-          title: `Welcome to HomeHero, ${displayName?.split(" ")[0] || "friend"}!`,
+          title: `Welcome to Trimbly, ${displayName?.split(" ")[0] || "friend"}!`,
           body: "Let's take a quick tour of your dashboard so you know where everything lives. It'll only take a minute.",
         }}
         steps={[
@@ -370,7 +370,7 @@ const Dashboard = () => {
                   <Home size={40} className="mx-auto text-primary mb-3" />
                   <h3 className="font-display font-bold text-lg mb-1">Add your first home</h3>
                   <p className="text-muted-foreground text-sm mb-4 max-w-sm mx-auto">
-                    HomeHero tailors every recommendation to your home's age, size, and systems. Takes under a minute.
+                    Trimbly tailors every recommendation to your home's age, size, and systems. Takes under a minute.
                   </p>
                   <Button onClick={() => setShowWizard(true)}>
                     <Plus size={14} className="mr-1.5" /> Set up my home
@@ -681,7 +681,7 @@ const Dashboard = () => {
             <SavedProvidersCard />
           </div>
           <div className="mt-4">
-            <ShareHomeHeroCard />
+            <ShareTrimblyCard />
           </div>
         </div>
       </main>

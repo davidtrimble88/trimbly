@@ -64,7 +64,7 @@ export default function ReportDialog({ targetType, targetId, trigger }: Props) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Report {targetType}</DialogTitle>
-          <DialogDescription>Help keep HomeHero safe. Reports are reviewed by our team.</DialogDescription>
+          <DialogDescription>Help keep Trimbly safe. Reports are reviewed by our team.</DialogDescription>
         </DialogHeader>
         <div className="space-y-3 py-2">
           <div>

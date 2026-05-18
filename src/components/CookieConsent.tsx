@@ -30,7 +30,7 @@ export default function CookieConsent() {
         <div className="flex-1 text-sm">
           <p className="text-foreground font-medium mb-1">We use cookies</p>
           <p className="text-xs text-muted-foreground mb-3">
-            We use essential cookies to make the site work, plus optional analytics to improve HomeHero. See our{" "}
+            We use essential cookies to make the site work, plus optional analytics to improve Trimbly. See our{" "}
             <Link to="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>.
           </p>
           <div className="flex gap-2">

@@ -132,7 +132,7 @@ const TOPICS: Topic[] = [
         a: "No — not unless you explicitly approve it. All initial contact happens through in-app messaging to protect your privacy.",
       },
       {
-        q: "What if a pro isn't on HomeHero yet?",
+        q: "What if a pro isn't on Trimbly yet?",
         a: "You can still message them — we'll notify them and invite them to join. Your message stays in your Pending Messages until they sign up.",
       },
     ],
@@ -155,7 +155,7 @@ const TOPICS: Topic[] = [
   {
     icon: MessageSquare,
     title: "Messages",
-    description: "In-app chat with providers and HomeHero support.",
+    description: "In-app chat with providers and Trimbly support.",
     faqs: [
       {
         q: "Where do support replies show up?",

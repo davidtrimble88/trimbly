@@ -29,10 +29,10 @@ const ForProsSection = () => {
           <div>
             <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">For Service Providers</p>
             <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-6">
-              Grow your business with HomeHero
+              Grow your business with Trimbly
             </h2>
             <p className="text-muted-foreground text-lg mb-8">
-              Join thousands of pros who use HomeHero to find new customers, manage leads, and grow their revenue — with flexible subscription tiers to match your goals.
+              Join thousands of pros who use Trimbly to find new customers, manage leads, and grow their revenue — with flexible subscription tiers to match your goals.
             </p>
             <Button size="lg" className="gap-2" onClick={() => navigate("/pro-pricing")}>
               Join as a Pro

@@ -536,7 +536,7 @@ const Messages = () => {
                     <div className="px-4 py-2 bg-muted/50 border-b border-border flex items-start gap-2">
                       <Clock size={12} className="text-muted-foreground mt-0.5 shrink-0" />
                       <p className="text-xs text-muted-foreground">
-                        This provider isn't on HomeHero yet. We'll notify them about your message and invite them to join.
+                        This provider isn't on Trimbly yet. We'll notify them about your message and invite them to join.
                       </p>
                     </div>
                   )}
@@ -576,7 +576,7 @@ const Messages = () => {
                           }`}>
                             {(isAI || isAIEscalation) && (
                               <div className="flex items-center gap-1.5 mb-1.5 text-[10px] font-semibold text-primary uppercase tracking-wide">
-                                <Bot size={11} /> HomeHero AI
+                                <Bot size={11} /> Trimbly AI
                               </div>
                             )}
                             <p className="whitespace-pre-wrap">{m.body}</p>
@@ -624,7 +624,7 @@ const Messages = () => {
                       </p>
                     ) : isPendingConversation ? (
                       <p className="text-xs text-muted-foreground text-center py-2">
-                        You'll be able to continue this conversation once {selectedPartner?.name} joins HomeHero.
+                        You'll be able to continue this conversation once {selectedPartner?.name} joins Trimbly.
                       </p>
                     ) : (
                       <div className="flex gap-2">
