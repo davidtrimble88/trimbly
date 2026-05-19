@@ -133,10 +133,11 @@ export default function HomeownerUpsell() {
                 </div>
 
                 <h3 className="font-bold text-xl text-card-foreground">{tier.name}</h3>
-                <div className="flex items-baseline gap-1 mt-2 mb-2">
+                <div className="flex items-baseline gap-1 mt-2 mb-1">
                   <span className="text-4xl font-extrabold text-card-foreground">{tier.price}</span>
-                  {tier.period && <span className="text-muted-foreground text-sm">{tier.period}</span>}
+                  {tier.period && <span className="text-muted-foreground text-sm">{tier.period} USD</span>}
                 </div>
+                <p className="text-xs text-muted-foreground mb-3">≈ {tier.cadPrice} {tier.period} CAD</p>
                 <p className="text-sm text-muted-foreground mb-6">{tier.description}</p>
 
                 <ul className="space-y-2.5 mb-6 flex-1">
