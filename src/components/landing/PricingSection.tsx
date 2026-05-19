@@ -88,6 +88,7 @@ const proTiers = [
   {
     name: "Pro Provider",
     price: "$29",
+    cadPrice: "CA$40",
     period: "/month",
     description: "More visibility, more leads, more growth",
     features: [
