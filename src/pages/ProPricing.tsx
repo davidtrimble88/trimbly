@@ -26,6 +26,7 @@ const tiers = [
     name: "Pro",
     icon: Zap,
     price: "$29",
+    cadPrice: "CA$40",
     period: "/month",
     description: "More visibility, more leads, more growth",
     features: [
