@@ -36,6 +36,7 @@ const tiers = [
     dbKey: "multi_pro",
     icon: Crown,
     price: "$20",
+    cadPrice: "CA$28",
     period: "/mo",
     description: "For property owners & multi-home families",
     features: [
