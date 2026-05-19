@@ -21,6 +21,7 @@ import {
   User, Star, Shield,
 } from "lucide-react";
 import JobPhotoUploader from "@/components/JobPhotoUploader";
+import JobVideoUploader from "@/components/JobVideoUploader";
 
 const categories = [
   "Appliance Repair", "Carpentry", "Cleaning", "Drywall", "Electrical",
@@ -87,6 +88,7 @@ const PostJob = () => {
     title: "", description: "", category: "", city: "", state: "", country: "US",
   });
   const [photos, setPhotos] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!showForm) {
@@ -173,6 +175,7 @@ const PostJob = () => {
       country: form.country,
       status: "pending",
       photo_urls: photos,
+      video_url: videoUrl,
     });
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -180,6 +183,7 @@ const PostJob = () => {
       toast({ title: "Job posted!", description: "Pros can now see and bid on your job." });
       setForm({ title: "", description: "", category: "", city: "", state: "", country: "US" });
       setPhotos([]);
+      setVideoUrl(null);
       setShowForm(false);
       loadJobs();
     }
@@ -473,9 +477,15 @@ const PostJob = () => {
                 <JobPhotoUploader value={photos} onChange={setPhotos} max={5} />
               </div>
             </div>
+            <div>
+              <Label>Video (optional)</Label>
+              <div className="mt-1">
+                <JobVideoUploader value={videoUrl} onChange={setVideoUrl} />
+              </div>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowForm(false); setPhotos([]); }}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setShowForm(false); setPhotos([]); setVideoUrl(null); }}>Cancel</Button>
             <Button onClick={handleSubmit} disabled={submitting}>{submitting ? "Posting..." : "Post Job"}</Button>
           </DialogFooter>
         </DialogContent>
