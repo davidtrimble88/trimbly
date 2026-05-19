@@ -18,17 +18,19 @@ const StaffLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // If already signed in as admin, jump straight to portal
+  // If already signed in as staff, jump straight to portal
   useEffect(() => {
     if (!user) return;
     supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle()
       .then(({ data }) => {
-        if (data) navigate("/staff", { replace: true });
+        const roles = (data || []).map((r: any) => r.role);
+        const staffRoles = ["admin", "moderator", "support", "analyst"];
+        if (roles.some((r: string) => staffRoles.includes(r))) {
+          navigate("/staff", { replace: true });
+        }
       });
   }, [user, navigate]);
 
