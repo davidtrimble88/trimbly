@@ -30,7 +30,7 @@ const HeroSection = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-            <Button size="lg" className="text-base px-8 h-12 gap-2" onClick={() => navigate("/homeowner-upsell")}>
+            <Button size="lg" className="text-base px-8 h-12 gap-2" onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}>
               I Have a Home <ArrowRight size={18} />
             </Button>
             <Button variant="outline" size="lg" className="text-base px-8 h-12" onClick={() => navigate("/pro-pricing")}>
