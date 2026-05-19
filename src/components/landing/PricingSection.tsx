@@ -9,6 +9,7 @@ const homeownerTiers = [
   {
     name: "Free",
     price: "$0",
+    cadPrice: "CA$0",
     period: "",
     description: "Get started with basic home management",
     features: [
