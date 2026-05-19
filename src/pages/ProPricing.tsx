@@ -9,6 +9,7 @@ const tiers = [
     name: "Free",
     icon: Star,
     price: "$0",
+    cadPrice: "CA$0",
     period: "",
     description: "Get listed and start receiving leads",
     features: [
