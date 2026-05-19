@@ -49,6 +49,7 @@ const homeownerTiers = [
   {
     name: "Home Super Hero",
     price: "$20",
+    cadPrice: "CA$28",
     period: "/month",
     description: "Manage up to 10 properties from one account",
     features: [
