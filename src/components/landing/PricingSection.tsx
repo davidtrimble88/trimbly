@@ -28,6 +28,7 @@ const homeownerTiers = [
   {
     name: "Home Hero",
     price: "$5",
+    cadPrice: "CA$7",
     period: "/month",
     description: "Full-powered home maintenance on autopilot",
     features: [
