@@ -36,7 +36,7 @@ const AISearchBar = () => {
         <div className="relative flex-1">
           <Sparkles size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-accent" />
           <Input
-            placeholder="Ask AI: 'I need a licensed plumber in Toronto for a bathroom reno'..."
+            placeholder="Ask AI: 'I need a licensed plumber in Austin for a bathroom reno'..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAISearch()}
