@@ -18,17 +18,19 @@ const StaffLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // If already signed in as admin, jump straight to portal
+  // If already signed in as staff, jump straight to portal
   useEffect(() => {
     if (!user) return;
     supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle()
       .then(({ data }) => {
-        if (data) navigate("/staff", { replace: true });
+        const roles = (data || []).map((r: any) => r.role);
+        const staffRoles = ["admin", "moderator", "support", "analyst"];
+        if (roles.some((r: string) => staffRoles.includes(r))) {
+          navigate("/staff", { replace: true });
+        }
       });
   }, [user, navigate]);
 
@@ -50,14 +52,16 @@ const StaffLogin = () => {
         return;
       }
 
-      const { data: roleRow } = await supabase
+      const { data: roleRows } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", authUser.id)
-        .eq("role", "admin")
-        .maybeSingle();
+        .eq("user_id", authUser.id);
 
-      if (!roleRow) {
+      const roles = (roleRows || []).map((r: any) => r.role);
+      const staffRoles = ["admin", "moderator", "support", "analyst"];
+      const hasStaff = roles.some((r: string) => staffRoles.includes(r));
+
+      if (!hasStaff) {
         await signOut();
         toast({
           title: "Access restricted",
