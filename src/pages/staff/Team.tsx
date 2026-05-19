@@ -158,7 +158,7 @@ export default function StaffTeam() {
       toast({ title: "Error", description: insErr.message, variant: "destructive" });
       return;
     }
-    await logActivity("staff_role_changed", "user", row.user_id, { from: row.role, to: newRole });
+    await logActivity(user!.id, "staff_role_changed", "user", row.user_id, { from: row.role, to: newRole });
     toast({ title: "Role updated", description: `${row.full_name} is now ${newRole}` });
     load();
   };
