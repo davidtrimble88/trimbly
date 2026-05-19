@@ -92,17 +92,19 @@ const StaffLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [staffName, setStaffName] = useState<string>("");
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate("/staff-login"); return; }
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle()
-      .then(({ data }) => setIsAdmin(!!data));
+    (async () => {
+      const [{ data: roleRow }, { data: profile }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle(),
+        supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle(),
+      ]);
+      setIsAdmin(!!roleRow);
+      setStaffName(profile?.full_name || user.email || "");
+    })();
   }, [user, authLoading, navigate]);
 
   if (authLoading || isAdmin === null) {
