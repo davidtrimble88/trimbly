@@ -149,6 +149,42 @@ const Dashboard = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Test projection */}
+      <Card className="border-dashed border-primary/30 bg-primary/5">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-primary" /> Projected at Scale (Test)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-xs text-muted-foreground">
+                  <th className="py-2 font-medium">Tier</th>
+                  <th className="py-2 font-medium text-right">Subscribers</th>
+                  <th className="py-2 font-medium text-right">Price/mo</th>
+                  <th className="py-2 font-medium text-right">MRR</th>
+                </tr>
+              </thead>
+              <tbody>
+                <SubRow name="Home Hero" audience="Homeowners" count={7973} price={PRICING.homeowner_pro} />
+                <SubRow name="Provider Pro" audience="Service Providers" count={3265} price={PRICING.pro} />
+                <tr className="font-semibold bg-muted/40">
+                  <td className="py-3 px-2" colSpan={2}>Projected Total Recurring Revenue</td>
+                  <td className="py-3 text-right">{7973 + 3265}</td>
+                  <td className="py-3 text-right text-primary">${((7973 * PRICING.homeowner_pro) + (3265 * PRICING.pro)).toLocaleString()}/mo</td>
+                </tr>
+                <tr className="text-xs text-muted-foreground">
+                  <td colSpan={3} className="pt-2 px-2">Annualized projection</td>
+                  <td className="text-right pt-2">${(((7973 * PRICING.homeowner_pro) + (3265 * PRICING.pro)) * 12).toLocaleString()}/yr</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
