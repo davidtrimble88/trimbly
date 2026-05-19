@@ -52,14 +52,16 @@ const StaffLogin = () => {
         return;
       }
 
-      const { data: roleRow } = await supabase
+      const { data: roleRows } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", authUser.id)
-        .eq("role", "admin")
-        .maybeSingle();
+        .eq("user_id", authUser.id);
 
-      if (!roleRow) {
+      const roles = (roleRows || []).map((r: any) => r.role);
+      const staffRoles = ["admin", "moderator", "support", "analyst"];
+      const hasStaff = roles.some((r: string) => staffRoles.includes(r));
+
+      if (!hasStaff) {
         await signOut();
         toast({
           title: "Access restricted",
