@@ -477,9 +477,15 @@ const PostJob = () => {
                 <JobPhotoUploader value={photos} onChange={setPhotos} max={5} />
               </div>
             </div>
+            <div>
+              <Label>Video (optional)</Label>
+              <div className="mt-1">
+                <JobVideoUploader value={videoUrl} onChange={setVideoUrl} />
+              </div>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowForm(false); setPhotos([]); }}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setShowForm(false); setPhotos([]); setVideoUrl(null); }}>Cancel</Button>
             <Button onClick={handleSubmit} disabled={submitting}>{submitting ? "Posting..." : "Post Job"}</Button>
           </DialogFooter>
         </DialogContent>
