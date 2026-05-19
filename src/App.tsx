@@ -141,6 +141,7 @@ const App = () => (
             <Route path="/services/:category/:location" element={<SeoServiceLanding />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
+            <Route path="/staff-login" element={<StaffLogin />} />
             <Route path="/staff" element={<StaffLayout />}>
               <Route index element={<StaffDashboard />} />
               <Route path="contacts" element={<StaffContacts />} />
