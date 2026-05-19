@@ -470,7 +470,7 @@ const PostJob = () => {
             <div>
               <Label>Photos (optional)</Label>
               <div className="mt-1">
-                <JobPhotoUploader value={photos} onChange={setPhotos} />
+                <JobPhotoUploader value={photos} onChange={setPhotos} max={5} />
               </div>
             </div>
           </div>
