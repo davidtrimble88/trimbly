@@ -175,6 +175,7 @@ const PostJob = () => {
       country: form.country,
       status: "pending",
       photo_urls: photos,
+      video_url: videoUrl,
     });
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -182,6 +183,7 @@ const PostJob = () => {
       toast({ title: "Job posted!", description: "Pros can now see and bid on your job." });
       setForm({ title: "", description: "", category: "", city: "", state: "", country: "US" });
       setPhotos([]);
+      setVideoUrl(null);
       setShowForm(false);
       loadJobs();
     }
