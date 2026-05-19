@@ -57,6 +57,7 @@ const SeoServiceLanding = lazy(() => import("./pages/SeoServiceLanding"));
 const HomeownerUpsell = lazy(() => import("./pages/HomeownerUpsell"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
+const StaffLogin = lazy(() => import("./pages/StaffLogin"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
