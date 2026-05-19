@@ -222,7 +222,7 @@ const SearchPros = () => {
                   <div className="relative flex-1">
                     <MapPin size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      placeholder="Enter city or state/province (e.g. Toronto, ON or Miami, FL)..."
+                      placeholder="Enter city or state (e.g. Austin, TX or Miami, FL)..."
                       value={locationQuery}
                       onChange={(e) => setLocationQuery(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && triggerSearch()}
