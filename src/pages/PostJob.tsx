@@ -464,11 +464,11 @@ const PostJob = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>City *</Label>
-                <Input placeholder="Toronto" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} className="mt-1" />
+                <Input placeholder={form.country === "CA" ? "Toronto" : "Austin"} value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} className="mt-1" />
               </div>
               <div>
                 <Label>State/Province *</Label>
-                <Input placeholder="ON" value={form.state} onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))} className="mt-1" />
+                <Input placeholder={form.country === "CA" ? "ON" : "TX"} value={form.state} onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))} className="mt-1" />
               </div>
             </div>
             <div>
