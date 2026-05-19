@@ -88,6 +88,7 @@ const PostJob = () => {
     title: "", description: "", category: "", city: "", state: "", country: "US",
   });
   const [photos, setPhotos] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!showForm) {
