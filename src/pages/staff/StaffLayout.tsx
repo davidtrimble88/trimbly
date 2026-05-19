@@ -95,7 +95,7 @@ const StaffLayout = () => {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) { navigate("/auth"); return; }
+    if (!user) { navigate("/staff-login"); return; }
     supabase
       .from("user_roles")
       .select("role")
