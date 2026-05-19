@@ -21,6 +21,7 @@ import {
   User, Star, Shield,
 } from "lucide-react";
 import JobPhotoUploader from "@/components/JobPhotoUploader";
+import JobVideoUploader from "@/components/JobVideoUploader";
 
 const categories = [
   "Appliance Repair", "Carpentry", "Cleaning", "Drywall", "Electrical",
