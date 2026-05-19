@@ -133,7 +133,7 @@ export default function StaffTeam() {
       toast({ title: "Error", description: error.message, variant: "destructive" });
       return;
     }
-    await logActivity("staff_removed", "user", row.user_id, { role: row.role });
+    await logActivity(user.id, "staff_removed", "user", row.user_id, { role: row.role });
     toast({ title: "Staff member removed" });
     load();
   };
