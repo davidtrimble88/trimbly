@@ -146,9 +146,17 @@ const StaffLayout = () => {
                 {currentNav?.label || "Staff Portal"}
               </h1>
             </div>
-            <Button variant="ghost" size="sm" onClick={async () => { await signOut(); navigate("/"); }}>
-              <LogOut className="h-4 w-4" /> Sign Out
-            </Button>
+            <div className="flex items-center gap-3">
+              {staffName && (
+                <div className="hidden sm:flex flex-col items-end leading-tight">
+                  <span className="text-sm font-medium text-foreground truncate max-w-[180px]">{staffName}</span>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Staff</span>
+                </div>
+              )}
+              <Button variant="ghost" size="sm" onClick={async () => { await signOut(); navigate("/"); }}>
+                <LogOut className="h-4 w-4" /> Sign Out
+              </Button>
+            </div>
           </header>
           <main className="flex-1 overflow-y-auto p-4 md:p-6">
             <Outlet />
