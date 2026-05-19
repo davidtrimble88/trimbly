@@ -107,7 +107,7 @@ export default function StaffTeam() {
         setAdding(false);
         return;
       }
-      await logActivity("staff_added", "user", trimmed, { role });
+      await logActivity(user.id, "staff_added", "user", trimmed, { role });
       toast({ title: "Staff member added", description: `Role: ${role}` });
       setEmail("");
       setRole("support");
