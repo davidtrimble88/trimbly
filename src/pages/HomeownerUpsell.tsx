@@ -14,6 +14,7 @@ const tiers = [
     dbKey: "homeowner_pro",
     icon: Zap,
     price: "$5",
+    cadPrice: "CA$7",
     period: "/mo",
     description: "Unlock AI-powered home management",
     features: [
