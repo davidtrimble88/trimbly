@@ -9,6 +9,7 @@ const homeownerTiers = [
   {
     name: "Free",
     price: "$0",
+    cadPrice: "CA$0",
     period: "",
     description: "Get started with basic home management",
     features: [
@@ -27,6 +28,7 @@ const homeownerTiers = [
   {
     name: "Home Hero",
     price: "$5",
+    cadPrice: "CA$7",
     period: "/month",
     description: "Full-powered home maintenance on autopilot",
     features: [
@@ -47,6 +49,7 @@ const homeownerTiers = [
   {
     name: "Home Super Hero",
     price: "$20",
+    cadPrice: "CA$28",
     period: "/month",
     description: "Manage up to 10 properties from one account",
     features: [
@@ -68,6 +71,7 @@ const proTiers = [
   {
     name: "Free",
     price: "$0",
+    cadPrice: "CA$0",
     period: "",
     description: "Get listed and start receiving leads",
     features: [
@@ -84,6 +88,7 @@ const proTiers = [
   {
     name: "Pro Provider",
     price: "$29",
+    cadPrice: "CA$40",
     period: "/month",
     description: "More visibility, more leads, more growth",
     features: [
@@ -169,10 +174,11 @@ const PricingSection = () => {
                 </span>
               )}
               <h3 className="font-bold text-xl text-card-foreground">{tier.name}</h3>
-              <div className="flex items-baseline gap-1 mt-3 mb-2">
+              <div className="flex items-baseline gap-1 mt-3 mb-1">
                 <span className="text-4xl font-extrabold text-card-foreground">{tier.price}</span>
-                {tier.period && <span className="text-muted-foreground text-sm">{tier.period}</span>}
+                {tier.period && <span className="text-muted-foreground text-sm">{tier.period} USD</span>}
               </div>
+              <p className="text-xs text-muted-foreground mb-3">≈ {tier.cadPrice}{tier.period ? ` ${tier.period} CAD` : " CAD"}</p>
               <p className="text-sm text-muted-foreground mb-6">{tier.description}</p>
               <ul className="space-y-3 mb-8">
                 {tier.features.map((f) => (

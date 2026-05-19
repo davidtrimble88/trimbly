@@ -9,6 +9,7 @@ const tiers = [
     name: "Free",
     icon: Star,
     price: "$0",
+    cadPrice: "CA$0",
     period: "",
     description: "Get listed and start receiving leads",
     features: [
@@ -25,6 +26,7 @@ const tiers = [
     name: "Pro",
     icon: Zap,
     price: "$29",
+    cadPrice: "CA$40",
     period: "/month",
     description: "More visibility, more leads, more growth",
     features: [
@@ -82,10 +84,11 @@ const ProPricing = () => {
                   <tier.icon size={20} className="text-primary" />
                 </div>
                 <h3 className="font-bold text-xl text-card-foreground">{tier.name}</h3>
-                <div className="flex items-baseline gap-1 mt-3 mb-2">
+                <div className="flex items-baseline gap-1 mt-3 mb-1">
                   <span className="text-4xl font-extrabold text-card-foreground">{tier.price}</span>
-                  {tier.period && <span className="text-muted-foreground text-sm">{tier.period}</span>}
+                  {tier.period && <span className="text-muted-foreground text-sm">{tier.period} USD</span>}
                 </div>
+                <p className="text-xs text-muted-foreground mb-3">≈ {tier.cadPrice}{tier.period ? ` ${tier.period} CAD` : " CAD"}</p>
                 <p className="text-sm text-muted-foreground mb-6">{tier.description}</p>
                 <ul className="space-y-3 mb-8">
                   {tier.features.map((f) => (
