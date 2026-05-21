@@ -111,6 +111,7 @@ const PostJob = () => {
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [bidCounts, setBidCounts] = useState<Record<string, number>>({});
+  const [bidUnreadCounts, setBidUnreadCounts] = useState<Record<string, number>>({}); // provider_user_id -> unread count
 
   // Message-a-pro dialog (without accepting the bid)
   const [messageBid, setMessageBid] = useState<Bid | null>(null);
@@ -216,7 +217,26 @@ const PostJob = () => {
       .select("*, provider:providers(user_id, business_name, category, city, state, years_experience, licensed, insured, phone)")
       .eq("job_id", jobId)
       .order("created_at", { ascending: false });
-    setBids((prev) => ({ ...prev, [jobId]: (data as unknown as Bid[]) || [] }));
+    const bidsList = (data as unknown as Bid[]) || [];
+    setBids((prev) => ({ ...prev, [jobId]: bidsList }));
+
+    // Load unread message counts for each pro in these bids
+    const providerUserIds = bidsList
+      .map((b) => b.provider?.user_id)
+      .filter(Boolean) as string[];
+    if (providerUserIds.length > 0 && user) {
+      const { data: unreadMsgs } = await supabase
+        .from("messages")
+        .select("sender_id")
+        .eq("recipient_id", user.id)
+        .in("sender_id", providerUserIds)
+        .eq("read", false);
+      const counts: Record<string, number> = {};
+      (unreadMsgs || []).forEach((m: any) => {
+        counts[m.sender_id] = (counts[m.sender_id] || 0) + 1;
+      });
+      setBidUnreadCounts((prev) => ({ ...prev, ...counts }));
+    }
   };
 
   const toggleExpand = (jobId: string) => {
@@ -492,14 +512,27 @@ const PostJob = () => {
                                   </>
                                 )}
                                 {bid.provider?.user_id && bid.status !== "rejected" && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => { setMessageBid(bid); setMessageBody(""); }}
-                                    className="gap-1"
-                                  >
-                                    <MessageSquare size={14} /> Message
-                                  </Button>
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => { setMessageBid(bid); setMessageBody(""); }}
+                                      className="gap-1"
+                                    >
+                                      <MessageSquare size={14} /> Message
+                                    </Button>
+                                    {(bidUnreadCounts[bid.provider.user_id] ?? 0) > 0 && (
+                                      <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={() => navigate(`/messages?partner=${bid.provider!.user_id}`)}
+                                        className="gap-1"
+                                      >
+                                        <MessageSquare size={14} />
+                                        {bidUnreadCounts[bid.provider.user_id]} new
+                                      </Button>
+                                    )}
+                                  </>
                                 )}
                                 {bid.status === "accepted" && (
                                   <>
