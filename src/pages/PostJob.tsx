@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Plus, Briefcase, MapPin, Clock, DollarSign, MessageSquare, Phone,
   PhoneOff, CheckCircle, XCircle, Trash2, Eye, ChevronDown, ChevronUp,
-  User, Star, Shield,
+  User, Star, Shield, Sparkles, Lightbulb, Wand2,
 } from "lucide-react";
 import JobPhotoUploader from "@/components/JobPhotoUploader";
 import JobVideoUploader from "@/components/JobVideoUploader";
