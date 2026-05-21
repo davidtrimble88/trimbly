@@ -496,6 +496,9 @@ const PostJob = () => {
                   {aiLoading ? "Thinking..." : "AI Help"}
                 </Button>
               </div>
+              <p className="text-xs text-muted-foreground mb-1.5">
+                The more details you share — what's broken, dimensions, materials, urgency, access, budget — the more accurate bids you'll get.
+              </p>
               <Textarea
                 placeholder="Describe the job in detail — what's broken, dimensions, materials, access, urgency..."
                 value={form.description}
