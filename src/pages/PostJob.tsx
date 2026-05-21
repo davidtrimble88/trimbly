@@ -271,6 +271,34 @@ const PostJob = () => {
     toast({ title: !current ? "Call approved" : "Call permission revoked" });
   };
 
+  const openPhoneEditor = (bid: Bid) => {
+    setPhoneBid(bid);
+    setPhoneInput(bid.phone_number ?? "");
+  };
+
+  const savePhoneAndApprove = async () => {
+    if (!phoneBid) return;
+    const trimmed = phoneInput.trim();
+    if (trimmed.length < 7 || trimmed.length > 25) {
+      toast({ title: "Enter a valid phone number", variant: "destructive" });
+      return;
+    }
+    setSavingPhone(true);
+    const { error } = await supabase
+      .from("job_bids")
+      .update({ phone_number: trimmed, call_approved: true })
+      .eq("id", phoneBid.id);
+    setSavingPhone(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Phone number shared", description: "The pro can now call you." });
+    loadBids(phoneBid.job_id);
+    setPhoneBid(null);
+    setPhoneInput("");
+  };
+
   const sendMessageToPro = async () => {
     if (!user || !messageBid?.provider?.user_id || !messageBody.trim()) return;
     setSendingMessage(true);
