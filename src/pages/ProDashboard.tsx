@@ -128,6 +128,7 @@ const ProDashboard = () => {
   const [bids, setBids] = useState<BidWithJob[]>([]);
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
   const [messages, setMessages] = useState<MessageRow[]>([]);
+  const [bidUnreadCounts, setBidUnreadCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<Partial<ProviderProfile>>({});
