@@ -73,6 +73,11 @@ const JobBoard = () => {
   const [bidForm, setBidForm] = useState({ message: "", bid_amount: "", estimated_hours: "", phone_number: "" });
   const [submitting, setSubmitting] = useState(false);
 
+  // Request-more-info dialog
+  const [askJob, setAskJob] = useState<Job | null>(null);
+  const [askMessage, setAskMessage] = useState("");
+  const [askSubmitting, setAskSubmitting] = useState(false);
+
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading]);
