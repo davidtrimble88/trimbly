@@ -458,9 +458,14 @@ const JobBoard = () => {
                             )}
                           </div>
                         ) : (
-                          <Button size="sm" onClick={() => setBidJob(job)} className="gap-1">
-                            <Send size={14} /> Send Bid
-                          </Button>
+                          <div className="flex flex-col gap-2">
+                            <Button size="sm" onClick={() => setBidJob(job)} className="gap-1">
+                              <Send size={14} /> Send Bid
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => openAskInfo(job)} className="gap-1">
+                              <MessageSquare size={14} /> Ask for Info
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </div>
