@@ -72,6 +72,8 @@ type Job = {
   country: string;
   status: string;
   photo_urls?: string[] | null;
+  budget_min?: number | null;
+  budget_max?: number | null;
   created_at: string;
 };
 
@@ -125,6 +127,7 @@ const PostJob = () => {
 
   const [form, setForm] = useState({
     title: "", description: "", category: "", city: "", state: "", country: "US",
+    budget_min: "", budget_max: "",
   });
   const [photos, setPhotos] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -294,6 +297,8 @@ const PostJob = () => {
     }
 
 
+    const bMin = form.budget_min ? Number(form.budget_min) : null;
+    const bMax = form.budget_max ? Number(form.budget_max) : null;
     const { error } = await supabase.from("jobs").insert({
       homeowner_id: user.id,
       title: form.title,
@@ -305,12 +310,14 @@ const PostJob = () => {
       status: "pending",
       photo_urls: photos,
       video_url: videoUrl,
+      budget_min: bMin,
+      budget_max: bMax,
     });
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Job posted!", description: "Pros can now see and bid on your job." });
-      setForm({ title: "", description: "", category: "", city: "", state: "", country: "US" });
+      setForm({ title: "", description: "", category: "", city: "", state: "", country: "US", budget_min: "", budget_max: "" });
       setPhotos([]);
       setVideoUrl(null);
       setShowForm(false);
@@ -457,6 +464,16 @@ const PostJob = () => {
                         <span className="flex items-center gap-1"><Briefcase size={12} /> {job.category}</span>
                         <span className="flex items-center gap-1"><MapPin size={12} /> {job.city}, {job.state}</span>
                         <span className="flex items-center gap-1"><Clock size={12} /> {new Date(job.created_at).toLocaleDateString()}</span>
+                        {(job.budget_min || job.budget_max) && (
+                          <span className="flex items-center gap-1 text-foreground font-medium">
+                            <DollarSign size={12} className="text-primary" />
+                            Budget {job.budget_min && job.budget_max
+                              ? `$${Number(job.budget_min).toLocaleString()}–$${Number(job.budget_max).toLocaleString()}`
+                              : job.budget_min
+                                ? `from $${Number(job.budget_min).toLocaleString()}`
+                                : `up to $${Number(job.budget_max).toLocaleString()}`}
+                          </span>
+                        )}
                       </div>
                       {job.description && <p className="text-sm text-muted-foreground mt-1">{job.description}</p>}
                       {job.photo_urls && job.photo_urls.length > 0 && (
@@ -742,6 +759,38 @@ const PostJob = () => {
               <div>
                 <Label>State/Province *</Label>
                 <Input placeholder={form.country === "CA" ? "ON" : "TX"} value={form.state} onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))} className="mt-1" />
+              </div>
+            </div>
+            <div>
+              <Label>Budget (optional)</Label>
+              <p className="text-xs text-muted-foreground mt-0.5 mb-1.5">
+                Share a range so pros can tailor their bid. Leave blank if unsure.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                  <Input
+                    type="number"
+                    min="0"
+                    inputMode="numeric"
+                    placeholder="Min"
+                    value={form.budget_min}
+                    onChange={(e) => setForm((f) => ({ ...f, budget_min: e.target.value }))}
+                    className="pl-7"
+                  />
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                  <Input
+                    type="number"
+                    min="0"
+                    inputMode="numeric"
+                    placeholder="Max"
+                    value={form.budget_max}
+                    onChange={(e) => setForm((f) => ({ ...f, budget_max: e.target.value }))}
+                    className="pl-7"
+                  />
+                </div>
               </div>
             </div>
             <div>

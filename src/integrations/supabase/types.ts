@@ -460,6 +460,8 @@ export type Database = {
       }
       jobs: {
         Row: {
+          budget_max: number | null
+          budget_min: number | null
           category: string
           city: string
           country: string
@@ -476,6 +478,8 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
           category: string
           city: string
           country?: string
@@ -492,6 +496,8 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          budget_max?: number | null
+          budget_min?: number | null
           category?: string
           city?: string
           country?: string

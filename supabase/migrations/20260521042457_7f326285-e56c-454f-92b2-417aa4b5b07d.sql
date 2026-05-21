@@ -1,0 +1,1 @@
+ALTER TABLE public.jobs ADD COLUMN budget_min numeric, ADD COLUMN budget_max numeric;
