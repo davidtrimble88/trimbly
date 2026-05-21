@@ -117,6 +117,11 @@ const PostJob = () => {
   const [messageBody, setMessageBody] = useState("");
   const [sendingMessage, setSendingMessage] = useState(false);
 
+  // Phone-number edit dialog (for granting / updating call permission)
+  const [phoneBid, setPhoneBid] = useState<Bid | null>(null);
+  const [phoneInput, setPhoneInput] = useState("");
+  const [savingPhone, setSavingPhone] = useState(false);
+
   const [form, setForm] = useState({
     title: "", description: "", category: "", city: "", state: "", country: "US",
   });
@@ -264,6 +269,34 @@ const PostJob = () => {
     await supabase.from("job_bids").update({ call_approved: !current }).eq("id", bidId);
     loadBids(jobId);
     toast({ title: !current ? "Call approved" : "Call permission revoked" });
+  };
+
+  const openPhoneEditor = (bid: Bid) => {
+    setPhoneBid(bid);
+    setPhoneInput(bid.phone_number ?? "");
+  };
+
+  const savePhoneAndApprove = async () => {
+    if (!phoneBid) return;
+    const trimmed = phoneInput.trim();
+    if (trimmed.length < 7 || trimmed.length > 25) {
+      toast({ title: "Enter a valid phone number", variant: "destructive" });
+      return;
+    }
+    setSavingPhone(true);
+    const { error } = await supabase
+      .from("job_bids")
+      .update({ phone_number: trimmed, call_approved: true })
+      .eq("id", phoneBid.id);
+    setSavingPhone(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Phone number shared", description: "The pro can now call you." });
+    loadBids(phoneBid.job_id);
+    setPhoneBid(null);
+    setPhoneInput("");
   };
 
   const sendMessageToPro = async () => {
@@ -469,22 +502,41 @@ const PostJob = () => {
                                   </Button>
                                 )}
                                 {bid.status === "accepted" && (
-                                  <Button
-                                    size="sm"
-                                    variant={bid.call_approved ? "destructive" : "outline"}
-                                    onClick={() => toggleCallApproval(bid.id, job.id, bid.call_approved)}
-                                    className="gap-1"
-                                  >
+                                  <>
                                     {bid.call_approved ? (
-                                      <><PhoneOff size={14} /> Revoke Call Access</>
+                                      <>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => openPhoneEditor(bid)}
+                                          className="gap-1"
+                                        >
+                                          <Phone size={14} /> Edit Number
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="destructive"
+                                          onClick={() => toggleCallApproval(bid.id, job.id, bid.call_approved)}
+                                          className="gap-1"
+                                        >
+                                          <PhoneOff size={14} /> Revoke Call Access
+                                        </Button>
+                                      </>
                                     ) : (
-                                      <><Phone size={14} /> Allow to Call Me</>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => openPhoneEditor(bid)}
+                                        className="gap-1"
+                                      >
+                                        <Phone size={14} /> Allow to Call Me
+                                      </Button>
                                     )}
-                                  </Button>
+                                  </>
                                 )}
-                                {bid.call_approved && bid.provider?.phone && (
+                                {bid.call_approved && (
                                   <span className="text-xs text-muted-foreground flex items-center gap-1 ml-2">
-                                    <Phone size={12} /> Pro can call · {bid.provider.phone}
+                                    <Phone size={12} /> Your # shared: {bid.phone_number || "not set"}
                                   </span>
                                 )}
                               </div>
@@ -656,6 +708,40 @@ const PostJob = () => {
             <Button variant="outline" onClick={() => { setMessageBid(null); setMessageBody(""); }}>Cancel</Button>
             <Button onClick={sendMessageToPro} disabled={sendingMessage || !messageBody.trim()} className="gap-1">
               <MessageSquare size={14} /> {sendingMessage ? "Sending..." : "Send Message"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Phone number editor for call permission */}
+      <Dialog open={!!phoneBid} onOpenChange={(o) => { if (!o) { setPhoneBid(null); setPhoneInput(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {phoneBid?.call_approved ? "Edit phone number" : "Allow this pro to call you"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              This number is shared only with this pro for this job. You can revoke or update it at any time.
+            </p>
+            <Label htmlFor="bid-phone">Phone number</Label>
+            <Input
+              id="bid-phone"
+              type="tel"
+              inputMode="tel"
+              maxLength={25}
+              placeholder="(555) 123-4567"
+              value={phoneInput}
+              onChange={(e) => setPhoneInput(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setPhoneBid(null); setPhoneInput(""); }}>
+              Cancel
+            </Button>
+            <Button onClick={savePhoneAndApprove} disabled={savingPhone}>
+              {savingPhone ? "Saving..." : phoneBid?.call_approved ? "Save number" : "Share & allow call"}
             </Button>
           </DialogFooter>
         </DialogContent>
