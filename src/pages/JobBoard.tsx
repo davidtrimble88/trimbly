@@ -435,6 +435,16 @@ const JobBoard = () => {
                           <span className="flex items-center gap-1"><Briefcase size={12} /> {job.category}</span>
                           <span className="flex items-center gap-1"><MapPin size={12} /> {job.city}, {job.state}</span>
                           <span className="flex items-center gap-1"><Clock size={12} /> {new Date(job.created_at).toLocaleDateString()}</span>
+                          {(job.budget_min || job.budget_max) && (
+                            <span className="flex items-center gap-1 text-foreground font-medium">
+                              <DollarSign size={12} className="text-primary" />
+                              Budget {job.budget_min && job.budget_max
+                                ? `$${Number(job.budget_min).toLocaleString()}–$${Number(job.budget_max).toLocaleString()}`
+                                : job.budget_min
+                                  ? `from $${Number(job.budget_min).toLocaleString()}`
+                                  : `up to $${Number(job.budget_max).toLocaleString()}`}
+                            </span>
+                          )}
                         </div>
                         {job.description && <p className="text-sm text-muted-foreground">{job.description}</p>}
                       </div>
