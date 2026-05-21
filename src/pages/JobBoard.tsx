@@ -73,6 +73,11 @@ const JobBoard = () => {
   const [bidForm, setBidForm] = useState({ message: "", bid_amount: "", estimated_hours: "", phone_number: "" });
   const [submitting, setSubmitting] = useState(false);
 
+  // Request-more-info dialog
+  const [askJob, setAskJob] = useState<Job | null>(null);
+  const [askMessage, setAskMessage] = useState("");
+  const [askSubmitting, setAskSubmitting] = useState(false);
+
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading]);
@@ -264,6 +269,36 @@ const JobBoard = () => {
     setSubmitting(false);
   };
 
+  const openAskInfo = (job: Job) => {
+    setAskJob(job);
+    setAskMessage(
+      `Hi! I'm interested in your "${job.title}" job. Before I send a bid, could you share a bit more detail? For example:\n\n• What's the timeline / when would you like it done?\n• Any photos or measurements you can share?\n• Anything you've already tried or ruled out?\n\nThanks!`
+    );
+  };
+
+  const sendAskInfo = async () => {
+    if (!user || !providerId || !askJob || !askMessage.trim()) {
+      toast({ title: "Message required", description: "Write a short message to the homeowner.", variant: "destructive" });
+      return;
+    }
+    setAskSubmitting(true);
+    const { error } = await supabase.from("messages").insert({
+      sender_id: user.id,
+      recipient_id: askJob.homeowner_id,
+      provider_id: providerId,
+      subject: `Question about: ${askJob.title}`,
+      body: askMessage.trim(),
+    });
+    setAskSubmitting(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Message sent", description: "The homeowner can reply in Messages." });
+    setAskJob(null);
+    setAskMessage("");
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -423,9 +458,14 @@ const JobBoard = () => {
                             )}
                           </div>
                         ) : (
-                          <Button size="sm" onClick={() => setBidJob(job)} className="gap-1">
-                            <Send size={14} /> Send Bid
-                          </Button>
+                          <div className="flex flex-col gap-2">
+                            <Button size="sm" onClick={() => setBidJob(job)} className="gap-1">
+                              <Send size={14} /> Send Bid
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => openAskInfo(job)} className="gap-1">
+                              <MessageSquare size={14} /> Ask for Info
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -514,6 +554,40 @@ const JobBoard = () => {
             <Button variant="outline" onClick={() => setBidJob(null)}>Cancel</Button>
             <Button onClick={handleBidSubmit} disabled={submitting || (!isPaid && bidsLeft === 0)} className="gap-1">
               <Send size={14} /> {submitting ? "Sending..." : "Send Bid"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Ask-for-info Dialog */}
+      <Dialog open={!!askJob} onOpenChange={(o) => { if (!o) { setAskJob(null); setAskMessage(""); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Ask Homeowner for More Info</DialogTitle>
+          </DialogHeader>
+          {askJob && (
+            <div className="space-y-4">
+              <div className="bg-muted/50 rounded-lg p-3">
+                <p className="text-sm font-medium">{askJob.title}</p>
+                <p className="text-xs text-muted-foreground">{askJob.category} · {askJob.city}, {askJob.state}</p>
+              </div>
+              <div>
+                <Label>Your Message *</Label>
+                <Textarea
+                  value={askMessage}
+                  onChange={(e) => setAskMessage(e.target.value)}
+                  className="mt-1 min-h-[160px]"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Sent through in-app messaging. The homeowner can reply in Messages — no phone number is shared.
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setAskJob(null); setAskMessage(""); }}>Cancel</Button>
+            <Button onClick={sendAskInfo} disabled={askSubmitting} className="gap-1">
+              <MessageSquare size={14} /> {askSubmitting ? "Sending..." : "Send Message"}
             </Button>
           </DialogFooter>
         </DialogContent>
