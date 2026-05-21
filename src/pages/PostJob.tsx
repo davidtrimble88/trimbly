@@ -17,7 +17,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Plus, Briefcase, MapPin, Clock, DollarSign, MessageSquare, Phone,
-  PhoneOff, CheckCircle, XCircle, Trash2, Eye, ChevronDown, ChevronUp,
+  PhoneOff, CheckCircle, XCircle, Trash2, Eye, ChevronDown, ChevronUp, Pencil,
   User, Star, Shield, Sparkles, Lightbulb, Wand2,
 } from "lucide-react";
 import JobPhotoUploader from "@/components/JobPhotoUploader";
