@@ -559,6 +559,40 @@ const JobBoard = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Ask-for-info Dialog */}
+      <Dialog open={!!askJob} onOpenChange={(o) => { if (!o) { setAskJob(null); setAskMessage(""); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Ask Homeowner for More Info</DialogTitle>
+          </DialogHeader>
+          {askJob && (
+            <div className="space-y-4">
+              <div className="bg-muted/50 rounded-lg p-3">
+                <p className="text-sm font-medium">{askJob.title}</p>
+                <p className="text-xs text-muted-foreground">{askJob.category} · {askJob.city}, {askJob.state}</p>
+              </div>
+              <div>
+                <Label>Your Message *</Label>
+                <Textarea
+                  value={askMessage}
+                  onChange={(e) => setAskMessage(e.target.value)}
+                  className="mt-1 min-h-[160px]"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Sent through in-app messaging. The homeowner can reply in Messages — no phone number is shared.
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setAskJob(null); setAskMessage(""); }}>Cancel</Button>
+            <Button onClick={sendAskInfo} disabled={askSubmitting} className="gap-1">
+              <MessageSquare size={14} /> {askSubmitting ? "Sending..." : "Send Message"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Footer />
     </div>
   );
