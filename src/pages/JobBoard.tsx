@@ -37,6 +37,8 @@ type Job = {
   status: string;
   created_at: string;
   homeowner_id: string;
+  budget_min?: number | null;
+  budget_max?: number | null;
 };
 
 type MyBid = {
