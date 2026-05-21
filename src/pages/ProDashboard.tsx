@@ -91,6 +91,7 @@ type BidWithJob = {
     state: string;
     status: string;
     description: string | null;
+    homeowner_id: string;
   };
 };
 
@@ -186,7 +187,7 @@ const ProDashboard = () => {
     const [statsRes, bidsRes, reviewsRes, msgsRes] = await Promise.all([
       supabase.from("provider_stats").select("*").eq("provider_id", provData.id).maybeSingle(),
       supabase.from("job_bids")
-        .select("*, job:jobs(title, category, city, state, status, description)")
+        .select("*, job:jobs(title, category, city, state, status, description, homeowner_id)")
         .eq("provider_id", provData.id)
         .order("created_at", { ascending: false })
         .limit(50),
@@ -627,6 +628,18 @@ const ProDashboard = () => {
                                 </span>
                               )}
                             </div>
+                            {bid.job?.homeowner_id && (
+                              <div className="mt-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="gap-1"
+                                  onClick={() => navigate(`/messages?partner=${bid.job!.homeowner_id}`)}
+                                >
+                                  <MessageSquare size={14} /> Message
+                                </Button>
+                              </div>
+                            )}
                           </div>
                           <div className="ml-4 text-center shrink-0">
                             <Badge className={`text-xs ${bidStatusColor(bid.status)}`}>
