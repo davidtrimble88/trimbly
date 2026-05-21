@@ -29,6 +29,39 @@ const categories = [
   "Painting", "Pest Control", "Plumbing", "Roofing", "Other",
 ].sort((a, b) => (a === "Other" ? 1 : b === "Other" ? -1 : a.localeCompare(b)));
 
+// Keyword → category mapping for instant suggestions as the user types a title
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  "Plumbing": ["faucet", "sink", "toilet", "leak", "pipe", "drain", "water heater", "shower", "tub", "garbage disposal", "sewer", "clog", "plumb"],
+  "Electrical": ["outlet", "switch", "wiring", "breaker", "panel", "light", "lighting", "fixture", "ceiling fan", "electric", "ev charger", "gfci"],
+  "HVAC": ["hvac", "ac ", "a/c", "air condition", "furnace", "heater", "heating", "thermostat", "duct", "mini split", "heat pump"],
+  "Appliance Repair": ["dishwasher", "washer", "dryer", "fridge", "refrigerator", "oven", "stove", "microwave", "appliance"],
+  "Roofing": ["roof", "shingle", "gutter", "downspout", "soffit", "fascia"],
+  "Painting": ["paint", "stain", "primer", "wallpaper"],
+  "Drywall": ["drywall", "sheetrock", "patch hole", "wall hole", "crack in wall"],
+  "Flooring": ["floor", "tile", "hardwood", "laminate", "carpet", "vinyl plank", "grout"],
+  "Carpentry": ["cabinet", "trim", "molding", "shelf", "shelving", "door install", "deck", "stairs", "framing", "carpentr"],
+  "Landscaping": ["lawn", "mow", "tree", "shrub", "mulch", "sod", "landscape", "yard", "sprinkler", "irrigation", "garden", "leaves"],
+  "Fencing": ["fence", "gate"],
+  "Cleaning": ["clean", "pressure wash", "power wash", "junk removal", "haul"],
+  "Pest Control": ["pest", "rodent", "mice", "rat", "ant", "termite", "roach", "bug", "wasp", "bee", "exterminat"],
+  "General Handyman": ["mount tv", "tv mount", "assemble", "assembly", "install", "hang", "small repair", "handyman", "odd job"],
+};
+
+const suggestCategories = (text: string): string[] => {
+  const t = text.toLowerCase().trim();
+  if (t.length < 3) return [];
+  const scores: Record<string, number> = {};
+  for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    for (const kw of keywords) {
+      if (t.includes(kw)) scores[cat] = (scores[cat] || 0) + kw.length;
+    }
+  }
+  return Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([cat]) => cat);
+};
+
 type Job = {
   id: string;
   title: string;
