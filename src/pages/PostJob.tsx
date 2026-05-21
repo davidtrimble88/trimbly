@@ -743,6 +743,37 @@ const PostJob = () => {
               <div>
                 <Label>City *</Label>
                 <Input placeholder={form.country === "CA" ? "Toronto" : "Austin"} value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} className="mt-1" />
+            </div>
+            <div>
+              <Label>Budget (optional)</Label>
+              <p className="text-xs text-muted-foreground mt-0.5 mb-1.5">
+                Share a range so pros can tailor their bid. Leave blank if unsure.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                  <Input
+                    type="number"
+                    min="0"
+                    inputMode="numeric"
+                    placeholder="Min"
+                    value={form.budget_min}
+                    onChange={(e) => setForm((f) => ({ ...f, budget_min: e.target.value }))}
+                    className="pl-7"
+                  />
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                  <Input
+                    type="number"
+                    min="0"
+                    inputMode="numeric"
+                    placeholder="Max"
+                    value={form.budget_max}
+                    onChange={(e) => setForm((f) => ({ ...f, budget_max: e.target.value }))}
+                    className="pl-7"
+                  />
+                </div>
               </div>
               <div>
                 <Label>State/Province *</Label>
