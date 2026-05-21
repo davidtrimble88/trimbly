@@ -743,6 +743,11 @@ const PostJob = () => {
               <div>
                 <Label>City *</Label>
                 <Input placeholder={form.country === "CA" ? "Toronto" : "Austin"} value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} className="mt-1" />
+              </div>
+              <div>
+                <Label>State/Province *</Label>
+                <Input placeholder={form.country === "CA" ? "ON" : "TX"} value={form.state} onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))} className="mt-1" />
+              </div>
             </div>
             <div>
               <Label>Budget (optional)</Label>
@@ -774,10 +779,6 @@ const PostJob = () => {
                     className="pl-7"
                   />
                 </div>
-              </div>
-              <div>
-                <Label>State/Province *</Label>
-                <Input placeholder={form.country === "CA" ? "ON" : "TX"} value={form.state} onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))} className="mt-1" />
               </div>
             </div>
             <div>
