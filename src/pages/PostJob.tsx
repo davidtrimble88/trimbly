@@ -541,6 +541,9 @@ const PostJob = () => {
                       <Button variant="ghost" size="icon" onClick={() => toggleExpand(job.id)}>
                         {expandedJob === job.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                       </Button>
+                      <Button variant="ghost" size="icon" onClick={() => openEditJob(job)} title="Edit job">
+                        <Pencil size={16} />
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => deleteJob(job.id)}>
                         <Trash2 size={16} className="text-destructive" />
                       </Button>
