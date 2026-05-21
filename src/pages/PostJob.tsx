@@ -72,6 +72,7 @@ type Job = {
   country: string;
   status: string;
   photo_urls?: string[] | null;
+  video_url?: string | null;
   budget_min?: number | null;
   budget_max?: number | null;
   created_at: string;
