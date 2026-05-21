@@ -110,6 +110,7 @@ const PostJob = () => {
   const [bids, setBids] = useState<Record<string, Bid[]>>({});
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [bidCounts, setBidCounts] = useState<Record<string, number>>({});
