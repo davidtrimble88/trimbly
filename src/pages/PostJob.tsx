@@ -17,7 +17,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Plus, Briefcase, MapPin, Clock, DollarSign, MessageSquare, Phone,
-  PhoneOff, CheckCircle, XCircle, Trash2, Eye, ChevronDown, ChevronUp,
+  PhoneOff, CheckCircle, XCircle, Trash2, Eye, ChevronDown, ChevronUp, Pencil,
   User, Star, Shield, Sparkles, Lightbulb, Wand2,
 } from "lucide-react";
 import JobPhotoUploader from "@/components/JobPhotoUploader";
@@ -72,6 +72,7 @@ type Job = {
   country: string;
   status: string;
   photo_urls?: string[] | null;
+  video_url?: string | null;
   budget_min?: number | null;
   budget_max?: number | null;
   created_at: string;
@@ -110,6 +111,7 @@ const PostJob = () => {
   const [bids, setBids] = useState<Record<string, Bid[]>>({});
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [bidCounts, setBidCounts] = useState<Record<string, number>>({});
@@ -299,6 +301,35 @@ const PostJob = () => {
 
     const bMin = form.budget_min ? Number(form.budget_min) : null;
     const bMax = form.budget_max ? Number(form.budget_max) : null;
+
+    if (editingJobId) {
+      const { error } = await supabase.from("jobs").update({
+        title: form.title,
+        description: form.description || null,
+        category: form.category,
+        city: form.city,
+        state: form.state,
+        country: form.country,
+        photo_urls: photos,
+        video_url: videoUrl,
+        budget_min: bMin,
+        budget_max: bMax,
+      }).eq("id", editingJobId);
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Job updated" });
+        setForm({ title: "", description: "", category: "", city: "", state: "", country: "US", budget_min: "", budget_max: "" });
+        setPhotos([]);
+        setVideoUrl(null);
+        setEditingJobId(null);
+        setShowForm(false);
+        loadJobs();
+      }
+      setSubmitting(false);
+      return;
+    }
+
     const { error } = await supabase.from("jobs").insert({
       homeowner_id: user.id,
       title: form.title,
@@ -324,6 +355,23 @@ const PostJob = () => {
       loadJobs();
     }
     setSubmitting(false);
+  };
+
+  const openEditJob = (job: Job) => {
+    setEditingJobId(job.id);
+    setForm({
+      title: job.title || "",
+      description: job.description || "",
+      category: job.category || "",
+      city: job.city || "",
+      state: job.state || "",
+      country: job.country || "US",
+      budget_min: job.budget_min != null ? String(job.budget_min) : "",
+      budget_max: job.budget_max != null ? String(job.budget_max) : "",
+    });
+    setPhotos(job.photo_urls || []);
+    setVideoUrl((job as any).video_url || null);
+    setShowForm(true);
   };
 
   const updateBidStatus = async (bidId: string, jobId: string, status: string) => {
@@ -493,6 +541,9 @@ const PostJob = () => {
                       <Button variant="ghost" size="icon" onClick={() => toggleExpand(job.id)}>
                         {expandedJob === job.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                       </Button>
+                      <Button variant="ghost" size="icon" onClick={() => openEditJob(job)} title="Edit job">
+                        <Pencil size={16} />
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => deleteJob(job.id)}>
                         <Trash2 size={16} className="text-destructive" />
                       </Button>
@@ -651,10 +702,10 @@ const PostJob = () => {
       </div>
 
       {/* Post Job Dialog */}
-      <Dialog open={showForm} onOpenChange={setShowForm}>
+      <Dialog open={showForm} onOpenChange={(o) => { setShowForm(o); if (!o) setEditingJobId(null); }}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Post a Job Request</DialogTitle>
+            <DialogTitle>{editingJobId ? "Edit Job Request" : "Post a Job Request"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -807,8 +858,10 @@ const PostJob = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowForm(false); setPhotos([]); setVideoUrl(null); }}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={submitting}>{submitting ? "Posting..." : "Post Job"}</Button>
+            <Button variant="outline" onClick={() => { setShowForm(false); setEditingJobId(null); setPhotos([]); setVideoUrl(null); }}>Cancel</Button>
+            <Button onClick={handleSubmit} disabled={submitting}>
+              {submitting ? (editingJobId ? "Saving..." : "Posting...") : (editingJobId ? "Save Changes" : "Post Job")}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
