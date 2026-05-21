@@ -90,6 +90,37 @@ const PostJob = () => {
   const [photos, setPhotos] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
+  // AI description helper
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiHelp, setAiHelp] = useState<{ missing_info: string[]; tips: string[]; improved_description: string } | null>(null);
+
+  const requestAiHelp = async () => {
+    if (!form.title && !form.description) {
+      toast({ title: "Add a title or some details first", description: "Even a few words helps the AI tailor its suggestions.", variant: "destructive" });
+      return;
+    }
+    setAiLoading(true);
+    setAiHelp(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("job-description-helper", {
+        body: {
+          title: form.title,
+          category: form.category,
+          description: form.description,
+          city: form.city,
+          state: form.state,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setAiHelp(data);
+    } catch (e: any) {
+      toast({ title: "AI helper error", description: e.message || "Try again in a moment.", variant: "destructive" });
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!showForm) {
       document.body.style.pointerEvents = "";
