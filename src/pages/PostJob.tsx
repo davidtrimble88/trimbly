@@ -502,22 +502,41 @@ const PostJob = () => {
                                   </Button>
                                 )}
                                 {bid.status === "accepted" && (
-                                  <Button
-                                    size="sm"
-                                    variant={bid.call_approved ? "destructive" : "outline"}
-                                    onClick={() => toggleCallApproval(bid.id, job.id, bid.call_approved)}
-                                    className="gap-1"
-                                  >
+                                  <>
                                     {bid.call_approved ? (
-                                      <><PhoneOff size={14} /> Revoke Call Access</>
+                                      <>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => openPhoneEditor(bid)}
+                                          className="gap-1"
+                                        >
+                                          <Phone size={14} /> Edit Number
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="destructive"
+                                          onClick={() => toggleCallApproval(bid.id, job.id, bid.call_approved)}
+                                          className="gap-1"
+                                        >
+                                          <PhoneOff size={14} /> Revoke Call Access
+                                        </Button>
+                                      </>
                                     ) : (
-                                      <><Phone size={14} /> Allow to Call Me</>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => openPhoneEditor(bid)}
+                                        className="gap-1"
+                                      >
+                                        <Phone size={14} /> Allow to Call Me
+                                      </Button>
                                     )}
-                                  </Button>
+                                  </>
                                 )}
-                                {bid.call_approved && bid.provider?.phone && (
+                                {bid.call_approved && (
                                   <span className="text-xs text-muted-foreground flex items-center gap-1 ml-2">
-                                    <Phone size={12} /> Pro can call · {bid.provider.phone}
+                                    <Phone size={12} /> Your # shared: {bid.phone_number || "not set"}
                                   </span>
                                 )}
                               </div>
