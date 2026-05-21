@@ -652,19 +652,29 @@ const ProDashboard = () => {
                               <div className="mt-2">
                                 <Button
                                   size="sm"
-                                  variant="outline"
+                                  variant={bidUnreadCounts[bid.job!.homeowner_id!] > 0 ? "default" : "outline"}
                                   className="gap-1"
                                   onClick={() => navigate(`/messages?partner=${bid.job!.homeowner_id}`)}
                                 >
-                                  <MessageSquare size={14} /> Message
+                                  <MessageSquare size={14} />
+                                  {bidUnreadCounts[bid.job!.homeowner_id!] > 0
+                                    ? `${bidUnreadCounts[bid.job!.homeowner_id!]} new`
+                                    : "Message"}
                                 </Button>
                               </div>
                             )}
                           </div>
                           <div className="ml-4 text-center shrink-0">
-                            <Badge className={`text-xs ${bidStatusColor(bid.status)}`}>
-                              {bid.status === "accepted" ? "Accepted" : bid.status === "rejected" ? "Rejected" : "Pending"}
-                            </Badge>
+                            <div className="flex items-center gap-1.5 justify-end">
+                              <Badge className={`text-xs ${bidStatusColor(bid.status)}`}>
+                                {bid.status === "accepted" ? "Accepted" : bid.status === "rejected" ? "Rejected" : "Pending"}
+                              </Badge>
+                              {bid.job?.homeowner_id && bidUnreadCounts[bid.job.homeowner_id] > 0 && (
+                                <Badge className="text-xs bg-primary text-primary-foreground gap-1">
+                                  <MessageSquare size={10} /> {bidUnreadCounts[bid.job.homeowner_id]} new
+                                </Badge>
+                              )}
+                            </div>
                             {bid.call_approved && (
                               <div className="mt-2 text-xs text-green-600 dark:text-green-400">
                                 <div className="flex items-center gap-1 justify-center">
