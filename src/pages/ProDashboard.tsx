@@ -204,9 +204,28 @@ const ProDashboard = () => {
     ]);
 
     setStats(statsRes.data as ProviderStats | null);
-    setBids((bidsRes.data as unknown as BidWithJob[]) || []);
+    const bidsData = (bidsRes.data as unknown as BidWithJob[]) || [];
+    setBids(bidsData);
     setReviews((reviewsRes.data as ReviewRow[]) || []);
     setMessages((msgsRes.data as MessageRow[]) || []);
+
+    // Per-bid unread counts from homeowner senders
+    const homeownerIds = Array.from(new Set(bidsData.map(b => b.job?.homeowner_id).filter(Boolean) as string[]));
+    if (homeownerIds.length > 0) {
+      const { data: unread } = await supabase
+        .from("messages")
+        .select("sender_id")
+        .eq("recipient_id", user.id)
+        .eq("read", false)
+        .in("sender_id", homeownerIds);
+      const counts: Record<string, number> = {};
+      (unread || []).forEach((m: any) => {
+        counts[m.sender_id] = (counts[m.sender_id] || 0) + 1;
+      });
+      setBidUnreadCounts(counts);
+    } else {
+      setBidUnreadCounts({});
+    }
     setLoading(false);
   };
 
