@@ -82,6 +82,7 @@ type BidWithJob = {
   estimated_hours: number | null;
   status: string;
   call_approved: boolean;
+  phone_number: string | null;
   created_at: string;
   job?: {
     title: string;
@@ -632,8 +633,17 @@ const ProDashboard = () => {
                               {bid.status === "accepted" ? "Accepted" : bid.status === "rejected" ? "Rejected" : "Pending"}
                             </Badge>
                             {bid.call_approved && (
-                              <div className="flex items-center gap-1 mt-2 text-xs text-green-600 dark:text-green-400">
-                                <Phone size={12} /> Call OK
+                              <div className="mt-2 text-xs text-green-600 dark:text-green-400">
+                                <div className="flex items-center gap-1 justify-center">
+                                  <Phone size={12} /> Call OK
+                                </div>
+                                {bid.phone_number ? (
+                                  <a href={`tel:${bid.phone_number}`} className="block mt-1 font-medium hover:underline">
+                                    {bid.phone_number}
+                                  </a>
+                                ) : (
+                                  <div className="mt-1 text-muted-foreground">No number shared</div>
+                                )}
                               </div>
                             )}
                             {bid.status === "accepted" && !bid.call_approved && (
