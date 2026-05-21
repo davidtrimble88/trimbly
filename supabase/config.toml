@@ -3,6 +3,9 @@ project_id = "mrideliutnlaxsvbabyk"
 [functions.ai-search-providers]
 verify_jwt = false
 
+[functions.job-description-helper]
+verify_jwt = false
+
 [functions.discover-providers]
 verify_jwt = false
 
