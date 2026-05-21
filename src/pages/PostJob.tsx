@@ -713,6 +713,40 @@ const PostJob = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Phone number editor for call permission */}
+      <Dialog open={!!phoneBid} onOpenChange={(o) => { if (!o) { setPhoneBid(null); setPhoneInput(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {phoneBid?.call_approved ? "Edit phone number" : "Allow this pro to call you"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              This number is shared only with this pro for this job. You can revoke or update it at any time.
+            </p>
+            <Label htmlFor="bid-phone">Phone number</Label>
+            <Input
+              id="bid-phone"
+              type="tel"
+              inputMode="tel"
+              maxLength={25}
+              placeholder="(555) 123-4567"
+              value={phoneInput}
+              onChange={(e) => setPhoneInput(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setPhoneBid(null); setPhoneInput(""); }}>
+              Cancel
+            </Button>
+            <Button onClick={savePhoneAndApprove} disabled={savingPhone}>
+              {savingPhone ? "Saving..." : phoneBid?.call_approved ? "Save number" : "Share & allow call"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Footer />
     </div>
   );
