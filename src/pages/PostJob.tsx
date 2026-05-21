@@ -254,6 +254,26 @@ const PostJob = () => {
       return;
     }
     setSubmitting(true);
+
+    // Gate: ensure the post is a residential home service request
+    try {
+      const { data: check, error: checkErr } = await supabase.functions.invoke("validate-home-job", {
+        body: { title: form.title, category: form.category, description: form.description },
+      });
+      if (!checkErr && check && check.is_home_related === false) {
+        toast({
+          title: "Not a home service request",
+          description: check.reason || "HomeHero is for residential home services only. Please revise your post.",
+          variant: "destructive",
+        });
+        setSubmitting(false);
+        return;
+      }
+    } catch (e) {
+      // fail open on validator errors
+      console.warn("validate-home-job failed, allowing post", e);
+    }
+
     const { error } = await supabase.from("jobs").insert({
       homeowner_id: user.id,
       title: form.title,
