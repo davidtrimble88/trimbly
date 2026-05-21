@@ -217,7 +217,26 @@ const PostJob = () => {
       .select("*, provider:providers(user_id, business_name, category, city, state, years_experience, licensed, insured, phone)")
       .eq("job_id", jobId)
       .order("created_at", { ascending: false });
-    setBids((prev) => ({ ...prev, [jobId]: (data as unknown as Bid[]) || [] }));
+    const bidsList = (data as unknown as Bid[]) || [];
+    setBids((prev) => ({ ...prev, [jobId]: bidsList }));
+
+    // Load unread message counts for each pro in these bids
+    const providerUserIds = bidsList
+      .map((b) => b.provider?.user_id)
+      .filter(Boolean) as string[];
+    if (providerUserIds.length > 0 && user) {
+      const { data: unreadMsgs } = await supabase
+        .from("messages")
+        .select("sender_id")
+        .eq("recipient_id", user.id)
+        .in("sender_id", providerUserIds)
+        .eq("read", false);
+      const counts: Record<string, number> = {};
+      (unreadMsgs || []).forEach((m: any) => {
+        counts[m.sender_id] = (counts[m.sender_id] || 0) + 1;
+      });
+      setBidUnreadCounts((prev) => ({ ...prev, ...counts }));
+    }
   };
 
   const toggleExpand = (jobId: string) => {
