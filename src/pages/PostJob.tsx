@@ -503,7 +503,7 @@ const PostJob = () => {
 
       {/* Post Job Dialog */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Post a Job Request</DialogTitle>
           </DialogHeader>
