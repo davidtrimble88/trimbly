@@ -117,6 +117,11 @@ const PostJob = () => {
   const [messageBody, setMessageBody] = useState("");
   const [sendingMessage, setSendingMessage] = useState(false);
 
+  // Phone-number edit dialog (for granting / updating call permission)
+  const [phoneBid, setPhoneBid] = useState<Bid | null>(null);
+  const [phoneInput, setPhoneInput] = useState("");
+  const [savingPhone, setSavingPhone] = useState(false);
+
   const [form, setForm] = useState({
     title: "", description: "", category: "", city: "", state: "", country: "US",
   });
