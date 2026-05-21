@@ -520,6 +520,27 @@ const PostJob = () => {
                   {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
+              {(() => {
+                const suggestions = suggestCategories(`${form.title} ${form.description}`).filter(c => c !== form.category);
+                if (suggestions.length === 0) return null;
+                return (
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Sparkles size={11} className="text-accent" /> Suggested:
+                    </span>
+                    {suggestions.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, category: c }))}
+                        className="text-xs px-2 py-0.5 rounded-full border border-accent/40 bg-accent/10 text-foreground hover:bg-accent/20 transition-colors"
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
             <div>
               <div className="flex items-center justify-between mb-1">
