@@ -269,6 +269,36 @@ const JobBoard = () => {
     setSubmitting(false);
   };
 
+  const openAskInfo = (job: Job) => {
+    setAskJob(job);
+    setAskMessage(
+      `Hi! I'm interested in your "${job.title}" job. Before I send a bid, could you share a bit more detail? For example:\n\n• What's the timeline / when would you like it done?\n• Any photos or measurements you can share?\n• Anything you've already tried or ruled out?\n\nThanks!`
+    );
+  };
+
+  const sendAskInfo = async () => {
+    if (!user || !providerId || !askJob || !askMessage.trim()) {
+      toast({ title: "Message required", description: "Write a short message to the homeowner.", variant: "destructive" });
+      return;
+    }
+    setAskSubmitting(true);
+    const { error } = await supabase.from("messages").insert({
+      sender_id: user.id,
+      recipient_id: askJob.homeowner_id,
+      provider_id: providerId,
+      subject: `Question about: ${askJob.title}`,
+      body: askMessage.trim(),
+    });
+    setAskSubmitting(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Message sent", description: "The homeowner can reply in Messages." });
+    setAskJob(null);
+    setAskMessage("");
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
