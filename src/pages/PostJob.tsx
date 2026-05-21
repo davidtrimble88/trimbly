@@ -255,6 +255,25 @@ const PostJob = () => {
     }
     setSubmitting(true);
 
+    // Hard denylist for obviously off-topic / inappropriate posts (sexual, illegal, etc.)
+    const combined = `${form.title} ${form.description}`.toLowerCase();
+    const denyPatterns = [
+      /\bhand\s*job\b/, /\bhandjob\b/, /\bblow\s*job\b/, /\bblowjob\b/, /\brim\s*job\b/,
+      /\bsex(ual)?\b/, /\bescort\b/, /\bmassage\s+(happy|with\s+benefits|sensual|erotic)/,
+      /\bhooker\b/, /\bprostitut/, /\bnude\b/, /\bnaked\b/, /\bporn/, /\bonlyfans\b/,
+      /\bdrugs?\b/, /\bcocaine\b/, /\bheroin\b/, /\bweed\s+(delivery|dealer)\b/,
+      /\bgun\b/, /\bfirearm\b/, /\bweapon\b/, /\bhitman\b/, /\bkill\s+(my|someone)\b/,
+    ];
+    if (denyPatterns.some((re) => re.test(combined))) {
+      toast({
+        title: "Post not allowed",
+        description: "HomeHero is for residential home services only. Please revise your post.",
+        variant: "destructive",
+      });
+      setSubmitting(false);
+      return;
+    }
+
     // Gate: ensure the post is a residential home service request
     try {
       const { data: check, error: checkErr } = await supabase.functions.invoke("validate-home-job", {
@@ -273,6 +292,7 @@ const PostJob = () => {
       // fail open on validator errors
       console.warn("validate-home-job failed, allowing post", e);
     }
+
 
     const { error } = await supabase.from("jobs").insert({
       homeowner_id: user.id,
