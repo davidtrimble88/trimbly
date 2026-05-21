@@ -300,6 +300,35 @@ const PostJob = () => {
 
     const bMin = form.budget_min ? Number(form.budget_min) : null;
     const bMax = form.budget_max ? Number(form.budget_max) : null;
+
+    if (editingJobId) {
+      const { error } = await supabase.from("jobs").update({
+        title: form.title,
+        description: form.description || null,
+        category: form.category,
+        city: form.city,
+        state: form.state,
+        country: form.country,
+        photo_urls: photos,
+        video_url: videoUrl,
+        budget_min: bMin,
+        budget_max: bMax,
+      }).eq("id", editingJobId);
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Job updated" });
+        setForm({ title: "", description: "", category: "", city: "", state: "", country: "US", budget_min: "", budget_max: "" });
+        setPhotos([]);
+        setVideoUrl(null);
+        setEditingJobId(null);
+        setShowForm(false);
+        loadJobs();
+      }
+      setSubmitting(false);
+      return;
+    }
+
     const { error } = await supabase.from("jobs").insert({
       homeowner_id: user.id,
       title: form.title,
@@ -325,6 +354,23 @@ const PostJob = () => {
       loadJobs();
     }
     setSubmitting(false);
+  };
+
+  const openEditJob = (job: Job) => {
+    setEditingJobId(job.id);
+    setForm({
+      title: job.title || "",
+      description: job.description || "",
+      category: job.category || "",
+      city: job.city || "",
+      state: job.state || "",
+      country: job.country || "US",
+      budget_min: job.budget_min != null ? String(job.budget_min) : "",
+      budget_max: job.budget_max != null ? String(job.budget_max) : "",
+    });
+    setPhotos(job.photo_urls || []);
+    setVideoUrl((job as any).video_url || null);
+    setShowForm(true);
   };
 
   const updateBidStatus = async (bidId: string, jobId: string, status: string) => {
