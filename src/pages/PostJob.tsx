@@ -489,8 +489,61 @@ const PostJob = () => {
               </Select>
             </div>
             <div>
-              <Label>Description</Label>
-              <Textarea placeholder="Describe the job in detail..." value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} className="mt-1" />
+              <div className="flex items-center justify-between mb-1">
+                <Label>Description</Label>
+                <Button type="button" size="sm" variant="outline" onClick={requestAiHelp} disabled={aiLoading} className="h-7 gap-1 text-xs">
+                  <Sparkles size={12} className="text-accent" />
+                  {aiLoading ? "Thinking..." : "AI Help"}
+                </Button>
+              </div>
+              <Textarea
+                placeholder="Describe the job in detail — what's broken, dimensions, materials, access, urgency..."
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                className="min-h-[100px]"
+              />
+              {aiHelp && (
+                <div className="mt-2 rounded-lg border border-accent/30 bg-accent/5 p-3 space-y-3">
+                  {aiHelp.missing_info?.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold flex items-center gap-1 mb-1">
+                        <Lightbulb size={12} className="text-accent" /> Add these details for better bids
+                      </p>
+                      <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+                        {aiHelp.missing_info.map((q, i) => <li key={i}>{q}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                  {aiHelp.tips?.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold mb-1">Tips</p>
+                      <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+                        {aiHelp.tips.map((t, i) => <li key={i}>{t}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                  {aiHelp.improved_description && (
+                    <div>
+                      <p className="text-xs font-semibold mb-1">Suggested rewrite</p>
+                      <div className="text-xs whitespace-pre-wrap bg-background border border-border rounded p-2 mb-2">
+                        {aiHelp.improved_description}
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        className="h-7 gap-1 text-xs"
+                        onClick={() => {
+                          setForm((f) => ({ ...f, description: aiHelp.improved_description }));
+                          toast({ title: "Description updated" });
+                        }}
+                      >
+                        <Wand2 size={12} /> Use this rewrite
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
