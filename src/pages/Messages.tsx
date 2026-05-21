@@ -78,13 +78,14 @@ const statusConfig: Record<ChatStatus, { label: string; color: string; icon: typ
 const Messages = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
   const [pendingMessages, setPendingMessages] = useState<PendingMessage[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
   const [providerTiers, setProviderTiers] = useState<Record<string, string>>({});
   const [blockedNames, setBlockedNames] = useState<Set<string>>(new Set());
   const [blockedUserIds, setBlockedUserIds] = useState<Set<string>>(new Set());
-  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
+  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(searchParams.get("partner"));
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
