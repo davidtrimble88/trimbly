@@ -858,8 +858,10 @@ const PostJob = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowForm(false); setPhotos([]); setVideoUrl(null); }}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={submitting}>{submitting ? "Posting..." : "Post Job"}</Button>
+            <Button variant="outline" onClick={() => { setShowForm(false); setEditingJobId(null); setPhotos([]); setVideoUrl(null); }}>Cancel</Button>
+            <Button onClick={handleSubmit} disabled={submitting}>
+              {submitting ? (editingJobId ? "Saving..." : "Posting...") : (editingJobId ? "Save Changes" : "Post Job")}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
