@@ -512,14 +512,27 @@ const PostJob = () => {
                                   </>
                                 )}
                                 {bid.provider?.user_id && bid.status !== "rejected" && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => { setMessageBid(bid); setMessageBody(""); }}
-                                    className="gap-1"
-                                  >
-                                    <MessageSquare size={14} /> Message
-                                  </Button>
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => { setMessageBid(bid); setMessageBody(""); }}
+                                      className="gap-1"
+                                    >
+                                      <MessageSquare size={14} /> Message
+                                    </Button>
+                                    {(bidUnreadCounts[bid.provider.user_id] ?? 0) > 0 && (
+                                      <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={() => navigate(`/messages?partner=${bid.provider!.user_id}`)}
+                                        className="gap-1"
+                                      >
+                                        <MessageSquare size={14} />
+                                        {bidUnreadCounts[bid.provider.user_id]} new
+                                      </Button>
+                                    )}
+                                  </>
                                 )}
                                 {bid.status === "accepted" && (
                                   <>
