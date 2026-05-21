@@ -125,6 +125,7 @@ const PostJob = () => {
 
   const [form, setForm] = useState({
     title: "", description: "", category: "", city: "", state: "", country: "US",
+    budget_min: "", budget_max: "",
   });
   const [photos, setPhotos] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
