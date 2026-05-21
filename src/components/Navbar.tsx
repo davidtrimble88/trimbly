@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
 import { supabase } from "@/integrations/supabase/client";
-import UniversalSearch from "@/components/UniversalSearch";
 import NotificationPreferencesDialog from "@/components/NotificationPreferencesDialog";
 import { Bell } from "lucide-react";
 
@@ -178,7 +177,6 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
-          {user && <UniversalSearch />}
           {user ? (
             <>
               {isAdmin && inStaffPortal && (
