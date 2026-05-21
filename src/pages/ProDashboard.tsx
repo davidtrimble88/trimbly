@@ -82,6 +82,7 @@ type BidWithJob = {
   estimated_hours: number | null;
   status: string;
   call_approved: boolean;
+  phone_number: string | null;
   created_at: string;
   job?: {
     title: string;
