@@ -473,11 +473,18 @@ const PostJob = () => {
                                     {bid.provider?.years_experience ? ` · ${bid.provider.years_experience}yr exp` : ""}
                                   </p>
                                 </div>
-                                <Badge className={`text-xs ${
-                                  bid.status === "accepted" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" :
-                                  bid.status === "rejected" ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" :
-                                  "bg-secondary text-secondary-foreground"
-                                }`}>{bid.status}</Badge>
+                                <div className="flex items-center gap-1.5">
+                                  {(bidUnreadCounts[bid.provider?.user_id ?? ""] ?? 0) > 0 && (
+                                    <Badge className="text-xs bg-primary text-primary-foreground gap-1">
+                                      <MessageSquare size={10} /> {bidUnreadCounts[bid.provider!.user_id!]} new
+                                    </Badge>
+                                  )}
+                                  <Badge className={`text-xs ${
+                                    bid.status === "accepted" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" :
+                                    bid.status === "rejected" ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" :
+                                    "bg-secondary text-secondary-foreground"
+                                  }`}>{bid.status}</Badge>
+                                </div>
                               </div>
 
                               {/* Pro's message */}
