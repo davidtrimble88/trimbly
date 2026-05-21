@@ -295,6 +295,8 @@ const PostJob = () => {
     }
 
 
+    const bMin = form.budget_min ? Number(form.budget_min) : null;
+    const bMax = form.budget_max ? Number(form.budget_max) : null;
     const { error } = await supabase.from("jobs").insert({
       homeowner_id: user.id,
       title: form.title,
@@ -306,12 +308,14 @@ const PostJob = () => {
       status: "pending",
       photo_urls: photos,
       video_url: videoUrl,
+      budget_min: bMin,
+      budget_max: bMax,
     });
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Job posted!", description: "Pros can now see and bid on your job." });
-      setForm({ title: "", description: "", category: "", city: "", state: "", country: "US" });
+      setForm({ title: "", description: "", category: "", city: "", state: "", country: "US", budget_min: "", budget_max: "" });
       setPhotos([]);
       setVideoUrl(null);
       setShowForm(false);
