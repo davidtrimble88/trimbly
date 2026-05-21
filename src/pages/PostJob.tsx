@@ -702,10 +702,10 @@ const PostJob = () => {
       </div>
 
       {/* Post Job Dialog */}
-      <Dialog open={showForm} onOpenChange={setShowForm}>
+      <Dialog open={showForm} onOpenChange={(o) => { setShowForm(o); if (!o) setEditingJobId(null); }}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Post a Job Request</DialogTitle>
+            <DialogTitle>{editingJobId ? "Edit Job Request" : "Post a Job Request"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
