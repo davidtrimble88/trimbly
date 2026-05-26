@@ -81,6 +81,33 @@ const JobBoard = () => {
   const [askMessage, setAskMessage] = useState("");
   const [askSubmitting, setAskSubmitting] = useState(false);
 
+  // Job helper (AI breakdown for pros)
+  const [helperJob, setHelperJob] = useState<Job | null>(null);
+  const [helperLoading, setHelperLoading] = useState(false);
+  const [helperError, setHelperError] = useState<string | null>(null);
+  const [helperCache, setHelperCache] = useState<Record<string, JobEstimate>>({});
+
+  const openHelper = async (job: Job) => {
+    setHelperJob(job);
+    setHelperError(null);
+    if (helperCache[job.id]) return;
+    setHelperLoading(true);
+    try {
+      const estimate = await getJobEstimate({
+        description: `${job.title}\n\n${job.description || ""}`.trim(),
+        category: job.category,
+        city: job.city,
+        state: job.state,
+      });
+      setHelperCache((c) => ({ ...c, [job.id]: estimate }));
+    } catch (e: any) {
+      setHelperError(e?.message || "Could not analyze this job");
+    } finally {
+      setHelperLoading(false);
+    }
+  };
+
+
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading]);
