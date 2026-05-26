@@ -16,9 +16,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Briefcase, MapPin, Clock, DollarSign, MessageSquare, Send,
-  Phone, PhoneOff, CheckCircle, User, Filter,
+  Phone, PhoneOff, CheckCircle, User, Filter, Wrench, Sparkles, Loader2,
 } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
+import { getJobEstimate, type JobEstimate } from "@/lib/api/jobEstimator";
 
 const categories = [
   "All", "Plumbing", "Electrical", "HVAC", "Roofing", "Painting", "Carpentry",
