@@ -502,7 +502,10 @@ const JobBoard = () => {
                             <Button size="sm" onClick={() => setBidJob(job)} className="gap-1">
                               <Send size={14} /> Send Bid
                             </Button>
-                            <Button size="sm" variant="outline" onClick={() => openAskInfo(job)} className="gap-1">
+                            <Button size="sm" variant="outline" onClick={() => openHelper(job)} className="gap-1">
+                              <Sparkles size={14} /> Job Helper
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => openAskInfo(job)} className="gap-1">
                               <MessageSquare size={14} /> Ask for Info
                             </Button>
                           </div>
