@@ -636,6 +636,125 @@ const JobBoard = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Job Helper Dialog */}
+      <Dialog open={!!helperJob} onOpenChange={(o) => { if (!o) { setHelperJob(null); setHelperError(null); } }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" /> Job Helper
+            </DialogTitle>
+          </DialogHeader>
+          {helperJob && (
+            <div className="space-y-4">
+              <div className="bg-muted/50 rounded-lg p-3">
+                <p className="text-sm font-medium">{helperJob.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  {helperJob.category} · {helperJob.city}, {helperJob.state}
+                </p>
+              </div>
+
+              {helperLoading && (
+                <div className="flex items-center justify-center py-12 text-muted-foreground">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  Analyzing the job...
+                </div>
+              )}
+
+              {helperError && !helperLoading && (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                  {helperError}
+                </div>
+              )}
+
+              {!helperLoading && !helperError && helperCache[helperJob.id] && (() => {
+                const est = helperCache[helperJob.id];
+                return (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      AI breakdown based on the homeowner's description. Use as a starting point — verify on site.
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-lg border bg-card p-3">
+                        <div className="text-xs text-muted-foreground flex items-center gap-1">
+                          <DollarSign size={12} /> Likely cost
+                        </div>
+                        <div className="font-semibold text-foreground">
+                          ${est.cost_low.toLocaleString()} – ${est.cost_high.toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="rounded-lg border bg-card p-3">
+                        <div className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock size={12} /> Time on site
+                        </div>
+                        <div className="font-semibold text-foreground">
+                          {est.time_hours_low}–{est.time_hours_high} hrs
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-semibold mb-1">Summary</h4>
+                      <p className="text-sm text-muted-foreground">{est.summary}</p>
+                    </div>
+
+                    {est.materials?.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 flex items-center gap-1">
+                          <Wrench size={14} /> Likely materials
+                        </h4>
+                        <div className="space-y-1.5">
+                          {est.materials.map((m, i) => (
+                            <div key={i} className="flex items-center justify-between text-sm border-b border-border/50 pb-1">
+                              <span>
+                                {m.name}
+                                {m.quantity && <span className="text-muted-foreground"> · {m.quantity}</span>}
+                              </span>
+                              <span className="text-foreground font-medium">${m.estimated_cost.toLocaleString()}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {est.tips?.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-semibold mb-1">Tips</h4>
+                        <ul className="text-sm text-muted-foreground list-disc pl-5 space-y-1">
+                          {est.tips.map((t, i) => <li key={i}>{t}</li>)}
+                        </ul>
+                      </div>
+                    )}
+
+                    <div className="text-xs text-muted-foreground rounded-lg bg-muted/50 p-2">
+                      Difficulty: {est.difficulty}/5 · {est.diy_recommended ? "DIY possible" : "Pro recommended"} — {est.diy_reasoning}
+                    </div>
+
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setBidForm((f) => ({
+                            ...f,
+                            bid_amount: f.bid_amount || String(Math.round((est.cost_low + est.cost_high) / 2)),
+                            estimated_hours: f.estimated_hours || String(Math.round((est.time_hours_low + est.time_hours_high) / 2)),
+                          }));
+                          setHelperJob(null);
+                          setBidJob(helperJob);
+                        }}
+                      >
+                        Use in bid
+                      </Button>
+                      <Button onClick={() => setHelperJob(null)}>Close</Button>
+                    </DialogFooter>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <Footer />
     </div>
   );
