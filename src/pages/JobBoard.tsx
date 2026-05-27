@@ -627,123 +627,166 @@ const JobBoard = () => {
               Clear
             </Button>
           )}
-          <Badge variant="outline" className="self-center">{filteredJobs.length} jobs</Badge>
+          <Badge variant="outline" className="self-center">{filteredJobs.length} matching</Badge>
         </div>
 
-        {/* Job Cards */}
-        {filteredJobs.length === 0 ? (
-          <Card>
-            <CardContent className="p-0">
-              <EmptyState
-                icon={Briefcase}
-                title="No open jobs match your filters"
-                description="Try expanding your search radius or selecting a different category. New jobs from homeowners are posted often."
-                actionLabel="Clear filters"
-                onAction={() => { setFilterCategory("All"); setLocationQuery(""); setSearchCenter(null); setRadiusMiles("any"); }}
-              />
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {filteredJobs.map((job) => {
-              const myBid = myBids[job.id];
-              const msgInfo = homeownerMessages[job.homeowner_id];
-              return (
-                <Card
-                  key={job.id}
-                  className="hover:border-primary/40 hover:shadow-sm transition-all cursor-pointer"
-                  onClick={() => openJobDetail(job)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openJobDetail(job); } }}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-foreground">{job.title}</h3>
-                          {msgInfo && msgInfo.count > 0 && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); navigate("/messages"); }}
-                              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
-                                msgInfo.unread > 0
-                                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                  : "bg-primary/10 text-primary hover:bg-primary/20"
-                              }`}
-                              title="Open conversation"
-                            >
-                              <MessageSquare size={12} />
-                              {msgInfo.unread > 0 ? `${msgInfo.unread} new message${msgInfo.unread === 1 ? "" : "s"}` : "Message"}
-                            </button>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-2">
-                          <span className="flex items-center gap-1"><Briefcase size={12} /> {job.category}</span>
-                          <span className="flex items-center gap-1"><MapPin size={12} /> {job.city}, {job.state}</span>
-                          <span className="flex items-center gap-1"><Clock size={12} /> {new Date(job.created_at).toLocaleDateString()}</span>
-                          {(job.budget_min || job.budget_max) && (
-                            <span className="flex items-center gap-1 text-foreground font-medium">
-                              <DollarSign size={12} className="text-primary" />
-                              Budget {job.budget_min && job.budget_max
-                                ? `$${Number(job.budget_min).toLocaleString()}–$${Number(job.budget_max).toLocaleString()}`
-                                : job.budget_min
-                                  ? `from $${Number(job.budget_min).toLocaleString()}`
-                                  : `up to $${Number(job.budget_max).toLocaleString()}`}
-                            </span>
-                          )}
-                        </div>
-                        {job.description && <p className="text-sm text-muted-foreground">{job.description}</p>}
-                        {isJobInfoThin(job) && (
-                          <div className="mt-2 inline-flex items-start gap-1.5 rounded-md border border-orange-500/30 bg-orange-500/5 px-2 py-1 text-xs">
-                            <Lightbulb size={12} className="text-orange-500 shrink-0 mt-0.5" />
-                            <span className="text-muted-foreground">
-                              Sparse details — ask the homeowner for more info before bidding.
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="ml-4 shrink-0">
-                        {myBid ? (
-                          <div className="text-center">
-                            <Badge className={`text-xs ${
-                              myBid.status === "accepted" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" :
-                              myBid.status === "rejected" ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" :
-                              "bg-secondary text-secondary-foreground"
-                            }`}>
-                              {myBid.status === "accepted" ? "Accepted" : myBid.status === "rejected" ? "Rejected" : "Bid Sent"}
-                            </Badge>
-                            {myBid.call_approved && (
-                              <div className="flex items-center gap-1 mt-1 text-xs text-green-600 dark:text-green-400">
-                                <Phone size={12} /> Call approved
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="mb-4">
+          <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full h-auto">
+            <TabsTrigger value="posted" className="flex items-center gap-1.5 py-2">
+              <Briefcase size={14} /> Posted
+              <Badge variant="secondary" className="ml-1 text-[10px] h-5 px-1.5">{buckets.posted.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="conversations" className="flex items-center gap-1.5 py-2">
+              <MessageSquare size={14} /> Conversations
+              <Badge variant="secondary" className="ml-1 text-[10px] h-5 px-1.5">{buckets.conversations.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="accepted" className="flex items-center gap-1.5 py-2">
+              <CheckCircle size={14} /> Accepted
+              <Badge variant="secondary" className="ml-1 text-[10px] h-5 px-1.5">{buckets.accepted.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="complete" className="flex items-center gap-1.5 py-2">
+              <CheckCircle size={14} /> Complete
+              <Badge variant="secondary" className="ml-1 text-[10px] h-5 px-1.5">{buckets.complete.length}</Badge>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value={activeTab} className="mt-4">
+            {tabJobs.length === 0 ? (
+              <Card>
+                <CardContent className="p-0">
+                  <EmptyState
+                    icon={Briefcase}
+                    title={
+                      activeTab === "posted" ? "No open jobs match your filters" :
+                      activeTab === "conversations" ? "No conversations yet" :
+                      activeTab === "accepted" ? "No accepted bids yet" :
+                      "No completed jobs yet"
+                    }
+                    description={
+                      activeTab === "posted" ? "Try expanding your search radius or selecting a different category. New jobs are posted often." :
+                      activeTab === "conversations" ? "Start a conversation by tapping Ask for Info on a posted job." :
+                      activeTab === "accepted" ? "Once a homeowner accepts your bid, it will appear here." :
+                      "Jobs marked completed by the homeowner will appear here."
+                    }
+                    actionLabel={activeTab === "posted" ? "Clear filters" : undefined}
+                    onAction={activeTab === "posted" ? () => { setFilterCategory("All"); setLocationQuery(""); setSearchCenter(null); setRadiusMiles("any"); } : undefined}
+                  />
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {tabJobs.map((job) => {
+                  const myBid = myBids[job.id];
+                  const msgInfo = homeownerMessages[job.homeowner_id];
+                  return (
+                    <Card
+                      key={job.id}
+                      className="hover:border-primary/40 hover:shadow-sm transition-all cursor-pointer"
+                      onClick={() => openJobDetail(job)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openJobDetail(job); } }}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-foreground">{job.title}</h3>
+                              {job.status === "completed" && (
+                                <Badge className="text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                  <CheckCircle size={10} className="mr-1" /> Completed
+                                </Badge>
+                              )}
+                              {msgInfo && msgInfo.count > 0 && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); navigate("/messages"); }}
+                                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
+                                    msgInfo.unread > 0
+                                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                      : "bg-primary/10 text-primary hover:bg-primary/20"
+                                  }`}
+                                  title="Open conversation"
+                                >
+                                  <MessageSquare size={12} />
+                                  {msgInfo.unread > 0 ? `${msgInfo.unread} new message${msgInfo.unread === 1 ? "" : "s"}` : "Message"}
+                                </button>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-2">
+                              <span className="flex items-center gap-1"><Briefcase size={12} /> {job.category}</span>
+                              <span className="flex items-center gap-1"><MapPin size={12} /> {job.city}, {job.state}</span>
+                              <span className="flex items-center gap-1"><Clock size={12} /> {new Date(job.created_at).toLocaleDateString()}</span>
+                              {(job.budget_min || job.budget_max) && (
+                                <span className="flex items-center gap-1 text-foreground font-medium">
+                                  <DollarSign size={12} className="text-primary" />
+                                  Budget {job.budget_min && job.budget_max
+                                    ? `$${Number(job.budget_min).toLocaleString()}–$${Number(job.budget_max).toLocaleString()}`
+                                    : job.budget_min
+                                      ? `from $${Number(job.budget_min).toLocaleString()}`
+                                      : `up to $${Number(job.budget_max).toLocaleString()}`}
+                                </span>
+                              )}
+                            </div>
+                            {job.description && <p className="text-sm text-muted-foreground">{job.description}</p>}
+                            {isJobInfoThin(job) && activeTab === "posted" && (
+                              <div className="mt-2 inline-flex items-start gap-1.5 rounded-md border border-orange-500/30 bg-orange-500/5 px-2 py-1 text-xs">
+                                <Lightbulb size={12} className="text-orange-500 shrink-0 mt-0.5" />
+                                <span className="text-muted-foreground">
+                                  Sparse details — ask the homeowner for more info before bidding.
+                                </span>
                               </div>
                             )}
-                            {myBid.status === "accepted" && !myBid.call_approved && (
-                              <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                                <PhoneOff size={12} /> Message only
+                          </div>
+                          <div className="ml-4 shrink-0">
+                            {myBid ? (
+                              <div className="text-center">
+                                <Badge className={`text-xs ${
+                                  myBid.status === "accepted" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" :
+                                  myBid.status === "rejected" ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" :
+                                  "bg-secondary text-secondary-foreground"
+                                }`}>
+                                  {myBid.status === "accepted" ? "Accepted" : myBid.status === "rejected" ? "Rejected" : "Bid Sent"}
+                                </Badge>
+                                {myBid.bid_amount != null && (
+                                  <div className="mt-1 text-xs text-foreground font-medium">
+                                    ${Number(myBid.bid_amount).toLocaleString()}
+                                  </div>
+                                )}
+                                {myBid.call_approved && (
+                                  <div className="flex items-center gap-1 mt-1 text-xs text-green-600 dark:text-green-400">
+                                    <Phone size={12} /> Call approved
+                                  </div>
+                                )}
+                                {myBid.status === "accepted" && !myBid.call_approved && (
+                                  <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                                    <PhoneOff size={12} /> Message only
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+                                <Button size="sm" onClick={() => setBidJob(job)} className="gap-1">
+                                  <Send size={14} /> Send Bid
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => openHelper(job)} className="gap-1">
+                                  <Sparkles size={14} /> Job Helper
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => openAskInfo(job)} className="gap-1">
+                                  <MessageSquare size={14} /> Ask for Info
+                                </Button>
                               </div>
                             )}
                           </div>
-                        ) : (
-                          <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
-                            <Button size="sm" onClick={() => setBidJob(job)} className="gap-1">
-                              <Send size={14} /> Send Bid
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={() => openHelper(job)} className="gap-1">
-                              <Sparkles size={14} /> Job Helper
-                            </Button>
-                            <Button size="sm" variant="ghost" onClick={() => openAskInfo(job)} className="gap-1">
-                              <MessageSquare size={14} /> Ask for Info
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Job Detail Dialog */}
