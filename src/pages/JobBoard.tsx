@@ -411,6 +411,38 @@ const JobBoard = () => {
     }
   };
 
+  const [markingComplete, setMarkingComplete] = useState(false);
+  const markJobComplete = async (job: Job) => {
+    if (!user || !providerId) return;
+    if (!confirm(`Mark "${job.title}" as complete? The homeowner will be notified and asked to leave a review.`)) return;
+    setMarkingComplete(true);
+    try {
+      const { error: jErr } = await supabase
+        .from("jobs")
+        .update({ status: "completed" })
+        .eq("id", job.id);
+      if (jErr) throw jErr;
+
+      // Notify homeowner via in-app message (trigger also creates the review_request row)
+      const businessLabel = providerBusinessName || "Your pro";
+      await supabase.from("messages").insert({
+        sender_id: user.id,
+        recipient_id: job.homeowner_id,
+        subject: `Job complete: ${job.title}`,
+        body: `${businessLabel} marked the job "${job.title}" as complete. If everything looks good, please take a moment to leave a quick review — it really helps small businesses like ours. You'll see a prompt the next time you open your dashboard.`,
+      });
+
+      // Optimistic local update
+      setJobs((prev) => prev.map((j) => (j.id === job.id ? { ...j, status: "completed" } : j)));
+      setDetailJob((d) => (d && d.id === job.id ? { ...d, status: "completed" } : d));
+      toast({ title: "Marked complete", description: "The homeowner has been notified and asked to review." });
+    } catch (e: any) {
+      toast({ title: "Couldn't mark complete", description: e.message || "Try again.", variant: "destructive" });
+    } finally {
+      setMarkingComplete(false);
+    }
+  };
+
   const handleBidSubmit = async () => {
     if (!user || !providerId || !bidJob || !bidForm.message.trim()) {
       toast({ title: "Message required", description: "You must write a message to the homeowner.", variant: "destructive" });
