@@ -659,8 +659,8 @@ const JobBoard = () => {
       </Dialog>
 
       {/* Ask-for-info Dialog */}
-      <Dialog open={!!askJob} onOpenChange={(o) => { if (!o) { setAskJob(null); setAskMessage(""); } }}>
-        <DialogContent className="max-w-lg">
+      <Dialog open={!!askJob} onOpenChange={(o) => { if (!o) { setAskJob(null); setAskMessage(""); setAskAiQuestions([]); setAskAiRound(0); } }}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Ask Homeowner for More Info</DialogTitle>
           </DialogHeader>
@@ -670,6 +670,49 @@ const JobBoard = () => {
                 <p className="text-sm font-medium">{askJob.title}</p>
                 <p className="text-xs text-muted-foreground">{askJob.category} · {askJob.city}, {askJob.state}</p>
               </div>
+
+              <div className="rounded-lg border border-accent/30 bg-accent/5 p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold flex items-center gap-1">
+                    <Sparkles size={12} className="text-accent" />
+                    AI follow-up suggestions
+                    {askAiRound > 0 && <span className="text-muted-foreground font-normal">· round {askAiRound}</span>}
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={fetchAskAiQuestions}
+                    disabled={askAiLoading}
+                    className="h-7 text-xs gap-1"
+                  >
+                    {askAiLoading ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                    {askAiRound === 0 ? "Suggest questions" : "Regenerate"}
+                  </Button>
+                </div>
+                {askAiQuestions.length > 0 ? (
+                  <>
+                    <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+                      {askAiQuestions.map((q, i) => <li key={i}>{q}</li>)}
+                    </ul>
+                    <div className="flex items-center gap-2 pt-1">
+                      <Button type="button" size="sm" variant="secondary" onClick={insertAiQuestionsIntoMessage} className="h-7 text-xs">
+                        Use in message
+                      </Button>
+                      <span className="text-xs text-muted-foreground">
+                        Not enough? Click <span className="font-medium">Regenerate</span> for more.
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    {askAiRound === 0
+                      ? "Get AI-suggested questions tailored to this job. Repeat until you have what you need."
+                      : "AI didn't find further gaps — you likely have enough to bid."}
+                  </p>
+                )}
+              </div>
+
               <div>
                 <Label>Your Message *</Label>
                 <Textarea
@@ -684,7 +727,7 @@ const JobBoard = () => {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setAskJob(null); setAskMessage(""); }}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setAskJob(null); setAskMessage(""); setAskAiQuestions([]); setAskAiRound(0); }}>Cancel</Button>
             <Button onClick={sendAskInfo} disabled={askSubmitting} className="gap-1">
               <MessageSquare size={14} /> {askSubmitting ? "Sending..." : "Send Message"}
             </Button>
