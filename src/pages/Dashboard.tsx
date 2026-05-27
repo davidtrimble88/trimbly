@@ -327,6 +327,7 @@ const Dashboard = () => {
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4">
           <NotificationPermissionPrompt />
+          <ReviewPromptDialog />
           {/* Header */}
           <div className="mb-10">
             <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
