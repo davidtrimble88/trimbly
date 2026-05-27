@@ -658,7 +658,7 @@ const JobBoard = () => {
                             )}
                           </div>
                         ) : (
-                          <div className="flex flex-col gap-2">
+                          <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
                             <Button size="sm" onClick={() => setBidJob(job)} className="gap-1">
                               <Send size={14} /> Send Bid
                             </Button>
