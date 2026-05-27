@@ -59,6 +59,7 @@ const JobBoard = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [myBids, setMyBids] = useState<Record<string, MyBid>>({});
   const [providerId, setProviderId] = useState<string | null>(null);
+  const [providerBusinessName, setProviderBusinessName] = useState<string>("");
   const [providerTier, setProviderTier] = useState<string>("free");
   const [activeBidsThisMonth, setActiveBidsThisMonth] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -90,6 +91,7 @@ const JobBoard = () => {
     return mats + labor;
   };
   const [submitting, setSubmitting] = useState(false);
+  const [suggestingMessage, setSuggestingMessage] = useState(false);
 
   // Request-more-info dialog
   const [askJob, setAskJob] = useState<Job | null>(null);
@@ -139,13 +141,14 @@ const JobBoard = () => {
       // Get provider profile
       const { data: providerData } = await supabase
         .from("providers")
-        .select("id, subscription_tier")
+        .select("id, subscription_tier, business_name")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (providerData) {
         setProviderId(providerData.id);
         setProviderTier(providerData.subscription_tier || "free");
+        setProviderBusinessName(providerData.business_name || "");
         // Load my bids
         const { data: bidsData } = await supabase
           .from("job_bids")
@@ -262,6 +265,35 @@ const JobBoard = () => {
   const FREE_BID_LIMIT = 5;
   const isPaid = providerTier !== "free";
   const bidsLeft = isPaid ? Infinity : Math.max(0, FREE_BID_LIMIT - activeBidsThisMonth);
+  const suggestBidMessage = async () => {
+    if (!bidJob) return;
+    setSuggestingMessage(true);
+    try {
+      const total = computeBidTotal(bidForm);
+      const priceLine = total > 0
+        ? `Bid total: $${total.toLocaleString()} (materials $${(parseFloat(bidForm.materials_cost) || 0).toLocaleString()} + labor $${(total - (parseFloat(bidForm.materials_cost) || 0)).toLocaleString()}${bidForm.labor_mode === "hourly" && bidForm.labor_rate && bidForm.estimated_hours ? `, ${bidForm.estimated_hours}hr @ $${bidForm.labor_rate}/hr` : ""})`
+        : "Bid total not yet calculated";
+      const jobBlurb = `Job: "${bidJob.title}" (${bidJob.category}) in ${bidJob.city}, ${bidJob.state}.\n${bidJob.description || "(no description provided)"}\n\n${priceLine}`;
+      const { data, error } = await supabase.functions.invoke("message-copilot", {
+        body: {
+          mode: "draft_reply",
+          businessName: providerBusinessName || "the pro",
+          tone: "friendly, professional, confident",
+          thread: [{ sender: "homeowner", body: jobBlurb }],
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const content = (data?.content || "").trim();
+      if (!content) throw new Error("No suggestion returned");
+      setBidForm((f) => ({ ...f, message: content }));
+      toast({ title: "Message drafted", description: "Tweak it before sending." });
+    } catch (e: any) {
+      toast({ title: "AI helper error", description: e.message || "Try again in a moment.", variant: "destructive" });
+    } finally {
+      setSuggestingMessage(false);
+    }
+  };
 
   const handleBidSubmit = async () => {
     if (!user || !providerId || !bidJob || !bidForm.message.trim()) {
@@ -619,14 +651,27 @@ const JobBoard = () => {
                 </div>
               )}
               <div>
-                <Label>Message to Homeowner *</Label>
+                <div className="flex items-center justify-between mb-1">
+                  <Label>Message to Homeowner *</Label>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={suggestBidMessage}
+                    disabled={suggestingMessage}
+                    className="h-7 text-xs gap-1"
+                  >
+                    {suggestingMessage ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} className="text-accent" />}
+                    {bidForm.message.trim() ? "Regenerate" : "Suggest message"}
+                  </Button>
+                </div>
                 <Textarea
                   placeholder="Introduce yourself, describe your experience with this type of job, and explain your approach..."
                   value={bidForm.message}
                   onChange={(e) => setBidForm((f) => ({ ...f, message: e.target.value }))}
                   className="mt-1 min-h-[120px]"
                 />
-                <p className="text-xs text-muted-foreground mt-1">The homeowner must approve you before you can call them.</p>
+                <p className="text-xs text-muted-foreground mt-1">Tip: fill in materials & labor first so the AI can reference your price.</p>
               </div>
               <div className="rounded-lg border border-border p-3 space-y-3">
                 <p className="text-xs font-semibold text-foreground flex items-center gap-1">
