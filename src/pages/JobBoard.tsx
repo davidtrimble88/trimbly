@@ -265,6 +265,35 @@ const JobBoard = () => {
   const FREE_BID_LIMIT = 5;
   const isPaid = providerTier !== "free";
   const bidsLeft = isPaid ? Infinity : Math.max(0, FREE_BID_LIMIT - activeBidsThisMonth);
+  const suggestBidMessage = async () => {
+    if (!bidJob) return;
+    setSuggestingMessage(true);
+    try {
+      const total = computeBidTotal(bidForm);
+      const priceLine = total > 0
+        ? `Bid total: $${total.toLocaleString()} (materials $${(parseFloat(bidForm.materials_cost) || 0).toLocaleString()} + labor $${(total - (parseFloat(bidForm.materials_cost) || 0)).toLocaleString()}${bidForm.labor_mode === "hourly" && bidForm.labor_rate && bidForm.estimated_hours ? `, ${bidForm.estimated_hours}hr @ $${bidForm.labor_rate}/hr` : ""})`
+        : "Bid total not yet calculated";
+      const jobBlurb = `Job: "${bidJob.title}" (${bidJob.category}) in ${bidJob.city}, ${bidJob.state}.\n${bidJob.description || "(no description provided)"}\n\n${priceLine}`;
+      const { data, error } = await supabase.functions.invoke("message-copilot", {
+        body: {
+          mode: "draft_reply",
+          businessName: providerBusinessName || "the pro",
+          tone: "friendly, professional, confident",
+          thread: [{ sender: "homeowner", body: jobBlurb }],
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const content = (data?.content || "").trim();
+      if (!content) throw new Error("No suggestion returned");
+      setBidForm((f) => ({ ...f, message: content }));
+      toast({ title: "Message drafted", description: "Tweak it before sending." });
+    } catch (e: any) {
+      toast({ title: "AI helper error", description: e.message || "Try again in a moment.", variant: "destructive" });
+    } finally {
+      setSuggestingMessage(false);
+    }
+  };
 
   const handleBidSubmit = async () => {
     if (!user || !providerId || !bidJob || !bidForm.message.trim()) {
