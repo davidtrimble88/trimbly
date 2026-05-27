@@ -73,7 +73,22 @@ const JobBoard = () => {
 
   // Bid form
   const [bidJob, setBidJob] = useState<Job | null>(null);
-  const [bidForm, setBidForm] = useState({ message: "", bid_amount: "", estimated_hours: "", phone_number: "" });
+  const [bidForm, setBidForm] = useState({
+    message: "",
+    materials_cost: "",
+    labor_mode: "hourly" as "hourly" | "flat",
+    labor_rate: "",
+    labor_flat: "",
+    estimated_hours: "",
+    phone_number: "",
+  });
+  const computeBidTotal = (f: typeof bidForm) => {
+    const mats = parseFloat(f.materials_cost) || 0;
+    const labor = f.labor_mode === "hourly"
+      ? (parseFloat(f.labor_rate) || 0) * (parseFloat(f.estimated_hours) || 0)
+      : (parseFloat(f.labor_flat) || 0);
+    return mats + labor;
+  };
   const [submitting, setSubmitting] = useState(false);
 
   // Request-more-info dialog
