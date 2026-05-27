@@ -988,6 +988,20 @@ const JobBoard = () => {
                       </Button>
                     </>
                   )}
+                  {myBid && myBid.status === "accepted" && detailJob.status !== "completed" && (
+                    <Button
+                      onClick={() => markJobComplete(detailJob)}
+                      disabled={markingComplete}
+                      className="gap-1 bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <CheckCircle size={14} /> {markingComplete ? "Marking..." : "Mark job complete"}
+                    </Button>
+                  )}
+                  {myBid && detailJob.status === "completed" && (
+                    <div className="text-xs text-muted-foreground flex items-center gap-1 mr-auto">
+                      <CheckCircle size={12} className="text-green-600" /> Marked complete — homeowner asked to review.
+                    </div>
+                  )}
                   {myBid && (
                     <Button variant="outline" onClick={() => setDetailJob(null)}>Close</Button>
                   )}
