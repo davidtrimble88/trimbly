@@ -140,13 +140,14 @@ const JobBoard = () => {
       // Get provider profile
       const { data: providerData } = await supabase
         .from("providers")
-        .select("id, subscription_tier")
+        .select("id, subscription_tier, business_name")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (providerData) {
         setProviderId(providerData.id);
         setProviderTier(providerData.subscription_tier || "free");
+        setProviderBusinessName(providerData.business_name || "");
         // Load my bids
         const { data: bidsData } = await supabase
           .from("job_bids")
