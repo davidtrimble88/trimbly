@@ -680,6 +680,183 @@ const JobBoard = () => {
         )}
       </div>
 
+      {/* Job Detail Dialog */}
+      <Dialog open={!!detailJob} onOpenChange={(o) => { if (!o) { setDetailJob(null); setDetailThread([]); } }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5 text-primary" />
+              {detailJob?.title}
+            </DialogTitle>
+          </DialogHeader>
+          {detailJob && (() => {
+            const myBid = myBids[detailJob.id];
+            const msgInfo = homeownerMessages[detailJob.homeowner_id];
+            return (
+              <div className="space-y-5">
+                {/* Meta */}
+                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><Briefcase size={12} /> {detailJob.category}</span>
+                  <span className="flex items-center gap-1"><MapPin size={12} /> {detailJob.city}, {detailJob.state} {detailJob.country}</span>
+                  <span className="flex items-center gap-1"><Clock size={12} /> Posted {new Date(detailJob.created_at).toLocaleString()}</span>
+                  <Badge variant="outline" className="text-xs capitalize">{detailJob.status}</Badge>
+                </div>
+
+                {/* Budget */}
+                {(detailJob.budget_min || detailJob.budget_max) && (
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 flex items-center gap-2">
+                    <DollarSign size={16} className="text-primary" />
+                    <div>
+                      <div className="text-xs text-muted-foreground">Homeowner's budget</div>
+                      <div className="font-semibold text-foreground">
+                        {detailJob.budget_min && detailJob.budget_max
+                          ? `$${Number(detailJob.budget_min).toLocaleString()} – $${Number(detailJob.budget_max).toLocaleString()}`
+                          : detailJob.budget_min
+                            ? `From $${Number(detailJob.budget_min).toLocaleString()}`
+                            : `Up to $${Number(detailJob.budget_max).toLocaleString()}`}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Description */}
+                <div>
+                  <h4 className="text-sm font-semibold mb-1">Description</h4>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {detailJob.description || "(No description provided)"}
+                  </p>
+                  {isJobInfoThin(detailJob) && (
+                    <div className="mt-2 inline-flex items-start gap-1.5 rounded-md border border-orange-500/30 bg-orange-500/5 px-2 py-1 text-xs">
+                      <Lightbulb size={12} className="text-orange-500 shrink-0 mt-0.5" />
+                      <span className="text-muted-foreground">Sparse details — use "Ask for Info" below.</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Photos */}
+                {detailJob.photo_urls && detailJob.photo_urls.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold mb-2">Photos</h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      {detailJob.photo_urls.map((url, i) => (
+                        <a key={i} href={url} target="_blank" rel="noreferrer" className="block aspect-square overflow-hidden rounded-md border border-border bg-muted">
+                          <img src={url} alt={`Job photo ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform" loading="lazy" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Video */}
+                {detailJob.video_url && (
+                  <div>
+                    <h4 className="text-sm font-semibold mb-2">Video</h4>
+                    <video src={detailJob.video_url} controls className="w-full rounded-md border border-border bg-black" />
+                  </div>
+                )}
+
+                {/* Homeowner */}
+                <div className="rounded-lg border bg-card p-3 flex items-center gap-2">
+                  <User size={16} className="text-muted-foreground" />
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Posted by </span>
+                    <span className="font-medium text-foreground">{detailHomeownerName || "Homeowner"}</span>
+                  </div>
+                </div>
+
+                {/* My bid */}
+                {myBid && (
+                  <div className="rounded-lg border border-border p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold">Your bid</h4>
+                      <Badge className={`text-xs ${
+                        myBid.status === "accepted" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" :
+                        myBid.status === "rejected" ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" :
+                        "bg-secondary text-secondary-foreground"
+                      }`}>
+                        {myBid.status === "accepted" ? "Accepted" : myBid.status === "rejected" ? "Rejected" : "Pending"}
+                      </Badge>
+                    </div>
+                    {myBid.bid_amount != null && (
+                      <div className="text-sm text-foreground flex items-center gap-1">
+                        <DollarSign size={14} className="text-primary" />
+                        ${Number(myBid.bid_amount).toLocaleString()}
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground whitespace-pre-wrap">{myBid.message}</p>
+                    <div className="text-xs flex items-center gap-1 text-muted-foreground">
+                      {myBid.call_approved
+                        ? <><Phone size={12} className="text-green-600" /> Homeowner approved a phone call</>
+                        : <><PhoneOff size={12} /> In-app messaging only</>}
+                    </div>
+                  </div>
+                )}
+
+                {/* Messages thread */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-semibold flex items-center gap-1">
+                      <MessageSquare size={14} /> Conversation with homeowner
+                      {msgInfo && msgInfo.unread > 0 && (
+                        <Badge className="ml-1 text-[10px] bg-primary text-primary-foreground">{msgInfo.unread} new</Badge>
+                      )}
+                    </h4>
+                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => navigate("/messages")}>
+                      Open in Messages
+                    </Button>
+                  </div>
+                  {detailThreadLoading ? (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground py-4">
+                      <Loader2 size={14} className="animate-spin" /> Loading messages...
+                    </div>
+                  ) : detailThread.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No messages yet between you and this homeowner.</p>
+                  ) : (
+                    <div className="space-y-2 max-h-64 overflow-y-auto rounded-md border border-border p-2 bg-muted/30">
+                      {detailThread.map((m) => {
+                        const mine = m.sender_id === user?.id;
+                        return (
+                          <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                            <div className={`max-w-[80%] rounded-lg px-3 py-2 text-xs ${
+                              mine ? "bg-primary text-primary-foreground" : "bg-card border border-border"
+                            }`}>
+                              <p className="whitespace-pre-wrap">{m.body}</p>
+                              <p className={`mt-1 text-[10px] ${mine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                                {new Date(m.created_at).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <DialogFooter className="flex-col sm:flex-row gap-2">
+                  {!myBid && (
+                    <>
+                      <Button variant="ghost" onClick={() => { setDetailJob(null); openAskInfo(detailJob); }} className="gap-1">
+                        <MessageSquare size={14} /> Ask for Info
+                      </Button>
+                      <Button variant="outline" onClick={() => { setDetailJob(null); openHelper(detailJob); }} className="gap-1">
+                        <Sparkles size={14} /> Job Helper
+                      </Button>
+                      <Button onClick={() => { setDetailJob(null); setBidJob(detailJob); }} className="gap-1">
+                        <Send size={14} /> Send Bid
+                      </Button>
+                    </>
+                  )}
+                  {myBid && (
+                    <Button variant="outline" onClick={() => setDetailJob(null)}>Close</Button>
+                  )}
+                </DialogFooter>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
       {/* Bid Dialog */}
       <Dialog open={!!bidJob} onOpenChange={(o) => !o && setBidJob(null)}>
         <DialogContent className="max-w-lg">
