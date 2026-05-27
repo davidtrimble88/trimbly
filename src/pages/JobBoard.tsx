@@ -341,6 +341,43 @@ const JobBoard = () => {
     });
   }, [jobs, filterCategory, searchCenter, radiusMiles, jobCoords]);
 
+  // Tab buckets
+  const [activeTab, setActiveTab] = useState<"posted" | "conversations" | "accepted" | "complete">("posted");
+
+  const buckets = useMemo(() => {
+    const posted: Job[] = [];
+    const conversations: Job[] = [];
+    const accepted: Job[] = [];
+    const complete: Job[] = [];
+    for (const j of filteredJobs) {
+      const myBid = myBids[j.id];
+      const hasConvo = !!homeownerMessages[j.homeowner_id];
+      const isCompleted = j.status === "completed";
+      const isAccepted = myBid?.status === "accepted" && !isCompleted;
+
+      if (isCompleted && myBid) {
+        complete.push(j);
+        continue;
+      }
+      if (isAccepted) {
+        accepted.push(j);
+        continue;
+      }
+      if (hasConvo) {
+        conversations.push(j);
+        // also keep on Posted if it's still open & I haven't bid
+        if (!myBid && (j.status === "pending" || j.status === "open")) posted.push(j);
+        continue;
+      }
+      if (!myBid && (j.status === "pending" || j.status === "open")) {
+        posted.push(j);
+      }
+    }
+    return { posted, conversations, accepted, complete };
+  }, [filteredJobs, myBids, homeownerMessages]);
+
+  const tabJobs = buckets[activeTab];
+
   const FREE_BID_LIMIT = 5;
   const isPaid = providerTier !== "free";
   const bidsLeft = isPaid ? Infinity : Math.max(0, FREE_BID_LIMIT - activeBidsThisMonth);
