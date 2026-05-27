@@ -119,6 +119,44 @@ const JobBoard = () => {
   const [helperError, setHelperError] = useState<string | null>(null);
   const [helperCache, setHelperCache] = useState<Record<string, JobEstimate>>({});
 
+  // Job detail dialog
+  const [detailJob, setDetailJob] = useState<Job | null>(null);
+  const [detailThread, setDetailThread] = useState<ThreadMessage[]>([]);
+  const [detailThreadLoading, setDetailThreadLoading] = useState(false);
+  const [detailHomeownerName, setDetailHomeownerName] = useState<string>("");
+
+  const openJobDetail = async (job: Job) => {
+    setDetailJob(job);
+    setDetailThread([]);
+    setDetailHomeownerName("");
+    if (!user) return;
+    setDetailThreadLoading(true);
+    try {
+      const [{ data: msgs }, { data: prof }] = await Promise.all([
+        supabase
+          .from("messages")
+          .select("id, sender_id, recipient_id, body, subject, created_at, read")
+          .or(`and(sender_id.eq.${user.id},recipient_id.eq.${job.homeowner_id}),and(sender_id.eq.${job.homeowner_id},recipient_id.eq.${user.id})`)
+          .order("created_at", { ascending: true }),
+        supabase.from("profiles").select("full_name").eq("id", job.homeowner_id).maybeSingle(),
+      ]);
+      setDetailThread((msgs as ThreadMessage[]) || []);
+      setDetailHomeownerName((prof as any)?.full_name || "Homeowner");
+      // Mark unread incoming as read
+      const unreadIds = (msgs || []).filter((m: any) => !m.read && m.recipient_id === user.id).map((m: any) => m.id);
+      if (unreadIds.length) {
+        await supabase.from("messages").update({ read: true }).in("id", unreadIds);
+        setHomeownerMessages((prev) => {
+          const next = { ...prev };
+          if (next[job.homeowner_id]) next[job.homeowner_id] = { ...next[job.homeowner_id], unread: 0 };
+          return next;
+        });
+      }
+    } finally {
+      setDetailThreadLoading(false);
+    }
+  };
+
   const openHelper = async (job: Job) => {
     setHelperJob(job);
     setHelperError(null);
