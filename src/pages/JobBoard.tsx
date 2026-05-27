@@ -281,7 +281,7 @@ const JobBoard = () => {
       job_id: bidJob.id,
       provider_id: providerId,
       message: bidForm.message.trim(),
-      bid_amount: bidForm.bid_amount ? parseFloat(bidForm.bid_amount) : null,
+      bid_amount: computeBidTotal(bidForm) || null,
       estimated_hours: bidForm.estimated_hours ? parseFloat(bidForm.estimated_hours) : null,
       phone_number: bidForm.phone_number || null,
     });
