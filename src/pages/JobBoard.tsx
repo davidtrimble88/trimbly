@@ -598,7 +598,7 @@ const JobBoard = () => {
                           <h3 className="font-semibold text-foreground">{job.title}</h3>
                           {msgInfo && msgInfo.count > 0 && (
                             <button
-                              onClick={() => navigate("/messages")}
+                              onClick={(e) => { e.stopPropagation(); navigate("/messages"); }}
                               className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
                                 msgInfo.unread > 0
                                   ? "bg-primary text-primary-foreground hover:bg-primary/90"
