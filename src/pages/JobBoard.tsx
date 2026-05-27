@@ -302,11 +302,54 @@ const JobBoard = () => {
     setSubmitting(false);
   };
 
+  const isJobInfoThin = (job: Job) => {
+    const d = (job.description || "").trim();
+    const words = d ? d.split(/\s+/).length : 0;
+    return d.length < 80 || words < 15;
+  };
+
   const openAskInfo = (job: Job) => {
     setAskJob(job);
+    setAskAiQuestions([]);
+    setAskAiRound(0);
     setAskMessage(
       `Hi! I'm interested in your "${job.title}" job. Before I send a bid, could you share a bit more detail? For example:\n\n• What's the timeline / when would you like it done?\n• Any photos or measurements you can share?\n• Anything you've already tried or ruled out?\n\nThanks!`
     );
+  };
+
+  const fetchAskAiQuestions = async () => {
+    if (!askJob) return;
+    setAskAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("job-description-helper", {
+        body: {
+          title: askJob.title,
+          category: askJob.category,
+          description: askJob.description || "",
+          city: askJob.city,
+          state: askJob.state,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const qs: string[] = Array.isArray(data?.missing_info) ? data.missing_info : [];
+      setAskAiQuestions(qs);
+      setAskAiRound((r) => r + 1);
+      if (qs.length === 0) {
+        toast({ title: "Looks complete", description: "The AI didn't find obvious gaps — you may have enough to bid." });
+      }
+    } catch (e: any) {
+      toast({ title: "AI helper error", description: e.message || "Try again in a moment.", variant: "destructive" });
+    } finally {
+      setAskAiLoading(false);
+    }
+  };
+
+  const insertAiQuestionsIntoMessage = () => {
+    if (askAiQuestions.length === 0) return;
+    const bullets = askAiQuestions.map((q) => `• ${q}`).join("\n");
+    const intro = `Hi! Before I bid on "${askJob?.title}", could you share a few more details:\n\n`;
+    setAskMessage(intro + bullets + "\n\nThanks!");
   };
 
   const sendAskInfo = async () => {
@@ -330,6 +373,8 @@ const JobBoard = () => {
     toast({ title: "Message sent", description: "The homeowner can reply in Messages." });
     setAskJob(null);
     setAskMessage("");
+    setAskAiQuestions([]);
+    setAskAiRound(0);
   };
 
   if (authLoading || loading) {
