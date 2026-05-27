@@ -40,6 +40,18 @@ type Job = {
   homeowner_id: string;
   budget_min?: number | null;
   budget_max?: number | null;
+  photo_urls?: string[] | null;
+  video_url?: string | null;
+};
+
+type ThreadMessage = {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  body: string;
+  subject: string;
+  created_at: string;
+  read: boolean;
 };
 
 type MyBid = {
