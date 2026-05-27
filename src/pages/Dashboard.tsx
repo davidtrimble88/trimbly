@@ -19,6 +19,7 @@ import ProfileEditor from "@/components/profile/ProfileEditor";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { NotificationPermissionPrompt } from "@/components/NotificationPermissionPrompt";
+import { ReviewPromptDialog } from "@/components/ReviewPromptDialog";
 import { ShareTrimblyCard } from "@/components/ShareTrimblyCard";
 import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
 import SavedProvidersCard from "@/components/SavedProvidersCard";
@@ -326,6 +327,7 @@ const Dashboard = () => {
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4">
           <NotificationPermissionPrompt />
+          <ReviewPromptDialog />
           {/* Header */}
           <div className="mb-10">
             <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
