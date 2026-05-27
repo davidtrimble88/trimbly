@@ -312,7 +312,7 @@ const JobBoard = () => {
       setMyBids(bidsMap);
       setActiveBidsThisMonth(activeCount);
       setBidJob(null);
-      setBidForm({ message: "", bid_amount: "", estimated_hours: "", phone_number: "" });
+      setBidForm({ message: "", materials_cost: "", labor_mode: "hourly", labor_rate: "", labor_flat: "", estimated_hours: "", phone_number: "" });
     }
     setSubmitting(false);
   };
