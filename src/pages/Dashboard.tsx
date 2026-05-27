@@ -19,6 +19,7 @@ import ProfileEditor from "@/components/profile/ProfileEditor";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { NotificationPermissionPrompt } from "@/components/NotificationPermissionPrompt";
+import { ReviewPromptDialog } from "@/components/ReviewPromptDialog";
 import { ShareTrimblyCard } from "@/components/ShareTrimblyCard";
 import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
 import SavedProvidersCard from "@/components/SavedProvidersCard";
