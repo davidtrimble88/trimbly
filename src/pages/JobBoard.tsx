@@ -628,27 +628,94 @@ const JobBoard = () => {
                 />
                 <p className="text-xs text-muted-foreground mt-1">The homeowner must approve you before you can call them.</p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-lg border border-border p-3 space-y-3">
+                <p className="text-xs font-semibold text-foreground flex items-center gap-1">
+                  <DollarSign size={12} className="text-primary" /> Build your bid
+                </p>
                 <div>
-                  <Label>Bid Amount ($)</Label>
+                  <Label className="text-xs">Materials cost ($)</Label>
                   <Input
                     type="number"
-                    placeholder="e.g. 250"
-                    value={bidForm.bid_amount}
-                    onChange={(e) => setBidForm((f) => ({ ...f, bid_amount: e.target.value }))}
+                    placeholder="e.g. 120"
+                    value={bidForm.materials_cost}
+                    onChange={(e) => setBidForm((f) => ({ ...f, materials_cost: e.target.value }))}
                     className="mt-1"
                   />
                 </div>
+
                 <div>
-                  <Label>Estimated Hours</Label>
-                  <Input
-                    type="number"
-                    placeholder="e.g. 3"
-                    value={bidForm.estimated_hours}
-                    onChange={(e) => setBidForm((f) => ({ ...f, estimated_hours: e.target.value }))}
-                    className="mt-1"
-                  />
+                  <Label className="text-xs">Labor</Label>
+                  <div className="mt-1 flex gap-2 mb-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={bidForm.labor_mode === "hourly" ? "default" : "outline"}
+                      onClick={() => setBidForm((f) => ({ ...f, labor_mode: "hourly" }))}
+                      className="h-8 text-xs flex-1"
+                    >
+                      Hourly
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={bidForm.labor_mode === "flat" ? "default" : "outline"}
+                      onClick={() => setBidForm((f) => ({ ...f, labor_mode: "flat" }))}
+                      className="h-8 text-xs flex-1"
+                    >
+                      Flat rate
+                    </Button>
+                  </div>
+                  {bidForm.labor_mode === "hourly" ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Rate ($/hr)</Label>
+                        <Input
+                          type="number"
+                          placeholder="e.g. 75"
+                          value={bidForm.labor_rate}
+                          onChange={(e) => setBidForm((f) => ({ ...f, labor_rate: e.target.value }))}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Hours</Label>
+                        <Input
+                          type="number"
+                          placeholder="e.g. 3"
+                          value={bidForm.estimated_hours}
+                          onChange={(e) => setBidForm((f) => ({ ...f, estimated_hours: e.target.value }))}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <Input
+                      type="number"
+                      placeholder="Flat labor amount ($)"
+                      value={bidForm.labor_flat}
+                      onChange={(e) => setBidForm((f) => ({ ...f, labor_flat: e.target.value }))}
+                      className="mt-1"
+                    />
+                  )}
                 </div>
+
+                {(() => {
+                  const mats = parseFloat(bidForm.materials_cost) || 0;
+                  const labor = bidForm.labor_mode === "hourly"
+                    ? (parseFloat(bidForm.labor_rate) || 0) * (parseFloat(bidForm.estimated_hours) || 0)
+                    : (parseFloat(bidForm.labor_flat) || 0);
+                  const total = mats + labor;
+                  return (
+                    <div className="rounded-md bg-primary/5 border border-primary/20 p-2.5 text-sm flex items-center justify-between">
+                      <div className="text-xs text-muted-foreground">
+                        Materials ${mats.toLocaleString()} + Labor ${labor.toLocaleString()}
+                      </div>
+                      <div className="font-semibold text-foreground">
+                        Total ${total.toLocaleString()}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
               <div>
                 <Label>Your Phone (optional)</Label>
