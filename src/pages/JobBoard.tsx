@@ -91,6 +91,7 @@ const JobBoard = () => {
     return mats + labor;
   };
   const [submitting, setSubmitting] = useState(false);
+  const [suggestingMessage, setSuggestingMessage] = useState(false);
 
   // Request-more-info dialog
   const [askJob, setAskJob] = useState<Job | null>(null);
