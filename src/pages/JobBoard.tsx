@@ -583,7 +583,14 @@ const JobBoard = () => {
               const myBid = myBids[job.id];
               const msgInfo = homeownerMessages[job.homeowner_id];
               return (
-                <Card key={job.id} className="hover:border-primary/20 transition-colors">
+                <Card
+                  key={job.id}
+                  className="hover:border-primary/40 hover:shadow-sm transition-all cursor-pointer"
+                  onClick={() => openJobDetail(job)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openJobDetail(job); } }}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
