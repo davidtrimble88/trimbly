@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Briefcase, MapPin, Clock, DollarSign, MessageSquare, Send,
-  Phone, PhoneOff, CheckCircle, User, Filter, Wrench, Sparkles, Loader2,
+  Phone, PhoneOff, CheckCircle, User, Filter, Wrench, Sparkles, Loader2, Lightbulb,
 } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { getJobEstimate, type JobEstimate } from "@/lib/api/jobEstimator";
