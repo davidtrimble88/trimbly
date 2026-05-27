@@ -220,24 +220,52 @@ const JobBoard = () => {
       }
 
       // Load open jobs (exclude own jobs)
-      const { data: jobsData } = await supabase
+      const { data: openJobsData } = await supabase
         .from("jobs")
         .select("*")
         .in("status", ["pending", "open"])
         .neq("homeowner_id", user.id)
         .order("created_at", { ascending: false });
-      setJobs((jobsData as Job[]) || []);
 
-      // Load messages this pro has received (to surface conversations on jobs)
+      // Also load any jobs where this pro has a bid (any status), so accepted/completed show up
+      const bidJobIds = Object.keys((await (async () => {
+        const { data } = await supabase
+          .from("job_bids")
+          .select("job_id")
+          .eq("provider_id", providerData?.id || "00000000-0000-0000-0000-000000000000");
+        const set: Record<string, true> = {};
+        (data || []).forEach((b: any) => { set[b.job_id] = true; });
+        return set;
+      })()));
+      let bidJobs: Job[] = [];
+      if (bidJobIds.length) {
+        const { data: bj } = await supabase
+          .from("jobs")
+          .select("*")
+          .in("id", bidJobIds);
+        bidJobs = (bj as Job[]) || [];
+      }
+
+      // Merge unique
+      const byId: Record<string, Job> = {};
+      ((openJobsData as Job[]) || []).forEach((j) => { byId[j.id] = j; });
+      bidJobs.forEach((j) => { byId[j.id] = j; });
+      const merged = Object.values(byId).sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setJobs(merged);
+
+      // Load messages this pro has sent or received (to surface conversations on jobs)
       const { data: msgsData } = await supabase
         .from("messages")
-        .select("sender_id, read")
-        .eq("recipient_id", user.id);
+        .select("sender_id, recipient_id, read")
+        .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`);
       const msgMap: Record<string, { count: number; unread: number }> = {};
       (msgsData || []).forEach((m: any) => {
-        if (!msgMap[m.sender_id]) msgMap[m.sender_id] = { count: 0, unread: 0 };
-        msgMap[m.sender_id].count += 1;
-        if (!m.read) msgMap[m.sender_id].unread += 1;
+        const otherId = m.sender_id === user.id ? m.recipient_id : m.sender_id;
+        if (!msgMap[otherId]) msgMap[otherId] = { count: 0, unread: 0 };
+        msgMap[otherId].count += 1;
+        if (!m.read && m.recipient_id === user.id) msgMap[otherId].unread += 1;
       });
       setHomeownerMessages(msgMap);
 
