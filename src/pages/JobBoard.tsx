@@ -59,6 +59,7 @@ const JobBoard = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [myBids, setMyBids] = useState<Record<string, MyBid>>({});
   const [providerId, setProviderId] = useState<string | null>(null);
+  const [providerBusinessName, setProviderBusinessName] = useState<string>("");
   const [providerTier, setProviderTier] = useState<string>("free");
   const [activeBidsThisMonth, setActiveBidsThisMonth] = useState(0);
   const [loading, setLoading] = useState(true);
