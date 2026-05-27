@@ -80,6 +80,9 @@ const JobBoard = () => {
   const [askJob, setAskJob] = useState<Job | null>(null);
   const [askMessage, setAskMessage] = useState("");
   const [askSubmitting, setAskSubmitting] = useState(false);
+  const [askAiLoading, setAskAiLoading] = useState(false);
+  const [askAiQuestions, setAskAiQuestions] = useState<string[]>([]);
+  const [askAiRound, setAskAiRound] = useState(0);
 
   // Job helper (AI breakdown for pros)
   const [helperJob, setHelperJob] = useState<Job | null>(null);
