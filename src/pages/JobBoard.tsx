@@ -523,6 +523,14 @@ const JobBoard = () => {
                           )}
                         </div>
                         {job.description && <p className="text-sm text-muted-foreground">{job.description}</p>}
+                        {isJobInfoThin(job) && (
+                          <div className="mt-2 inline-flex items-start gap-1.5 rounded-md border border-orange-500/30 bg-orange-500/5 px-2 py-1 text-xs">
+                            <Lightbulb size={12} className="text-orange-500 shrink-0 mt-0.5" />
+                            <span className="text-muted-foreground">
+                              Sparse details — ask the homeowner for more info before bidding.
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div className="ml-4 shrink-0">
                         {myBid ? (
