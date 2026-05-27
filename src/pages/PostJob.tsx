@@ -759,6 +759,24 @@ const PostJob = () => {
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                 className="min-h-[100px]"
               />
+              {(() => {
+                const desc = form.description.trim();
+                const wordCount = desc ? desc.split(/\s+/).length : 0;
+                if (desc.length >= 80 && wordCount >= 15) return null;
+                return (
+                  <div className="mt-2 rounded-md border border-orange-500/30 bg-orange-500/5 p-2.5 text-xs flex items-start gap-2">
+                    <Lightbulb size={14} className="text-orange-500 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground">
+                        {desc.length === 0 ? "Add a description so pros can bid accurately." : "This is pretty short — add more details for better bids."}
+                      </p>
+                      <p className="text-muted-foreground mt-0.5">
+                        Include what's broken, dimensions, materials, access, urgency. Tap <span className="font-medium">AI Help</span> for guided suggestions.
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
               {aiHelp && (
                 <div className="mt-2 rounded-lg border border-accent/30 bg-accent/5 p-3 space-y-3">
                   {aiHelp.missing_info?.length > 0 && (

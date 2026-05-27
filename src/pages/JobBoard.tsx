@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Briefcase, MapPin, Clock, DollarSign, MessageSquare, Send,
-  Phone, PhoneOff, CheckCircle, User, Filter, Wrench, Sparkles, Loader2,
+  Phone, PhoneOff, CheckCircle, User, Filter, Wrench, Sparkles, Loader2, Lightbulb,
 } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { getJobEstimate, type JobEstimate } from "@/lib/api/jobEstimator";
@@ -80,6 +80,9 @@ const JobBoard = () => {
   const [askJob, setAskJob] = useState<Job | null>(null);
   const [askMessage, setAskMessage] = useState("");
   const [askSubmitting, setAskSubmitting] = useState(false);
+  const [askAiLoading, setAskAiLoading] = useState(false);
+  const [askAiQuestions, setAskAiQuestions] = useState<string[]>([]);
+  const [askAiRound, setAskAiRound] = useState(0);
 
   // Job helper (AI breakdown for pros)
   const [helperJob, setHelperJob] = useState<Job | null>(null);
@@ -299,11 +302,54 @@ const JobBoard = () => {
     setSubmitting(false);
   };
 
+  const isJobInfoThin = (job: Job) => {
+    const d = (job.description || "").trim();
+    const words = d ? d.split(/\s+/).length : 0;
+    return d.length < 80 || words < 15;
+  };
+
   const openAskInfo = (job: Job) => {
     setAskJob(job);
+    setAskAiQuestions([]);
+    setAskAiRound(0);
     setAskMessage(
       `Hi! I'm interested in your "${job.title}" job. Before I send a bid, could you share a bit more detail? For example:\n\n• What's the timeline / when would you like it done?\n• Any photos or measurements you can share?\n• Anything you've already tried or ruled out?\n\nThanks!`
     );
+  };
+
+  const fetchAskAiQuestions = async () => {
+    if (!askJob) return;
+    setAskAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("job-description-helper", {
+        body: {
+          title: askJob.title,
+          category: askJob.category,
+          description: askJob.description || "",
+          city: askJob.city,
+          state: askJob.state,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const qs: string[] = Array.isArray(data?.missing_info) ? data.missing_info : [];
+      setAskAiQuestions(qs);
+      setAskAiRound((r) => r + 1);
+      if (qs.length === 0) {
+        toast({ title: "Looks complete", description: "The AI didn't find obvious gaps — you may have enough to bid." });
+      }
+    } catch (e: any) {
+      toast({ title: "AI helper error", description: e.message || "Try again in a moment.", variant: "destructive" });
+    } finally {
+      setAskAiLoading(false);
+    }
+  };
+
+  const insertAiQuestionsIntoMessage = () => {
+    if (askAiQuestions.length === 0) return;
+    const bullets = askAiQuestions.map((q) => `• ${q}`).join("\n");
+    const intro = `Hi! Before I bid on "${askJob?.title}", could you share a few more details:\n\n`;
+    setAskMessage(intro + bullets + "\n\nThanks!");
   };
 
   const sendAskInfo = async () => {
@@ -327,6 +373,8 @@ const JobBoard = () => {
     toast({ title: "Message sent", description: "The homeowner can reply in Messages." });
     setAskJob(null);
     setAskMessage("");
+    setAskAiQuestions([]);
+    setAskAiRound(0);
   };
 
   if (authLoading || loading) {
@@ -475,6 +523,14 @@ const JobBoard = () => {
                           )}
                         </div>
                         {job.description && <p className="text-sm text-muted-foreground">{job.description}</p>}
+                        {isJobInfoThin(job) && (
+                          <div className="mt-2 inline-flex items-start gap-1.5 rounded-md border border-orange-500/30 bg-orange-500/5 px-2 py-1 text-xs">
+                            <Lightbulb size={12} className="text-orange-500 shrink-0 mt-0.5" />
+                            <span className="text-muted-foreground">
+                              Sparse details — ask the homeowner for more info before bidding.
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div className="ml-4 shrink-0">
                         {myBid ? (
@@ -603,8 +659,8 @@ const JobBoard = () => {
       </Dialog>
 
       {/* Ask-for-info Dialog */}
-      <Dialog open={!!askJob} onOpenChange={(o) => { if (!o) { setAskJob(null); setAskMessage(""); } }}>
-        <DialogContent className="max-w-lg">
+      <Dialog open={!!askJob} onOpenChange={(o) => { if (!o) { setAskJob(null); setAskMessage(""); setAskAiQuestions([]); setAskAiRound(0); } }}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Ask Homeowner for More Info</DialogTitle>
           </DialogHeader>
@@ -614,6 +670,49 @@ const JobBoard = () => {
                 <p className="text-sm font-medium">{askJob.title}</p>
                 <p className="text-xs text-muted-foreground">{askJob.category} · {askJob.city}, {askJob.state}</p>
               </div>
+
+              <div className="rounded-lg border border-accent/30 bg-accent/5 p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold flex items-center gap-1">
+                    <Sparkles size={12} className="text-accent" />
+                    AI follow-up suggestions
+                    {askAiRound > 0 && <span className="text-muted-foreground font-normal">· round {askAiRound}</span>}
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={fetchAskAiQuestions}
+                    disabled={askAiLoading}
+                    className="h-7 text-xs gap-1"
+                  >
+                    {askAiLoading ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                    {askAiRound === 0 ? "Suggest questions" : "Regenerate"}
+                  </Button>
+                </div>
+                {askAiQuestions.length > 0 ? (
+                  <>
+                    <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+                      {askAiQuestions.map((q, i) => <li key={i}>{q}</li>)}
+                    </ul>
+                    <div className="flex items-center gap-2 pt-1">
+                      <Button type="button" size="sm" variant="secondary" onClick={insertAiQuestionsIntoMessage} className="h-7 text-xs">
+                        Use in message
+                      </Button>
+                      <span className="text-xs text-muted-foreground">
+                        Not enough? Click <span className="font-medium">Regenerate</span> for more.
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    {askAiRound === 0
+                      ? "Get AI-suggested questions tailored to this job. Repeat until you have what you need."
+                      : "AI didn't find further gaps — you likely have enough to bid."}
+                  </p>
+                )}
+              </div>
+
               <div>
                 <Label>Your Message *</Label>
                 <Textarea
@@ -628,7 +727,7 @@ const JobBoard = () => {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setAskJob(null); setAskMessage(""); }}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setAskJob(null); setAskMessage(""); setAskAiQuestions([]); setAskAiRound(0); }}>Cancel</Button>
             <Button onClick={sendAskInfo} disabled={askSubmitting} className="gap-1">
               <MessageSquare size={14} /> {askSubmitting ? "Sending..." : "Send Message"}
             </Button>
