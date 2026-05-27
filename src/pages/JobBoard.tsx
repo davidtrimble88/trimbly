@@ -651,14 +651,27 @@ const JobBoard = () => {
                 </div>
               )}
               <div>
-                <Label>Message to Homeowner *</Label>
+                <div className="flex items-center justify-between mb-1">
+                  <Label>Message to Homeowner *</Label>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={suggestBidMessage}
+                    disabled={suggestingMessage}
+                    className="h-7 text-xs gap-1"
+                  >
+                    {suggestingMessage ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} className="text-accent" />}
+                    {bidForm.message.trim() ? "Regenerate" : "Suggest message"}
+                  </Button>
+                </div>
                 <Textarea
                   placeholder="Introduce yourself, describe your experience with this type of job, and explain your approach..."
                   value={bidForm.message}
                   onChange={(e) => setBidForm((f) => ({ ...f, message: e.target.value }))}
                   className="mt-1 min-h-[120px]"
                 />
-                <p className="text-xs text-muted-foreground mt-1">The homeowner must approve you before you can call them.</p>
+                <p className="text-xs text-muted-foreground mt-1">Tip: fill in materials & labor first so the AI can reference your price.</p>
               </div>
               <div className="rounded-lg border border-border p-3 space-y-3">
                 <p className="text-xs font-semibold text-foreground flex items-center gap-1">
