@@ -915,10 +915,12 @@ const JobBoard = () => {
                       <Button
                         variant="outline"
                         onClick={() => {
+                          const matsSum = (est.materials || []).reduce((s, m) => s + (m.estimated_cost || 0), 0);
+                          const midHours = Math.round((est.time_hours_low + est.time_hours_high) / 2);
                           setBidForm((f) => ({
                             ...f,
-                            bid_amount: f.bid_amount || String(Math.round((est.cost_low + est.cost_high) / 2)),
-                            estimated_hours: f.estimated_hours || String(Math.round((est.time_hours_low + est.time_hours_high) / 2)),
+                            materials_cost: f.materials_cost || (matsSum > 0 ? String(Math.round(matsSum)) : ""),
+                            estimated_hours: f.estimated_hours || String(midHours),
                           }));
                           setHelperJob(null);
                           setBidJob(helperJob);
