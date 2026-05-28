@@ -50,7 +50,7 @@ type Agreement = {
 
 const LEGAL_BOILERPLATE = `LEGAL TERMS — EQUIPMENT RENTAL AGREEMENT
 
-1. PARTIES & PLATFORM. HomeHero is a venue only and is NOT a party to this agreement. The Owner and Renter are solely responsible for the equipment, its condition, insurance, payment, damages, and compliance with all applicable laws.
+1. PARTIES & PLATFORM. Trimbly is a venue only and is NOT a party to this agreement. The Owner and Renter are solely responsible for the equipment, its condition, insurance, payment, damages, and compliance with all applicable laws.
 
 2. RENTAL PERIOD. Renter agrees to return the equipment by the end date in the same condition as received, normal wear and tear excepted.
 
@@ -58,7 +58,7 @@ const LEGAL_BOILERPLATE = `LEGAL TERMS — EQUIPMENT RENTAL AGREEMENT
 
 4. CONDITION & INSPECTION. Renter has inspected (or will inspect at pickup) the equipment and accepts it in its current condition. Owner warrants the equipment is in safe operating condition to the best of their knowledge.
 
-5. LIABILITY & INDEMNIFICATION. Renter assumes all risk of use and agrees to indemnify and hold harmless Owner and HomeHero from any claims, damages, or injuries arising from Renter's use of the equipment.
+5. LIABILITY & INDEMNIFICATION. Renter assumes all risk of use and agrees to indemnify and hold harmless Owner and Trimbly from any claims, damages, or injuries arising from Renter's use of the equipment.
 
 6. INSURANCE. Renter is responsible for maintaining adequate insurance covering the rental equipment and any third-party liability. If Owner requires proof of insurance, Renter must provide it before pickup.
 

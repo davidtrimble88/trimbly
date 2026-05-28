@@ -499,7 +499,7 @@ export default function EquipmentRentals() {
                 </div>
 
                 <p className="text-[11px] text-muted-foreground border-t border-border pt-2">
-                  HomeHero is a venue only and is not a party to any rental agreement. Owner and Renter are solely responsible for the equipment, insurance, payment and compliance with local laws.
+                  Trimbly is a venue only and is not a party to any rental agreement. Owner and Renter are solely responsible for the equipment, insurance, payment and compliance with local laws.
                 </p>
               </div>
 

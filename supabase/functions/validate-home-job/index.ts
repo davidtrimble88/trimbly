@@ -34,7 +34,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a strict moderator for a HOME SERVICES marketplace (HomeHero).
+            content: `You are a strict moderator for a HOME SERVICES marketplace (Trimbly).
 Only ALLOW posts that are clearly a residential home-related service request a handyman, contractor, or trades pro would perform at someone's house or property.
 
 ALLOWED examples: plumbing, electrical, HVAC, roofing, painting, drywall, flooring, appliance repair, landscaping, lawn care, tree work, pest control, cleaning (home), pressure washing, gutter cleaning, fence/deck, garage door, locksmith, pool/spa, handyman tasks, moving help, junk removal, home renovation, smart home install, well/septic, masonry, window/door, insulation, solar install at a home.
