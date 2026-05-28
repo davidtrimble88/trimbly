@@ -495,6 +495,7 @@ const ProDashboard = () => {
                       { icon: MessageSquare, label: "Messages", desc: "Reply to homeowner inquiries", onClick: () => navigate("/messages"), accent: "text-blue-600 bg-blue-500/10 dark:text-blue-400" },
                       { icon: Star, label: "Reviews", desc: "See what homeowners are saying", onClick: () => setActiveTab("reviews"), accent: "text-yellow-600 bg-yellow-500/10 dark:text-yellow-400" },
                       { icon: ExternalLink, label: "Public Profile", desc: "How homeowners see your business", onClick: () => navigate(`/pro/${provider.id}`), accent: "text-foreground bg-muted" },
+                      { icon: Sparkles, label: "Equipment Marketplace", desc: "Rent gear to / from other pros", onClick: () => navigate("/equipment"), accent: "text-emerald-600 bg-emerald-500/10 dark:text-emerald-400" },
                     ].map((a) => (
                       <button
                         key={a.label}
