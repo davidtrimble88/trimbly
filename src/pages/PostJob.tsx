@@ -272,7 +272,7 @@ const PostJob = () => {
     if (denyPatterns.some((re) => re.test(combined))) {
       toast({
         title: "Post not allowed",
-        description: "HomeHero is for residential home services only. Please revise your post.",
+        description: "Trimbly is for residential home services only. Please revise your post.",
         variant: "destructive",
       });
       setSubmitting(false);
@@ -287,7 +287,7 @@ const PostJob = () => {
       if (!checkErr && check && check.is_home_related === false) {
         toast({
           title: "Not a home service request",
-          description: check.reason || "HomeHero is for residential home services only. Please revise your post.",
+          description: check.reason || "Trimbly is for residential home services only. Please revise your post.",
           variant: "destructive",
         });
         setSubmitting(false);
