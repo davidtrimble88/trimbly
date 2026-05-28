@@ -93,6 +93,9 @@ const Navbar = () => {
       <Link to="/search" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
         <Search size={14} /> My Listing
       </Link>
+      <Link to="/equipment" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
+        <Sparkles size={14} /> Equipment
+      </Link>
     </>
   );
 
