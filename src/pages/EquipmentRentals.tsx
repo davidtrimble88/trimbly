@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import EmptyState from "@/components/EmptyState";
+import { EmptyState } from "@/components/EmptyState";
 import JobPhotoUploader from "@/components/JobPhotoUploader";
 import RentalAgreementDialog, { RentalForAgreement } from "@/components/equipment/RentalAgreementDialog";
 import { Search, MapPin, DollarSign, Plus, MessageSquare, FileSignature, Wrench, Loader2, Trash2, Pencil } from "lucide-react";
