@@ -454,6 +454,13 @@ const ProDashboard = () => {
                 <TabsTrigger value="profile" className="gap-1.5">
                   <Building2 size={14} /> Profile
                 </TabsTrigger>
+                <button
+                  type="button"
+                  onClick={() => navigate("/equipment")}
+                  className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Sparkles size={14} /> Equipment
+                </button>
               </TabsList>
             </div>
 
