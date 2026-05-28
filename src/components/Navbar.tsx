@@ -1,6 +1,6 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, LayoutDashboard, CalendarCheck, Wrench, Search, FileText, Crown, MessageSquare, Shield, Briefcase, Building2, ShieldCheck, Home as HomeIcon } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, CalendarCheck, Wrench, Search, FileText, Crown, MessageSquare, Shield, Briefcase, Building2, ShieldCheck, Home as HomeIcon, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
@@ -93,6 +93,9 @@ const Navbar = () => {
       <Link to="/search" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
         <Search size={14} /> My Listing
       </Link>
+      <Link to="/equipment" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
+        <Sparkles size={14} /> Equipment
+      </Link>
     </>
   );
 
@@ -154,6 +157,9 @@ const Navbar = () => {
       </Link>
       <Link to="/search" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
         <Search size={14} /> My Listing
+      </Link>
+      <Link to="/equipment" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
+        <Sparkles size={14} /> Equipment
       </Link>
     </>
   );
