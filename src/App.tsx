@@ -59,6 +59,7 @@ const HomeownerUpsell = lazy(() => import("./pages/HomeownerUpsell"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const StaffLogin = lazy(() => import("./pages/StaffLogin"));
+const EquipmentRentals = lazy(() => import("./pages/EquipmentRentals"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -130,6 +131,7 @@ const App = () => (
             <Route path="/post-job" element={<PostJob />} />
             <Route path="/job-board" element={<JobBoard />} />
             <Route path="/pro-dashboard" element={<ProDashboard />} />
+            <Route path="/equipment" element={<EquipmentRentals />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/portal-choice" element={<PortalChoice />} />
             <Route path="/help" element={<Help />} />

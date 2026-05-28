@@ -1,0 +1,635 @@
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { EmptyState } from "@/components/EmptyState";
+import JobPhotoUploader from "@/components/JobPhotoUploader";
+import RentalAgreementDialog, { RentalForAgreement } from "@/components/equipment/RentalAgreementDialog";
+import { Search, MapPin, DollarSign, Plus, MessageSquare, FileSignature, Wrench, Loader2, Trash2, Pencil } from "lucide-react";
+
+type Rental = {
+  id: string;
+  owner_user_id: string;
+  owner_provider_id: string;
+  title: string;
+  description: string;
+  category: string;
+  condition: string;
+  price_hour: number | null;
+  price_day: number | null;
+  price_week: number | null;
+  deposit_amount: number;
+  currency: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  pickup_notes: string;
+  photo_urls: string[];
+  available: boolean;
+  min_rental_hours: number;
+  max_rental_days: number;
+  insurance_required: boolean;
+  terms: string;
+  created_at: string;
+};
+
+type Agreement = {
+  id: string;
+  rental_id: string;
+  owner_user_id: string;
+  renter_user_id: string;
+  start_date: string;
+  end_date: string;
+  rate_basis: string;
+  rate_amount: number;
+  quantity: number;
+  subtotal: number;
+  deposit: number;
+  total: number;
+  currency: string;
+  terms_snapshot: string;
+  insurance_acknowledged: boolean;
+  status: string;
+  owner_signature: string | null;
+  renter_signature: string | null;
+  owner_signed_at: string | null;
+  renter_signed_at: string | null;
+};
+
+const CATEGORIES = ["General", "Power tools", "Heavy equipment", "Ladders & scaffolding", "Plumbing", "Electrical", "Landscaping", "Painting", "Concrete", "HVAC", "Cleaning", "Other"];
+
+const EMPTY_FORM: Partial<Rental> = {
+  title: "",
+  description: "",
+  category: "General",
+  condition: "good",
+  price_hour: null,
+  price_day: null,
+  price_week: null,
+  deposit_amount: 0,
+  city: "",
+  state: "",
+  postal_code: "",
+  pickup_notes: "",
+  photo_urls: [],
+  available: true,
+  min_rental_hours: 1,
+  max_rental_days: 30,
+  insurance_required: false,
+  terms: "",
+};
+
+export default function EquipmentRentals() {
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const [providerId, setProviderId] = useState<string | null>(null);
+  const [providerLoading, setProviderLoading] = useState(true);
+  const [rentals, setRentals] = useState<Rental[]>([]);
+  const [myRentals, setMyRentals] = useState<Rental[]>([]);
+  const [agreements, setAgreements] = useState<Agreement[]>([]);
+  const [rentalTitles, setRentalTitles] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+
+  // Filters
+  const [q, setQ] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterLocation, setFilterLocation] = useState("");
+  const [filterMaxPrice, setFilterMaxPrice] = useState("");
+
+  // Form
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<Partial<Rental>>(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+
+  // Detail / message / agreement
+  const [detail, setDetail] = useState<Rental | null>(null);
+  const [messageBody, setMessageBody] = useState("");
+  const [sendingMsg, setSendingMsg] = useState(false);
+  const [agreementDialogOpen, setAgreementDialogOpen] = useState(false);
+  const [agreementRental, setAgreementRental] = useState<RentalForAgreement | null>(null);
+  const [viewingAgreement, setViewingAgreement] = useState<Agreement | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && !user) navigate("/auth");
+  }, [authLoading, user, navigate]);
+
+  // Load provider
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase.from("providers").select("id").eq("user_id", user.id).maybeSingle();
+      setProviderId(data?.id ?? null);
+      setProviderLoading(false);
+    })();
+  }, [user]);
+
+  const loadAll = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    const [browse, mine, ags] = await Promise.all([
+      supabase.from("equipment_rentals").select("*").eq("available", true).order("created_at", { ascending: false }),
+      supabase.from("equipment_rentals").select("*").eq("owner_user_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("rental_agreements").select("*").or(`owner_user_id.eq.${user.id},renter_user_id.eq.${user.id}`).order("created_at", { ascending: false }),
+    ]);
+    setRentals((browse.data as any) || []);
+    setMyRentals((mine.data as any) || []);
+    setAgreements((ags.data as any) || []);
+
+    const ids = Array.from(new Set([...(ags.data || []).map((a: any) => a.rental_id)]));
+    if (ids.length) {
+      const { data: titles } = await supabase.from("equipment_rentals").select("id, title").in("id", ids);
+      const map: Record<string, string> = {};
+      (titles || []).forEach((t: any) => { map[t.id] = t.title; });
+      setRentalTitles(map);
+    }
+    setLoading(false);
+  }, [user]);
+
+  useEffect(() => { if (user) loadAll(); }, [user, loadAll]);
+
+  const filtered = useMemo(() => {
+    return rentals.filter((r) => {
+      if (user && r.owner_user_id === user.id) return false; // hide my own from browse
+      if (q.trim()) {
+        const t = q.trim().toLowerCase();
+        if (!`${r.title} ${r.description} ${r.category}`.toLowerCase().includes(t)) return false;
+      }
+      if (filterCategory && r.category !== filterCategory) return false;
+      if (filterLocation.trim()) {
+        const l = filterLocation.trim().toLowerCase();
+        if (!`${r.city} ${r.state} ${r.postal_code}`.toLowerCase().includes(l)) return false;
+      }
+      if (filterMaxPrice) {
+        const max = Number(filterMaxPrice);
+        const cheapest = Math.min(...[r.price_hour, r.price_day, r.price_week].filter((v): v is number => v != null && v > 0));
+        if (Number.isFinite(cheapest) && cheapest > max) return false;
+      }
+      return true;
+    });
+  }, [rentals, q, filterCategory, filterLocation, filterMaxPrice, user]);
+
+  const openCreate = () => {
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+    setFormOpen(true);
+  };
+  const openEdit = (r: Rental) => {
+    setEditingId(r.id);
+    setForm(r);
+    setFormOpen(true);
+  };
+
+  const saveRental = async () => {
+    if (!user || !providerId) {
+      toast({ title: "Pro profile required", description: "Register as a service provider to list equipment.", variant: "destructive" });
+      return;
+    }
+    if (!form.title?.trim()) { toast({ title: "Title required", variant: "destructive" }); return; }
+    if (!form.price_hour && !form.price_day && !form.price_week) {
+      toast({ title: "Set at least one price (hour / day / week)", variant: "destructive" }); return;
+    }
+    if (!form.city?.trim() || !form.state?.trim()) {
+      toast({ title: "City and state required", variant: "destructive" }); return;
+    }
+    setSaving(true);
+    const payload = {
+      ...form,
+      owner_user_id: user.id,
+      owner_provider_id: providerId,
+      price_hour: form.price_hour || null,
+      price_day: form.price_day || null,
+      price_week: form.price_week || null,
+      photo_urls: form.photo_urls || [],
+    };
+    const { error } = editingId
+      ? await supabase.from("equipment_rentals").update(payload).eq("id", editingId)
+      : await supabase.from("equipment_rentals").insert(payload as any);
+    if (error) {
+      toast({ title: "Could not save", description: error.message, variant: "destructive" });
+      setSaving(false);
+      return;
+    }
+    toast({ title: editingId ? "Listing updated" : "Listing posted" });
+    setFormOpen(false);
+    setSaving(false);
+    loadAll();
+  };
+
+  const toggleAvailable = async (r: Rental) => {
+    const { error } = await supabase.from("equipment_rentals").update({ available: !r.available }).eq("id", r.id);
+    if (error) { toast({ title: "Could not update", variant: "destructive" }); return; }
+    loadAll();
+  };
+
+  const deleteRental = async (r: Rental) => {
+    if (!confirm(`Delete "${r.title}"?`)) return;
+    const { error } = await supabase.from("equipment_rentals").delete().eq("id", r.id);
+    if (error) { toast({ title: "Could not delete", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Deleted" });
+    loadAll();
+  };
+
+  const sendMessage = async () => {
+    if (!user || !detail || !messageBody.trim()) return;
+    setSendingMsg(true);
+    const { error } = await supabase.from("messages").insert({
+      sender_id: user.id,
+      recipient_id: detail.owner_user_id,
+      subject: `Re: ${detail.title}`,
+      body: messageBody.trim(),
+      rental_id: detail.id,
+    } as any);
+    if (error) {
+      toast({ title: "Could not send", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Message sent" });
+      setMessageBody("");
+    }
+    setSendingMsg(false);
+  };
+
+  const openAgreementCreate = (r: Rental) => {
+    setAgreementRental({
+      id: r.id,
+      title: r.title,
+      owner_user_id: r.owner_user_id,
+      owner_provider_id: r.owner_provider_id,
+      price_hour: r.price_hour,
+      price_day: r.price_day,
+      price_week: r.price_week,
+      deposit_amount: r.deposit_amount,
+      currency: r.currency,
+      terms: r.terms,
+      insurance_required: r.insurance_required,
+    });
+    setViewingAgreement(null);
+    setAgreementDialogOpen(true);
+  };
+
+  const openAgreementView = async (a: Agreement) => {
+    const rentalMatch = [...rentals, ...myRentals].find((r) => r.id === a.rental_id);
+    let rentalForAg: RentalForAgreement | null = null;
+    if (rentalMatch) {
+      rentalForAg = {
+        id: rentalMatch.id,
+        title: rentalMatch.title,
+        owner_user_id: rentalMatch.owner_user_id,
+        owner_provider_id: rentalMatch.owner_provider_id,
+        price_hour: rentalMatch.price_hour,
+        price_day: rentalMatch.price_day,
+        price_week: rentalMatch.price_week,
+        deposit_amount: rentalMatch.deposit_amount,
+        currency: rentalMatch.currency,
+        terms: rentalMatch.terms,
+        insurance_required: rentalMatch.insurance_required,
+      };
+    } else {
+      const { data } = await supabase.from("equipment_rentals").select("*").eq("id", a.rental_id).maybeSingle();
+      if (data) {
+        rentalForAg = {
+          id: data.id, title: data.title, owner_user_id: data.owner_user_id, owner_provider_id: data.owner_provider_id,
+          price_hour: data.price_hour, price_day: data.price_day, price_week: data.price_week,
+          deposit_amount: data.deposit_amount, currency: data.currency, terms: data.terms, insurance_required: data.insurance_required,
+        };
+      }
+    }
+    setAgreementRental(rentalForAg);
+    setViewingAgreement(a);
+    setAgreementDialogOpen(true);
+  };
+
+  const renderPrices = (r: Rental) => (
+    <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3">
+      {r.price_hour ? <span>${r.price_hour}/hr</span> : null}
+      {r.price_day ? <span>${r.price_day}/day</span> : null}
+      {r.price_week ? <span>${r.price_week}/wk</span> : null}
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 space-y-6">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2"><Wrench size={22} /> Equipment Marketplace</h1>
+            <p className="text-sm text-muted-foreground">Pro-to-pro tool & equipment rentals. Sign legally-binding agreements in app.</p>
+          </div>
+          <Button onClick={openCreate} disabled={!providerId && !providerLoading}>
+            <Plus size={16} className="mr-1" /> List equipment
+          </Button>
+        </div>
+
+        {!providerLoading && !providerId && (
+          <Card className="border-orange-500/40 bg-orange-500/5">
+            <CardContent className="p-4 text-sm">
+              You need a service provider profile to list equipment.{" "}
+              <button className="text-primary underline" onClick={() => navigate("/pro-register")}>Register as a pro</button>
+            </CardContent>
+          </Card>
+        )}
+
+        <Tabs defaultValue="browse">
+          <TabsList>
+            <TabsTrigger value="browse">Browse <Badge variant="secondary" className="ml-2">{filtered.length}</Badge></TabsTrigger>
+            <TabsTrigger value="mine">My listings <Badge variant="secondary" className="ml-2">{myRentals.length}</Badge></TabsTrigger>
+            <TabsTrigger value="agreements">Agreements <Badge variant="secondary" className="ml-2">{agreements.length}</Badge></TabsTrigger>
+          </TabsList>
+
+          {/* BROWSE */}
+          <TabsContent value="browse" className="space-y-4">
+            <Card>
+              <CardContent className="p-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="relative">
+                  <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input className="pl-8" placeholder="Search title, description…" value={q} onChange={(e) => setQ(e.target.value)} />
+                </div>
+                <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                  <option value="">All categories</option>
+                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <Input placeholder="City, state, or ZIP" value={filterLocation} onChange={(e) => setFilterLocation(e.target.value)} />
+                <Input placeholder="Max price ($)" type="number" value={filterMaxPrice} onChange={(e) => setFilterMaxPrice(e.target.value)} />
+              </CardContent>
+            </Card>
+
+            {loading ? (
+              <div className="flex justify-center py-10"><Loader2 className="animate-spin" /></div>
+            ) : filtered.length === 0 ? (
+              <EmptyState icon={Wrench} title="No equipment matches your filters" description="Try widening your search or check back soon." />
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filtered.map((r) => (
+                  <Card key={r.id} className="cursor-pointer hover:border-primary/40 transition-colors" onClick={() => setDetail(r)}>
+                    {r.photo_urls?.[0] && (
+                      <img src={r.photo_urls[0]} alt={r.title} className="w-full h-40 object-cover rounded-t-lg" loading="lazy" />
+                    )}
+                    <CardContent className="p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-semibold text-sm leading-tight line-clamp-2">{r.title}</h3>
+                        <Badge variant="outline" className="text-xs shrink-0">{r.category}</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{r.description}</p>
+                      {renderPrices(r)}
+                      <div className="text-xs text-muted-foreground flex items-center gap-1">
+                        <MapPin size={12} /> {r.city}, {r.state}
+                      </div>
+                      {r.insurance_required && <Badge variant="outline" className="text-xs">Insurance required</Badge>}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* MINE */}
+          <TabsContent value="mine" className="space-y-3">
+            {myRentals.length === 0 ? (
+              <EmptyState icon={Wrench} title="You haven't listed any equipment yet" description="Earn extra revenue by renting your gear to other pros." actionLabel="List equipment" onAction={openCreate} />
+            ) : (
+              myRentals.map((r) => (
+                <Card key={r.id}>
+                  <CardContent className="p-4 flex flex-wrap gap-3 items-center">
+                    {r.photo_urls?.[0] && <img src={r.photo_urls[0]} alt="" className="w-20 h-20 object-cover rounded" />}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-sm truncate">{r.title}</h3>
+                        <Badge variant={r.available ? "default" : "secondary"} className="text-xs">{r.available ? "Available" : "Hidden"}</Badge>
+                      </div>
+                      <div className="text-xs text-muted-foreground">{r.category} · {r.city}, {r.state}</div>
+                      {renderPrices(r)}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 text-xs">
+                        <span>Available</span>
+                        <Switch checked={r.available} onCheckedChange={() => toggleAvailable(r)} />
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => openEdit(r)}><Pencil size={14} /></Button>
+                      <Button size="sm" variant="ghost" onClick={() => deleteRental(r)}><Trash2 size={14} /></Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </TabsContent>
+
+          {/* AGREEMENTS */}
+          <TabsContent value="agreements" className="space-y-3">
+            {agreements.length === 0 ? (
+              <EmptyState icon={FileSignature} title="No rental agreements yet" description="Agreements you send or receive will appear here." />
+            ) : (
+              agreements.map((a) => {
+                const role = user?.id === a.owner_user_id ? "Owner" : "Renter";
+                return (
+                  <Card key={a.id} className="cursor-pointer hover:border-primary/40" onClick={() => openAgreementView(a)}>
+                    <CardContent className="p-4 flex flex-wrap gap-3 items-center">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-sm">{rentalTitles[a.rental_id] || "Equipment rental"}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {a.start_date} → {a.end_date} · {a.quantity} {a.rate_basis}(s) · ${Number(a.total).toFixed(2)} {a.currency}
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="text-xs">{role}</Badge>
+                      <Badge className="text-xs capitalize">{a.status}</Badge>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </TabsContent>
+        </Tabs>
+      </main>
+
+      {/* Detail dialog */}
+      <Dialog open={!!detail} onOpenChange={(v) => { if (!v) { setDetail(null); setMessageBody(""); } }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          {detail && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{detail.title}</DialogTitle>
+                <DialogDescription>{detail.category} · {detail.city}, {detail.state}</DialogDescription>
+              </DialogHeader>
+
+              {detail.photo_urls?.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {detail.photo_urls.map((u) => (
+                    <img key={u} src={u} alt="" className="w-full h-24 object-cover rounded" loading="lazy" />
+                  ))}
+                </div>
+              )}
+
+              <div className="space-y-3 text-sm">
+                <p className="whitespace-pre-wrap">{detail.description}</p>
+                <div className="rounded-md border border-border p-3 bg-muted/30 text-xs space-y-1">
+                  <div className="flex items-center gap-2"><DollarSign size={12} /> {[detail.price_hour && `$${detail.price_hour}/hr`, detail.price_day && `$${detail.price_day}/day`, detail.price_week && `$${detail.price_week}/wk`].filter(Boolean).join(" · ")}</div>
+                  <div>Security deposit: ${Number(detail.deposit_amount).toFixed(2)}</div>
+                  <div>Min: {detail.min_rental_hours}h · Max: {detail.max_rental_days} days</div>
+                  {detail.insurance_required && <div className="text-orange-600 dark:text-orange-400 font-medium">Insurance required</div>}
+                  {detail.pickup_notes && <div>Pickup: {detail.pickup_notes}</div>}
+                </div>
+                {detail.terms && (
+                  <div>
+                    <div className="text-xs font-semibold mb-1">Owner's terms</div>
+                    <p className="text-xs whitespace-pre-wrap text-muted-foreground">{detail.terms}</p>
+                  </div>
+                )}
+
+                <div>
+                  <Label className="text-xs">Message the owner</Label>
+                  <Textarea value={messageBody} onChange={(e) => setMessageBody(e.target.value)} placeholder="Ask a question or propose a pickup time…" />
+                  <Button size="sm" className="mt-2" onClick={sendMessage} disabled={sendingMsg || !messageBody.trim()}>
+                    <MessageSquare size={14} className="mr-1" /> Send message
+                  </Button>
+                </div>
+
+                <p className="text-[11px] text-muted-foreground border-t border-border pt-2">
+                  HomeHero is a venue only and is not a party to any rental agreement. Owner and Renter are solely responsible for the equipment, insurance, payment and compliance with local laws.
+                </p>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDetail(null)}>Close</Button>
+                <Button onClick={() => { openAgreementCreate(detail); }}>
+                  <FileSignature size={14} className="mr-1" /> Create rental agreement
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create / edit form */}
+      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingId ? "Edit listing" : "List equipment for rent"}</DialogTitle>
+            <DialogDescription>Other providers can browse and request a rental agreement.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Title</Label>
+              <Input value={form.title || ""} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Bosch SDS-Max rotary hammer" />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <Label>Category</Label>
+                <select value={form.category || "General"} onChange={(e) => setForm({ ...form, category: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <Label>Condition</Label>
+                <select value={form.condition || "good"} onChange={(e) => setForm({ ...form, condition: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+                  <option value="new">New</option>
+                  <option value="excellent">Excellent</option>
+                  <option value="good">Good</option>
+                  <option value="fair">Fair</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea value={form.description || ""} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Specs, accessories included, restrictions…" />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label>$ / hour</Label>
+                <Input type="number" min={0} step="0.01" value={form.price_hour ?? ""} onChange={(e) => setForm({ ...form, price_hour: e.target.value ? Number(e.target.value) : null })} />
+              </div>
+              <div>
+                <Label>$ / day</Label>
+                <Input type="number" min={0} step="0.01" value={form.price_day ?? ""} onChange={(e) => setForm({ ...form, price_day: e.target.value ? Number(e.target.value) : null })} />
+              </div>
+              <div>
+                <Label>$ / week</Label>
+                <Input type="number" min={0} step="0.01" value={form.price_week ?? ""} onChange={(e) => setForm({ ...form, price_week: e.target.value ? Number(e.target.value) : null })} />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label>Deposit ($)</Label>
+                <Input type="number" min={0} value={form.deposit_amount ?? 0} onChange={(e) => setForm({ ...form, deposit_amount: Number(e.target.value) })} />
+              </div>
+              <div>
+                <Label>Min hours</Label>
+                <Input type="number" min={1} value={form.min_rental_hours ?? 1} onChange={(e) => setForm({ ...form, min_rental_hours: Number(e.target.value) })} />
+              </div>
+              <div>
+                <Label>Max days</Label>
+                <Input type="number" min={1} value={form.max_rental_days ?? 30} onChange={(e) => setForm({ ...form, max_rental_days: Number(e.target.value) })} />
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-3">
+              <div>
+                <Label>City</Label>
+                <Input value={form.city || ""} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+              </div>
+              <div>
+                <Label>State</Label>
+                <Input value={form.state || ""} onChange={(e) => setForm({ ...form, state: e.target.value })} />
+              </div>
+              <div>
+                <Label>ZIP</Label>
+                <Input value={form.postal_code || ""} onChange={(e) => setForm({ ...form, postal_code: e.target.value })} />
+              </div>
+            </div>
+            <div>
+              <Label>Pickup notes</Label>
+              <Input value={form.pickup_notes || ""} onChange={(e) => setForm({ ...form, pickup_notes: e.target.value })} placeholder="e.g. Available weekday evenings after 5pm" />
+            </div>
+            <div>
+              <Label>Photos</Label>
+              <JobPhotoUploader value={form.photo_urls || []} onChange={(urls) => setForm({ ...form, photo_urls: urls })} />
+            </div>
+            <div>
+              <Label>Your custom rental terms (optional)</Label>
+              <Textarea value={form.terms || ""} onChange={(e) => setForm({ ...form, terms: e.target.value })} placeholder="e.g. Returned cleaned. No use in saltwater. Fuel returned full." />
+              <p className="text-xs text-muted-foreground mt-1">Our standard legal terms are appended automatically when an agreement is signed.</p>
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={!!form.insurance_required} onCheckedChange={(v) => setForm({ ...form, insurance_required: v === true })} />
+              Renter must confirm insurance coverage
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <Switch checked={form.available !== false} onCheckedChange={(v) => setForm({ ...form, available: v })} />
+              Available for rent
+            </label>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFormOpen(false)}>Cancel</Button>
+            <Button onClick={saveRental} disabled={saving}>
+              {saving && <Loader2 size={14} className="animate-spin mr-1" />} {editingId ? "Save changes" : "Post listing"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <RentalAgreementDialog
+        open={agreementDialogOpen}
+        onOpenChange={setAgreementDialogOpen}
+        rental={agreementRental}
+        existingAgreement={viewingAgreement}
+        mode={viewingAgreement ? "view" : "create"}
+        onSaved={loadAll}
+      />
+
+      <Footer />
+    </div>
+  );
+}

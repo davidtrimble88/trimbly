@@ -178,6 +178,90 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment_rentals: {
+        Row: {
+          available: boolean
+          category: string
+          city: string
+          condition: string
+          country: string
+          created_at: string
+          currency: string
+          deposit_amount: number
+          description: string
+          id: string
+          insurance_required: boolean
+          max_rental_days: number
+          min_rental_hours: number
+          owner_provider_id: string
+          owner_user_id: string
+          photo_urls: string[]
+          pickup_notes: string
+          postal_code: string
+          price_day: number | null
+          price_hour: number | null
+          price_week: number | null
+          state: string
+          terms: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          available?: boolean
+          category?: string
+          city?: string
+          condition?: string
+          country?: string
+          created_at?: string
+          currency?: string
+          deposit_amount?: number
+          description?: string
+          id?: string
+          insurance_required?: boolean
+          max_rental_days?: number
+          min_rental_hours?: number
+          owner_provider_id: string
+          owner_user_id: string
+          photo_urls?: string[]
+          pickup_notes?: string
+          postal_code?: string
+          price_day?: number | null
+          price_hour?: number | null
+          price_week?: number | null
+          state?: string
+          terms?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          available?: boolean
+          category?: string
+          city?: string
+          condition?: string
+          country?: string
+          created_at?: string
+          currency?: string
+          deposit_amount?: number
+          description?: string
+          id?: string
+          insurance_required?: boolean
+          max_rental_days?: number
+          min_rental_hours?: number
+          owner_provider_id?: string
+          owner_user_id?: string
+          photo_urls?: string[]
+          pickup_notes?: string
+          postal_code?: string
+          price_day?: number | null
+          price_hour?: number | null
+          price_week?: number | null
+          state?: string
+          terms?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       error_logs: {
         Row: {
           ai_suggestion: string | null
@@ -609,6 +693,7 @@ export type Database = {
           provider_id: string | null
           read: boolean
           recipient_id: string
+          rental_id: string | null
           sender_id: string
           subject: string
         }
@@ -621,6 +706,7 @@ export type Database = {
           provider_id?: string | null
           read?: boolean
           recipient_id: string
+          rental_id?: string | null
           sender_id: string
           subject?: string
         }
@@ -633,6 +719,7 @@ export type Database = {
           provider_id?: string | null
           read?: boolean
           recipient_id?: string
+          rental_id?: string | null
           sender_id?: string
           subject?: string
         }
@@ -1171,6 +1258,87 @@ export type Database = {
           referrer_user_id?: string
           signed_up_at?: string | null
           status?: string
+        }
+        Relationships: []
+      }
+      rental_agreements: {
+        Row: {
+          created_at: string
+          currency: string
+          deposit: number
+          end_date: string
+          id: string
+          insurance_acknowledged: boolean
+          owner_provider_id: string | null
+          owner_signature: string | null
+          owner_signed_at: string | null
+          owner_user_id: string
+          quantity: number
+          rate_amount: number
+          rate_basis: string
+          rental_id: string
+          renter_provider_id: string | null
+          renter_signature: string | null
+          renter_signed_at: string | null
+          renter_user_id: string
+          start_date: string
+          status: string
+          subtotal: number
+          terms_snapshot: string
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          deposit?: number
+          end_date: string
+          id?: string
+          insurance_acknowledged?: boolean
+          owner_provider_id?: string | null
+          owner_signature?: string | null
+          owner_signed_at?: string | null
+          owner_user_id: string
+          quantity?: number
+          rate_amount?: number
+          rate_basis?: string
+          rental_id: string
+          renter_provider_id?: string | null
+          renter_signature?: string | null
+          renter_signed_at?: string | null
+          renter_user_id: string
+          start_date: string
+          status?: string
+          subtotal?: number
+          terms_snapshot?: string
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          deposit?: number
+          end_date?: string
+          id?: string
+          insurance_acknowledged?: boolean
+          owner_provider_id?: string | null
+          owner_signature?: string | null
+          owner_signed_at?: string | null
+          owner_user_id?: string
+          quantity?: number
+          rate_amount?: number
+          rate_basis?: string
+          rental_id?: string
+          renter_provider_id?: string | null
+          renter_signature?: string | null
+          renter_signed_at?: string | null
+          renter_user_id?: string
+          start_date?: string
+          status?: string
+          subtotal?: number
+          terms_snapshot?: string
+          total?: number
+          updated_at?: string
         }
         Relationships: []
       }
