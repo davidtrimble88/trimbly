@@ -1,77 +1,77 @@
-## Public Profiles for Homeowners & Pros
+# Equipment Rental Marketplace (Pro ↔ Pro)
 
-Let users and pros opt in to a public profile page that anyone can view via a shareable link.
+A new section where service providers can list equipment they rent out to other providers, with messaging, contract generation, and search.
 
-### What each profile shows
+## Database (one migration)
 
-**Homeowner profile** (`/u/:userId`)
-- Avatar photo + display name + short bio
-- Member since date
-- Home locations — only the **city + state** of each home they've added (never the address)
-- Stats: # of jobs posted, # of jobs completed (as homeowner), # of reviews written
-- Toggle: "Make my profile public" (default OFF for privacy)
+**`equipment_rentals`**
+- owner_provider_id, owner_user_id, title, description, category, condition
+- price_hour, price_day, price_week (numeric, nullable — at least one required client-side)
+- deposit_amount, currency (USD)
+- city, state, postal_code, country, pickup_notes
+- photo_urls (text[]), available (boolean, default true)
+- min_rental_hours, max_rental_days, insurance_required (bool)
+- terms (text — owner's custom terms)
+- created_at, updated_at
 
-**Pro profile** (`/pro/:providerId`)
-- Avatar/logo + business name + category + bio/description
-- City + state (already on provider record)
-- Years of experience, licensed/insured badges
-- Stats: # of jobs completed, # of bids submitted, # of reviews received, average rating
-- Photo gallery (up to ~8 portfolio pictures)
-- Recent reviews list (already in `reviews` table)
-- "Message this pro" button (uses existing message-first workflow)
+RLS:
+- Anyone authenticated can SELECT where `available = true` OR owner
+- Owner can INSERT/UPDATE/DELETE own rows
+- Admins manage all
 
-### Database changes
+**`rental_agreements`**
+- rental_id, owner_user_id, renter_user_id, owner_provider_id, renter_provider_id
+- start_date, end_date, rate_basis ('hour'|'day'|'week'), rate_amount, quantity
+- subtotal, deposit, total
+- terms_snapshot (text — copy of terms at signing)
+- status ('draft','sent','accepted','declined','completed','cancelled')
+- owner_signed_at, renter_signed_at, owner_signature (text/name), renter_signature
+- created_at, updated_at
 
-Add to `profiles`:
-- `bio text` — short user bio
-- `is_public boolean default false` — opt-in flag for the public homeowner page
-- `avatar_url` already exists ✓
+RLS: only parties can view/update; renter can accept/decline; owner creates.
 
-Add to `providers`:
-- `bio text` — longer description for the public page (kept separate from internal `description` so we don't break existing screens)
-- `gallery_urls text[] default '{}'` — portfolio photos
+**`rental_messages`** — reuse existing `messages` table with new optional `rental_id uuid` column (nullable, no FK to avoid coupling).
 
-New storage bucket: **`profile-images`** (public read), with RLS so users can only upload/delete inside their own `userId/...` folder. Used for both avatars and pro gallery photos.
+## Pages / Components
 
-RLS: public profile pages must work for **anonymous visitors**, so we'll add a SELECT policy on `profiles` already (`Users can view all profiles` exists ✓ but limited to authenticated). We'll widen to `{public}` so non-logged-in viewers can see public profiles. We then rely on the `is_public` flag at the application layer for homeowners — for pros, profiles are already public via the existing `providers` table policy.
+1. **`/equipment` (EquipmentRentals.tsx)** — public browse page (authenticated providers only).
+   - Filters: search text, category, location (city/state), price range, rate basis.
+   - Card grid showing photo, title, owner business, location, rates, "Rent / Message" buttons.
+   - Only `available = true` shown.
+   - Click → detail dialog with full info, photos, terms, message + request agreement buttons.
 
-Stat counts (jobs posted, jobs completed, bids, reviews) are computed live with COUNT queries — no schema needed.
+2. **`/equipment/manage` (MyEquipmentRentals.tsx)** — provider's own listings.
+   - List + create/edit form (title, description, category, photos via existing `job-photos` bucket reused or simple URL field, all 3 rate fields, deposit, location, terms, available toggle).
+   - Toggle available on/off inline.
+   - Tab: incoming agreement requests.
 
-### New pages & components
+3. **`RentalAgreementDialog.tsx`** — generates an agreement:
+   - Pick dates, rate basis, quantity → auto-calc subtotal + deposit + total.
+   - Shows terms snapshot, legal boilerplate (liability, insurance, indemnification, late fees, governing law placeholder), platform disclaimer.
+   - Both parties type full name to e-sign; status flows draft→sent→accepted/declined→completed.
+   - Renter views in same dialog from their inbox.
 
-- `src/pages/PublicHomeownerProfile.tsx` — route `/u/:userId`, shows 404-style state if `is_public = false`
-- `src/pages/PublicProviderProfile.tsx` — route `/pro/:providerId`, always public
-- `src/components/profile/ProfileEditor.tsx` — used inside Dashboard ("Edit Public Profile" section) for avatar upload, bio, public toggle
-- `src/components/profile/ProGalleryEditor.tsx` — used inside ProDashboard for gallery upload + bio
-- `src/components/profile/StatsGrid.tsx` — shared stat tiles
-- `src/components/profile/AvatarUpload.tsx` — shared image picker → uploads to `profile-images` bucket
+4. **Messaging** — reuse `messages` table; "Message owner" from rental card opens existing send-message flow with `subject` prefilled `"Re: <rental title>"`. Owner sees threads tagged with rental in ProDashboard messages section (light touch — just include rental title in subject for now).
 
-### Dashboard integrations
+5. **Pro Dashboard** — add cards/links: "My Equipment Rentals" + "Browse Equipment".
 
-- **Homeowner Dashboard** — add a "Public Profile" card with avatar, toggle, "View public profile" link, and an Edit button.
-- **Pro Dashboard** — add a "Public Profile & Gallery" card with avatar/logo, bio, gallery uploader, and "View public profile" link.
+6. **Search** — client-side filter (text on title/description/category, location ilike, type, price).
 
-### Routing
+## Legal / Protection
 
-Add routes in `App.tsx`:
-- `/u/:userId` → `PublicHomeownerProfile`
-- `/pro/:providerId` → `PublicProviderProfile`
+- Standard disclaimer in rental detail + agreement: "HomeHero is a venue only; not a party to the rental. Owner and renter are solely responsible for the equipment, condition, insurance, damages, and compliance with local laws."
+- Terms snapshot frozen at agreement time.
+- Required check for insurance acknowledgment when `insurance_required = true`.
+- Deposit + total shown clearly; agreement requires both signatures.
+- All transactions/payments handled offline between parties (no money flow through platform — reduces our liability). Note in UI.
+- Audit trail via timestamps on agreement.
 
-The existing search results / provider cards will be updated to link "View profile" to `/pro/:providerId` so the new page is discoverable.
+## Technical notes
 
-### Privacy guardrails
+- New route entries in `App.tsx`.
+- Reuse `JobPhotoUploader` for rental photos (job-photos bucket is public).
+- Add `equipment_rentals` and `rental_agreements` to realtime if time permits (not required).
+- Use existing `useAuth`, provider lookup pattern from JobBoard.
+- No edge functions needed.
 
-- Homeowner profile is **off by default** and never reveals street address — only `home.city` and `home.state`.
-- Pro phone numbers stay hidden behind the existing message-first / call-approval flow; no phone is shown on the public page.
-- Email addresses are never displayed.
-
-### Out of scope (can do later)
-
-- Social-style follow/like
-- Editing reviews from the profile page
-- SEO sitemaps for public profiles
-- Verifying job-completion counts beyond what's already in `jobs.status`
-
----
-
-If this looks right I'll do the migration first (one approval), then ship the pages, components, dashboard cards, and routes in a second pass.
+Ready to build on approval.
