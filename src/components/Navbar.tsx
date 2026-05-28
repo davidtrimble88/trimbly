@@ -158,6 +158,9 @@ const Navbar = () => {
       <Link to="/search" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
         <Search size={14} /> My Listing
       </Link>
+      <Link to="/equipment" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
+        <Sparkles size={14} /> Equipment
+      </Link>
     </>
   );
 
