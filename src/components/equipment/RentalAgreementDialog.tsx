@@ -74,6 +74,8 @@ export default function RentalAgreementDialog({
   rental,
   existingAgreement,
   mode,
+  renterUserId,
+  renterProviderId,
   onSaved,
 }: {
   open: boolean;
@@ -81,8 +83,12 @@ export default function RentalAgreementDialog({
   rental: RentalForAgreement | null;
   existingAgreement?: Agreement | null;
   mode: "create" | "view";
+  /** Required when owner is creating a new agreement to send to a specific renter */
+  renterUserId?: string;
+  renterProviderId?: string | null;
   onSaved?: () => void;
 }) {
+
   const { user } = useAuth();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
