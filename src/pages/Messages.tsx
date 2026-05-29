@@ -29,6 +29,7 @@ interface Message {
   sender_id: string;
   recipient_id: string;
   provider_id: string | null;
+  rental_id?: string | null;
   subject: string;
   body: string;
   read: boolean;
@@ -36,6 +37,7 @@ interface Message {
   contact_message_id?: string | null;
   ai_meta?: { kind?: string; awaiting_feedback?: boolean; attempt?: number; confidence?: number; user_marked_helpful?: boolean } | null;
 }
+
 
 interface PendingMessage {
   id: string;
@@ -67,7 +69,11 @@ interface ConversationPartner {
   pendingCategory?: string;
   pendingLocation?: string;
   chatStatus: ChatStatus;
+  kind: "rental" | "service";
 }
+
+type ConversationFilter = "all" | "rental" | "service";
+
 
 const statusConfig: Record<ChatStatus, { label: string; color: string; icon: typeof MessageCircle }> = {
   active: { label: "Active", color: "bg-green-500/15 text-green-700 dark:text-green-400", icon: MessageCircle },
@@ -92,6 +98,8 @@ const Messages = () => {
   const [userProfile, setUserProfile] = useState<{ user_type: string; subscription_tier: string } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ConversationPartner | null>(null);
   const [blockTarget, setBlockTarget] = useState<ConversationPartner | null>(null);
+  const [filter, setFilter] = useState<ConversationFilter>("all");
+
 
   useEffect(() => {
     if (!user) return;
@@ -178,6 +186,8 @@ const Messages = () => {
         pendingCategory: pm.provider_category,
         pendingLocation: location,
         chatStatus: isBlocked ? "blocked" : "pending",
+        kind: "service",
+
       });
     });
     return [...map.values()];
@@ -201,15 +211,26 @@ const Messages = () => {
         providerId: m.provider_id || existing?.providerId || null,
         providerTier: providerTiers[partnerId] || existing?.providerTier || null,
         chatStatus: isBlocked ? "blocked" : "active",
+        kind: (m.rental_id || existing?.kind === "rental") ? "rental" : "service",
+
       });
     });
     return [...map.values()];
   }, [messages, profiles, providerTiers, user, blockedUserIds]);
 
-  const conversations = useMemo(() => {
+  const allConversations = useMemo(() => {
     return [...regularConversations, ...pendingConversations]
       .sort((a, b) => new Date(b.lastTime).getTime() - new Date(a.lastTime).getTime());
   }, [regularConversations, pendingConversations]);
+
+  const rentalCount = useMemo(() => allConversations.filter((c) => c.kind === "rental").length, [allConversations]);
+  const serviceCount = useMemo(() => allConversations.filter((c) => c.kind === "service").length, [allConversations]);
+
+  const conversations = useMemo(() => {
+    if (filter === "all") return allConversations;
+    return allConversations.filter((c) => c.kind === filter);
+  }, [allConversations, filter]);
+
 
   const activeConversation = useMemo(() => {
     if (!user || !selectedPartnerId) return [];
@@ -389,9 +410,29 @@ const Messages = () => {
           <div className="grid md:grid-cols-[320px_1fr] gap-4 min-h-[500px]">
             {/* Conversation list */}
             <div className="border border-border rounded-xl bg-card overflow-hidden">
-              <div className="p-3 border-b border-border">
+              <div className="p-3 border-b border-border space-y-2">
                 <h3 className="text-sm font-semibold text-foreground">Conversations</h3>
+                <div className="inline-flex rounded-md border border-border bg-background p-0.5 text-xs w-full">
+                  {([
+                    { key: "all", label: `All (${allConversations.length})` },
+                    { key: "service", label: `Services (${serviceCount})` },
+                    { key: "rental", label: `Rentals (${rentalCount})` },
+                  ] as { key: ConversationFilter; label: string }[]).map((opt) => (
+                    <button
+                      key={opt.key}
+                      onClick={() => setFilter(opt.key)}
+                      className={`flex-1 px-2 py-1 rounded font-medium transition-colors ${
+                        filter === opt.key
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
+
               <div className="divide-y divide-border max-h-[500px] overflow-y-auto">
                 {loading ? (
                   <div className="p-6 text-center text-sm text-muted-foreground">Loading...</div>
