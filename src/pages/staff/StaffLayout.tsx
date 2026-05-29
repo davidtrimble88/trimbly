@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard, Inbox, Users, Briefcase, ShieldCheck, Megaphone, Send,
-  MessageSquareWarning, ShieldAlert, LogOut, Home, Search, Bug, UsersRound, BarChart3, DollarSign,
+  MessageSquareWarning, ShieldAlert, LogOut, Home, Search, Bug, UsersRound, BarChart3, DollarSign, Calculator,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +18,7 @@ const navItems = [
   { key: "dashboard", to: "/staff", label: "Dashboard", icon: LayoutDashboard, end: true },
   { key: "analytics", to: "/staff/analytics", label: "Analytics", icon: BarChart3 },
   { key: "business", to: "/staff/business", label: "Business Analytics", icon: DollarSign },
+  { key: "tax", to: "/staff/tax", label: "Tax", icon: Calculator },
   { key: "contacts", to: "/staff/contacts", label: "Contact Inbox", icon: Inbox },
   { key: "users", to: "/staff/users", label: "Users", icon: Users },
   { key: "providers", to: "/staff/providers", label: "Providers", icon: ShieldCheck },

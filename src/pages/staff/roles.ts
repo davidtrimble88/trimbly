@@ -13,6 +13,7 @@ export const NAV_PERMISSIONS: Record<string, StaffRole[]> = {
   dashboard: ["admin", "moderator", "support", "analyst"],
   analytics: ["admin", "analyst"],
   business: ["admin", "analyst"],
+  tax: ["admin"],
   contacts: ["admin", "support"],
   users: ["admin", "support"],
   providers: ["admin", "moderator"],
