@@ -979,6 +979,38 @@ Last updated: ${fmtTs(a.updated_at)}
               <Textarea value={form.terms || ""} onChange={(e) => setForm({ ...form, terms: e.target.value })} placeholder="e.g. Returned cleaned. No use in saltwater. Fuel returned full." />
               <p className="text-xs text-muted-foreground mt-1">Our standard legal terms are appended automatically when an agreement is signed.</p>
             </div>
+            <div className="rounded-md border border-border p-3 space-y-2">
+              <Label className="text-sm font-semibold">Who can rent this?</Label>
+              <div className="space-y-2 text-sm">
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="rentable_to"
+                    className="mt-1"
+                    checked={(form.rentable_to || "pros_only") === "pros_only"}
+                    onChange={() => setForm({ ...form, rentable_to: "pros_only" })}
+                  />
+                  <span>
+                    <span className="font-medium">Service providers only</span>
+                    <span className="block text-xs text-muted-foreground">Only verified pros on Trimbly can see and request this item.</span>
+                  </span>
+                </label>
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="rentable_to"
+                    className="mt-1"
+                    checked={form.rentable_to === "homeowners_and_pros"}
+                    onChange={() => setForm({ ...form, rentable_to: "homeowners_and_pros" })}
+                  />
+                  <span>
+                    <span className="font-medium">Service providers & subscribed homeowners</span>
+                    <span className="block text-xs text-muted-foreground">Also visible to homeowners with a paid Trimbly subscription.</span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
             <label className="flex items-center gap-2 text-sm">
               <Checkbox checked={!!form.insurance_required} onCheckedChange={(v) => setForm({ ...form, insurance_required: v === true })} />
               Renter must confirm insurance coverage
