@@ -124,6 +124,14 @@ export default function EquipmentRentals() {
   const [agreementDialogOpen, setAgreementDialogOpen] = useState(false);
   const [agreementRental, setAgreementRental] = useState<RentalForAgreement | null>(null);
   const [viewingAgreement, setViewingAgreement] = useState<Agreement | null>(null);
+  const [agreementRenterId, setAgreementRenterId] = useState<string | null>(null);
+
+  // Renter picker (owner picks from people who messaged about a rental)
+  const [renterPickerOpen, setRenterPickerOpen] = useState(false);
+  const [renterPickerRental, setRenterPickerRental] = useState<Rental | null>(null);
+  const [renterCandidates, setRenterCandidates] = useState<{ id: string; name: string }[]>([]);
+  const [renterPickerLoading, setRenterPickerLoading] = useState(false);
+
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
