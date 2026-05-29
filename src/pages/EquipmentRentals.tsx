@@ -410,6 +410,12 @@ export default function EquipmentRentals() {
     return stats;
   }, [rentalMessages, user]);
 
+  const totalUnreadOnMyListings = useMemo(
+    () => Object.values(messageStatsByRental).reduce((sum, s) => sum + s.unread, 0),
+    [messageStatsByRental]
+  );
+
+
   const openManage = (r: Rental) => {
     setManageRental(r);
     const partners = Array.from(messageStatsByRental[r.id]?.partners || []);
