@@ -16,6 +16,7 @@ import { canAccess, isStaff, type StaffRole } from "./roles";
 
 const navItems = [
   { key: "dashboard", to: "/staff", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { key: "analytics", to: "/staff/analytics", label: "Analytics", icon: BarChart3 },
   { key: "contacts", to: "/staff/contacts", label: "Contact Inbox", icon: Inbox },
   { key: "users", to: "/staff/users", label: "Users", icon: Users },
   { key: "providers", to: "/staff/providers", label: "Providers", icon: ShieldCheck },
