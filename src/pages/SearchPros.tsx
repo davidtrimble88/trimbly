@@ -13,8 +13,9 @@ import { logSearch } from "@/lib/analytics/searchLog";
 import { useToast } from "@/hooks/use-toast";
 
 const categories = [
-  "All", "Plumbing", "Electrical", "Handyman", "HVAC", "Landscaping", "Painting", "Roofing", "Cleaning",
+  "All", "General Contractor", "Plumbing", "Electrical", "Handyman", "HVAC", "Landscaping", "Painting", "Roofing", "Cleaning",
 ];
+
 
 type SearchMode = "provider" | "location";
 type CountryFilter = "all" | "US" | "CA";
