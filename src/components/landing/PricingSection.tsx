@@ -122,46 +122,6 @@ const proTiers = [
   },
 ];
 
-    cadPrice: "CA$0",
-    period: "",
-    description: "Get listed and start receiving leads",
-    features: [
-      "Business profile listing",
-      "Appear in search results",
-      "Up to 5 active bids per month",
-      "Customer reviews & ratings",
-      "Basic analytics dashboard",
-    ],
-    cta: "Get Started Free",
-    highlighted: false,
-    route: "/pro-register?tier=free",
-  },
-  {
-    name: "Pro Provider",
-    price: "$29",
-    cadPrice: "CA$40",
-    period: "/month",
-    description: "More visibility, more leads, more growth",
-    features: [
-      "Everything in Free",
-      "Unlimited bids",
-      "Verified Pro badge & faster approvals",
-      "Response-time badge",
-      "Priority search placement",
-      "AI Message Copilot",
-      "AI Follow-Up sequences",
-      "AI competitor pricing intel",
-      "Auto-request reviews (text + email)",
-      "Referral credits toward subscription",
-      "Local SEO microsite",
-      "Yard sign QR codes",
-      "Photo portfolio (up to 50 images)",
-    ],
-    cta: "Start 14-Day Free Trial",
-    highlighted: true,
-    route: "/pro-register?tier=pro",
-  },
-];
 
 const PricingSection = () => {
   const navigate = useNavigate();
