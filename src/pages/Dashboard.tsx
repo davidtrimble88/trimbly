@@ -331,9 +331,22 @@ const Dashboard = () => {
           <ReviewPromptDialog />
           {/* Header */}
           <div className="mb-10">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
-              Welcome back, {displayName}
-            </h1>
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
+              <h1 className="text-3xl md:text-4xl font-extrabold text-foreground">
+                Welcome back, {displayName}
+              </h1>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" onClick={() => navigate("/maintenance")}>
+                  <CalendarCheck size={14} className="mr-1.5" /> Maintenance
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => navigate("/equipment")}>
+                  <Hammer size={14} className="mr-1.5" /> Rentals
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => navigate("/messages")}>
+                  <MessageSquare size={14} className="mr-1.5" /> Messages
+                </Button>
+              </div>
+            </div>
             <div className="flex items-center gap-3">
               <Badge variant="secondary" className="text-sm px-3 py-1">
                 <Crown size={14} className="mr-1.5 text-primary" />
