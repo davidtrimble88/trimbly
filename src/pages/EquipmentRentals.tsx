@@ -535,7 +535,8 @@ Last updated: ${fmtTs(a.updated_at)}
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 space-y-6">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 pt-20 pb-6 space-y-6">
+
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2"><Wrench size={22} /> Equipment Marketplace</h1>
