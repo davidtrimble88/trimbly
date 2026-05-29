@@ -410,9 +410,29 @@ const Messages = () => {
           <div className="grid md:grid-cols-[320px_1fr] gap-4 min-h-[500px]">
             {/* Conversation list */}
             <div className="border border-border rounded-xl bg-card overflow-hidden">
-              <div className="p-3 border-b border-border">
+              <div className="p-3 border-b border-border space-y-2">
                 <h3 className="text-sm font-semibold text-foreground">Conversations</h3>
+                <div className="inline-flex rounded-md border border-border bg-background p-0.5 text-xs w-full">
+                  {([
+                    { key: "all", label: `All (${allConversations.length})` },
+                    { key: "service", label: `Services (${serviceCount})` },
+                    { key: "rental", label: `Rentals (${rentalCount})` },
+                  ] as { key: ConversationFilter; label: string }[]).map((opt) => (
+                    <button
+                      key={opt.key}
+                      onClick={() => setFilter(opt.key)}
+                      className={`flex-1 px-2 py-1 rounded font-medium transition-colors ${
+                        filter === opt.key
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
+
               <div className="divide-y divide-border max-h-[500px] overflow-y-auto">
                 {loading ? (
                   <div className="p-6 text-center text-sm text-muted-foreground">Loading...</div>
