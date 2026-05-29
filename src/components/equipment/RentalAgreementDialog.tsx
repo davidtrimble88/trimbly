@@ -404,8 +404,12 @@ export default function RentalAgreementDialog({
     const header = `Equipment Rental Agreement\n${rental?.title || ""}\n${startDate} → ${endDate}\nRate: $${rateAmount.toFixed(2)} / ${rateBasis} × ${quantity}\nSubtotal: $${subtotal.toFixed(2)}  Deposit: $${deposit.toFixed(2)}  Total: $${total.toFixed(2)} ${currency}\n\n`;
     const ownerSig = agreement?.owner_signature ? `Owner: ${agreement.owner_signature} (${agreement.owner_signed_at ? new Date(agreement.owner_signed_at).toLocaleString() : ""})` : "Owner: __________________________";
     const renterSig = agreement?.renter_signature ? `Renter: ${agreement.renter_signature} (${agreement.renter_signed_at ? new Date(agreement.renter_signed_at).toLocaleString() : ""})` : "Renter: __________________________";
-    const escaped = (header + body).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
-    const html = `<!doctype html><html><head><title>Rental Agreement</title><style>body{font-family:ui-sans-serif,system-ui,sans-serif;padding:32px;max-width:780px;margin:auto;color:#111}h1{font-size:18px;margin:0 0 12px}pre{white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:12px;line-height:1.5}.sig{margin-top:32px;display:flex;justify-content:space-between;font-size:12px}</style></head><body><h1>Equipment Rental Agreement</h1><pre>${escaped}</pre><div class="sig"><div>${ownerSig}</div><div>${renterSig}</div></div><script>window.onload=()=>window.print()</script></body></html>`;
+    const hashLine = (agreement as any)?.terms_hash ? `\n\nDocument integrity (SHA-256): ${(agreement as any).terms_hash}` : "";
+    const auditLines = auditTrail.length
+      ? `\n\n── AUDIT TRAIL ──\n${auditTrail.map((a) => `${new Date(a.created_at).toLocaleString()} · ${a.role.toUpperCase()} ${a.event}${a.signature_name ? ` ("${a.signature_name}")` : ""}${a.email ? ` · ${a.email}` : ""}${a.ip_address ? ` · IP ${a.ip_address}` : ""}${a.esign_consent ? " · ESIGN consent ✓" : ""}`).join("\n")}`
+      : "";
+    const escaped = (header + body + hashLine + auditLines).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
+    const html = `<!doctype html><html><head><title>Rental Agreement</title><style>body{font-family:ui-sans-serif,system-ui,sans-serif;padding:32px;max-width:780px;margin:auto;color:#111}h1{font-size:18px;margin:0 0 12px}pre{white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:11px;line-height:1.5}.sig{margin-top:32px;display:flex;justify-content:space-between;font-size:12px}.foot{margin-top:24px;font-size:10px;color:#555;border-top:1px solid #ccc;padding-top:8px}</style></head><body><h1>Equipment Rental Agreement</h1><pre>${escaped}</pre><div class="sig"><div>${ownerSig}</div><div>${renterSig}</div></div><div class="foot">This document was electronically signed under the U.S. ESIGN Act (15 U.S.C. § 7001) and UETA. The SHA-256 hash above proves the signed terms have not been altered.</div><script>window.onload=()=>window.print()</script></body></html>`;
     const w = window.open("", "_blank");
     if (!w) {
       toast({ title: "Pop-up blocked", description: "Allow pop-ups to print.", variant: "destructive" });
@@ -414,6 +418,7 @@ export default function RentalAgreementDialog({
     w.document.write(html);
     w.document.close();
   };
+
 
   const resendAgreement = async () => {
     if (!user || !agreement || !rental) return;
