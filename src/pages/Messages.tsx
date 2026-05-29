@@ -218,10 +218,19 @@ const Messages = () => {
     return [...map.values()];
   }, [messages, profiles, providerTiers, user, blockedUserIds]);
 
-  const conversations = useMemo(() => {
+  const allConversations = useMemo(() => {
     return [...regularConversations, ...pendingConversations]
       .sort((a, b) => new Date(b.lastTime).getTime() - new Date(a.lastTime).getTime());
   }, [regularConversations, pendingConversations]);
+
+  const rentalCount = useMemo(() => allConversations.filter((c) => c.kind === "rental").length, [allConversations]);
+  const serviceCount = useMemo(() => allConversations.filter((c) => c.kind === "service").length, [allConversations]);
+
+  const conversations = useMemo(() => {
+    if (filter === "all") return allConversations;
+    return allConversations.filter((c) => c.kind === filter);
+  }, [allConversations, filter]);
+
 
   const activeConversation = useMemo(() => {
     if (!user || !selectedPartnerId) return [];
