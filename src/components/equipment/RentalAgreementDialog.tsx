@@ -98,6 +98,7 @@ export default function RentalAgreementDialog({
   const [quantity, setQuantity] = useState<number>(1);
   const [insuranceAck, setInsuranceAck] = useState(false);
   const [signature, setSignature] = useState("");
+  const [customTerms, setCustomTerms] = useState("");
   const [agreement, setAgreement] = useState<Agreement | null>(existingAgreement || null);
 
   useEffect(() => {
@@ -115,8 +116,10 @@ export default function RentalAgreementDialog({
       setQuantity(1);
       setInsuranceAck(false);
       setSignature("");
+      setCustomTerms(rental?.terms || "");
     }
-  }, [existingAgreement, open]);
+  }, [existingAgreement, open, rental]);
+
 
   const isOwner = !!user && (
     (agreement && user.id === agreement.owner_user_id) ||
@@ -165,7 +168,8 @@ export default function RentalAgreementDialog({
       return;
     }
     setSaving(true);
-    const termsSnapshot = `${rental.terms || "(No custom terms provided by owner)"}\n\n${LEGAL_BOILERPLATE}`;
+    const termsSnapshot = `${customTerms.trim() || "(No custom terms provided by owner)"}\n\n${LEGAL_BOILERPLATE}`;
+
     const { data, error } = await supabase
       .from("rental_agreements")
       .insert({
@@ -341,14 +345,41 @@ export default function RentalAgreementDialog({
             </label>
           )}
 
-          <div>
-            <Label>Agreement terms</Label>
-            <Textarea
-              readOnly
-              value={agreement ? agreement.terms_snapshot : `${rental?.terms || "(No custom terms provided by owner)"}\n\n${LEGAL_BOILERPLATE}`}
-              className="min-h-[180px] text-xs font-mono"
-            />
-          </div>
+          {agreement ? (
+            <div>
+              <Label>Agreement terms</Label>
+              <Textarea
+                readOnly
+                value={agreement.terms_snapshot}
+                className="min-h-[180px] text-xs font-mono"
+              />
+            </div>
+          ) : (
+            <>
+              <div>
+                <Label>Custom rental terms (editable)</Label>
+                <Textarea
+                  value={customTerms}
+                  onChange={(e) => setCustomTerms(e.target.value)}
+                  placeholder="Add any specific terms for this rental — pickup times, restrictions, late fees, cleaning expectations, etc."
+                  className="min-h-[120px] text-sm"
+                  disabled={!isOwner}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  These custom terms will be saved with the agreement. The standard legal terms below are locked and cannot be edited.
+                </p>
+              </div>
+              <div>
+                <Label>Standard legal terms (locked)</Label>
+                <Textarea
+                  readOnly
+                  value={LEGAL_BOILERPLATE}
+                  className="min-h-[160px] text-xs font-mono bg-muted/40"
+                />
+              </div>
+            </>
+          )}
+
 
           {agreement && (
             <div className="grid sm:grid-cols-2 gap-3 text-xs">
