@@ -18,7 +18,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState } from "@/components/EmptyState";
 import JobPhotoUploader from "@/components/JobPhotoUploader";
 import RentalAgreementDialog, { RentalForAgreement } from "@/components/equipment/RentalAgreementDialog";
-import { Search, MapPin, DollarSign, Plus, MessageSquare, FileSignature, Wrench, Loader2, Trash2, Pencil } from "lucide-react";
+import { Search, MapPin, DollarSign, Plus, MessageSquare, FileSignature, Wrench, Loader2, Trash2, Pencil, Send, Inbox } from "lucide-react";
+import { format } from "date-fns";
+
+type RentalMessage = {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  rental_id: string | null;
+  subject: string;
+  body: string;
+  read: boolean;
+  created_at: string;
+};
+
 
 type Rental = {
   id: string;
@@ -132,6 +145,15 @@ export default function EquipmentRentals() {
   const [renterCandidates, setRenterCandidates] = useState<{ id: string; name: string }[]>([]);
   const [renterPickerLoading, setRenterPickerLoading] = useState(false);
 
+  // Manage listing dialog (messages + agreements for one of my rentals)
+  const [manageRental, setManageRental] = useState<Rental | null>(null);
+  const [rentalMessages, setRentalMessages] = useState<RentalMessage[]>([]);
+  const [partyNames, setPartyNames] = useState<Record<string, string>>({});
+  const [activeThreadUserId, setActiveThreadUserId] = useState<string | null>(null);
+  const [replyBody, setReplyBody] = useState("");
+  const [sendingReply, setSendingReply] = useState(false);
+
+
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -159,6 +181,26 @@ export default function EquipmentRentals() {
     setMyRentals((mine.data as any) || []);
     setAgreements((ags.data as any) || []);
 
+    const myIds = ((mine.data as any[]) || []).map((r) => r.id);
+    let msgs: RentalMessage[] = [];
+    if (myIds.length) {
+      const { data: msgData } = await supabase
+        .from("messages")
+        .select("id, sender_id, recipient_id, rental_id, subject, body, read, created_at")
+        .in("rental_id", myIds)
+        .order("created_at", { ascending: true });
+      msgs = (msgData as any) || [];
+    }
+    setRentalMessages(msgs);
+
+    const partyIds = Array.from(new Set(msgs.flatMap((m) => [m.sender_id, m.recipient_id])));
+    if (partyIds.length) {
+      const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", partyIds);
+      const pmap: Record<string, string> = {};
+      (profs || []).forEach((p: any) => { pmap[p.id] = p.full_name || "Unknown"; });
+      setPartyNames(pmap);
+    }
+
     const ids = Array.from(new Set([...(ags.data || []).map((a: any) => a.rental_id)]));
     if (ids.length) {
       const { data: titles } = await supabase.from("equipment_rentals").select("id, title").in("id", ids);
@@ -167,6 +209,7 @@ export default function EquipmentRentals() {
       setRentalTitles(map);
     }
     setLoading(false);
+
   }, [user]);
 
   useEffect(() => { if (user) loadAll(); }, [user, loadAll]);
@@ -354,6 +397,55 @@ export default function EquipmentRentals() {
     setAgreementDialogOpen(true);
   };
 
+  const messageStatsByRental = useMemo(() => {
+    const stats: Record<string, { total: number; unread: number; partners: Set<string> }> = {};
+    rentalMessages.forEach((m) => {
+      if (!m.rental_id) return;
+      const s = stats[m.rental_id] || (stats[m.rental_id] = { total: 0, unread: 0, partners: new Set() });
+      s.total += 1;
+      if (!m.read && user && m.recipient_id === user.id) s.unread += 1;
+      const other = user && m.sender_id === user.id ? m.recipient_id : m.sender_id;
+      if (other) s.partners.add(other);
+    });
+    return stats;
+  }, [rentalMessages, user]);
+
+  const openManage = (r: Rental) => {
+    setManageRental(r);
+    const partners = Array.from(messageStatsByRental[r.id]?.partners || []);
+    setActiveThreadUserId(partners[0] || null);
+    setReplyBody("");
+    // mark this rental's inbound msgs read
+    if (user) {
+      const unreadIds = rentalMessages
+        .filter((m) => m.rental_id === r.id && m.recipient_id === user.id && !m.read)
+        .map((m) => m.id);
+      if (unreadIds.length) {
+        supabase.from("messages").update({ read: true }).in("id", unreadIds).then(() => {
+          setRentalMessages((prev) => prev.map((m) => unreadIds.includes(m.id) ? { ...m, read: true } : m));
+        });
+      }
+    }
+  };
+
+  const sendReply = async () => {
+    if (!user || !manageRental || !activeThreadUserId || !replyBody.trim()) return;
+    setSendingReply(true);
+    const { data, error } = await supabase.from("messages").insert({
+      sender_id: user.id,
+      recipient_id: activeThreadUserId,
+      subject: `Re: ${manageRental.title}`,
+      body: replyBody.trim(),
+      rental_id: manageRental.id,
+    } as any).select().single();
+    if (error) {
+      toast({ title: "Could not send", description: error.message, variant: "destructive" });
+    } else {
+      setRentalMessages((prev) => [...prev, data as any]);
+      setReplyBody("");
+    }
+    setSendingReply(false);
+  };
 
   const renderPrices = (r: Rental) => (
     <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3">
@@ -362,6 +454,7 @@ export default function EquipmentRentals() {
       {r.price_week ? <span>${r.price_week}/wk</span> : null}
     </div>
   );
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -444,33 +537,51 @@ export default function EquipmentRentals() {
             {myRentals.length === 0 ? (
               <EmptyState icon={Wrench} title="You haven't listed any equipment yet" description="Earn extra revenue by renting your gear to other pros." actionLabel="List equipment" onAction={openCreate} />
             ) : (
-              myRentals.map((r) => (
-                <Card key={r.id}>
+              myRentals.map((r) => {
+                const stats = messageStatsByRental[r.id];
+                const msgCount = stats?.total || 0;
+                const unread = stats?.unread || 0;
+                return (
+                <Card key={r.id} className={unread > 0 ? "border-primary/50" : ""}>
                   <CardContent className="p-4 flex flex-wrap gap-3 items-center">
                     {r.photo_urls?.[0] && <img src={r.photo_urls[0]} alt="" className="w-20 h-20 object-cover rounded" />}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-semibold text-sm truncate">{r.title}</h3>
                         <Badge variant={r.available ? "default" : "secondary"} className="text-xs">{r.available ? "Available" : "Hidden"}</Badge>
+                        {unread > 0 && (
+                          <Badge className="text-xs bg-primary text-primary-foreground">
+                            {unread} new message{unread === 1 ? "" : "s"}
+                          </Badge>
+                        )}
                       </div>
                       <div className="text-xs text-muted-foreground">{r.category} · {r.city}, {r.state}</div>
                       {renderPrices(r)}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <div className="flex items-center gap-2 text-xs">
                         <span>Available</span>
                         <Switch checked={r.available} onCheckedChange={() => toggleAvailable(r)} />
                       </div>
+                      <Button
+                        size="sm"
+                        variant={unread > 0 ? "default" : "outline"}
+                        onClick={() => openManage(r)}
+                      >
+                        <Inbox size={14} className="mr-1" />
+                        Manage {msgCount > 0 && <span className="ml-1 opacity-80">({msgCount})</span>}
+                      </Button>
                       <Button size="sm" variant="secondary" onClick={() => openRenterPicker(r)}>
                         <FileSignature size={14} className="mr-1" /> Send agreement
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => openEdit(r)}><Pencil size={14} /></Button>
                       <Button size="sm" variant="ghost" onClick={() => deleteRental(r)}><Trash2 size={14} /></Button>
-
                     </div>
                   </CardContent>
                 </Card>
-              ))
+                );
+              })
+
             )}
           </TabsContent>
 
@@ -708,6 +819,130 @@ export default function EquipmentRentals() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Manage listing dialog: messages + agreements per rental */}
+      <Dialog open={!!manageRental} onOpenChange={(v) => { if (!v) { setManageRental(null); setActiveThreadUserId(null); setReplyBody(""); } }}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+          {manageRental && (() => {
+            const partnerIds = Array.from(messageStatsByRental[manageRental.id]?.partners || []);
+            const threadMessages = rentalMessages.filter(
+              (m) => m.rental_id === manageRental.id &&
+                ((m.sender_id === activeThreadUserId && m.recipient_id === user?.id) ||
+                 (m.recipient_id === activeThreadUserId && m.sender_id === user?.id))
+            );
+            const rentalAgreements = agreements.filter((a) => a.rental_id === manageRental.id);
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Wrench size={18} /> {manageRental.title}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {manageRental.category} · {manageRental.city}, {manageRental.state} · {partnerIds.length} conversation{partnerIds.length === 1 ? "" : "s"} · {rentalAgreements.length} agreement{rentalAgreements.length === 1 ? "" : "s"}
+                  </DialogDescription>
+                </DialogHeader>
+
+                {rentalAgreements.length > 0 && (
+                  <div className="rounded-md border border-border p-3 space-y-2">
+                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Agreements</div>
+                    {rentalAgreements.map((a) => (
+                      <button
+                        key={a.id}
+                        onClick={() => openAgreementView(a)}
+                        className="w-full text-left text-xs flex items-center justify-between gap-2 rounded p-2 hover:bg-secondary/50"
+                      >
+                        <span>
+                          {partyNames[a.renter_user_id] || "Renter"} · {a.start_date} → {a.end_date} · ${Number(a.total).toFixed(2)}
+                        </span>
+                        <Badge className="capitalize text-[10px]">{a.status}</Badge>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="grid sm:grid-cols-[200px_1fr] gap-3 flex-1 min-h-0">
+                  {/* Thread list */}
+                  <div className="border border-border rounded-md overflow-y-auto max-h-[50vh]">
+                    {partnerIds.length === 0 ? (
+                      <p className="text-xs text-muted-foreground p-3">No messages yet about this listing.</p>
+                    ) : (
+                      partnerIds.map((pid) => {
+                        const partnerMsgs = rentalMessages.filter(
+                          (m) => m.rental_id === manageRental.id &&
+                            (m.sender_id === pid || m.recipient_id === pid)
+                        );
+                        const last = partnerMsgs[partnerMsgs.length - 1];
+                        const unread = partnerMsgs.filter((m) => !m.read && m.recipient_id === user?.id && m.sender_id === pid).length;
+                        return (
+                          <button
+                            key={pid}
+                            onClick={() => setActiveThreadUserId(pid)}
+                            className={`w-full text-left p-2 border-b border-border last:border-b-0 ${activeThreadUserId === pid ? "bg-secondary" : "hover:bg-secondary/50"}`}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-sm font-medium truncate">{partyNames[pid] || "Unknown"}</span>
+                              {unread > 0 && <span className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 rounded-full">{unread}</span>}
+                            </div>
+                            <p className="text-[11px] text-muted-foreground truncate">{last?.body}</p>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* Thread view */}
+                  <div className="flex flex-col min-h-0">
+                    <div className="flex-1 overflow-y-auto border border-border rounded-md p-3 space-y-2 max-h-[40vh]">
+                      {!activeThreadUserId ? (
+                        <p className="text-xs text-muted-foreground">Pick a conversation on the left.</p>
+                      ) : threadMessages.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">No messages.</p>
+                      ) : (
+                        threadMessages.map((m) => {
+                          const mine = m.sender_id === user?.id;
+                          return (
+                            <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                              <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${mine ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>
+                                <p className="whitespace-pre-wrap break-words">{m.body}</p>
+                                <p className={`text-[10px] mt-1 ${mine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                                  {format(new Date(m.created_at), "MMM d, h:mm a")}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                    {activeThreadUserId && (
+                      <div className="mt-2 flex gap-2">
+                        <Textarea
+                          value={replyBody}
+                          onChange={(e) => setReplyBody(e.target.value)}
+                          placeholder={`Reply to ${partyNames[activeThreadUserId] || "renter"}…`}
+                          className="min-h-[60px]"
+                        />
+                        <Button onClick={sendReply} disabled={sendingReply || !replyBody.trim()}>
+                          {sendingReply ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  {activeThreadUserId && (
+                    <Button variant="secondary" onClick={() => { setRenterPickerRental(manageRental); startAgreementForRenter(activeThreadUserId); }}>
+                      <FileSignature size={14} className="mr-1" /> Send agreement to this renter
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={() => setManageRental(null)}>Close</Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
 
 
       <Footer />
