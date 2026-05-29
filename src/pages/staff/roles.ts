@@ -12,6 +12,7 @@ export const STAFF_ROLES: { value: StaffRole; label: string; description: string
 export const NAV_PERMISSIONS: Record<string, StaffRole[]> = {
   dashboard: ["admin", "moderator", "support", "analyst"],
   analytics: ["admin", "analyst"],
+  business: ["admin", "analyst"],
   contacts: ["admin", "support"],
   users: ["admin", "support"],
   providers: ["admin", "moderator"],
