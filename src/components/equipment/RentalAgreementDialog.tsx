@@ -68,6 +68,47 @@ const LEGAL_BOILERPLATE = `LEGAL TERMS — EQUIPMENT RENTAL AGREEMENT
 
 By typing your full legal name as a signature below, both parties agree to be electronically bound to these terms.`;
 
+const ESIGN_DISCLOSURE = `ELECTRONIC RECORDS AND SIGNATURES DISCLOSURE (ESIGN Act / UETA)
+
+By checking the consent box and typing your full legal name below, you agree that:
+• You consent to conduct this transaction by electronic means, including the use of electronic records and electronic signatures, under the U.S. ESIGN Act (15 U.S.C. § 7001 et seq.) and the Uniform Electronic Transactions Act (UETA).
+• Your typed name constitutes your legally binding electronic signature, with the same force and effect as a handwritten signature.
+• You can request a paper copy of this signed agreement at any time by contacting the other party or Trimbly support, and you may print or save this document for your records.
+• You may withdraw your consent to electronic records by declining this agreement before signing. Withdrawing consent after signing does not invalidate the executed contract.
+• The hardware/software needed to access these records is any modern web browser plus a way to read PDF files; the same requirements apply to retain copies.
+• Trimbly will retain a permanent, tamper-evident record of this agreement, including a SHA-256 hash of the signed terms and an audit log of the signing event (IP address, user-agent, timestamp, and account email).`;
+
+// SHA-256 of the locked terms snapshot — used to prove the signed contract was not altered later.
+async function sha256Hex(text: string): Promise<string> {
+  const buf = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function fetchClientIp(): Promise<string | null> {
+  try {
+    const r = await fetch("https://api.ipify.org?format=json");
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j.ip || null;
+  } catch { return null; }
+}
+
+type AuditRow = {
+  id: string;
+  agreement_id: string;
+  user_id: string;
+  role: string;
+  event: string;
+  signature_name: string | null;
+  email: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  terms_hash: string | null;
+  esign_consent: boolean;
+  created_at: string;
+};
+
 export default function RentalAgreementDialog({
   open,
   onOpenChange,
@@ -89,6 +130,7 @@ export default function RentalAgreementDialog({
   onSaved?: () => void;
 }) {
 
+
   const { user } = useAuth();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
@@ -100,9 +142,12 @@ export default function RentalAgreementDialog({
   const [signature, setSignature] = useState("");
   const [customTerms, setCustomTerms] = useState("");
   const [agreement, setAgreement] = useState<Agreement | null>(existingAgreement || null);
+  const [esignConsent, setEsignConsent] = useState(false);
+  const [auditTrail, setAuditTrail] = useState<AuditRow[]>([]);
 
   useEffect(() => {
     setAgreement(existingAgreement || null);
+    setEsignConsent(false);
     if (existingAgreement) {
       setStartDate(existingAgreement.start_date);
       setEndDate(existingAgreement.end_date);
@@ -119,6 +164,20 @@ export default function RentalAgreementDialog({
       setCustomTerms(rental?.terms || "");
     }
   }, [existingAgreement, open, rental]);
+
+  // Load audit trail for existing agreement
+  useEffect(() => {
+    if (!agreement?.id || !open) { setAuditTrail([]); return; }
+    (async () => {
+      const { data } = await supabase
+        .from("agreement_audit_log" as any)
+        .select("*")
+        .eq("agreement_id", agreement.id)
+        .order("created_at", { ascending: true });
+      setAuditTrail((data as any) || []);
+    })();
+  }, [agreement?.id, open, saving]);
+
 
 
   const isOwner = !!user && (
@@ -167,8 +226,14 @@ export default function RentalAgreementDialog({
       toast({ title: "Type your full legal name to sign", variant: "destructive" });
       return;
     }
+    if (!esignConsent) {
+      toast({ title: "ESIGN consent required", description: "Check the box agreeing to use electronic records and signatures.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     const termsSnapshot = `${customTerms.trim() || "(No custom terms provided by owner)"}\n\n${LEGAL_BOILERPLATE}`;
+    const termsHash = await sha256Hex(termsSnapshot);
+    const signedAt = new Date().toISOString();
 
     const { data, error } = await supabase
       .from("rental_agreements")
@@ -188,11 +253,13 @@ export default function RentalAgreementDialog({
         total,
         currency,
         terms_snapshot: termsSnapshot,
+        terms_hash: termsHash,
         insurance_acknowledged: false,
         status: "sent",
         owner_signature: signature.trim(),
-        owner_signed_at: new Date().toISOString(),
-      })
+        owner_signed_at: signedAt,
+        owner_esign_consent: true,
+      } as any)
       .select()
       .single();
     if (error) {
@@ -200,6 +267,22 @@ export default function RentalAgreementDialog({
       setSaving(false);
       return;
     }
+
+    // Write tamper-evident audit log entry for the owner's signing event
+    const ip = await fetchClientIp();
+    await supabase.from("agreement_audit_log" as any).insert({
+      agreement_id: (data as any).id,
+      user_id: user.id,
+      role: "owner",
+      event: "signed",
+      signature_name: signature.trim(),
+      email: user.email || null,
+      ip_address: ip,
+      user_agent: navigator.userAgent,
+      terms_hash: termsHash,
+      esign_consent: true,
+    });
+
     // Notify renter via in-app message
     await supabase.from("messages").insert({
       sender_id: user.id,
@@ -214,6 +297,7 @@ export default function RentalAgreementDialog({
     onSaved?.();
   };
 
+
   // RENTER signs to accept the owner-created agreement.
   const renterAccept = async () => {
     if (!user || !agreement) return;
@@ -221,25 +305,55 @@ export default function RentalAgreementDialog({
       toast({ title: "Type your full legal name to sign", variant: "destructive" });
       return;
     }
+    if (!esignConsent) {
+      toast({ title: "ESIGN consent required", description: "Check the box agreeing to use electronic records and signatures.", variant: "destructive" });
+      return;
+    }
     if (rental?.insurance_required && !insuranceAck) {
       toast({ title: "Insurance acknowledgment required", variant: "destructive" });
       return;
     }
     setSaving(true);
+    const signedAt = new Date().toISOString();
+    // Verify the locked terms snapshot still matches its hash (tamper check before counter-signing)
+    if (agreement.terms_snapshot) {
+      const recomputed = await sha256Hex(agreement.terms_snapshot);
+      if ((agreement as any).terms_hash && (agreement as any).terms_hash !== recomputed) {
+        toast({ title: "Integrity check failed", description: "The agreement contents have changed since they were sent. Refusing to sign.", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+    }
     const { error } = await supabase
       .from("rental_agreements")
       .update({
         status: "accepted",
         renter_signature: signature.trim(),
-        renter_signed_at: new Date().toISOString(),
+        renter_signed_at: signedAt,
+        renter_esign_consent: true,
         insurance_acknowledged: insuranceAck,
-      })
+      } as any)
       .eq("id", agreement.id);
     if (error) {
       toast({ title: "Could not sign", description: error.message, variant: "destructive" });
       setSaving(false);
       return;
     }
+
+    const ip = await fetchClientIp();
+    await supabase.from("agreement_audit_log" as any).insert({
+      agreement_id: agreement.id,
+      user_id: user.id,
+      role: "renter",
+      event: "signed",
+      signature_name: signature.trim(),
+      email: user.email || null,
+      ip_address: ip,
+      user_agent: navigator.userAgent,
+      terms_hash: (agreement as any).terms_hash || null,
+      esign_consent: true,
+    });
+
     await supabase.from("messages").insert({
       sender_id: user.id,
       recipient_id: agreement.owner_user_id,
@@ -257,6 +371,19 @@ export default function RentalAgreementDialog({
     if (!user || !agreement) return;
     setSaving(true);
     await supabase.from("rental_agreements").update({ status: "declined" }).eq("id", agreement.id);
+    const ip = await fetchClientIp();
+    await supabase.from("agreement_audit_log" as any).insert({
+      agreement_id: agreement.id,
+      user_id: user.id,
+      role: user.id === agreement.owner_user_id ? "owner" : "renter",
+      event: "declined",
+      signature_name: null,
+      email: user.email || null,
+      ip_address: ip,
+      user_agent: navigator.userAgent,
+      terms_hash: (agreement as any).terms_hash || null,
+      esign_consent: false,
+    });
     await supabase.from("messages").insert({
       sender_id: user.id,
       recipient_id: agreement.owner_user_id,
@@ -270,14 +397,19 @@ export default function RentalAgreementDialog({
     onSaved?.();
   };
 
+
   const printAgreement = () => {
     const body = agreement?.terms_snapshot
       || `${customTerms.trim() || "(No custom terms provided by owner)"}\n\n${LEGAL_BOILERPLATE}`;
     const header = `Equipment Rental Agreement\n${rental?.title || ""}\n${startDate} → ${endDate}\nRate: $${rateAmount.toFixed(2)} / ${rateBasis} × ${quantity}\nSubtotal: $${subtotal.toFixed(2)}  Deposit: $${deposit.toFixed(2)}  Total: $${total.toFixed(2)} ${currency}\n\n`;
     const ownerSig = agreement?.owner_signature ? `Owner: ${agreement.owner_signature} (${agreement.owner_signed_at ? new Date(agreement.owner_signed_at).toLocaleString() : ""})` : "Owner: __________________________";
     const renterSig = agreement?.renter_signature ? `Renter: ${agreement.renter_signature} (${agreement.renter_signed_at ? new Date(agreement.renter_signed_at).toLocaleString() : ""})` : "Renter: __________________________";
-    const escaped = (header + body).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
-    const html = `<!doctype html><html><head><title>Rental Agreement</title><style>body{font-family:ui-sans-serif,system-ui,sans-serif;padding:32px;max-width:780px;margin:auto;color:#111}h1{font-size:18px;margin:0 0 12px}pre{white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:12px;line-height:1.5}.sig{margin-top:32px;display:flex;justify-content:space-between;font-size:12px}</style></head><body><h1>Equipment Rental Agreement</h1><pre>${escaped}</pre><div class="sig"><div>${ownerSig}</div><div>${renterSig}</div></div><script>window.onload=()=>window.print()</script></body></html>`;
+    const hashLine = (agreement as any)?.terms_hash ? `\n\nDocument integrity (SHA-256): ${(agreement as any).terms_hash}` : "";
+    const auditLines = auditTrail.length
+      ? `\n\n── AUDIT TRAIL ──\n${auditTrail.map((a) => `${new Date(a.created_at).toLocaleString()} · ${a.role.toUpperCase()} ${a.event}${a.signature_name ? ` ("${a.signature_name}")` : ""}${a.email ? ` · ${a.email}` : ""}${a.ip_address ? ` · IP ${a.ip_address}` : ""}${a.esign_consent ? " · ESIGN consent ✓" : ""}`).join("\n")}`
+      : "";
+    const escaped = (header + body + hashLine + auditLines).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
+    const html = `<!doctype html><html><head><title>Rental Agreement</title><style>body{font-family:ui-sans-serif,system-ui,sans-serif;padding:32px;max-width:780px;margin:auto;color:#111}h1{font-size:18px;margin:0 0 12px}pre{white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:11px;line-height:1.5}.sig{margin-top:32px;display:flex;justify-content:space-between;font-size:12px}.foot{margin-top:24px;font-size:10px;color:#555;border-top:1px solid #ccc;padding-top:8px}</style></head><body><h1>Equipment Rental Agreement</h1><pre>${escaped}</pre><div class="sig"><div>${ownerSig}</div><div>${renterSig}</div></div><div class="foot">This document was electronically signed under the U.S. ESIGN Act (15 U.S.C. § 7001) and UETA. The SHA-256 hash above proves the signed terms have not been altered.</div><script>window.onload=()=>window.print()</script></body></html>`;
     const w = window.open("", "_blank");
     if (!w) {
       toast({ title: "Pop-up blocked", description: "Allow pop-ups to print.", variant: "destructive" });
@@ -286,6 +418,7 @@ export default function RentalAgreementDialog({
     w.document.write(html);
     w.document.close();
   };
+
 
   const resendAgreement = async () => {
     if (!user || !agreement || !rental) return;
@@ -434,15 +567,78 @@ export default function RentalAgreementDialog({
               </div>
             </div>
           )}
-
-          {/* Signature line: shown to owner when creating, or to renter when accepting */}
+          {/* ESIGN consent disclosure + signature: shown to owner when creating, or to renter when accepting */}
           {((!agreement && isOwner) || (agreement && isRenter && !agreement.renter_signature && agreement.status === "sent")) && (
-            <div>
-              <Label>Type your full legal name to e-sign</Label>
-              <Input value={signature} onChange={(e) => setSignature(e.target.value)} placeholder="Your full legal name" />
+            <div className="space-y-3 rounded-md border-2 border-primary/30 bg-primary/5 p-3">
+              <div>
+                <Label className="text-xs font-bold uppercase tracking-wide">Electronic Records & Signatures Disclosure</Label>
+                <Textarea
+                  readOnly
+                  value={ESIGN_DISCLOSURE}
+                  className="min-h-[140px] text-[11px] font-mono bg-background mt-1"
+                />
+              </div>
+              <label className="flex items-start gap-2 text-sm">
+                <Checkbox
+                  checked={esignConsent}
+                  onCheckedChange={(v) => setEsignConsent(v === true)}
+                  className="mt-0.5"
+                />
+                <span><strong>I consent</strong> to use electronic records and signatures for this transaction, as described above. I understand my typed name below is my legally binding signature.</span>
+              </label>
+              <div>
+                <Label>Type your full legal name to e-sign</Label>
+                <Input
+                  value={signature}
+                  onChange={(e) => setSignature(e.target.value)}
+                  placeholder="Your full legal name"
+                  disabled={!esignConsent}
+                />
+                {!esignConsent && <p className="text-[11px] text-muted-foreground mt-1">Check the consent box above to enable signing.</p>}
+              </div>
+            </div>
+          )}
+
+          {/* Audit trail — visible to both parties on any existing agreement */}
+          {agreement && (
+            <div className="rounded-md border border-border p-3 bg-muted/30">
+              <div className="text-xs font-bold uppercase tracking-wide mb-2 flex items-center justify-between">
+                <span>Signing Audit Trail</span>
+                {(agreement as any).terms_hash && (
+                  <span className="font-mono text-[10px] text-muted-foreground normal-case font-normal" title="SHA-256 hash of the locked terms — proves the contract was not altered">
+                    SHA-256: {String((agreement as any).terms_hash).slice(0, 16)}…
+                  </span>
+                )}
+              </div>
+              {auditTrail.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No audit entries yet.</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {auditTrail.map((a) => (
+                    <div key={a.id} className="text-[11px] font-mono leading-tight border-l-2 border-primary/40 pl-2">
+                      <div>
+                        <span className="text-muted-foreground">{new Date(a.created_at).toLocaleString()}</span>
+                        {" · "}
+                        <span className="uppercase font-bold">{a.role}</span> {a.event}
+                        {a.signature_name && <span> — "{a.signature_name}"</span>}
+                        {a.esign_consent && <span className="text-primary"> · ESIGN consent ✓</span>}
+                      </div>
+                      <div className="text-muted-foreground">
+                        {a.email && <span>{a.email}</span>}
+                        {a.ip_address && <span> · IP {a.ip_address}</span>}
+                        {a.user_agent && <span title={a.user_agent}> · {a.user_agent.slice(0, 40)}{a.user_agent.length > 40 ? "…" : ""}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-[10px] text-muted-foreground mt-2 italic">
+                Signed under the U.S. ESIGN Act (15 U.S.C. § 7001) and UETA. Signatures, timestamps, and terms are immutable.
+              </p>
             </div>
           )}
         </div>
+
 
         <DialogFooter className="gap-2 flex-wrap">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>

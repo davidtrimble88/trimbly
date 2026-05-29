@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      agreement_audit_log: {
+        Row: {
+          agreement_id: string
+          created_at: string
+          email: string | null
+          esign_consent: boolean
+          event: string
+          id: string
+          ip_address: string | null
+          role: string
+          signature_name: string | null
+          terms_hash: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          agreement_id: string
+          created_at?: string
+          email?: string | null
+          esign_consent?: boolean
+          event: string
+          id?: string
+          ip_address?: string | null
+          role: string
+          signature_name?: string | null
+          terms_hash?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          agreement_id?: string
+          created_at?: string
+          email?: string | null
+          esign_consent?: boolean
+          event?: string
+          id?: string
+          ip_address?: string | null
+          role?: string
+          signature_name?: string | null
+          terms_hash?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       blocked_providers: {
         Row: {
           created_at: string
@@ -1269,6 +1314,7 @@ export type Database = {
           end_date: string
           id: string
           insurance_acknowledged: boolean
+          owner_esign_consent: boolean
           owner_provider_id: string | null
           owner_signature: string | null
           owner_signed_at: string | null
@@ -1277,6 +1323,7 @@ export type Database = {
           rate_amount: number
           rate_basis: string
           rental_id: string
+          renter_esign_consent: boolean
           renter_provider_id: string | null
           renter_signature: string | null
           renter_signed_at: string | null
@@ -1284,6 +1331,7 @@ export type Database = {
           start_date: string
           status: string
           subtotal: number
+          terms_hash: string | null
           terms_snapshot: string
           total: number
           updated_at: string
@@ -1295,6 +1343,7 @@ export type Database = {
           end_date: string
           id?: string
           insurance_acknowledged?: boolean
+          owner_esign_consent?: boolean
           owner_provider_id?: string | null
           owner_signature?: string | null
           owner_signed_at?: string | null
@@ -1303,6 +1352,7 @@ export type Database = {
           rate_amount?: number
           rate_basis?: string
           rental_id: string
+          renter_esign_consent?: boolean
           renter_provider_id?: string | null
           renter_signature?: string | null
           renter_signed_at?: string | null
@@ -1310,6 +1360,7 @@ export type Database = {
           start_date: string
           status?: string
           subtotal?: number
+          terms_hash?: string | null
           terms_snapshot?: string
           total?: number
           updated_at?: string
@@ -1321,6 +1372,7 @@ export type Database = {
           end_date?: string
           id?: string
           insurance_acknowledged?: boolean
+          owner_esign_consent?: boolean
           owner_provider_id?: string | null
           owner_signature?: string | null
           owner_signed_at?: string | null
@@ -1329,6 +1381,7 @@ export type Database = {
           rate_amount?: number
           rate_basis?: string
           rental_id?: string
+          renter_esign_consent?: boolean
           renter_provider_id?: string | null
           renter_signature?: string | null
           renter_signed_at?: string | null
@@ -1336,6 +1389,7 @@ export type Database = {
           start_date?: string
           status?: string
           subtotal?: number
+          terms_hash?: string | null
           terms_snapshot?: string
           total?: number
           updated_at?: string
