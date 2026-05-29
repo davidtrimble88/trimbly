@@ -397,6 +397,55 @@ export default function EquipmentRentals() {
     setAgreementDialogOpen(true);
   };
 
+  const messageStatsByRental = useMemo(() => {
+    const stats: Record<string, { total: number; unread: number; partners: Set<string> }> = {};
+    rentalMessages.forEach((m) => {
+      if (!m.rental_id) return;
+      const s = stats[m.rental_id] || (stats[m.rental_id] = { total: 0, unread: 0, partners: new Set() });
+      s.total += 1;
+      if (!m.read && user && m.recipient_id === user.id) s.unread += 1;
+      const other = user && m.sender_id === user.id ? m.recipient_id : m.sender_id;
+      if (other) s.partners.add(other);
+    });
+    return stats;
+  }, [rentalMessages, user]);
+
+  const openManage = (r: Rental) => {
+    setManageRental(r);
+    const partners = Array.from(messageStatsByRental[r.id]?.partners || []);
+    setActiveThreadUserId(partners[0] || null);
+    setReplyBody("");
+    // mark this rental's inbound msgs read
+    if (user) {
+      const unreadIds = rentalMessages
+        .filter((m) => m.rental_id === r.id && m.recipient_id === user.id && !m.read)
+        .map((m) => m.id);
+      if (unreadIds.length) {
+        supabase.from("messages").update({ read: true }).in("id", unreadIds).then(() => {
+          setRentalMessages((prev) => prev.map((m) => unreadIds.includes(m.id) ? { ...m, read: true } : m));
+        });
+      }
+    }
+  };
+
+  const sendReply = async () => {
+    if (!user || !manageRental || !activeThreadUserId || !replyBody.trim()) return;
+    setSendingReply(true);
+    const { data, error } = await supabase.from("messages").insert({
+      sender_id: user.id,
+      recipient_id: activeThreadUserId,
+      subject: `Re: ${manageRental.title}`,
+      body: replyBody.trim(),
+      rental_id: manageRental.id,
+    } as any).select().single();
+    if (error) {
+      toast({ title: "Could not send", description: error.message, variant: "destructive" });
+    } else {
+      setRentalMessages((prev) => [...prev, data as any]);
+      setReplyBody("");
+    }
+    setSendingReply(false);
+  };
 
   const renderPrices = (r: Rental) => (
     <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3">
@@ -405,6 +454,7 @@ export default function EquipmentRentals() {
       {r.price_week ? <span>${r.price_week}/wk</span> : null}
     </div>
   );
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
