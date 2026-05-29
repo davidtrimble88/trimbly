@@ -534,7 +534,6 @@ const Dashboard = () => {
                 <span className="text-sm font-normal text-muted-foreground">({jobStats.total})</span>
               </h2>
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => navigate("/equipment")}>Rentals</Button>
                 <Button size="sm" variant="outline" onClick={() => navigate("/job-board")}>View Board</Button>
                 <Button size="sm" onClick={() => navigate("/post-job")}>
                   <Plus size={14} className="mr-1.5" /> Post Job
