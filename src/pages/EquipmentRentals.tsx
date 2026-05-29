@@ -586,7 +586,7 @@ Last updated: ${fmtTs(a.updated_at)}
               </TabsTrigger>
             )}
             <TabsTrigger value="agreements">
-              {isHomeowner ? "My rentals" : "Agreements"} <Badge variant="secondary" className="ml-2">{agreements.length}</Badge>
+              {isHomeowner ? "Agreement Archive" : "Agreements"} <Badge variant="secondary" className="ml-2">{agreements.length}</Badge>
             </TabsTrigger>
           </TabsList>
 
