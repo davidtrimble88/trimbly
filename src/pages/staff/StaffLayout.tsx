@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard, Inbox, Users, Briefcase, ShieldCheck, Megaphone, Send,
-  MessageSquareWarning, ShieldAlert, LogOut, Home, Search, Bug, UsersRound,
+  MessageSquareWarning, ShieldAlert, LogOut, Home, Search, Bug, UsersRound, BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
