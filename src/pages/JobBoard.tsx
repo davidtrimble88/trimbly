@@ -23,10 +23,11 @@ import { EmptyState } from "@/components/EmptyState";
 import { getJobEstimate, type JobEstimate } from "@/lib/api/jobEstimator";
 
 const categories = [
-  "All", "Plumbing", "Electrical", "HVAC", "Roofing", "Painting", "Carpentry",
+  "All", "General Contractor", "Plumbing", "Electrical", "HVAC", "Roofing", "Painting", "Carpentry",
   "Landscaping", "Cleaning", "Pest Control", "Appliance Repair",
   "Flooring", "Drywall", "Fencing", "General Handyman", "Other",
 ];
+
 
 type Job = {
   id: string;
