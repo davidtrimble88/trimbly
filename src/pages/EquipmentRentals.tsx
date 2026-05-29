@@ -56,8 +56,10 @@ type Rental = {
   max_rental_days: number;
   insurance_required: boolean;
   terms: string;
+  rentable_to: "pros_only" | "homeowners_and_pros";
   created_at: string;
 };
+
 
 type Agreement = {
   id: string;
@@ -106,7 +108,9 @@ const EMPTY_FORM: Partial<Rental> = {
   max_rental_days: 30,
   insurance_required: false,
   terms: "",
+  rentable_to: "pros_only",
 };
+
 
 export default function EquipmentRentals() {
   const { user, loading: authLoading } = useAuth();
@@ -115,8 +119,15 @@ export default function EquipmentRentals() {
 
   const [providerId, setProviderId] = useState<string | null>(null);
   const [providerLoading, setProviderLoading] = useState(true);
+  const [userType, setUserType] = useState<"homeowner" | "provider">("homeowner");
+  const [subscriptionTier, setSubscriptionTier] = useState<string>("free");
+  const isHomeowner = userType !== "provider";
+  const homeownerHasSubscription = subscriptionTier && subscriptionTier !== "free";
+  const canInteract = !isHomeowner || homeownerHasSubscription;
+
   const [rentals, setRentals] = useState<Rental[]>([]);
   const [myRentals, setMyRentals] = useState<Rental[]>([]);
+
   const [agreements, setAgreements] = useState<Agreement[]>([]);
   const [rentalTitles, setRentalTitles] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -166,15 +177,21 @@ export default function EquipmentRentals() {
   }, [authLoading, user, navigate]);
 
 
-  // Load provider
+  // Load provider + profile
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data } = await supabase.from("providers").select("id").eq("user_id", user.id).maybeSingle();
-      setProviderId(data?.id ?? null);
+      const [{ data: prov }, { data: prof }] = await Promise.all([
+        supabase.from("providers").select("id").eq("user_id", user.id).maybeSingle(),
+        supabase.from("profiles").select("user_type, subscription_tier").eq("id", user.id).maybeSingle(),
+      ]);
+      setProviderId(prov?.id ?? null);
+      setUserType((prof?.user_type as any) || "homeowner");
+      setSubscriptionTier(prof?.subscription_tier || "free");
       setProviderLoading(false);
     })();
   }, [user]);
+
 
   const loadAll = useCallback(async () => {
     if (!user) return;
@@ -266,6 +283,9 @@ Last updated: ${fmtTs(a.updated_at)}
   const filtered = useMemo(() => {
     return rentals.filter((r) => {
       if (user && r.owner_user_id === user.id) return false; // hide my own from browse
+      // Homeowners only see listings the owner has opened up to homeowners
+      if (isHomeowner && r.rentable_to !== "homeowners_and_pros") return false;
+
       if (q.trim()) {
         const t = q.trim().toLowerCase();
         if (!`${r.title} ${r.description} ${r.category}`.toLowerCase().includes(t)) return false;
@@ -282,7 +302,8 @@ Last updated: ${fmtTs(a.updated_at)}
       }
       return true;
     });
-  }, [rentals, q, filterCategory, filterLocation, filterMaxPrice, user]);
+  }, [rentals, q, filterCategory, filterLocation, filterMaxPrice, user, isHomeowner]);
+
 
   const openCreate = () => {
     setEditingId(null);
@@ -518,14 +539,20 @@ Last updated: ${fmtTs(a.updated_at)}
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2"><Wrench size={22} /> Equipment Marketplace</h1>
-            <p className="text-sm text-muted-foreground">Pro-to-pro tool & equipment rentals. Sign legally-binding agreements in app.</p>
+            <p className="text-sm text-muted-foreground">
+              {isHomeowner
+                ? "Rent tools and equipment directly from local service providers. Message, sign, and keep a copy of every agreement."
+                : "Pro-to-pro tool & equipment rentals. Sign legally-binding agreements in app."}
+            </p>
           </div>
-          <Button onClick={openCreate} disabled={!providerId && !providerLoading}>
-            <Plus size={16} className="mr-1" /> List equipment
-          </Button>
+          {!isHomeowner && (
+            <Button onClick={openCreate} disabled={!providerId && !providerLoading}>
+              <Plus size={16} className="mr-1" /> List equipment
+            </Button>
+          )}
         </div>
 
-        {!providerLoading && !providerId && (
+        {!isHomeowner && !providerLoading && !providerId && (
           <Card className="border-orange-500/40 bg-orange-500/5">
             <CardContent className="p-4 text-sm">
               You need a service provider profile to list equipment.{" "}
@@ -534,19 +561,35 @@ Last updated: ${fmtTs(a.updated_at)}
           </Card>
         )}
 
+        {isHomeowner && !homeownerHasSubscription && (
+          <Card className="border-orange-500/40 bg-orange-500/5">
+            <CardContent className="p-4 text-sm flex flex-wrap items-center justify-between gap-3">
+              <span>
+                Browsing is free — but messaging owners and signing rental agreements requires a Trimbly homeowner subscription.
+              </span>
+              <Button size="sm" onClick={() => navigate("/homeowner-upsell")}>Upgrade</Button>
+            </CardContent>
+          </Card>
+        )}
+
         <Tabs defaultValue="browse">
           <TabsList>
             <TabsTrigger value="browse">Browse <Badge variant="secondary" className="ml-2">{filtered.length}</Badge></TabsTrigger>
-            <TabsTrigger value="mine" className="relative">
-              My listings <Badge variant="secondary" className="ml-2">{myRentals.length}</Badge>
-              {totalUnreadOnMyListings > 0 && (
-                <span className="ml-2 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold animate-pulse">
-                  {totalUnreadOnMyListings}
-                </span>
-              )}
+            {!isHomeowner && (
+              <TabsTrigger value="mine" className="relative">
+                My listings <Badge variant="secondary" className="ml-2">{myRentals.length}</Badge>
+                {totalUnreadOnMyListings > 0 && (
+                  <span className="ml-2 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold animate-pulse">
+                    {totalUnreadOnMyListings}
+                  </span>
+                )}
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="agreements">
+              {isHomeowner ? "My rentals" : "Agreements"} <Badge variant="secondary" className="ml-2">{agreements.length}</Badge>
             </TabsTrigger>
-            <TabsTrigger value="agreements">Agreements <Badge variant="secondary" className="ml-2">{agreements.length}</Badge></TabsTrigger>
           </TabsList>
+
 
           {/* BROWSE */}
           <TabsContent value="browse" className="space-y-4">
@@ -822,11 +865,17 @@ Last updated: ${fmtTs(a.updated_at)}
 
                 <div>
                   <Label className="text-xs">Message the owner</Label>
-                  <Textarea value={messageBody} onChange={(e) => setMessageBody(e.target.value)} placeholder="Ask a question or propose a pickup time…" />
-                  <Button size="sm" className="mt-2" onClick={sendMessage} disabled={sendingMsg || !messageBody.trim()}>
-                    <MessageSquare size={14} className="mr-1" /> Send message
+                  <Textarea
+                    value={messageBody}
+                    onChange={(e) => setMessageBody(e.target.value)}
+                    placeholder={canInteract ? "Ask a question or propose a pickup time…" : "Upgrade your homeowner plan to message owners."}
+                    disabled={!canInteract}
+                  />
+                  <Button size="sm" className="mt-2" onClick={canInteract ? sendMessage : () => navigate("/homeowner-upsell")} disabled={canInteract && (sendingMsg || !messageBody.trim())}>
+                    <MessageSquare size={14} className="mr-1" /> {canInteract ? "Send message" : "Upgrade to message"}
                   </Button>
                 </div>
+
 
                 <p className="text-[11px] text-muted-foreground border-t border-border pt-2">
                   Trimbly is a venue only and is not a party to any rental agreement. Owner and Renter are solely responsible for the equipment, insurance, payment and compliance with local laws.
@@ -930,6 +979,38 @@ Last updated: ${fmtTs(a.updated_at)}
               <Textarea value={form.terms || ""} onChange={(e) => setForm({ ...form, terms: e.target.value })} placeholder="e.g. Returned cleaned. No use in saltwater. Fuel returned full." />
               <p className="text-xs text-muted-foreground mt-1">Our standard legal terms are appended automatically when an agreement is signed.</p>
             </div>
+            <div className="rounded-md border border-border p-3 space-y-2">
+              <Label className="text-sm font-semibold">Who can rent this?</Label>
+              <div className="space-y-2 text-sm">
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="rentable_to"
+                    className="mt-1"
+                    checked={(form.rentable_to || "pros_only") === "pros_only"}
+                    onChange={() => setForm({ ...form, rentable_to: "pros_only" })}
+                  />
+                  <span>
+                    <span className="font-medium">Service providers only</span>
+                    <span className="block text-xs text-muted-foreground">Only verified pros on Trimbly can see and request this item.</span>
+                  </span>
+                </label>
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="rentable_to"
+                    className="mt-1"
+                    checked={form.rentable_to === "homeowners_and_pros"}
+                    onChange={() => setForm({ ...form, rentable_to: "homeowners_and_pros" })}
+                  />
+                  <span>
+                    <span className="font-medium">Service providers & subscribed homeowners</span>
+                    <span className="block text-xs text-muted-foreground">Also visible to homeowners with a paid Trimbly subscription.</span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
             <label className="flex items-center gap-2 text-sm">
               <Checkbox checked={!!form.insurance_required} onCheckedChange={(v) => setForm({ ...form, insurance_required: v === true })} />
               Renter must confirm insurance coverage
