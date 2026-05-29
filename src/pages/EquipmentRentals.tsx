@@ -734,8 +734,6 @@ export default function EquipmentRentals() {
                       </Card>
                     );
                   })}
-                    );
-                  })}
 
                 <p className="text-[11px] text-muted-foreground text-center pt-2">
                   All signed agreements are permanently stored. Click any record to view the full terms, signatures, and print a copy for your files.
