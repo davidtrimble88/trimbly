@@ -1,4 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { rateLimit, rateLimitResponse, getClientKey } from "../_shared/rateLimit.ts";
+import { readJson, requireArray, optionalString, validationErrorResponse } from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,10 +11,31 @@ const corsHeaders = {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  const rl = rateLimit(`coverage-chat:${getClientKey(req)}`, { limit: 20, windowMs: 60_000 });
+  if (!rl.ok) return rateLimitResponse(rl, corsHeaders);
+
+  let messages: Array<{ role: string; content: string }>;
+  let documentContents: string | undefined;
   try {
-    const { messages, documentContents } = await req.json();
+    const body = await readJson(req, 256 * 1024);
+    messages = requireArray(body.messages, "messages", { min: 1, max: 50 });
+    for (const m of messages) {
+      if (!m || typeof m !== "object") throw new Error("invalid message");
+      if (typeof (m as any).role !== "string" || typeof (m as any).content !== "string") {
+        throw new Error("invalid message");
+      }
+      if ((m as any).content.length > 8000) throw new Error("message too long");
+    }
+    documentContents = optionalString(body.documentContents, "documentContents", { max: 200_000 });
+  } catch (e) {
+    return validationErrorResponse(e, corsHeaders);
+  }
+
+  try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+
 
     const systemPrompt = `You are an expert insurance and home warranty advisor. The user has uploaded their coverage documents. Use the document contents provided below to answer their questions accurately.
 

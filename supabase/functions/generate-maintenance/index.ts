@@ -1,4 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { rateLimit, rateLimitResponse, getClientKey } from "../_shared/rateLimit.ts";
+import { readJson, validationErrorResponse, ValidationError } from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,15 +12,26 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const { home } = await req.json();
+  const rl = rateLimit(`generate-maintenance:${getClientKey(req)}`, { limit: 5, windowMs: 60_000 });
+  if (!rl.ok) return rateLimitResponse(rl, corsHeaders);
 
-    if (!home) {
-      return new Response(
-        JSON.stringify({ error: "Home profile is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+  let home: Record<string, unknown>;
+  try {
+    const body = await readJson(req, 16 * 1024);
+    if (!body.home || typeof body.home !== "object" || Array.isArray(body.home)) {
+      throw new ValidationError("Home profile is required");
     }
+    home = body.home as Record<string, unknown>;
+    // Cap free-form notes
+    if (typeof home.notes === "string" && home.notes.length > 2000) {
+      home.notes = (home.notes as string).slice(0, 2000);
+    }
+  } catch (e) {
+    return validationErrorResponse(e, corsHeaders);
+  }
+
+  try {
+
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {

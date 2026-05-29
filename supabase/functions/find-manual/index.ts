@@ -8,9 +8,27 @@ interface ManualResult {
   source: string;
 }
 
+import { rateLimit, rateLimitResponse, getClientKey } from "../_shared/rateLimit.ts";
+import { readJson, requireString, optionalString, validationErrorResponse } from "../_shared/validation.ts";
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  const rl = rateLimit(`find-manual:${getClientKey(req)}`, { limit: 10, windowMs: 60_000 });
+  if (!rl.ok) return rateLimitResponse(rl, corsHeaders);
+
+  let brand: string;
+  let model: string;
+  let productType: string | undefined;
+  try {
+    const body = await readJson(req, 8 * 1024);
+    brand = requireString(body.brand, "brand", { min: 1, max: 100 });
+    model = requireString(body.model, "model", { min: 1, max: 100 });
+    productType = optionalString(body.productType, "productType", { max: 100 });
+  } catch (e) {
+    return validationErrorResponse(e, corsHeaders);
   }
 
   try {
@@ -19,17 +37,7 @@ Deno.serve(async (req) => {
       throw new Error("FIRECRAWL_API_KEY is not configured");
     }
 
-    const body = await req.json().catch(() => ({}));
-    const brand = String(body?.brand ?? "").trim();
-    const model = String(body?.model ?? "").trim();
-    const productType = String(body?.productType ?? "").trim();
 
-    if (!brand || !model) {
-      return new Response(
-        JSON.stringify({ error: "Brand and model are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
 
     const queryParts = [brand, model, productType, "user manual filetype:pdf"].filter(Boolean);
     const query = queryParts.join(" ");
