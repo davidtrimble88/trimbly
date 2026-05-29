@@ -210,22 +210,26 @@ const Tax = () => {
       };
     }
     if (entityType === "llc") {
-      // Single-member LLC by default — same federal treatment as sole prop.
+      // Single-member LLC by default — disregarded entity for federal income tax.
+      // CA: NOT subject to the corporate franchise tax (8.84%). Instead pays the
+      // R&TC §17941 "Annual LLC Tax" ($800/yr, Form 3522) + R&TC §17942 gross-
+      // receipts fee (Form 3536) tiered on total California source income.
       const federalEntity = 0;
       const llcFee = caLlcGrossReceiptsFee(grossRevenue);
-      const stateEntity = CA_MIN_FRANCHISE_TAX + llcFee;
+      const stateEntity = CA_MIN_FRANCHISE_TAX + llcFee; // $800 annual + tier fee
       const individualFed = progressive(netIncome, FED_INDIV_BRACKETS_SINGLE);
       const individualCa = progressive(netIncome, CA_INDIV_BRACKETS_SINGLE);
       const seTax = selfEmploymentTax(netIncome);
       return {
         federal: federalEntity, stateTax: stateEntity, seTax, individualFed, individualCa,
         notes: [
-          "Single-member LLC — federal flows to owner as Schedule C.",
-          `CA: $800 franchise tax + gross-receipts fee tier (${fmtUSD(llcFee)}).`,
+          "LLC is a pass-through — no federal corporate income tax. Profit flows to the owner's 1040 Schedule C.",
+          "CA does NOT charge the 8.84% corporate franchise tax on LLCs. Instead, every CA LLC owes the $800 Annual LLC Tax (R&TC §17941, Form 3522) regardless of income or activity.",
+          `On top of that, CA charges the §17942 LLC Fee tiered on gross receipts (Form 3536): currently ${fmtUSD(llcFee)} at ${fmtUSD(grossRevenue)} of revenue.`,
+          "Owner pays self-employment tax (15.3%) + federal & CA individual income tax on net profit.",
         ],
       };
     }
-    // sole prop
     const individualFed = progressive(netIncome, FED_INDIV_BRACKETS_SINGLE);
     const individualCa = progressive(netIncome, CA_INDIV_BRACKETS_SINGLE);
     const seTax = selfEmploymentTax(netIncome);
