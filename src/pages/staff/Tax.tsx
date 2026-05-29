@@ -318,7 +318,8 @@ const Tax = () => {
         "Owner pays individual federal + CA income tax on net profit.",
       ],
     };
-  }, [entityType, netIncome, salary, grossRevenue]);
+  }, [entityType, netIncome, salary, grossRevenue, trustOwnership, trusteeCount]);
+
 
   const totalTax = estimate.federal + estimate.stateTax + estimate.seTax + estimate.individualFed + estimate.individualCa + laBusinessTax;
   const effectiveRate = grossRevenue > 0 ? totalTax / grossRevenue : 0;
