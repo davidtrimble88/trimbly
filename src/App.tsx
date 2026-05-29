@@ -47,6 +47,7 @@ const StaffBroadcasts = lazy(() => import("./pages/staff/Broadcasts"));
 const StaffSearches = lazy(() => import("./pages/staff/Searches"));
 const StaffErrors = lazy(() => import("./pages/staff/Errors"));
 const StaffTeam = lazy(() => import("./pages/staff/Team"));
+const StaffAnalytics = lazy(() => import("./pages/staff/Analytics"));
 const PortalChoice = lazy(() => import("./pages/PortalChoice"));
 const Help = lazy(() => import("./pages/Help"));
 const ManualSearch = lazy(() => import("./pages/ManualSearch"));
