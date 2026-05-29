@@ -13,8 +13,6 @@ const homeownerTiers = [
     period: "",
     description: "Get started with basic home management",
     features: [
-      "1 home profile",
-      "Search & browse local pros",
     features: [
       "1 home profile",
       "Search & browse local pros",
