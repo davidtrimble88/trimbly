@@ -279,8 +279,9 @@ export default function RentalAgreementDialog({
           <DialogDescription>
             {agreement ? (
               <Badge variant="outline" className="mt-1">Status: {agreement.status}</Badge>
-            ) : "Fill in the rental period to send a signed agreement to the owner."}
+            ) : "Fill in the rental period to send a signed agreement to the renter."}
           </DialogDescription>
+
         </DialogHeader>
 
         <div className="space-y-4">
