@@ -270,6 +270,43 @@ export default function RentalAgreementDialog({
     onSaved?.();
   };
 
+  const printAgreement = () => {
+    const body = agreement?.terms_snapshot
+      || `${customTerms.trim() || "(No custom terms provided by owner)"}\n\n${LEGAL_BOILERPLATE}`;
+    const header = `Equipment Rental Agreement\n${rental?.title || ""}\n${startDate} → ${endDate}\nRate: $${rateAmount.toFixed(2)} / ${rateBasis} × ${quantity}\nSubtotal: $${subtotal.toFixed(2)}  Deposit: $${deposit.toFixed(2)}  Total: $${total.toFixed(2)} ${currency}\n\n`;
+    const ownerSig = agreement?.owner_signature ? `Owner: ${agreement.owner_signature} (${agreement.owner_signed_at ? new Date(agreement.owner_signed_at).toLocaleString() : ""})` : "Owner: __________________________";
+    const renterSig = agreement?.renter_signature ? `Renter: ${agreement.renter_signature} (${agreement.renter_signed_at ? new Date(agreement.renter_signed_at).toLocaleString() : ""})` : "Renter: __________________________";
+    const escaped = (header + body).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
+    const html = `<!doctype html><html><head><title>Rental Agreement</title><style>body{font-family:ui-sans-serif,system-ui,sans-serif;padding:32px;max-width:780px;margin:auto;color:#111}h1{font-size:18px;margin:0 0 12px}pre{white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:12px;line-height:1.5}.sig{margin-top:32px;display:flex;justify-content:space-between;font-size:12px}</style></head><body><h1>Equipment Rental Agreement</h1><pre>${escaped}</pre><div class="sig"><div>${ownerSig}</div><div>${renterSig}</div></div><script>window.onload=()=>window.print()</script></body></html>`;
+    const w = window.open("", "_blank");
+    if (!w) {
+      toast({ title: "Pop-up blocked", description: "Allow pop-ups to print.", variant: "destructive" });
+      return;
+    }
+    w.document.write(html);
+    w.document.close();
+  };
+
+  const resendAgreement = async () => {
+    if (!user || !agreement || !rental) return;
+    if (user.id !== agreement.owner_user_id) return;
+    setSaving(true);
+    const { error } = await supabase.from("messages").insert({
+      sender_id: user.id,
+      recipient_id: agreement.renter_user_id,
+      subject: `Rental agreement: ${rental.title}`,
+      body: `Reminder: rental agreement for "${rental.title}" from ${agreement.start_date} to ${agreement.end_date}. Please review and sign in the Equipment Marketplace.`,
+      rental_id: rental.id,
+    } as any);
+    setSaving(false);
+    if (error) {
+      toast({ title: "Could not send", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Agreement re-sent to renter" });
+  };
+
+
 
   if (!rental && !agreement) return null;
 
@@ -407,8 +444,13 @@ export default function RentalAgreementDialog({
           )}
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2 flex-wrap">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          <Button variant="outline" onClick={printAgreement}>Print / Save PDF</Button>
+          {agreement && isOwner && agreement.status !== "declined" && (
+            <Button variant="outline" onClick={resendAgreement} disabled={saving}>Re-send to renter</Button>
+          )}
+
           {!agreement && isOwner && (
             <Button onClick={createAgreement} disabled={saving}>
               {saving && <Loader2 size={14} className="animate-spin mr-1" />} Sign & send to renter
