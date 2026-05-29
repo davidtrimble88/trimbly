@@ -367,8 +367,8 @@ export default function RentalAgreementDialog({
             </div>
           )}
 
-          {/* Signature line: shown to creator (renter) and to owner when reviewing */}
-          {((!agreement && isRenter) || (agreement && isOwner && !agreement.owner_signature && agreement.status === "sent")) && (
+          {/* Signature line: shown to owner when creating, or to renter when accepting */}
+          {((!agreement && isOwner) || (agreement && isRenter && !agreement.renter_signature && agreement.status === "sent")) && (
             <div>
               <Label>Type your full legal name to e-sign</Label>
               <Input value={signature} onChange={(e) => setSignature(e.target.value)} placeholder="Your full legal name" />
@@ -378,19 +378,21 @@ export default function RentalAgreementDialog({
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
-          {!agreement && (
+          {!agreement && isOwner && (
             <Button onClick={createAgreement} disabled={saving}>
-              {saving && <Loader2 size={14} className="animate-spin mr-1" />} Sign & send to owner
+              {saving && <Loader2 size={14} className="animate-spin mr-1" />} Sign & send to renter
             </Button>
           )}
-          {agreement && isOwner && agreement.status === "sent" && !agreement.owner_signature && (
+          {agreement && isRenter && agreement.status === "sent" && !agreement.renter_signature && (
             <>
               <Button variant="destructive" onClick={decline} disabled={saving}>Decline</Button>
-              <Button onClick={ownerSign} disabled={saving}>
+              <Button onClick={renterAccept} disabled={saving}>
                 {saving && <Loader2 size={14} className="animate-spin mr-1" />} Sign & accept
               </Button>
             </>
           )}
+        </DialogFooter>
+
         </DialogFooter>
       </DialogContent>
     </Dialog>
