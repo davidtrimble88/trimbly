@@ -8,24 +8,37 @@ import { supabase } from "@/integrations/supabase/client";
 import NotificationPreferencesDialog from "@/components/NotificationPreferencesDialog";
 import { Bell } from "lucide-react";
 
+const USER_TYPE_CACHE_KEY = "trimbly:userType";
+
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, profileName, signOut } = useAuth();
   const { subscriptionTier, isPro } = useHomeLimit();
-  const [userType, setUserType] = useState<string>("homeowner");
+  const [userType, setUserType] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem(USER_TYPE_CACHE_KEY);
+  });
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (!user) { setUserType("homeowner"); setIsAdmin(false); return; }
+    if (!user) {
+      setUserType(null);
+      setIsAdmin(false);
+      try { localStorage.removeItem(USER_TYPE_CACHE_KEY); } catch {}
+      return;
+    }
     supabase.from("profiles").select("user_type").eq("id", user.id).maybeSingle().then(({ data }) => {
-      setUserType(data?.user_type || "homeowner");
+      const t = data?.user_type || "homeowner";
+      setUserType(t);
+      try { localStorage.setItem(USER_TYPE_CACHE_KEY, t); } catch {}
     });
     supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle().then(({ data }) => {
       setIsAdmin(!!data);
     });
   }, [user]);
+
 
   const inStaffPortal = location.pathname.startsWith("/staff");
 
