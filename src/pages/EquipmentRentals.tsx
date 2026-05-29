@@ -272,7 +272,36 @@ export default function EquipmentRentals() {
     setSendingMsg(false);
   };
 
-  const openAgreementCreate = (r: Rental) => {
+  // Owner picks a renter (from people who have messaged about this rental) before sending an agreement
+  const openRenterPicker = async (r: Rental) => {
+    if (!user) return;
+    setRenterPickerRental(r);
+    setRenterPickerOpen(true);
+    setRenterPickerLoading(true);
+    setRenterCandidates([]);
+    const { data: msgs } = await supabase
+      .from("messages")
+      .select("sender_id")
+      .eq("rental_id", r.id)
+      .eq("recipient_id", user.id);
+    const ids = Array.from(new Set((msgs || []).map((m: any) => m.sender_id).filter((id: string) => id !== user.id)));
+    if (ids.length) {
+      const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+      setRenterCandidates(
+        ids.map((id) => ({
+          id,
+          name: (profs || []).find((p: any) => p.id === id)?.full_name || "Unknown pro",
+        }))
+      );
+    }
+    setRenterPickerLoading(false);
+  };
+
+  const startAgreementForRenter = async (renterId: string) => {
+    if (!renterPickerRental) return;
+    const r = renterPickerRental;
+    // Find renter's provider id (optional)
+    const { data: prov } = await supabase.from("providers").select("id").eq("user_id", renterId).maybeSingle();
     setAgreementRental({
       id: r.id,
       title: r.title,
@@ -286,7 +315,9 @@ export default function EquipmentRentals() {
       terms: r.terms,
       insurance_required: r.insurance_required,
     });
+    setAgreementRenterId(renterId);
     setViewingAgreement(null);
+    setRenterPickerOpen(false);
     setAgreementDialogOpen(true);
   };
 
@@ -318,9 +349,11 @@ export default function EquipmentRentals() {
       }
     }
     setAgreementRental(rentalForAg);
+    setAgreementRenterId(null);
     setViewingAgreement(a);
     setAgreementDialogOpen(true);
   };
+
 
   const renderPrices = (r: Rental) => (
     <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3">
