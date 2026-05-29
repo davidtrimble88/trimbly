@@ -461,8 +461,12 @@ export default function EquipmentRentals() {
                         <span>Available</span>
                         <Switch checked={r.available} onCheckedChange={() => toggleAvailable(r)} />
                       </div>
+                      <Button size="sm" variant="secondary" onClick={() => openRenterPicker(r)}>
+                        <FileSignature size={14} className="mr-1" /> Send agreement
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => openEdit(r)}><Pencil size={14} /></Button>
                       <Button size="sm" variant="ghost" onClick={() => deleteRental(r)}><Trash2 size={14} /></Button>
+
                     </div>
                   </CardContent>
                 </Card>
