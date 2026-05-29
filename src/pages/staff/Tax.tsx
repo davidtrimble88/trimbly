@@ -571,11 +571,43 @@ const Tax = () => {
               <SelectContent>
                 <SelectItem value="c_corp">C-Corporation</SelectItem>
                 <SelectItem value="s_corp">S-Corporation</SelectItem>
-                <SelectItem value="llc">LLC (single-member)</SelectItem>
+                <SelectItem value="llc">LLC (single-member or trust-owned)</SelectItem>
                 <SelectItem value="sole_prop">Sole Proprietor</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          {entityType === "llc" && (
+            <>
+              <div>
+                <Label>Trust ownership</Label>
+                <Select value={trustOwnership} onValueChange={(v) => setTrustOwnership(v as TrustOwnership)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Owned directly (no trust)</SelectItem>
+                    <SelectItem value="single_grantor">Single-grantor revocable trust</SelectItem>
+                    <SelectItem value="married_cp">Joint spousal trust (CA community property)</SelectItem>
+                    <SelectItem value="multi_grantor_partnership">Trust with 2+ non-spouse grantors (partnership)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tax follows the trust's grantors, not its trustees.
+                </p>
+              </div>
+              <div>
+                <Label># of trustees (informational)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={trusteeCount}
+                  onChange={(e) => setTrusteeCount(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Trustees manage the trust but don't change tax treatment.
+                </p>
+              </div>
+            </>
+          )}
+
           <div>
             <Label>Annual revenue override</Label>
             <Input
