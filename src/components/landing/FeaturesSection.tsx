@@ -133,7 +133,6 @@ const proFeatures = [
     description: "AI drafts professional replies to homeowner messages — clear, polite, and ready to send in one tap.",
   },
   {
-  {
     icon: Hammer,
     title: "Rent Out Your Equipment",
     description: "List tools and equipment for other pros (and subscribed homeowners) to rent. ESIGN/UETA-compliant digital agreements, audit trail, and signed-contract archive included.",
