@@ -225,6 +225,44 @@ export default function EquipmentRentals() {
 
   useEffect(() => { if (user) loadAll(); }, [user, loadAll]);
 
+  const printAgreementRecord = useCallback((a: Agreement) => {
+    const title = rentalTitles[a.rental_id] || "Equipment rental";
+    const ownerName = partyNames[a.owner_user_id] || "Owner";
+    const renterName = partyNames[a.renter_user_id] || "Renter";
+    const fmtTs = (s: string | null | undefined) => s ? new Date(s).toLocaleString() : "—";
+    const header =
+`Equipment Rental Agreement
+Item: ${title}
+Owner: ${ownerName}
+Renter: ${renterName}
+Period: ${a.start_date} → ${a.end_date}
+Rate: $${Number(a.rate_amount).toFixed(2)} / ${a.rate_basis} × ${a.quantity}
+Subtotal: $${Number(a.subtotal).toFixed(2)}  Deposit: $${Number(a.deposit).toFixed(2)}  Total: $${Number(a.total).toFixed(2)} ${a.currency}
+Status: ${a.status.toUpperCase()}
+Created: ${fmtTs(a.created_at)}
+Last updated: ${fmtTs(a.updated_at)}
+
+`;
+    const body = a.terms_snapshot || "(No terms recorded)";
+    const ownerSig = a.owner_signature
+      ? `Owner: ${a.owner_signature}  (signed ${fmtTs(a.owner_signed_at)})`
+      : "Owner: __________________________  (unsigned)";
+    const renterSig = a.renter_signature
+      ? `Renter: ${a.renter_signature}  (signed ${fmtTs(a.renter_signed_at)})`
+      : "Renter: __________________________  (unsigned)";
+    const hashLine = a.terms_hash ? `\n\nDocument integrity (SHA-256): ${a.terms_hash}` : "";
+    const escaped = (header + body + hashLine).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
+    const html = `<!doctype html><html><head><title>Rental Agreement — ${title}</title><style>body{font-family:ui-sans-serif,system-ui,sans-serif;padding:32px;max-width:780px;margin:auto;color:#111}h1{font-size:18px;margin:0 0 12px}pre{white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:11px;line-height:1.5}.sig{margin-top:32px;display:flex;justify-content:space-between;gap:24px;font-size:12px}.foot{margin-top:24px;font-size:10px;color:#555;border-top:1px solid #ccc;padding-top:8px}</style></head><body><h1>Equipment Rental Agreement</h1><pre>${escaped}</pre><div class="sig"><div>${ownerSig}</div><div>${renterSig}</div></div><div class="foot">Printed ${new Date().toLocaleString()}. This document was electronically signed under the U.S. ESIGN Act (15 U.S.C. § 7001) and UETA.</div><script>window.onload=()=>window.print()</script></body></html>`;
+    const w = window.open("", "_blank");
+    if (!w) {
+      toast({ title: "Pop-up blocked", description: "Allow pop-ups to print.", variant: "destructive" });
+      return;
+    }
+    w.document.write(html);
+    w.document.close();
+  }, [rentalTitles, partyNames, toast]);
+
+
   const filtered = useMemo(() => {
     return rentals.filter((r) => {
       if (user && r.owner_user_id === user.id) return false; // hide my own from browse
