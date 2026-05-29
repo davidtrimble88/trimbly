@@ -488,7 +488,14 @@ export default function EquipmentRentals() {
         <Tabs defaultValue="browse">
           <TabsList>
             <TabsTrigger value="browse">Browse <Badge variant="secondary" className="ml-2">{filtered.length}</Badge></TabsTrigger>
-            <TabsTrigger value="mine">My listings <Badge variant="secondary" className="ml-2">{myRentals.length}</Badge></TabsTrigger>
+            <TabsTrigger value="mine" className="relative">
+              My listings <Badge variant="secondary" className="ml-2">{myRentals.length}</Badge>
+              {totalUnreadOnMyListings > 0 && (
+                <span className="ml-2 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold animate-pulse">
+                  {totalUnreadOnMyListings}
+                </span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="agreements">Agreements <Badge variant="secondary" className="ml-2">{agreements.length}</Badge></TabsTrigger>
           </TabsList>
 
