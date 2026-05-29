@@ -211,6 +211,8 @@ const Messages = () => {
         providerId: m.provider_id || existing?.providerId || null,
         providerTier: providerTiers[partnerId] || existing?.providerTier || null,
         chatStatus: isBlocked ? "blocked" : "active",
+        kind: (m.rental_id || existing?.kind === "rental") ? "rental" : "service",
+
       });
     });
     return [...map.values()];
