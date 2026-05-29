@@ -258,13 +258,26 @@ export default function RentalAgreementDialog({
     setSaving(true);
     await supabase.from("rental_agreements").update({ status: "declined" }).eq("id", agreement.id);
     await supabase.from("messages").insert({
+      sender_id: user.id,
+      recipient_id: agreement.owner_user_id,
+      subject: `Rental agreement declined`,
+      body: `The renter has declined the rental agreement.`,
+      rental_id: agreement.rental_id,
+    } as any);
+    toast({ title: "Declined" });
+    setSaving(false);
+    onOpenChange(false);
+    onSaved?.();
+  };
+
   const printAgreement = () => {
     const body = agreement?.terms_snapshot
       || `${customTerms.trim() || "(No custom terms provided by owner)"}\n\n${LEGAL_BOILERPLATE}`;
     const header = `Equipment Rental Agreement\n${rental?.title || ""}\n${startDate} → ${endDate}\nRate: $${rateAmount.toFixed(2)} / ${rateBasis} × ${quantity}\nSubtotal: $${subtotal.toFixed(2)}  Deposit: $${deposit.toFixed(2)}  Total: $${total.toFixed(2)} ${currency}\n\n`;
     const ownerSig = agreement?.owner_signature ? `Owner: ${agreement.owner_signature} (${agreement.owner_signed_at ? new Date(agreement.owner_signed_at).toLocaleString() : ""})` : "Owner: __________________________";
     const renterSig = agreement?.renter_signature ? `Renter: ${agreement.renter_signature} (${agreement.renter_signed_at ? new Date(agreement.renter_signed_at).toLocaleString() : ""})` : "Renter: __________________________";
-    const html = `<!doctype html><html><head><title>Rental Agreement</title><style>body{font-family:ui-sans-serif,system-ui,sans-serif;padding:32px;max-width:780px;margin:auto;color:#111}h1{font-size:18px;margin:0 0 12px}pre{white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:12px;line-height:1.5}.sig{margin-top:32px;display:flex;justify-content:space-between;font-size:12px}</style></head><body><h1>Equipment Rental Agreement</h1><pre>${(header + body).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c] as string))}</pre><div class="sig"><div>${ownerSig}</div><div>${renterSig}</div></div><script>window.onload=()=>window.print()</script></body></html>`;
+    const escaped = (header + body).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
+    const html = `<!doctype html><html><head><title>Rental Agreement</title><style>body{font-family:ui-sans-serif,system-ui,sans-serif;padding:32px;max-width:780px;margin:auto;color:#111}h1{font-size:18px;margin:0 0 12px}pre{white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:12px;line-height:1.5}.sig{margin-top:32px;display:flex;justify-content:space-between;font-size:12px}</style></head><body><h1>Equipment Rental Agreement</h1><pre>${escaped}</pre><div class="sig"><div>${ownerSig}</div><div>${renterSig}</div></div><script>window.onload=()=>window.print()</script></body></html>`;
     const w = window.open("", "_blank");
     if (!w) {
       toast({ title: "Pop-up blocked", description: "Allow pop-ups to print.", variant: "destructive" });
@@ -293,15 +306,6 @@ export default function RentalAgreementDialog({
     toast({ title: "Agreement re-sent to renter" });
   };
 
-
-      body: `The renter has declined the rental agreement.`,
-      rental_id: agreement.rental_id,
-    } as any);
-    toast({ title: "Declined" });
-    setSaving(false);
-    onOpenChange(false);
-    onSaved?.();
-  };
 
 
   if (!rental && !agreement) return null;
