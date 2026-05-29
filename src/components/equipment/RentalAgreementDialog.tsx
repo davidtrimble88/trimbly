@@ -68,22 +68,6 @@ const LEGAL_BOILERPLATE = `LEGAL TERMS — EQUIPMENT RENTAL AGREEMENT
 
 By typing your full legal name as a signature below, both parties agree to be electronically bound to these terms.`;
 
-export default function RentalAgreementDialog({
-  open,
-  onOpenChange,
-  rental,
-  existingAgreement,
-  mode,
-  renterUserId,
-  renterProviderId,
-  onSaved,
-}: {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  rental: RentalForAgreement | null;
-  existingAgreement?: Agreement | null;
-By typing your full legal name as a signature below, both parties agree to be electronically bound to these terms.`;
-
 const ESIGN_DISCLOSURE = `ELECTRONIC RECORDS AND SIGNATURES DISCLOSURE (ESIGN Act / UETA)
 
 By checking the consent box and typing your full legal name below, you agree that:
@@ -125,10 +109,27 @@ type AuditRow = {
   created_at: string;
 };
 
+export default function RentalAgreementDialog({
+  open,
+  onOpenChange,
+  rental,
+  existingAgreement,
+  mode,
+  renterUserId,
+  renterProviderId,
+  onSaved,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  rental: RentalForAgreement | null;
+  existingAgreement?: Agreement | null;
+  mode: "create" | "view";
+  /** Required when owner is creating a new agreement to send to a specific renter */
   renterUserId?: string;
   renterProviderId?: string | null;
   onSaved?: () => void;
 }) {
+
 
   const { user } = useAuth();
   const { toast } = useToast();
