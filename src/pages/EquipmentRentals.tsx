@@ -574,10 +574,16 @@ Last updated: ${fmtTs(a.updated_at)}
 
         <Tabs
           defaultValue="browse"
-          onValueChange={() => {
-            // Scroll back to the top of the tabs area whenever the user switches tabs
-            // so long lists (My Listings, Agreements) don't drop them mid-page.
-            requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+          onValueChange={(val) => {
+            // Scroll the chosen tab's content under the fixed navbar (h-16 = 64px) so
+            // the heading isn't hidden behind it.
+            requestAnimationFrame(() => {
+              const NAV_OFFSET = 80; // 64px navbar + 16px breathing room
+              const el = document.querySelector(`[data-state="active"][data-orientation="horizontal"][role="tabpanel"]`)
+                || document.getElementById(`tabs-${val}`);
+              const y = (el?.getBoundingClientRect().top ?? 0) + window.scrollY - NAV_OFFSET;
+              window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+            });
           }}
         >
           <TabsList>
