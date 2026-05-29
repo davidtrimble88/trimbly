@@ -1,0 +1,1 @@
+UPDATE public.equipment_rentals SET rentable_to = 'homeowners_and_pros' WHERE rentable_to = 'pros_only';
