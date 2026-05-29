@@ -11,6 +11,7 @@ export const STAFF_ROLES: { value: StaffRole; label: string; description: string
 // Each nav key maps to the set of roles allowed to see and visit it.
 export const NAV_PERMISSIONS: Record<string, StaffRole[]> = {
   dashboard: ["admin", "moderator", "support", "analyst"],
+  analytics: ["admin", "analyst"],
   contacts: ["admin", "support"],
   users: ["admin", "support"],
   providers: ["admin", "moderator"],
