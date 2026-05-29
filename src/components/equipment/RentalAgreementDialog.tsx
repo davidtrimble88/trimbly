@@ -226,8 +226,14 @@ export default function RentalAgreementDialog({
       toast({ title: "Type your full legal name to sign", variant: "destructive" });
       return;
     }
+    if (!esignConsent) {
+      toast({ title: "ESIGN consent required", description: "Check the box agreeing to use electronic records and signatures.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     const termsSnapshot = `${customTerms.trim() || "(No custom terms provided by owner)"}\n\n${LEGAL_BOILERPLATE}`;
+    const termsHash = await sha256Hex(termsSnapshot);
+    const signedAt = new Date().toISOString();
 
     const { data, error } = await supabase
       .from("rental_agreements")
@@ -247,11 +253,13 @@ export default function RentalAgreementDialog({
         total,
         currency,
         terms_snapshot: termsSnapshot,
+        terms_hash: termsHash,
         insurance_acknowledged: false,
         status: "sent",
         owner_signature: signature.trim(),
-        owner_signed_at: new Date().toISOString(),
-      })
+        owner_signed_at: signedAt,
+        owner_esign_consent: true,
+      } as any)
       .select()
       .single();
     if (error) {
@@ -259,6 +267,22 @@ export default function RentalAgreementDialog({
       setSaving(false);
       return;
     }
+
+    // Write tamper-evident audit log entry for the owner's signing event
+    const ip = await fetchClientIp();
+    await supabase.from("agreement_audit_log" as any).insert({
+      agreement_id: (data as any).id,
+      user_id: user.id,
+      role: "owner",
+      event: "signed",
+      signature_name: signature.trim(),
+      email: user.email || null,
+      ip_address: ip,
+      user_agent: navigator.userAgent,
+      terms_hash: termsHash,
+      esign_consent: true,
+    });
+
     // Notify renter via in-app message
     await supabase.from("messages").insert({
       sender_id: user.id,
@@ -272,6 +296,7 @@ export default function RentalAgreementDialog({
     setSaving(false);
     onSaved?.();
   };
+
 
   // RENTER signs to accept the owner-created agreement.
   const renterAccept = async () => {
