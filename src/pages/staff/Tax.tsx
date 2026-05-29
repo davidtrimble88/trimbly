@@ -136,10 +136,20 @@ const Tax = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [entityType, setEntityType] = useState<EntityType>("llc");
+  // Trust ownership of the LLC. "none" = owned directly; other values = owned by a trust.
+  // - single_grantor: 1 grantor revocable trust → disregarded SMLLC (Schedule C, SE tax)
+  // - married_cp: joint revocable trust funded by spouses in CA community property → still
+  //   disregarded under Rev. Proc. 2002-69 (Schedule C, SE tax)
+  // - multi_grantor_partnership: trust with 2+ non-spouse grantors → multi-member LLC
+  //   defaults to partnership (Form 1065 + K-1s, no SE tax at entity, members pay SE on share)
+  type TrustOwnership = "none" | "single_grantor" | "married_cp" | "multi_grantor_partnership";
+  const [trustOwnership, setTrustOwnership] = useState<TrustOwnership>("multi_grantor_partnership");
+  const [trusteeCount, setTrusteeCount] = useState<string>("2");
   const [revenueOverride, setRevenueOverride] = useState<string>(""); // blank = use projected
   const [ownerSalary, setOwnerSalary] = useState<string>("0"); // for pass-through / S-corp
   const [writeOffs, setWriteOffs] = useState(DEFAULT_WRITE_OFFS);
   const [demoMode, setDemoMode] = useState(false);
+
 
   // ---------- Demo: 10k-subscriber mix (used when demoMode is on) ----------
   const DEMO_MIX = {
