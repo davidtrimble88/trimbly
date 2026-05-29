@@ -145,6 +145,15 @@ export default function EquipmentRentals() {
   const [renterCandidates, setRenterCandidates] = useState<{ id: string; name: string }[]>([]);
   const [renterPickerLoading, setRenterPickerLoading] = useState(false);
 
+  // Manage listing dialog (messages + agreements for one of my rentals)
+  const [manageRental, setManageRental] = useState<Rental | null>(null);
+  const [rentalMessages, setRentalMessages] = useState<RentalMessage[]>([]);
+  const [partyNames, setPartyNames] = useState<Record<string, string>>({});
+  const [activeThreadUserId, setActiveThreadUserId] = useState<string | null>(null);
+  const [replyBody, setReplyBody] = useState("");
+  const [sendingReply, setSendingReply] = useState(false);
+
+
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
