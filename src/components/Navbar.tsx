@@ -177,7 +177,7 @@ const Navbar = () => {
     </>
   );
 
-  const userMobileLinks = isProvider ? providerMobileLinks : homeownerMobileLinks;
+  const userMobileLinks = userType === null ? null : (isProvider ? providerMobileLinks : homeownerMobileLinks);
 
   const dashboardRoute = isProvider ? "/pro-dashboard" : "/dashboard";
 
