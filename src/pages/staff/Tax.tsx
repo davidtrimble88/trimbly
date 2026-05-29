@@ -134,7 +134,7 @@ const Tax = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [entityType, setEntityType] = useState<EntityType>("c_corp");
+  const [entityType, setEntityType] = useState<EntityType>("llc");
   const [revenueOverride, setRevenueOverride] = useState<string>(""); // blank = use projected
   const [ownerSalary, setOwnerSalary] = useState<string>("0"); // for pass-through / S-corp
   const [writeOffs, setWriteOffs] = useState(DEFAULT_WRITE_OFFS);
@@ -210,22 +210,26 @@ const Tax = () => {
       };
     }
     if (entityType === "llc") {
-      // Single-member LLC by default — same federal treatment as sole prop.
+      // Single-member LLC by default — disregarded entity for federal income tax.
+      // CA: NOT subject to the corporate franchise tax (8.84%). Instead pays the
+      // R&TC §17941 "Annual LLC Tax" ($800/yr, Form 3522) + R&TC §17942 gross-
+      // receipts fee (Form 3536) tiered on total California source income.
       const federalEntity = 0;
       const llcFee = caLlcGrossReceiptsFee(grossRevenue);
-      const stateEntity = CA_MIN_FRANCHISE_TAX + llcFee;
+      const stateEntity = CA_MIN_FRANCHISE_TAX + llcFee; // $800 annual + tier fee
       const individualFed = progressive(netIncome, FED_INDIV_BRACKETS_SINGLE);
       const individualCa = progressive(netIncome, CA_INDIV_BRACKETS_SINGLE);
       const seTax = selfEmploymentTax(netIncome);
       return {
         federal: federalEntity, stateTax: stateEntity, seTax, individualFed, individualCa,
         notes: [
-          "Single-member LLC — federal flows to owner as Schedule C.",
-          `CA: $800 franchise tax + gross-receipts fee tier (${fmtUSD(llcFee)}).`,
+          "LLC is a pass-through — no federal corporate income tax. Profit flows to the owner's 1040 Schedule C.",
+          "CA does NOT charge the 8.84% corporate franchise tax on LLCs. Instead, every CA LLC owes the $800 Annual LLC Tax (R&TC §17941, Form 3522) regardless of income or activity.",
+          `On top of that, CA charges the §17942 LLC Fee tiered on gross receipts (Form 3536): currently ${fmtUSD(llcFee)} at ${fmtUSD(grossRevenue)} of revenue.`,
+          "Owner pays self-employment tax (15.3%) + federal & CA individual income tax on net profit.",
         ],
       };
     }
-    // sole prop
     const individualFed = progressive(netIncome, FED_INDIV_BRACKETS_SINGLE);
     const individualCa = progressive(netIncome, CA_INDIV_BRACKETS_SINGLE);
     const seTax = selfEmploymentTax(netIncome);
@@ -334,7 +338,17 @@ const Tax = () => {
   function businessFees() {
     const llcFee = caLlcGrossReceiptsFee(grossRevenue);
     const rows = [
-      { name: "CA Franchise Tax — minimum", amount: CA_MIN_FRANCHISE_TAX, frequency: "Annual", due: "Apr 15", authority: "CA FTB" },
+      {
+        name: entityType === "llc"
+          ? "CA Annual LLC Tax (Form 3522)"
+          : entityType === "sole_prop"
+            ? "CA — no entity-level tax (sole prop)"
+            : "CA Franchise Tax — minimum",
+        amount: entityType === "sole_prop" ? 0 : CA_MIN_FRANCHISE_TAX,
+        frequency: "Annual",
+        due: entityType === "llc" ? "Apr 15 (1st year: 15th day of 4th month after formation)" : "Apr 15",
+        authority: "CA FTB",
+      },
       { name: "CA Statement of Information", amount: entityType === "c_corp" || entityType === "s_corp" ? 25 : 20, frequency: entityType.includes("corp") ? "Annual" : "Biennial", due: "Anniversary month", authority: "CA Secretary of State" },
       { name: "City of LA business tax registration", amount: laExempt ? 0 : laBusinessTax, frequency: "Annual", due: "Feb 28 (renewal)", authority: "LA Office of Finance" },
       { name: "LA Small Business Exemption filing", amount: 0, frequency: "Annual (if gross < $100k)", due: "Feb 28", authority: "LA Office of Finance" },
@@ -534,7 +548,19 @@ const Tax = () => {
                   <Row item="Federal corporate income tax (21%)" amount={estimate.federal} authority="IRS — Form 1120" />
                   <Row item="Federal individual income tax" amount={estimate.individualFed} authority="IRS — Form 1040" />
                   <Row item="Self-employment / FICA tax" amount={estimate.seTax} authority="IRS — Schedule SE / Form 941" />
-                  <Row item="CA franchise / corporate tax" amount={estimate.stateTax} authority="CA FTB" />
+                  <Row
+                    item={
+                      entityType === "llc"
+                        ? "CA Annual LLC Tax ($800) + LLC Fee tier"
+                        : entityType === "s_corp"
+                          ? "CA S-Corp tax (1.5% / $800 min)"
+                          : entityType === "sole_prop"
+                            ? "CA entity-level tax (none — sole prop)"
+                            : "CA corporate franchise tax (8.84% / $800 min)"
+                    }
+                    amount={estimate.stateTax}
+                    authority="CA FTB"
+                  />
                   <Row item="CA individual income tax (pass-through)" amount={estimate.individualCa} authority="CA FTB — Form 540" />
                   <Row item={`City of LA business tax${laExempt ? " (exempt)" : ""}`} amount={laBusinessTax} authority="LA Office of Finance — LAMC §21.49" />
                   <TableRow className="font-bold border-t-2">
