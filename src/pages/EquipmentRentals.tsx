@@ -18,7 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState } from "@/components/EmptyState";
 import JobPhotoUploader from "@/components/JobPhotoUploader";
 import RentalAgreementDialog, { RentalForAgreement } from "@/components/equipment/RentalAgreementDialog";
-import { Search, MapPin, DollarSign, Plus, MessageSquare, FileSignature, Wrench, Loader2, Trash2, Pencil, Send, Inbox } from "lucide-react";
+import { Search, MapPin, DollarSign, Plus, MessageSquare, FileSignature, Wrench, Loader2, Trash2, Pencil, Send, Inbox, Printer } from "lucide-react";
 import { format } from "date-fns";
 
 type RentalMessage = {
@@ -80,6 +80,9 @@ type Agreement = {
   renter_signature: string | null;
   owner_signed_at: string | null;
   renter_signed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  terms_hash?: string | null;
 };
 
 const CATEGORIES = ["General", "Power tools", "Heavy equipment", "Ladders & scaffolding", "Plumbing", "Electrical", "Landscaping", "Painting", "Concrete", "HVAC", "Cleaning", "Other"];
@@ -221,6 +224,44 @@ export default function EquipmentRentals() {
   }, [user]);
 
   useEffect(() => { if (user) loadAll(); }, [user, loadAll]);
+
+  const printAgreementRecord = useCallback((a: Agreement) => {
+    const title = rentalTitles[a.rental_id] || "Equipment rental";
+    const ownerName = partyNames[a.owner_user_id] || "Owner";
+    const renterName = partyNames[a.renter_user_id] || "Renter";
+    const fmtTs = (s: string | null | undefined) => s ? new Date(s).toLocaleString() : "—";
+    const header =
+`Equipment Rental Agreement
+Item: ${title}
+Owner: ${ownerName}
+Renter: ${renterName}
+Period: ${a.start_date} → ${a.end_date}
+Rate: $${Number(a.rate_amount).toFixed(2)} / ${a.rate_basis} × ${a.quantity}
+Subtotal: $${Number(a.subtotal).toFixed(2)}  Deposit: $${Number(a.deposit).toFixed(2)}  Total: $${Number(a.total).toFixed(2)} ${a.currency}
+Status: ${a.status.toUpperCase()}
+Created: ${fmtTs(a.created_at)}
+Last updated: ${fmtTs(a.updated_at)}
+
+`;
+    const body = a.terms_snapshot || "(No terms recorded)";
+    const ownerSig = a.owner_signature
+      ? `Owner: ${a.owner_signature}  (signed ${fmtTs(a.owner_signed_at)})`
+      : "Owner: __________________________  (unsigned)";
+    const renterSig = a.renter_signature
+      ? `Renter: ${a.renter_signature}  (signed ${fmtTs(a.renter_signed_at)})`
+      : "Renter: __________________________  (unsigned)";
+    const hashLine = a.terms_hash ? `\n\nDocument integrity (SHA-256): ${a.terms_hash}` : "";
+    const escaped = (header + body + hashLine).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
+    const html = `<!doctype html><html><head><title>Rental Agreement — ${title}</title><style>body{font-family:ui-sans-serif,system-ui,sans-serif;padding:32px;max-width:780px;margin:auto;color:#111}h1{font-size:18px;margin:0 0 12px}pre{white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:11px;line-height:1.5}.sig{margin-top:32px;display:flex;justify-content:space-between;gap:24px;font-size:12px}.foot{margin-top:24px;font-size:10px;color:#555;border-top:1px solid #ccc;padding-top:8px}</style></head><body><h1>Equipment Rental Agreement</h1><pre>${escaped}</pre><div class="sig"><div>${ownerSig}</div><div>${renterSig}</div></div><div class="foot">Printed ${new Date().toLocaleString()}. This document was electronically signed under the U.S. ESIGN Act (15 U.S.C. § 7001) and UETA.</div><script>window.onload=()=>window.print()</script></body></html>`;
+    const w = window.open("", "_blank");
+    if (!w) {
+      toast({ title: "Pop-up blocked", description: "Allow pop-ups to print.", variant: "destructive" });
+      return;
+    }
+    w.document.write(html);
+    w.document.close();
+  }, [rentalTitles, partyNames, toast]);
+
 
   const filtered = useMemo(() => {
     return rentals.filter((r) => {
@@ -707,12 +748,28 @@ export default function EquipmentRentals() {
 
                           <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground pt-1">
                             <span>
-                              Owner sig: {a.owner_signed_at ? <span className="text-foreground">✓ {format(new Date(a.owner_signed_at), "MMM d, yyyy")}</span> : <span className="text-orange-600">pending</span>}
+                              Owner sig: {a.owner_signed_at ? <span className="text-foreground">✓ {format(new Date(a.owner_signed_at), "MMM d, yyyy h:mm a")}</span> : <span className="text-orange-600">pending</span>}
                             </span>
                             <span>
-                              Renter sig: {a.renter_signed_at ? <span className="text-foreground">✓ {format(new Date(a.renter_signed_at), "MMM d, yyyy")}</span> : <span className="text-orange-600">pending</span>}
+                              Renter sig: {a.renter_signed_at ? <span className="text-foreground">✓ {format(new Date(a.renter_signed_at), "MMM d, yyyy h:mm a")}</span> : <span className="text-orange-600">pending</span>}
                             </span>
-                            {fullySigned && <span className="ml-auto text-primary font-medium">Fully executed</span>}
+                            {fullySigned && <span className="text-primary font-medium">Fully executed</span>}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-border/50 mt-1">
+                            <span className="text-[11px] text-muted-foreground">
+                              Created {format(new Date(a.created_at), "MMM d, yyyy h:mm a")}
+                              {a.updated_at && a.updated_at !== a.created_at && (
+                                <> · Updated {format(new Date(a.updated_at), "MMM d, yyyy h:mm a")}</>
+                              )}
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="ml-auto h-7 text-xs"
+                              onClick={(e) => { e.stopPropagation(); printAgreementRecord(a); }}
+                            >
+                              <Printer size={12} className="mr-1" /> Print
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>
