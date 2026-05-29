@@ -669,8 +669,46 @@ export default function EquipmentRentals() {
         rental={agreementRental}
         existingAgreement={viewingAgreement}
         mode={viewingAgreement ? "view" : "create"}
+        renterUserId={agreementRenterId ?? undefined}
         onSaved={loadAll}
       />
+
+      {/* Renter picker (owner chooses who to send agreement to) */}
+      <Dialog open={renterPickerOpen} onOpenChange={setRenterPickerOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send rental agreement</DialogTitle>
+            <DialogDescription>
+              Pick a renter who has messaged you about{" "}
+              <span className="font-medium">{renterPickerRental?.title}</span>.
+            </DialogDescription>
+          </DialogHeader>
+          {renterPickerLoading ? (
+            <div className="flex justify-center py-6"><Loader2 className="animate-spin" /></div>
+          ) : renterCandidates.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-3">
+              No one has messaged you about this listing yet. The renter must reach out first before you can send them an agreement.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {renterCandidates.map((c) => (
+                <Button
+                  key={c.id}
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => startAgreementForRenter(c.id)}
+                >
+                  {c.name}
+                </Button>
+              ))}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenterPickerOpen(false)}>Cancel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       <Footer />
     </div>
