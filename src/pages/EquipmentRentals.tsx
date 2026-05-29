@@ -302,7 +302,8 @@ Last updated: ${fmtTs(a.updated_at)}
       }
       return true;
     });
-  }, [rentals, q, filterCategory, filterLocation, filterMaxPrice, user]);
+  }, [rentals, q, filterCategory, filterLocation, filterMaxPrice, user, isHomeowner]);
+
 
   const openCreate = () => {
     setEditingId(null);
