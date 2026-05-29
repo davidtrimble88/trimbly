@@ -98,6 +98,8 @@ const Messages = () => {
   const [userProfile, setUserProfile] = useState<{ user_type: string; subscription_tier: string } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ConversationPartner | null>(null);
   const [blockTarget, setBlockTarget] = useState<ConversationPartner | null>(null);
+  const [filter, setFilter] = useState<ConversationFilter>("all");
+
 
   useEffect(() => {
     if (!user) return;
