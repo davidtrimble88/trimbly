@@ -177,15 +177,21 @@ export default function EquipmentRentals() {
   }, [authLoading, user, navigate]);
 
 
-  // Load provider
+  // Load provider + profile
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data } = await supabase.from("providers").select("id").eq("user_id", user.id).maybeSingle();
-      setProviderId(data?.id ?? null);
+      const [{ data: prov }, { data: prof }] = await Promise.all([
+        supabase.from("providers").select("id").eq("user_id", user.id).maybeSingle(),
+        supabase.from("profiles").select("user_type, subscription_tier").eq("id", user.id).maybeSingle(),
+      ]);
+      setProviderId(prov?.id ?? null);
+      setUserType((prof?.user_type as any) || "homeowner");
+      setSubscriptionTier(prof?.subscription_tier || "free");
       setProviderLoading(false);
     })();
   }, [user]);
+
 
   const loadAll = useCallback(async () => {
     if (!user) return;
