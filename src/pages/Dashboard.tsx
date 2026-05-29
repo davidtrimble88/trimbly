@@ -27,7 +27,7 @@ import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star,
   Lock, Crown, Home, AlertTriangle, CheckCircle2, Clock, Shield,
   MapPin, Ruler, Calendar, Thermometer, Plus, MoreVertical, Pencil, Trash2,
-  Briefcase, BookOpen, Stethoscope
+  Briefcase, BookOpen, Stethoscope, Hammer
 } from "lucide-react";
 
 // ─── Service definitions ───
