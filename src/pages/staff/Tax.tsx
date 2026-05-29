@@ -136,10 +136,20 @@ const Tax = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [entityType, setEntityType] = useState<EntityType>("llc");
+  // Trust ownership of the LLC. "none" = owned directly; other values = owned by a trust.
+  // - single_grantor: 1 grantor revocable trust → disregarded SMLLC (Schedule C, SE tax)
+  // - married_cp: joint revocable trust funded by spouses in CA community property → still
+  //   disregarded under Rev. Proc. 2002-69 (Schedule C, SE tax)
+  // - multi_grantor_partnership: trust with 2+ non-spouse grantors → multi-member LLC
+  //   defaults to partnership (Form 1065 + K-1s, no SE tax at entity, members pay SE on share)
+  type TrustOwnership = "none" | "single_grantor" | "married_cp" | "multi_grantor_partnership";
+  const [trustOwnership, setTrustOwnership] = useState<TrustOwnership>("multi_grantor_partnership");
+  const [trusteeCount, setTrusteeCount] = useState<string>("2");
   const [revenueOverride, setRevenueOverride] = useState<string>(""); // blank = use projected
   const [ownerSalary, setOwnerSalary] = useState<string>("0"); // for pass-through / S-corp
   const [writeOffs, setWriteOffs] = useState(DEFAULT_WRITE_OFFS);
   const [demoMode, setDemoMode] = useState(false);
+
 
   // ---------- Demo: 10k-subscriber mix (used when demoMode is on) ----------
   const DEMO_MIX = {
@@ -256,7 +266,7 @@ const Tax = () => {
       };
     }
     if (entityType === "llc") {
-      // Single-member LLC by default — disregarded entity for federal income tax.
+      // LLC — disregarded entity (single-member or spouses-as-CP) OR partnership (multi-member).
       // CA: NOT subject to the corporate franchise tax (8.84%). Instead pays the
       // R&TC §17941 "Annual LLC Tax" ($800/yr, Form 3522) + R&TC §17942 gross-
       // receipts fee (Form 3536) tiered on total California source income.
@@ -266,16 +276,37 @@ const Tax = () => {
       const individualFed = progressive(netIncome, FED_INDIV_BRACKETS_SINGLE);
       const individualCa = progressive(netIncome, CA_INDIV_BRACKETS_SINGLE);
       const seTax = selfEmploymentTax(netIncome);
+
+      const trustNotes: string[] = [];
+      if (trustOwnership === "single_grantor") {
+        trustNotes.push(
+          "Owned by a single-grantor revocable trust → IRS looks through to the grantor. Still a disregarded SMLLC: Schedule C, SE tax, same CA filings. Trustees (you noted " + trusteeCount + ") do not affect tax treatment — only the grantor does.",
+        );
+      } else if (trustOwnership === "married_cp") {
+        trustNotes.push(
+          "Owned by a joint revocable trust funded by spouses in CA community property → qualified entity under Rev. Proc. 2002-69. Treated as a disregarded SMLLC: Schedule C, SE tax. Trustees (" + trusteeCount + ") do not change tax treatment.",
+        );
+      } else if (trustOwnership === "multi_grantor_partnership") {
+        trustNotes.push(
+          "Owned by a trust with multiple non-spouse grantors (" + trusteeCount + " trustees noted; tax follows grantors, not trustees) → multi-member LLC, taxed as a PARTNERSHIP by default. File Form 1065 + issue K-1s to each grantor/beneficiary. CA Form 568 still required.",
+          "$800 Annual LLC Tax and §17942 LLC fee are unchanged at the entity level.",
+          "No SE tax at the entity level — SE tax applies to each managing/active member on their distributive share of ordinary income. Net SE shown below assumes all members are active.",
+          "If any member is an irrevocable trust, that trust files Form 1041 and passes income to its beneficiaries via K-1.",
+        );
+      }
+
       return {
         federal: federalEntity, stateTax: stateEntity, seTax, individualFed, individualCa,
         notes: [
-          "LLC is a pass-through — no federal corporate income tax. Profit flows to the owner's 1040 Schedule C.",
-          "CA does NOT charge the 8.84% corporate franchise tax on LLCs. Instead, every CA LLC owes the $800 Annual LLC Tax (R&TC §17941, Form 3522) regardless of income or activity.",
+          "LLC is a pass-through — no federal corporate income tax. Profit flows to the owner(s).",
+          "CA does NOT charge the 8.84% corporate franchise tax on LLCs. Every CA LLC owes the $800 Annual LLC Tax (R&TC §17941, Form 3522) regardless of income or activity.",
           `On top of that, CA charges the §17942 LLC Fee tiered on gross receipts (Form 3536): currently ${fmtUSD(llcFee)} at ${fmtUSD(grossRevenue)} of revenue.`,
-          "Owner pays self-employment tax (15.3%) + federal & CA individual income tax on net profit.",
+          "Owner(s) pay self-employment tax (15.3%) + federal & CA individual income tax on net profit.",
+          ...trustNotes,
         ],
       };
     }
+
     const individualFed = progressive(netIncome, FED_INDIV_BRACKETS_SINGLE);
     const individualCa = progressive(netIncome, CA_INDIV_BRACKETS_SINGLE);
     const seTax = selfEmploymentTax(netIncome);
@@ -287,7 +318,8 @@ const Tax = () => {
         "Owner pays individual federal + CA income tax on net profit.",
       ],
     };
-  }, [entityType, netIncome, salary, grossRevenue]);
+  }, [entityType, netIncome, salary, grossRevenue, trustOwnership, trusteeCount]);
+
 
   const totalTax = estimate.federal + estimate.stateTax + estimate.seTax + estimate.individualFed + estimate.individualCa + laBusinessTax;
   const effectiveRate = grossRevenue > 0 ? totalTax / grossRevenue : 0;
@@ -426,10 +458,16 @@ const Tax = () => {
       base.unshift({ form: "CA Form 100S", entity: "S-Corp", due: "Mar 15", authority: "CA FTB", notes: "1.5% net income / min $800" });
     }
     if (entityType === "llc") {
-      base.unshift({ form: "Form 1040 Schedule C (SMLLC)", entity: "Single-member LLC", due: "Apr 15", authority: "IRS", notes: "Profit flows to owner 1040" });
+      if (trustOwnership === "multi_grantor_partnership") {
+        base.unshift({ form: "Form 1065 (U.S. Partnership Return) + Schedule K-1 to each grantor/member", entity: "Multi-member LLC (trust-owned, non-spouse grantors)", due: "Mar 15", authority: "IRS", notes: "Partnership pass-through; K-1 to each member" });
+        base.unshift({ form: "Form 1041 (if any member is an irrevocable trust)", entity: "Irrevocable trust members", due: "Apr 15", authority: "IRS", notes: "Trust passes income to beneficiaries via K-1" });
+      } else {
+        base.unshift({ form: "Form 1040 Schedule C (disregarded SMLLC)", entity: trustOwnership === "single_grantor" ? "SMLLC owned by single-grantor trust" : trustOwnership === "married_cp" ? "SMLLC owned by joint spousal trust (CA community property)" : "Single-member LLC", due: "Apr 15", authority: "IRS", notes: "Profit flows to grantor's 1040" });
+      }
       base.unshift({ form: "CA Form 568 (LLC Return)", entity: "LLC", due: "Apr 15", authority: "CA FTB", notes: "$800 + gross-receipts fee" });
       base.unshift({ form: "CA Form 3536 (Estimated LLC Fee)", entity: "LLC", due: "Jun 15", authority: "CA FTB", notes: "Tiered by gross receipts" });
     }
+
     if (entityType === "sole_prop") {
       base.unshift({ form: "Form 1040 + Schedule C + Schedule SE", entity: "Sole Prop", due: "Apr 15", authority: "IRS", notes: "Profit + SE tax" });
       base.unshift({ form: "CA Form 540", entity: "Sole Prop", due: "Apr 15", authority: "CA FTB", notes: "Individual return" });
@@ -533,11 +571,43 @@ const Tax = () => {
               <SelectContent>
                 <SelectItem value="c_corp">C-Corporation</SelectItem>
                 <SelectItem value="s_corp">S-Corporation</SelectItem>
-                <SelectItem value="llc">LLC (single-member)</SelectItem>
+                <SelectItem value="llc">LLC (single-member or trust-owned)</SelectItem>
                 <SelectItem value="sole_prop">Sole Proprietor</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          {entityType === "llc" && (
+            <>
+              <div>
+                <Label>Trust ownership</Label>
+                <Select value={trustOwnership} onValueChange={(v) => setTrustOwnership(v as TrustOwnership)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Owned directly (no trust)</SelectItem>
+                    <SelectItem value="single_grantor">Single-grantor revocable trust</SelectItem>
+                    <SelectItem value="married_cp">Joint spousal trust (CA community property)</SelectItem>
+                    <SelectItem value="multi_grantor_partnership">Trust with 2+ non-spouse grantors (partnership)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tax follows the trust's grantors, not its trustees.
+                </p>
+              </div>
+              <div>
+                <Label># of trustees (informational)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={trusteeCount}
+                  onChange={(e) => setTrusteeCount(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Trustees manage the trust but don't change tax treatment.
+                </p>
+              </div>
+            </>
+          )}
+
           <div>
             <Label>Annual revenue override</Label>
             <Input
