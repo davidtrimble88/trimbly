@@ -444,8 +444,13 @@ export default function RentalAgreementDialog({
           )}
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2 flex-wrap">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          <Button variant="outline" onClick={printAgreement}>Print / Save PDF</Button>
+          {agreement && isOwner && agreement.status !== "declined" && (
+            <Button variant="outline" onClick={resendAgreement} disabled={saving}>Re-send to renter</Button>
+          )}
+
           {!agreement && isOwner && (
             <Button onClick={createAgreement} disabled={saving}>
               {saving && <Loader2 size={14} className="animate-spin mr-1" />} Sign & send to renter
