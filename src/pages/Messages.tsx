@@ -186,6 +186,8 @@ const Messages = () => {
         pendingCategory: pm.provider_category,
         pendingLocation: location,
         chatStatus: isBlocked ? "blocked" : "pending",
+        kind: "service",
+
       });
     });
     return [...map.values()];
