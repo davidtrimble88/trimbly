@@ -392,8 +392,6 @@ export default function RentalAgreementDialog({
             </>
           )}
         </DialogFooter>
-
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
