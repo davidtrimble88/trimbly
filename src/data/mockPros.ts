@@ -160,4 +160,18 @@ export const mockPros: ServiceProvider[] = [
 
   // Newfoundland
   { id: 84, name: "St. John's Electric", category: "Electrical", rating: 4.6, reviews: 56, hourlyRate: "C$80–120", licensed: true, available: true, city: "St. John's", state: "NL", country: "CA" },
+
+  // --- GENERAL CONTRACTORS ---
+  { id: 101, name: "Lone Star General Contracting", category: "General Contractor", rating: 4.9, reviews: 142, hourlyRate: "$95–160", licensed: true, available: true, city: "Austin", state: "TX", country: "US" },
+  { id: 102, name: "Capitol Build & Remodel", category: "General Contractor", rating: 4.8, reviews: 98, hourlyRate: "$100–175", licensed: true, available: true, city: "Dallas", state: "TX", country: "US" },
+  { id: 103, name: "Pacific Coast Builders", category: "General Contractor", rating: 4.8, reviews: 187, hourlyRate: "$110–185", licensed: true, available: true, city: "Los Angeles", state: "CA", country: "US" },
+  { id: 104, name: "Bay Area GC Group", category: "General Contractor", rating: 4.7, reviews: 134, hourlyRate: "$120–200", licensed: true, available: true, city: "San Francisco", state: "CA", country: "US" },
+  { id: 105, name: "Empire State Renovations", category: "General Contractor", rating: 4.8, reviews: 165, hourlyRate: "$115–190", licensed: true, available: true, city: "New York", state: "NY", country: "US" },
+  { id: 106, name: "Sunshine State Contractors", category: "General Contractor", rating: 4.7, reviews: 112, hourlyRate: "$85–150", licensed: true, available: true, city: "Miami", state: "FL", country: "US" },
+  { id: 107, name: "Windy City Build Co.", category: "General Contractor", rating: 4.8, reviews: 124, hourlyRate: "$95–165", licensed: true, available: true, city: "Chicago", state: "IL", country: "US" },
+  { id: 108, name: "Rocky Mountain Builders", category: "General Contractor", rating: 4.9, reviews: 88, hourlyRate: "$95–160", licensed: true, available: true, city: "Denver", state: "CO", country: "US" },
+  { id: 109, name: "Cascade General Contracting", category: "General Contractor", rating: 4.7, reviews: 102, hourlyRate: "$100–170", licensed: true, available: true, city: "Seattle", state: "WA", country: "US" },
+  { id: 110, name: "Maple Leaf Construction", category: "General Contractor", rating: 4.8, reviews: 96, hourlyRate: "C$95–165", licensed: true, available: true, city: "Toronto", state: "ON", country: "CA" },
+  { id: 111, name: "Pacific GC Vancouver", category: "General Contractor", rating: 4.7, reviews: 78, hourlyRate: "C$100–170", licensed: true, available: true, city: "Vancouver", state: "BC", country: "CA" },
 ];
+

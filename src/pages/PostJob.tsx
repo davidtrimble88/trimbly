@@ -25,7 +25,7 @@ import JobVideoUploader from "@/components/JobVideoUploader";
 
 const categories = [
   "Appliance Repair", "Carpentry", "Cleaning", "Drywall", "Electrical",
-  "Fencing", "Flooring", "General Handyman", "HVAC", "Landscaping",
+  "Fencing", "Flooring", "General Contractor", "General Handyman", "HVAC", "Landscaping",
   "Painting", "Pest Control", "Plumbing", "Roofing", "Other",
 ].sort((a, b) => (a === "Other" ? 1 : b === "Other" ? -1 : a.localeCompare(b)));
 
@@ -45,7 +45,9 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
   "Cleaning": ["clean", "pressure wash", "power wash", "junk removal", "haul"],
   "Pest Control": ["pest", "rodent", "mice", "rat", "ant", "termite", "roach", "bug", "wasp", "bee", "exterminat"],
   "General Handyman": ["mount tv", "tv mount", "assemble", "assembly", "install", "hang", "small repair", "handyman", "odd job"],
+  "General Contractor": ["remodel", "renovation", "renovate", "addition", "build out", "buildout", "kitchen remodel", "bathroom remodel", "general contractor", "gc ", "permit", "whole house", "extension", "basement finish", "adu"],
 };
+
 
 const suggestCategories = (text: string): string[] => {
   const t = text.toLowerCase().trim();
