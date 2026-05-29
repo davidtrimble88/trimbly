@@ -82,8 +82,49 @@ export default function RentalAgreementDialog({
   onOpenChange: (v: boolean) => void;
   rental: RentalForAgreement | null;
   existingAgreement?: Agreement | null;
-  mode: "create" | "view";
-  /** Required when owner is creating a new agreement to send to a specific renter */
+By typing your full legal name as a signature below, both parties agree to be electronically bound to these terms.`;
+
+const ESIGN_DISCLOSURE = `ELECTRONIC RECORDS AND SIGNATURES DISCLOSURE (ESIGN Act / UETA)
+
+By checking the consent box and typing your full legal name below, you agree that:
+• You consent to conduct this transaction by electronic means, including the use of electronic records and electronic signatures, under the U.S. ESIGN Act (15 U.S.C. § 7001 et seq.) and the Uniform Electronic Transactions Act (UETA).
+• Your typed name constitutes your legally binding electronic signature, with the same force and effect as a handwritten signature.
+• You can request a paper copy of this signed agreement at any time by contacting the other party or Trimbly support, and you may print or save this document for your records.
+• You may withdraw your consent to electronic records by declining this agreement before signing. Withdrawing consent after signing does not invalidate the executed contract.
+• The hardware/software needed to access these records is any modern web browser plus a way to read PDF files; the same requirements apply to retain copies.
+• Trimbly will retain a permanent, tamper-evident record of this agreement, including a SHA-256 hash of the signed terms and an audit log of the signing event (IP address, user-agent, timestamp, and account email).`;
+
+// SHA-256 of the locked terms snapshot — used to prove the signed contract was not altered later.
+async function sha256Hex(text: string): Promise<string> {
+  const buf = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function fetchClientIp(): Promise<string | null> {
+  try {
+    const r = await fetch("https://api.ipify.org?format=json");
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j.ip || null;
+  } catch { return null; }
+}
+
+type AuditRow = {
+  id: string;
+  agreement_id: string;
+  user_id: string;
+  role: string;
+  event: string;
+  signature_name: string | null;
+  email: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  terms_hash: string | null;
+  esign_consent: boolean;
+  created_at: string;
+};
+
   renterUserId?: string;
   renterProviderId?: string | null;
   onSaved?: () => void;
