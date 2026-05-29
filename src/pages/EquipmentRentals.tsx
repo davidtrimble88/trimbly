@@ -539,14 +539,20 @@ Last updated: ${fmtTs(a.updated_at)}
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2"><Wrench size={22} /> Equipment Marketplace</h1>
-            <p className="text-sm text-muted-foreground">Pro-to-pro tool & equipment rentals. Sign legally-binding agreements in app.</p>
+            <p className="text-sm text-muted-foreground">
+              {isHomeowner
+                ? "Rent tools and equipment directly from local service providers. Message, sign, and keep a copy of every agreement."
+                : "Pro-to-pro tool & equipment rentals. Sign legally-binding agreements in app."}
+            </p>
           </div>
-          <Button onClick={openCreate} disabled={!providerId && !providerLoading}>
-            <Plus size={16} className="mr-1" /> List equipment
-          </Button>
+          {!isHomeowner && (
+            <Button onClick={openCreate} disabled={!providerId && !providerLoading}>
+              <Plus size={16} className="mr-1" /> List equipment
+            </Button>
+          )}
         </div>
 
-        {!providerLoading && !providerId && (
+        {!isHomeowner && !providerLoading && !providerId && (
           <Card className="border-orange-500/40 bg-orange-500/5">
             <CardContent className="p-4 text-sm">
               You need a service provider profile to list equipment.{" "}
@@ -555,19 +561,35 @@ Last updated: ${fmtTs(a.updated_at)}
           </Card>
         )}
 
+        {isHomeowner && !homeownerHasSubscription && (
+          <Card className="border-orange-500/40 bg-orange-500/5">
+            <CardContent className="p-4 text-sm flex flex-wrap items-center justify-between gap-3">
+              <span>
+                Browsing is free — but messaging owners and signing rental agreements requires a Trimbly homeowner subscription.
+              </span>
+              <Button size="sm" onClick={() => navigate("/homeowner-upsell")}>Upgrade</Button>
+            </CardContent>
+          </Card>
+        )}
+
         <Tabs defaultValue="browse">
           <TabsList>
             <TabsTrigger value="browse">Browse <Badge variant="secondary" className="ml-2">{filtered.length}</Badge></TabsTrigger>
-            <TabsTrigger value="mine" className="relative">
-              My listings <Badge variant="secondary" className="ml-2">{myRentals.length}</Badge>
-              {totalUnreadOnMyListings > 0 && (
-                <span className="ml-2 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold animate-pulse">
-                  {totalUnreadOnMyListings}
-                </span>
-              )}
+            {!isHomeowner && (
+              <TabsTrigger value="mine" className="relative">
+                My listings <Badge variant="secondary" className="ml-2">{myRentals.length}</Badge>
+                {totalUnreadOnMyListings > 0 && (
+                  <span className="ml-2 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold animate-pulse">
+                    {totalUnreadOnMyListings}
+                  </span>
+                )}
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="agreements">
+              {isHomeowner ? "My rentals" : "Agreements"} <Badge variant="secondary" className="ml-2">{agreements.length}</Badge>
             </TabsTrigger>
-            <TabsTrigger value="agreements">Agreements <Badge variant="secondary" className="ml-2">{agreements.length}</Badge></TabsTrigger>
           </TabsList>
+
 
           {/* BROWSE */}
           <TabsContent value="browse" className="space-y-4">
