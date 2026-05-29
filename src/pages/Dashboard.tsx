@@ -27,7 +27,7 @@ import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star,
   Lock, Crown, Home, AlertTriangle, CheckCircle2, Clock, Shield,
   MapPin, Ruler, Calendar, Thermometer, Plus, MoreVertical, Pencil, Trash2,
-  Briefcase, BookOpen, Stethoscope
+  Briefcase, BookOpen, Stethoscope, Hammer
 } from "lucide-react";
 
 // ─── Service definitions ───
@@ -43,6 +43,7 @@ const allServices: Array<{
   { icon: Wrench, title: "Find Local Pros", description: "Search by service, distance, rating, and availability.", route: "/search", minTier: "free", group: "get_help" },
   { icon: Briefcase, title: "Post a Job", description: "Post job requests for pros to bid on.", route: "/post-job", minTier: "free", group: "get_help" },
   { icon: Star, title: "Verified Reviews", description: "Read honest reviews from real homeowners.", route: "/search", minTier: "free", group: "get_help" },
+  { icon: Hammer, title: "Equipment Rentals", description: "Browse tools & equipment from local pros. Sign waivers and message owners in-app.", route: "/equipment", minTier: "free", group: "get_help" },
 
   { icon: Brain, title: "AI Job Estimator", description: "Instant cost estimates, material lists, DIY vs. pro recommendations.", route: "/estimator", minTier: "homeowner_pro", group: "tools" },
   { icon: BookOpen, title: "User Manual Finder", description: "Enter brand & model — instantly find and download the user manual.", route: "/manual-search", minTier: "free", group: "tools" },
@@ -330,9 +331,22 @@ const Dashboard = () => {
           <ReviewPromptDialog />
           {/* Header */}
           <div className="mb-10">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
-              Welcome back, {displayName}
-            </h1>
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
+              <h1 className="text-3xl md:text-4xl font-extrabold text-foreground">
+                Welcome back, {displayName}
+              </h1>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" onClick={() => navigate("/maintenance")}>
+                  <CalendarCheck size={14} className="mr-1.5" /> Maintenance
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => navigate("/equipment")}>
+                  <Hammer size={14} className="mr-1.5" /> Rentals
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => navigate("/messages")}>
+                  <MessageSquare size={14} className="mr-1.5" /> Messages
+                </Button>
+              </div>
+            </div>
             <div className="flex items-center gap-3">
               <Badge variant="secondary" className="text-sm px-3 py-1">
                 <Crown size={14} className="mr-1.5 text-primary" />
@@ -534,7 +548,6 @@ const Dashboard = () => {
                 <span className="text-sm font-normal text-muted-foreground">({jobStats.total})</span>
               </h2>
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => navigate("/equipment")}>Rentals</Button>
                 <Button size="sm" variant="outline" onClick={() => navigate("/job-board")}>View Board</Button>
                 <Button size="sm" onClick={() => navigate("/post-job")}>
                   <Plus size={14} className="mr-1.5" /> Post Job
