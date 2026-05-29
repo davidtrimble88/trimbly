@@ -119,7 +119,12 @@ export default function EquipmentRentals() {
 
   const [providerId, setProviderId] = useState<string | null>(null);
   const [providerLoading, setProviderLoading] = useState(true);
-  const [rentals, setRentals] = useState<Rental[]>([]);
+  const [userType, setUserType] = useState<"homeowner" | "provider">("homeowner");
+  const [subscriptionTier, setSubscriptionTier] = useState<string>("free");
+  const isHomeowner = userType !== "provider";
+  const homeownerHasSubscription = subscriptionTier && subscriptionTier !== "free";
+  const canInteract = !isHomeowner || homeownerHasSubscription;
+
   const [myRentals, setMyRentals] = useState<Rental[]>([]);
   const [agreements, setAgreements] = useState<Agreement[]>([]);
   const [rentalTitles, setRentalTitles] = useState<Record<string, string>>({});
