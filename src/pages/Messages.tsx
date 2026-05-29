@@ -29,6 +29,7 @@ interface Message {
   sender_id: string;
   recipient_id: string;
   provider_id: string | null;
+  rental_id?: string | null;
   subject: string;
   body: string;
   read: boolean;
@@ -36,6 +37,7 @@ interface Message {
   contact_message_id?: string | null;
   ai_meta?: { kind?: string; awaiting_feedback?: boolean; attempt?: number; confidence?: number; user_marked_helpful?: boolean } | null;
 }
+
 
 interface PendingMessage {
   id: string;
