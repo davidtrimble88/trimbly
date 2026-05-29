@@ -410,6 +410,12 @@ export default function EquipmentRentals() {
     return stats;
   }, [rentalMessages, user]);
 
+  const totalUnreadOnMyListings = useMemo(
+    () => Object.values(messageStatsByRental).reduce((sum, s) => sum + s.unread, 0),
+    [messageStatsByRental]
+  );
+
+
   const openManage = (r: Rental) => {
     setManageRental(r);
     const partners = Array.from(messageStatsByRental[r.id]?.partners || []);
@@ -482,7 +488,14 @@ export default function EquipmentRentals() {
         <Tabs defaultValue="browse">
           <TabsList>
             <TabsTrigger value="browse">Browse <Badge variant="secondary" className="ml-2">{filtered.length}</Badge></TabsTrigger>
-            <TabsTrigger value="mine">My listings <Badge variant="secondary" className="ml-2">{myRentals.length}</Badge></TabsTrigger>
+            <TabsTrigger value="mine" className="relative">
+              My listings <Badge variant="secondary" className="ml-2">{myRentals.length}</Badge>
+              {totalUnreadOnMyListings > 0 && (
+                <span className="ml-2 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold animate-pulse">
+                  {totalUnreadOnMyListings}
+                </span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="agreements">Agreements <Badge variant="secondary" className="ml-2">{agreements.length}</Badge></TabsTrigger>
           </TabsList>
 
@@ -542,7 +555,7 @@ export default function EquipmentRentals() {
                 const msgCount = stats?.total || 0;
                 const unread = stats?.unread || 0;
                 return (
-                <Card key={r.id} className={unread > 0 ? "border-primary/50" : ""}>
+                <Card key={r.id} className={unread > 0 ? "border-primary border-2 shadow-md" : ""}>
                   <CardContent className="p-4 flex flex-wrap gap-3 items-center">
                     {r.photo_urls?.[0] && <img src={r.photo_urls[0]} alt="" className="w-20 h-20 object-cover rounded" />}
                     <div className="flex-1 min-w-0">
@@ -550,8 +563,13 @@ export default function EquipmentRentals() {
                         <h3 className="font-semibold text-sm truncate">{r.title}</h3>
                         <Badge variant={r.available ? "default" : "secondary"} className="text-xs">{r.available ? "Available" : "Hidden"}</Badge>
                         {unread > 0 && (
-                          <Badge className="text-xs bg-primary text-primary-foreground">
-                            {unread} new message{unread === 1 ? "" : "s"}
+                          <Badge className="text-xs bg-primary text-primary-foreground gap-1 animate-pulse">
+                            <MessageSquare size={12} /> {unread} new
+                          </Badge>
+                        )}
+                        {msgCount > 0 && unread === 0 && (
+                          <Badge variant="outline" className="text-xs gap-1">
+                            <MessageSquare size={12} /> {msgCount} message{msgCount === 1 ? "" : "s"}
                           </Badge>
                         )}
                       </div>
