@@ -56,8 +56,10 @@ type Rental = {
   max_rental_days: number;
   insurance_required: boolean;
   terms: string;
+  rentable_to: "pros_only" | "homeowners_and_pros";
   created_at: string;
 };
+
 
 type Agreement = {
   id: string;
