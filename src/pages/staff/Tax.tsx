@@ -458,10 +458,16 @@ const Tax = () => {
       base.unshift({ form: "CA Form 100S", entity: "S-Corp", due: "Mar 15", authority: "CA FTB", notes: "1.5% net income / min $800" });
     }
     if (entityType === "llc") {
-      base.unshift({ form: "Form 1040 Schedule C (SMLLC)", entity: "Single-member LLC", due: "Apr 15", authority: "IRS", notes: "Profit flows to owner 1040" });
+      if (trustOwnership === "multi_grantor_partnership") {
+        base.unshift({ form: "Form 1065 (U.S. Partnership Return) + Schedule K-1 to each grantor/member", entity: "Multi-member LLC (trust-owned, non-spouse grantors)", due: "Mar 15", authority: "IRS", notes: "Partnership pass-through; K-1 to each member" });
+        base.unshift({ form: "Form 1041 (if any member is an irrevocable trust)", entity: "Irrevocable trust members", due: "Apr 15", authority: "IRS", notes: "Trust passes income to beneficiaries via K-1" });
+      } else {
+        base.unshift({ form: "Form 1040 Schedule C (disregarded SMLLC)", entity: trustOwnership === "single_grantor" ? "SMLLC owned by single-grantor trust" : trustOwnership === "married_cp" ? "SMLLC owned by joint spousal trust (CA community property)" : "Single-member LLC", due: "Apr 15", authority: "IRS", notes: "Profit flows to grantor's 1040" });
+      }
       base.unshift({ form: "CA Form 568 (LLC Return)", entity: "LLC", due: "Apr 15", authority: "CA FTB", notes: "$800 + gross-receipts fee" });
       base.unshift({ form: "CA Form 3536 (Estimated LLC Fee)", entity: "LLC", due: "Jun 15", authority: "CA FTB", notes: "Tiered by gross receipts" });
     }
+
     if (entityType === "sole_prop") {
       base.unshift({ form: "Form 1040 + Schedule C + Schedule SE", entity: "Sole Prop", due: "Apr 15", authority: "IRS", notes: "Profit + SE tax" });
       base.unshift({ form: "CA Form 540", entity: "Sole Prop", due: "Apr 15", authority: "CA FTB", notes: "Individual return" });
