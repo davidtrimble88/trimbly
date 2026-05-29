@@ -80,6 +80,9 @@ type Agreement = {
   renter_signature: string | null;
   owner_signed_at: string | null;
   renter_signed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  terms_hash?: string | null;
 };
 
 const CATEGORIES = ["General", "Power tools", "Heavy equipment", "Ladders & scaffolding", "Plumbing", "Electrical", "Landscaping", "Painting", "Concrete", "HVAC", "Cleaning", "Other"];
