@@ -865,11 +865,17 @@ Last updated: ${fmtTs(a.updated_at)}
 
                 <div>
                   <Label className="text-xs">Message the owner</Label>
-                  <Textarea value={messageBody} onChange={(e) => setMessageBody(e.target.value)} placeholder="Ask a question or propose a pickup time…" />
-                  <Button size="sm" className="mt-2" onClick={sendMessage} disabled={sendingMsg || !messageBody.trim()}>
-                    <MessageSquare size={14} className="mr-1" /> Send message
+                  <Textarea
+                    value={messageBody}
+                    onChange={(e) => setMessageBody(e.target.value)}
+                    placeholder={canInteract ? "Ask a question or propose a pickup time…" : "Upgrade your homeowner plan to message owners."}
+                    disabled={!canInteract}
+                  />
+                  <Button size="sm" className="mt-2" onClick={canInteract ? sendMessage : () => navigate("/homeowner-upsell")} disabled={canInteract && (sendingMsg || !messageBody.trim())}>
+                    <MessageSquare size={14} className="mr-1" /> {canInteract ? "Send message" : "Upgrade to message"}
                   </Button>
                 </div>
+
 
                 <p className="text-[11px] text-muted-foreground border-t border-border pt-2">
                   Trimbly is a venue only and is not a party to any rental agreement. Owner and Renter are solely responsible for the equipment, insurance, payment and compliance with local laws.
