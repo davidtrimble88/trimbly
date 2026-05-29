@@ -237,7 +237,8 @@ const Navbar = () => {
 
       {open && (
         <div className="md:hidden border-t border-border bg-background p-4 space-y-3 animate-fade-in">
-          {user ? userMobileLinks(() => setOpen(false)) : guestMobileLinks(() => setOpen(false))}
+          {user ? userMobileLinks?.(() => setOpen(false)) : guestMobileLinks(() => setOpen(false))}
+
           {user && isAdmin && inStaffPortal && (
             <Button
               variant="outline"
