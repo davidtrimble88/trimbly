@@ -108,7 +108,9 @@ const EMPTY_FORM: Partial<Rental> = {
   max_rental_days: 30,
   insurance_required: false,
   terms: "",
+  rentable_to: "pros_only",
 };
+
 
 export default function EquipmentRentals() {
   const { user, loading: authLoading } = useAuth();
