@@ -154,8 +154,11 @@ export default function EquipmentRentals() {
   const [sendingReply, setSendingReply] = useState(false);
 
 
+  // Agreements filter
+  const [agreementStatusFilter, setAgreementStatusFilter] = useState<"all" | "accepted" | "sent" | "declined">("all");
+  const [agreementRoleFilter, setAgreementRoleFilter] = useState<"all" | "owner" | "renter">("all");
 
-  useEffect(() => {
+
     if (!authLoading && !user) navigate("/auth");
   }, [authLoading, user, navigate]);
 
