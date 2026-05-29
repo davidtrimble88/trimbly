@@ -305,25 +305,55 @@ export default function RentalAgreementDialog({
       toast({ title: "Type your full legal name to sign", variant: "destructive" });
       return;
     }
+    if (!esignConsent) {
+      toast({ title: "ESIGN consent required", description: "Check the box agreeing to use electronic records and signatures.", variant: "destructive" });
+      return;
+    }
     if (rental?.insurance_required && !insuranceAck) {
       toast({ title: "Insurance acknowledgment required", variant: "destructive" });
       return;
     }
     setSaving(true);
+    const signedAt = new Date().toISOString();
+    // Verify the locked terms snapshot still matches its hash (tamper check before counter-signing)
+    if (agreement.terms_snapshot) {
+      const recomputed = await sha256Hex(agreement.terms_snapshot);
+      if ((agreement as any).terms_hash && (agreement as any).terms_hash !== recomputed) {
+        toast({ title: "Integrity check failed", description: "The agreement contents have changed since they were sent. Refusing to sign.", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+    }
     const { error } = await supabase
       .from("rental_agreements")
       .update({
         status: "accepted",
         renter_signature: signature.trim(),
-        renter_signed_at: new Date().toISOString(),
+        renter_signed_at: signedAt,
+        renter_esign_consent: true,
         insurance_acknowledged: insuranceAck,
-      })
+      } as any)
       .eq("id", agreement.id);
     if (error) {
       toast({ title: "Could not sign", description: error.message, variant: "destructive" });
       setSaving(false);
       return;
     }
+
+    const ip = await fetchClientIp();
+    await supabase.from("agreement_audit_log" as any).insert({
+      agreement_id: agreement.id,
+      user_id: user.id,
+      role: "renter",
+      event: "signed",
+      signature_name: signature.trim(),
+      email: user.email || null,
+      ip_address: ip,
+      user_agent: navigator.userAgent,
+      terms_hash: (agreement as any).terms_hash || null,
+      esign_consent: true,
+    });
+
     await supabase.from("messages").insert({
       sender_id: user.id,
       recipient_id: agreement.owner_user_id,
@@ -341,6 +371,19 @@ export default function RentalAgreementDialog({
     if (!user || !agreement) return;
     setSaving(true);
     await supabase.from("rental_agreements").update({ status: "declined" }).eq("id", agreement.id);
+    const ip = await fetchClientIp();
+    await supabase.from("agreement_audit_log" as any).insert({
+      agreement_id: agreement.id,
+      user_id: user.id,
+      role: user.id === agreement.owner_user_id ? "owner" : "renter",
+      event: "declined",
+      signature_name: null,
+      email: user.email || null,
+      ip_address: ip,
+      user_agent: navigator.userAgent,
+      terms_hash: (agreement as any).terms_hash || null,
+      esign_consent: false,
+    });
     await supabase.from("messages").insert({
       sender_id: user.id,
       recipient_id: agreement.owner_user_id,
@@ -353,6 +396,7 @@ export default function RentalAgreementDialog({
     onOpenChange(false);
     onSaved?.();
   };
+
 
   const printAgreement = () => {
     const body = agreement?.terms_snapshot
