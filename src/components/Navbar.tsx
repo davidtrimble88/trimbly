@@ -112,7 +112,7 @@ const Navbar = () => {
     </>
   );
 
-  const userLinks = isProvider ? providerLinks : homeownerLinks;
+  const userLinks = userType === null ? null : (isProvider ? providerLinks : homeownerLinks);
 
   const guestMobileLinks = (onClose: () => void) => (
     <>
