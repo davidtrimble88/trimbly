@@ -1,4 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { rateLimit, rateLimitResponse, getClientKey } from "../_shared/rateLimit.ts";
+import { readJson, optionalString, validationErrorResponse } from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,8 +10,27 @@ const corsHeaders = {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  const rl = rateLimit(`job-description-helper:${getClientKey(req)}`, { limit: 15, windowMs: 60_000 });
+  if (!rl.ok) return rateLimitResponse(rl, corsHeaders);
+
+  let title: string | undefined;
+  let category: string | undefined;
+  let description: string | undefined;
+  let city: string | undefined;
+  let state: string | undefined;
   try {
-    const { title, category, description, city, state } = await req.json();
+    const body = await readJson(req, 16 * 1024);
+    title = optionalString(body.title, "title", { max: 200 });
+    category = optionalString(body.category, "category", { max: 64 });
+    description = optionalString(body.description, "description", { max: 4000 });
+    city = optionalString(body.city, "city", { max: 100 });
+    state = optionalString(body.state, "state", { max: 100 });
+  } catch (e) {
+    return validationErrorResponse(e, corsHeaders);
+  }
+
+  try {
+
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {

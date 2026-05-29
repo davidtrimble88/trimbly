@@ -1,4 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { rateLimit, rateLimitResponse, getClientKey } from "../_shared/rateLimit.ts";
+import { readJson, requireString, optionalString, validationErrorResponse, ValidationError } from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,15 +12,26 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const { description, category, city, state } = await req.json();
+  // Rate limit: 10 estimates / minute / IP
+  const rl = rateLimit(`job-estimator:${getClientKey(req)}`, { limit: 10, windowMs: 60_000 });
+  if (!rl.ok) return rateLimitResponse(rl, corsHeaders);
 
-    if (!description || description.trim().length < 10) {
-      return new Response(
-        JSON.stringify({ error: "Please provide a detailed description (at least 10 characters)." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+  let description: string;
+  let category: string | undefined;
+  let city: string | undefined;
+  let state: string | undefined;
+  try {
+    const body = await readJson(req, 16 * 1024);
+    description = requireString(body.description, "description", { min: 10, max: 4000 });
+    category = optionalString(body.category, "category", { max: 64 });
+    city = optionalString(body.city, "city", { max: 100 });
+    state = optionalString(body.state, "state", { max: 100 });
+  } catch (e) {
+    return validationErrorResponse(e, corsHeaders);
+  }
+
+  try {
+
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {

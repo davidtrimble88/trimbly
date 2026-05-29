@@ -1,4 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { rateLimit, rateLimitResponse, getClientKey } from "../_shared/rateLimit.ts";
+import { readJson, requireString, validationErrorResponse } from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,14 +12,19 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const rl = rateLimit(`ai-search-providers:${getClientKey(req)}`, { limit: 15, windowMs: 60_000 });
+  if (!rl.ok) return rateLimitResponse(rl, corsHeaders);
+
+  let query: string;
   try {
-    const { query } = await req.json();
-    if (!query) {
-      return new Response(JSON.stringify({ error: "Query is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const body = await readJson(req, 8 * 1024);
+    query = requireString(body.query, "query", { min: 2, max: 500 });
+  } catch (e) {
+    return validationErrorResponse(e, corsHeaders);
+  }
+
+  try {
+
 
     // Fetch providers from DB
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;

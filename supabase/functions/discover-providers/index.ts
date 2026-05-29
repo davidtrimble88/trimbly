@@ -1,3 +1,6 @@
+import { rateLimit, rateLimitResponse, getClientKey } from "../_shared/rateLimit.ts";
+import { readJson, optionalString, validationErrorResponse } from "../_shared/validation.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
@@ -8,8 +11,28 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Firecrawl is expensive — strict limit
+  const rl = rateLimit(`discover-providers:${getClientKey(req)}`, { limit: 5, windowMs: 60_000 });
+  if (!rl.ok) return rateLimitResponse(rl, corsHeaders);
+
+  let category: string | undefined;
+  let city: string | undefined;
+  let state: string | undefined;
+  let country: string | undefined;
+  let searchQuery: string | undefined;
   try {
-    const { category, city, state, country, searchQuery } = await req.json();
+    const body = await readJson(req, 8 * 1024);
+    category = optionalString(body.category, "category", { max: 64 });
+    city = optionalString(body.city, "city", { max: 100 });
+    state = optionalString(body.state, "state", { max: 100 });
+    country = optionalString(body.country, "country", { max: 8 });
+    searchQuery = optionalString(body.searchQuery, "searchQuery", { max: 200 });
+  } catch (e) {
+    return validationErrorResponse(e, corsHeaders);
+  }
+
+  try {
+
 
     const firecrawlApiKey = Deno.env.get("FIRECRAWL_API_KEY");
     if (!firecrawlApiKey) {
