@@ -142,9 +142,12 @@ export default function RentalAgreementDialog({
   const [signature, setSignature] = useState("");
   const [customTerms, setCustomTerms] = useState("");
   const [agreement, setAgreement] = useState<Agreement | null>(existingAgreement || null);
+  const [esignConsent, setEsignConsent] = useState(false);
+  const [auditTrail, setAuditTrail] = useState<AuditRow[]>([]);
 
   useEffect(() => {
     setAgreement(existingAgreement || null);
+    setEsignConsent(false);
     if (existingAgreement) {
       setStartDate(existingAgreement.start_date);
       setEndDate(existingAgreement.end_date);
@@ -161,6 +164,20 @@ export default function RentalAgreementDialog({
       setCustomTerms(rental?.terms || "");
     }
   }, [existingAgreement, open, rental]);
+
+  // Load audit trail for existing agreement
+  useEffect(() => {
+    if (!agreement?.id || !open) { setAuditTrail([]); return; }
+    (async () => {
+      const { data } = await supabase
+        .from("agreement_audit_log" as any)
+        .select("*")
+        .eq("agreement_id", agreement.id)
+        .order("created_at", { ascending: true });
+      setAuditTrail((data as any) || []);
+    })();
+  }, [agreement?.id, open, saving]);
+
 
 
   const isOwner = !!user && (
