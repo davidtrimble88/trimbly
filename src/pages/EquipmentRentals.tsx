@@ -774,7 +774,7 @@ Last updated: ${fmtTs(a.updated_at)}
                                 {role === "Owner" ? "Rented to" : "Rented from"}: <span className="font-medium text-foreground">{counterpartyName}</span>
                               </div>
                             </div>
-                            <Badge variant="outline" className="text-[10px] uppercase tracking-wide">{role}</Badge>
+                            {!isHomeowner && <Badge variant="outline" className="text-[10px] uppercase tracking-wide">{role}</Badge>}
                             <Badge className={`text-[10px] uppercase tracking-wide capitalize ${statusColor}`}>{a.status}</Badge>
                           </div>
 
