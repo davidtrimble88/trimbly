@@ -283,6 +283,9 @@ Last updated: ${fmtTs(a.updated_at)}
   const filtered = useMemo(() => {
     return rentals.filter((r) => {
       if (user && r.owner_user_id === user.id) return false; // hide my own from browse
+      // Homeowners only see listings the owner has opened up to homeowners
+      if (isHomeowner && r.rentable_to !== "homeowners_and_pros") return false;
+
       if (q.trim()) {
         const t = q.trim().toLowerCase();
         if (!`${r.title} ${r.description} ${r.category}`.toLowerCase().includes(t)) return false;
