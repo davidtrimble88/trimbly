@@ -18,7 +18,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState } from "@/components/EmptyState";
 import JobPhotoUploader from "@/components/JobPhotoUploader";
 import RentalAgreementDialog, { RentalForAgreement } from "@/components/equipment/RentalAgreementDialog";
-import { Search, MapPin, DollarSign, Plus, MessageSquare, FileSignature, Wrench, Loader2, Trash2, Pencil } from "lucide-react";
+import { Search, MapPin, DollarSign, Plus, MessageSquare, FileSignature, Wrench, Loader2, Trash2, Pencil, Send, Inbox } from "lucide-react";
+import { format } from "date-fns";
+
+type RentalMessage = {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  rental_id: string | null;
+  subject: string;
+  body: string;
+  read: boolean;
+  created_at: string;
+};
+
 
 type Rental = {
   id: string;
