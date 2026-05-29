@@ -612,30 +612,120 @@ export default function EquipmentRentals() {
             )}
           </TabsContent>
 
-          {/* AGREEMENTS */}
+          {/* AGREEMENTS — record keeping */}
           <TabsContent value="agreements" className="space-y-3">
             {agreements.length === 0 ? (
-              <EmptyState icon={FileSignature} title="No rental agreements yet" description="Agreements you send or receive will appear here." />
+              <EmptyState icon={FileSignature} title="No rental agreements yet" description="Agreements you send or receive will appear here as a permanent record." />
             ) : (
-              agreements.map((a) => {
-                const role = user?.id === a.owner_user_id ? "Owner" : "Renter";
-                return (
-                  <Card key={a.id} className="cursor-pointer hover:border-primary/40" onClick={() => openAgreementView(a)}>
-                    <CardContent className="p-4 flex flex-wrap gap-3 items-center">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-sm">{rentalTitles[a.rental_id] || "Equipment rental"}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {a.start_date} → {a.end_date} · {a.quantity} {a.rate_basis}(s) · ${Number(a.total).toFixed(2)} {a.currency}
-                        </div>
-                      </div>
-                      <Badge variant="outline" className="text-xs">{role}</Badge>
-                      <Badge className="text-xs capitalize">{a.status}</Badge>
-                    </CardContent>
-                  </Card>
-                );
-              })
+              <>
+                <Card>
+                  <CardContent className="p-3 flex flex-wrap gap-2 items-center">
+                    <span className="text-xs font-semibold text-muted-foreground mr-1">Filter:</span>
+                    {(["all", "accepted", "sent", "declined"] as const).map((s) => (
+                      <Button
+                        key={s}
+                        size="sm"
+                        variant={agreementStatusFilter === s ? "default" : "outline"}
+                        onClick={() => setAgreementStatusFilter(s)}
+                        className="capitalize h-7 text-xs"
+                      >
+                        {s === "all" ? "All status" : s}
+                      </Button>
+                    ))}
+                    <span className="mx-2 text-muted-foreground">·</span>
+                    {(["all", "owner", "renter"] as const).map((r) => (
+                      <Button
+                        key={r}
+                        size="sm"
+                        variant={agreementRoleFilter === r ? "default" : "outline"}
+                        onClick={() => setAgreementRoleFilter(r)}
+                        className="capitalize h-7 text-xs"
+                      >
+                        {r === "all" ? "All roles" : `As ${r}`}
+                      </Button>
+                    ))}
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      {agreements.filter((a) => {
+                        if (agreementStatusFilter !== "all" && a.status !== agreementStatusFilter) return false;
+                        const role = user?.id === a.owner_user_id ? "owner" : "renter";
+                        if (agreementRoleFilter !== "all" && role !== agreementRoleFilter) return false;
+                        return true;
+                      }).length} of {agreements.length}
+                    </span>
+                  </CardContent>
+                </Card>
+
+                {agreements
+                  .filter((a) => {
+                    if (agreementStatusFilter !== "all" && a.status !== agreementStatusFilter) return false;
+                    const role = user?.id === a.owner_user_id ? "owner" : "renter";
+                    if (agreementRoleFilter !== "all" && role !== agreementRoleFilter) return false;
+                    return true;
+                  })
+                  .map((a) => {
+                    const isOwner = user?.id === a.owner_user_id;
+                    const role = isOwner ? "Owner" : "Renter";
+                    const counterpartyId = isOwner ? a.renter_user_id : a.owner_user_id;
+                    const counterpartyName = partyNames[counterpartyId] || "Unknown party";
+                    const fullySigned = !!a.owner_signature && !!a.renter_signature;
+                    const statusColor =
+                      a.status === "accepted" ? "bg-primary text-primary-foreground"
+                      : a.status === "declined" ? "bg-destructive text-destructive-foreground"
+                      : "bg-secondary text-secondary-foreground";
+
+                    return (
+                      <Card key={a.id} className="cursor-pointer hover:border-primary/40 transition-colors" onClick={() => openAgreementView(a)}>
+                        <CardContent className="p-4 space-y-2">
+                          <div className="flex flex-wrap gap-2 items-start">
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold text-sm flex items-center gap-2">
+                                <FileSignature size={14} className="text-primary shrink-0" />
+                                {rentalTitles[a.rental_id] || "Equipment rental"}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-0.5">
+                                {role === "Owner" ? "Rented to" : "Rented from"}: <span className="font-medium text-foreground">{counterpartyName}</span>
+                              </div>
+                            </div>
+                            <Badge variant="outline" className="text-[10px] uppercase tracking-wide">{role}</Badge>
+                            <Badge className={`text-[10px] uppercase tracking-wide capitalize ${statusColor}`}>{a.status}</Badge>
+                          </div>
+
+                          <div className="grid sm:grid-cols-3 gap-2 text-xs bg-muted/30 rounded p-2">
+                            <div>
+                              <div className="text-muted-foreground">Rental period</div>
+                              <div className="font-medium">{a.start_date} → {a.end_date}</div>
+                            </div>
+                            <div>
+                              <div className="text-muted-foreground">Rate</div>
+                              <div className="font-medium">${Number(a.rate_amount).toFixed(2)} / {a.rate_basis} × {a.quantity}</div>
+                            </div>
+                            <div>
+                              <div className="text-muted-foreground">Total</div>
+                              <div className="font-medium">${Number(a.total).toFixed(2)} {a.currency} <span className="text-muted-foreground">(dep ${Number(a.deposit).toFixed(2)})</span></div>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground pt-1">
+                            <span>
+                              Owner sig: {a.owner_signed_at ? <span className="text-foreground">✓ {format(new Date(a.owner_signed_at), "MMM d, yyyy")}</span> : <span className="text-orange-600">pending</span>}
+                            </span>
+                            <span>
+                              Renter sig: {a.renter_signed_at ? <span className="text-foreground">✓ {format(new Date(a.renter_signed_at), "MMM d, yyyy")}</span> : <span className="text-orange-600">pending</span>}
+                            </span>
+                            {fullySigned && <span className="ml-auto text-primary font-medium">Fully executed</span>}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+
+                <p className="text-[11px] text-muted-foreground text-center pt-2">
+                  All signed agreements are permanently stored. Click any record to view the full terms, signatures, and print a copy for your files.
+                </p>
+              </>
             )}
           </TabsContent>
+
         </Tabs>
       </main>
 
