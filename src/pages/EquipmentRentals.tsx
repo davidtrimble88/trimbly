@@ -505,10 +505,8 @@ export default function EquipmentRentals() {
 
               <DialogFooter>
                 <Button variant="outline" onClick={() => setDetail(null)}>Close</Button>
-                <Button onClick={() => { openAgreementCreate(detail); }}>
-                  <FileSignature size={14} className="mr-1" /> Create rental agreement
-                </Button>
               </DialogFooter>
+
             </>
           )}
         </DialogContent>
