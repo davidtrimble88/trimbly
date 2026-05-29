@@ -12,7 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
 
-const categories = ["Plumbing", "Electrical", "Handyman", "HVAC", "Landscaping", "Painting", "Roofing", "Cleaning", "Other"];
+const categories = ["Plumbing", "Electrical", "Handyman", "General Contractor", "HVAC", "Landscaping", "Painting", "Roofing", "Cleaning", "Other"];
+
 
 const difficultyLabels = ["", "Easy — DIY Friendly", "Moderate", "Intermediate", "Advanced", "Expert Only"];
 const difficultyColors = ["", "text-primary", "text-primary", "text-accent", "text-destructive", "text-destructive"];
