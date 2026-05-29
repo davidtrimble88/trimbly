@@ -74,6 +74,8 @@ export default function RentalAgreementDialog({
   rental,
   existingAgreement,
   mode,
+  renterUserId,
+  renterProviderId,
   onSaved,
 }: {
   open: boolean;
@@ -81,8 +83,12 @@ export default function RentalAgreementDialog({
   rental: RentalForAgreement | null;
   existingAgreement?: Agreement | null;
   mode: "create" | "view";
+  /** Required when owner is creating a new agreement to send to a specific renter */
+  renterUserId?: string;
+  renterProviderId?: string | null;
   onSaved?: () => void;
 }) {
+
   const { user } = useAuth();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
@@ -112,8 +118,11 @@ export default function RentalAgreementDialog({
     }
   }, [existingAgreement, open]);
 
-  const isOwner = !!user && !!agreement && user.id === agreement.owner_user_id;
-  const isRenter = !!user && (!agreement || user.id === agreement.renter_user_id);
+  const isOwner = !!user && (
+    (agreement && user.id === agreement.owner_user_id) ||
+    (!agreement && !!rental && user.id === rental.owner_user_id)
+  );
+  const isRenter = !!user && !!agreement && user.id === agreement.renter_user_id;
 
   const rateAmount = useMemo(() => {
     if (agreement) return Number(agreement.rate_amount);
@@ -128,8 +137,17 @@ export default function RentalAgreementDialog({
   const total = +(subtotal + deposit).toFixed(2);
   const currency = agreement?.currency || rental?.currency || "USD";
 
+  // OWNER creates and pre-signs the agreement, then sends it to the renter for acceptance.
   const createAgreement = async () => {
     if (!user || !rental) return;
+    if (user.id !== rental.owner_user_id) {
+      toast({ title: "Only the equipment owner can create an agreement", variant: "destructive" });
+      return;
+    }
+    if (!renterUserId) {
+      toast({ title: "Pick a renter to send this agreement to", variant: "destructive" });
+      return;
+    }
     if (!startDate || !endDate) {
       toast({ title: "Pick dates", variant: "destructive" });
       return;
@@ -139,11 +157,7 @@ export default function RentalAgreementDialog({
       return;
     }
     if (!rateAmount) {
-      toast({ title: "Owner has not set a price for that basis", variant: "destructive" });
-      return;
-    }
-    if (rental.insurance_required && !insuranceAck) {
-      toast({ title: "Insurance acknowledgment required", variant: "destructive" });
+      toast({ title: "Set a price for that basis on the listing first", variant: "destructive" });
       return;
     }
     if (!signature.trim()) {
@@ -156,9 +170,10 @@ export default function RentalAgreementDialog({
       .from("rental_agreements")
       .insert({
         rental_id: rental.id,
-        owner_user_id: rental.owner_user_id,
-        renter_user_id: user.id,
+        owner_user_id: user.id,
+        renter_user_id: renterUserId,
         owner_provider_id: rental.owner_provider_id,
+        renter_provider_id: renterProviderId ?? null,
         start_date: startDate,
         end_date: endDate,
         rate_basis: rateBasis,
@@ -169,10 +184,10 @@ export default function RentalAgreementDialog({
         total,
         currency,
         terms_snapshot: termsSnapshot,
-        insurance_acknowledged: insuranceAck,
+        insurance_acknowledged: false,
         status: "sent",
-        renter_signature: signature.trim(),
-        renter_signed_at: new Date().toISOString(),
+        owner_signature: signature.trim(),
+        owner_signed_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -181,24 +196,29 @@ export default function RentalAgreementDialog({
       setSaving(false);
       return;
     }
-    // Notify owner via in-app message
+    // Notify renter via in-app message
     await supabase.from("messages").insert({
       sender_id: user.id,
-      recipient_id: rental.owner_user_id,
-      subject: `Rental request: ${rental.title}`,
-      body: `I've sent a rental agreement for "${rental.title}" from ${startDate} to ${endDate}. Please review and sign in the Equipment Marketplace.`,
+      recipient_id: renterUserId,
+      subject: `Rental agreement: ${rental.title}`,
+      body: `I've sent you a rental agreement for "${rental.title}" from ${startDate} to ${endDate}. Please review and sign in the Equipment Marketplace.`,
       rental_id: rental.id,
     } as any);
-    toast({ title: "Agreement sent", description: "The owner will review and sign." });
+    toast({ title: "Agreement sent", description: "The renter will review and sign." });
     setAgreement(data as any);
     setSaving(false);
     onSaved?.();
   };
 
-  const ownerSign = async () => {
+  // RENTER signs to accept the owner-created agreement.
+  const renterAccept = async () => {
     if (!user || !agreement) return;
     if (!signature.trim()) {
       toast({ title: "Type your full legal name to sign", variant: "destructive" });
+      return;
+    }
+    if (rental?.insurance_required && !insuranceAck) {
+      toast({ title: "Insurance acknowledgment required", variant: "destructive" });
       return;
     }
     setSaving(true);
@@ -206,8 +226,9 @@ export default function RentalAgreementDialog({
       .from("rental_agreements")
       .update({
         status: "accepted",
-        owner_signature: signature.trim(),
-        owner_signed_at: new Date().toISOString(),
+        renter_signature: signature.trim(),
+        renter_signed_at: new Date().toISOString(),
+        insurance_acknowledged: insuranceAck,
       })
       .eq("id", agreement.id);
     if (error) {
@@ -217,9 +238,9 @@ export default function RentalAgreementDialog({
     }
     await supabase.from("messages").insert({
       sender_id: user.id,
-      recipient_id: agreement.renter_user_id,
+      recipient_id: agreement.owner_user_id,
       subject: `Rental agreement accepted`,
-      body: `Your rental agreement has been signed and accepted. You're all set — coordinate pickup directly.`,
+      body: `The renter has signed and accepted your rental agreement. You're all set — coordinate pickup directly.`,
       rental_id: agreement.rental_id,
     } as any);
     toast({ title: "Signed & accepted" });
@@ -234,9 +255,9 @@ export default function RentalAgreementDialog({
     await supabase.from("rental_agreements").update({ status: "declined" }).eq("id", agreement.id);
     await supabase.from("messages").insert({
       sender_id: user.id,
-      recipient_id: agreement.renter_user_id,
+      recipient_id: agreement.owner_user_id,
       subject: `Rental agreement declined`,
-      body: `Unfortunately the owner has declined your rental request.`,
+      body: `The renter has declined the rental agreement.`,
       rental_id: agreement.rental_id,
     } as any);
     toast({ title: "Declined" });
@@ -244,6 +265,7 @@ export default function RentalAgreementDialog({
     onOpenChange(false);
     onSaved?.();
   };
+
 
   if (!rental && !agreement) return null;
 
@@ -257,8 +279,9 @@ export default function RentalAgreementDialog({
           <DialogDescription>
             {agreement ? (
               <Badge variant="outline" className="mt-1">Status: {agreement.status}</Badge>
-            ) : "Fill in the rental period to send a signed agreement to the owner."}
+            ) : "Fill in the rental period to send a signed agreement to the renter."}
           </DialogDescription>
+
         </DialogHeader>
 
         <div className="space-y-4">
@@ -344,8 +367,8 @@ export default function RentalAgreementDialog({
             </div>
           )}
 
-          {/* Signature line: shown to creator (renter) and to owner when reviewing */}
-          {((!agreement && isRenter) || (agreement && isOwner && !agreement.owner_signature && agreement.status === "sent")) && (
+          {/* Signature line: shown to owner when creating, or to renter when accepting */}
+          {((!agreement && isOwner) || (agreement && isRenter && !agreement.renter_signature && agreement.status === "sent")) && (
             <div>
               <Label>Type your full legal name to e-sign</Label>
               <Input value={signature} onChange={(e) => setSignature(e.target.value)} placeholder="Your full legal name" />
@@ -355,15 +378,15 @@ export default function RentalAgreementDialog({
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
-          {!agreement && (
+          {!agreement && isOwner && (
             <Button onClick={createAgreement} disabled={saving}>
-              {saving && <Loader2 size={14} className="animate-spin mr-1" />} Sign & send to owner
+              {saving && <Loader2 size={14} className="animate-spin mr-1" />} Sign & send to renter
             </Button>
           )}
-          {agreement && isOwner && agreement.status === "sent" && !agreement.owner_signature && (
+          {agreement && isRenter && agreement.status === "sent" && !agreement.renter_signature && (
             <>
               <Button variant="destructive" onClick={decline} disabled={saving}>Decline</Button>
-              <Button onClick={ownerSign} disabled={saving}>
+              <Button onClick={renterAccept} disabled={saving}>
                 {saving && <Loader2 size={14} className="animate-spin mr-1" />} Sign & accept
               </Button>
             </>

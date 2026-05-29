@@ -124,6 +124,14 @@ export default function EquipmentRentals() {
   const [agreementDialogOpen, setAgreementDialogOpen] = useState(false);
   const [agreementRental, setAgreementRental] = useState<RentalForAgreement | null>(null);
   const [viewingAgreement, setViewingAgreement] = useState<Agreement | null>(null);
+  const [agreementRenterId, setAgreementRenterId] = useState<string | null>(null);
+
+  // Renter picker (owner picks from people who messaged about a rental)
+  const [renterPickerOpen, setRenterPickerOpen] = useState(false);
+  const [renterPickerRental, setRenterPickerRental] = useState<Rental | null>(null);
+  const [renterCandidates, setRenterCandidates] = useState<{ id: string; name: string }[]>([]);
+  const [renterPickerLoading, setRenterPickerLoading] = useState(false);
+
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -264,7 +272,36 @@ export default function EquipmentRentals() {
     setSendingMsg(false);
   };
 
-  const openAgreementCreate = (r: Rental) => {
+  // Owner picks a renter (from people who have messaged about this rental) before sending an agreement
+  const openRenterPicker = async (r: Rental) => {
+    if (!user) return;
+    setRenterPickerRental(r);
+    setRenterPickerOpen(true);
+    setRenterPickerLoading(true);
+    setRenterCandidates([]);
+    const { data: msgs } = await supabase
+      .from("messages")
+      .select("sender_id")
+      .eq("rental_id", r.id)
+      .eq("recipient_id", user.id);
+    const ids = Array.from(new Set((msgs || []).map((m: any) => m.sender_id).filter((id: string) => id !== user.id)));
+    if (ids.length) {
+      const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+      setRenterCandidates(
+        ids.map((id) => ({
+          id,
+          name: (profs || []).find((p: any) => p.id === id)?.full_name || "Unknown pro",
+        }))
+      );
+    }
+    setRenterPickerLoading(false);
+  };
+
+  const startAgreementForRenter = async (renterId: string) => {
+    if (!renterPickerRental) return;
+    const r = renterPickerRental;
+    // Find renter's provider id (optional)
+    const { data: prov } = await supabase.from("providers").select("id").eq("user_id", renterId).maybeSingle();
     setAgreementRental({
       id: r.id,
       title: r.title,
@@ -278,7 +315,9 @@ export default function EquipmentRentals() {
       terms: r.terms,
       insurance_required: r.insurance_required,
     });
+    setAgreementRenterId(renterId);
     setViewingAgreement(null);
+    setRenterPickerOpen(false);
     setAgreementDialogOpen(true);
   };
 
@@ -310,9 +349,11 @@ export default function EquipmentRentals() {
       }
     }
     setAgreementRental(rentalForAg);
+    setAgreementRenterId(null);
     setViewingAgreement(a);
     setAgreementDialogOpen(true);
   };
+
 
   const renderPrices = (r: Rental) => (
     <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3">
@@ -420,8 +461,12 @@ export default function EquipmentRentals() {
                         <span>Available</span>
                         <Switch checked={r.available} onCheckedChange={() => toggleAvailable(r)} />
                       </div>
+                      <Button size="sm" variant="secondary" onClick={() => openRenterPicker(r)}>
+                        <FileSignature size={14} className="mr-1" /> Send agreement
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => openEdit(r)}><Pencil size={14} /></Button>
                       <Button size="sm" variant="ghost" onClick={() => deleteRental(r)}><Trash2 size={14} /></Button>
+
                     </div>
                   </CardContent>
                 </Card>
@@ -505,10 +550,8 @@ export default function EquipmentRentals() {
 
               <DialogFooter>
                 <Button variant="outline" onClick={() => setDetail(null)}>Close</Button>
-                <Button onClick={() => { openAgreementCreate(detail); }}>
-                  <FileSignature size={14} className="mr-1" /> Create rental agreement
-                </Button>
               </DialogFooter>
+
             </>
           )}
         </DialogContent>
@@ -626,8 +669,46 @@ export default function EquipmentRentals() {
         rental={agreementRental}
         existingAgreement={viewingAgreement}
         mode={viewingAgreement ? "view" : "create"}
+        renterUserId={agreementRenterId ?? undefined}
         onSaved={loadAll}
       />
+
+      {/* Renter picker (owner chooses who to send agreement to) */}
+      <Dialog open={renterPickerOpen} onOpenChange={setRenterPickerOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send rental agreement</DialogTitle>
+            <DialogDescription>
+              Pick a renter who has messaged you about{" "}
+              <span className="font-medium">{renterPickerRental?.title}</span>.
+            </DialogDescription>
+          </DialogHeader>
+          {renterPickerLoading ? (
+            <div className="flex justify-center py-6"><Loader2 className="animate-spin" /></div>
+          ) : renterCandidates.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-3">
+              No one has messaged you about this listing yet. The renter must reach out first before you can send them an agreement.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {renterCandidates.map((c) => (
+                <Button
+                  key={c.id}
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => startAgreementForRenter(c.id)}
+                >
+                  {c.name}
+                </Button>
+              ))}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenterPickerOpen(false)}>Cancel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       <Footer />
     </div>
