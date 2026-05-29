@@ -181,6 +181,26 @@ export default function EquipmentRentals() {
     setMyRentals((mine.data as any) || []);
     setAgreements((ags.data as any) || []);
 
+    const myIds = ((mine.data as any[]) || []).map((r) => r.id);
+    let msgs: RentalMessage[] = [];
+    if (myIds.length) {
+      const { data: msgData } = await supabase
+        .from("messages")
+        .select("id, sender_id, recipient_id, rental_id, subject, body, read, created_at")
+        .in("rental_id", myIds)
+        .order("created_at", { ascending: true });
+      msgs = (msgData as any) || [];
+    }
+    setRentalMessages(msgs);
+
+    const partyIds = Array.from(new Set(msgs.flatMap((m) => [m.sender_id, m.recipient_id])));
+    if (partyIds.length) {
+      const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", partyIds);
+      const pmap: Record<string, string> = {};
+      (profs || []).forEach((p: any) => { pmap[p.id] = p.full_name || "Unknown"; });
+      setPartyNames(pmap);
+    }
+
     const ids = Array.from(new Set([...(ags.data || []).map((a: any) => a.rental_id)]));
     if (ids.length) {
       const { data: titles } = await supabase.from("equipment_rentals").select("id, title").in("id", ids);
@@ -189,6 +209,7 @@ export default function EquipmentRentals() {
       setRentalTitles(map);
     }
     setLoading(false);
+
   }, [user]);
 
   useEffect(() => { if (user) loadAll(); }, [user, loadAll]);
