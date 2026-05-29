@@ -266,7 +266,7 @@ const Tax = () => {
       };
     }
     if (entityType === "llc") {
-      // Single-member LLC by default — disregarded entity for federal income tax.
+      // LLC — disregarded entity (single-member or spouses-as-CP) OR partnership (multi-member).
       // CA: NOT subject to the corporate franchise tax (8.84%). Instead pays the
       // R&TC §17941 "Annual LLC Tax" ($800/yr, Form 3522) + R&TC §17942 gross-
       // receipts fee (Form 3536) tiered on total California source income.
@@ -276,16 +276,37 @@ const Tax = () => {
       const individualFed = progressive(netIncome, FED_INDIV_BRACKETS_SINGLE);
       const individualCa = progressive(netIncome, CA_INDIV_BRACKETS_SINGLE);
       const seTax = selfEmploymentTax(netIncome);
+
+      const trustNotes: string[] = [];
+      if (trustOwnership === "single_grantor") {
+        trustNotes.push(
+          "Owned by a single-grantor revocable trust → IRS looks through to the grantor. Still a disregarded SMLLC: Schedule C, SE tax, same CA filings. Trustees (you noted " + trusteeCount + ") do not affect tax treatment — only the grantor does.",
+        );
+      } else if (trustOwnership === "married_cp") {
+        trustNotes.push(
+          "Owned by a joint revocable trust funded by spouses in CA community property → qualified entity under Rev. Proc. 2002-69. Treated as a disregarded SMLLC: Schedule C, SE tax. Trustees (" + trusteeCount + ") do not change tax treatment.",
+        );
+      } else if (trustOwnership === "multi_grantor_partnership") {
+        trustNotes.push(
+          "Owned by a trust with multiple non-spouse grantors (" + trusteeCount + " trustees noted; tax follows grantors, not trustees) → multi-member LLC, taxed as a PARTNERSHIP by default. File Form 1065 + issue K-1s to each grantor/beneficiary. CA Form 568 still required.",
+          "$800 Annual LLC Tax and §17942 LLC fee are unchanged at the entity level.",
+          "No SE tax at the entity level — SE tax applies to each managing/active member on their distributive share of ordinary income. Net SE shown below assumes all members are active.",
+          "If any member is an irrevocable trust, that trust files Form 1041 and passes income to its beneficiaries via K-1.",
+        );
+      }
+
       return {
         federal: federalEntity, stateTax: stateEntity, seTax, individualFed, individualCa,
         notes: [
-          "LLC is a pass-through — no federal corporate income tax. Profit flows to the owner's 1040 Schedule C.",
-          "CA does NOT charge the 8.84% corporate franchise tax on LLCs. Instead, every CA LLC owes the $800 Annual LLC Tax (R&TC §17941, Form 3522) regardless of income or activity.",
+          "LLC is a pass-through — no federal corporate income tax. Profit flows to the owner(s).",
+          "CA does NOT charge the 8.84% corporate franchise tax on LLCs. Every CA LLC owes the $800 Annual LLC Tax (R&TC §17941, Form 3522) regardless of income or activity.",
           `On top of that, CA charges the §17942 LLC Fee tiered on gross receipts (Form 3536): currently ${fmtUSD(llcFee)} at ${fmtUSD(grossRevenue)} of revenue.`,
-          "Owner pays self-employment tax (15.3%) + federal & CA individual income tax on net profit.",
+          "Owner(s) pay self-employment tax (15.3%) + federal & CA individual income tax on net profit.",
+          ...trustNotes,
         ],
       };
     }
+
     const individualFed = progressive(netIncome, FED_INDIV_BRACKETS_SINGLE);
     const individualCa = progressive(netIncome, CA_INDIV_BRACKETS_SINGLE);
     const seTax = selfEmploymentTax(netIncome);
