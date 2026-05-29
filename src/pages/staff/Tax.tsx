@@ -482,6 +482,43 @@ const Tax = () => {
         </AlertDescription>
       </Alert>
 
+      {/* Demo simulator */}
+      <Card className={demoMode ? "border-primary bg-primary/5" : ""}>
+        <CardContent className="p-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <Switch checked={demoMode} onCheckedChange={toggleDemo} id="demo-toggle" />
+            <div>
+              <Label htmlFor="demo-toggle" className="text-sm font-semibold cursor-pointer">
+                Simulate 10,000 paying subscribers
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Loads a realistic mix and operating costs so you can preview tax obligations at scale.
+              </p>
+            </div>
+          </div>
+          {demoMode && (
+            <div className="grid grid-cols-3 gap-4 text-xs">
+              <div>
+                <p className="text-muted-foreground">Home Hero ($5)</p>
+                <p className="font-semibold">{DEMO_MIX.home_hero.count.toLocaleString()} users</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Super Hero ($20)</p>
+                <p className="font-semibold">{DEMO_MIX.home_super_hero.count.toLocaleString()} users</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Pro Provider ($29)</p>
+                <p className="font-semibold">{DEMO_MIX.pro_provider.count.toLocaleString()} users</p>
+              </div>
+              <div className="col-span-3 pt-2 border-t border-border flex justify-between">
+                <span>Simulated MRR: <strong>{fmtUSD(demoMRR)}</strong></span>
+                <span>ARR: <strong className="text-primary">{fmtUSD(demoARR)}</strong></span>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Inputs */}
       <Card>
         <CardHeader>
