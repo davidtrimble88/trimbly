@@ -125,7 +125,9 @@ export default function EquipmentRentals() {
   const homeownerHasSubscription = subscriptionTier && subscriptionTier !== "free";
   const canInteract = !isHomeowner || homeownerHasSubscription;
 
+  const [rentals, setRentals] = useState<Rental[]>([]);
   const [myRentals, setMyRentals] = useState<Rental[]>([]);
+
   const [agreements, setAgreements] = useState<Agreement[]>([]);
   const [rentalTitles, setRentalTitles] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
