@@ -820,6 +820,130 @@ export default function EquipmentRentals() {
         </DialogContent>
       </Dialog>
 
+      {/* Manage listing dialog: messages + agreements per rental */}
+      <Dialog open={!!manageRental} onOpenChange={(v) => { if (!v) { setManageRental(null); setActiveThreadUserId(null); setReplyBody(""); } }}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+          {manageRental && (() => {
+            const partnerIds = Array.from(messageStatsByRental[manageRental.id]?.partners || []);
+            const threadMessages = rentalMessages.filter(
+              (m) => m.rental_id === manageRental.id &&
+                ((m.sender_id === activeThreadUserId && m.recipient_id === user?.id) ||
+                 (m.recipient_id === activeThreadUserId && m.sender_id === user?.id))
+            );
+            const rentalAgreements = agreements.filter((a) => a.rental_id === manageRental.id);
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Wrench size={18} /> {manageRental.title}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {manageRental.category} · {manageRental.city}, {manageRental.state} · {partnerIds.length} conversation{partnerIds.length === 1 ? "" : "s"} · {rentalAgreements.length} agreement{rentalAgreements.length === 1 ? "" : "s"}
+                  </DialogDescription>
+                </DialogHeader>
+
+                {rentalAgreements.length > 0 && (
+                  <div className="rounded-md border border-border p-3 space-y-2">
+                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Agreements</div>
+                    {rentalAgreements.map((a) => (
+                      <button
+                        key={a.id}
+                        onClick={() => openAgreementView(a)}
+                        className="w-full text-left text-xs flex items-center justify-between gap-2 rounded p-2 hover:bg-secondary/50"
+                      >
+                        <span>
+                          {partyNames[a.renter_user_id] || "Renter"} · {a.start_date} → {a.end_date} · ${Number(a.total).toFixed(2)}
+                        </span>
+                        <Badge className="capitalize text-[10px]">{a.status}</Badge>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="grid sm:grid-cols-[200px_1fr] gap-3 flex-1 min-h-0">
+                  {/* Thread list */}
+                  <div className="border border-border rounded-md overflow-y-auto max-h-[50vh]">
+                    {partnerIds.length === 0 ? (
+                      <p className="text-xs text-muted-foreground p-3">No messages yet about this listing.</p>
+                    ) : (
+                      partnerIds.map((pid) => {
+                        const partnerMsgs = rentalMessages.filter(
+                          (m) => m.rental_id === manageRental.id &&
+                            (m.sender_id === pid || m.recipient_id === pid)
+                        );
+                        const last = partnerMsgs[partnerMsgs.length - 1];
+                        const unread = partnerMsgs.filter((m) => !m.read && m.recipient_id === user?.id && m.sender_id === pid).length;
+                        return (
+                          <button
+                            key={pid}
+                            onClick={() => setActiveThreadUserId(pid)}
+                            className={`w-full text-left p-2 border-b border-border last:border-b-0 ${activeThreadUserId === pid ? "bg-secondary" : "hover:bg-secondary/50"}`}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-sm font-medium truncate">{partyNames[pid] || "Unknown"}</span>
+                              {unread > 0 && <span className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 rounded-full">{unread}</span>}
+                            </div>
+                            <p className="text-[11px] text-muted-foreground truncate">{last?.body}</p>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* Thread view */}
+                  <div className="flex flex-col min-h-0">
+                    <div className="flex-1 overflow-y-auto border border-border rounded-md p-3 space-y-2 max-h-[40vh]">
+                      {!activeThreadUserId ? (
+                        <p className="text-xs text-muted-foreground">Pick a conversation on the left.</p>
+                      ) : threadMessages.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">No messages.</p>
+                      ) : (
+                        threadMessages.map((m) => {
+                          const mine = m.sender_id === user?.id;
+                          return (
+                            <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                              <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${mine ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>
+                                <p className="whitespace-pre-wrap break-words">{m.body}</p>
+                                <p className={`text-[10px] mt-1 ${mine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                                  {format(new Date(m.created_at), "MMM d, h:mm a")}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                    {activeThreadUserId && (
+                      <div className="mt-2 flex gap-2">
+                        <Textarea
+                          value={replyBody}
+                          onChange={(e) => setReplyBody(e.target.value)}
+                          placeholder={`Reply to ${partyNames[activeThreadUserId] || "renter"}…`}
+                          className="min-h-[60px]"
+                        />
+                        <Button onClick={sendReply} disabled={sendingReply || !replyBody.trim()}>
+                          {sendingReply ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  {activeThreadUserId && (
+                    <Button variant="secondary" onClick={() => { setRenterPickerRental(manageRental); startAgreementForRenter(activeThreadUserId); }}>
+                      <FileSignature size={14} className="mr-1" /> Send agreement to this renter
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={() => setManageRental(null)}>Close</Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
+
 
       <Footer />
     </div>
