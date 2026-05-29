@@ -49,6 +49,7 @@ const StaffErrors = lazy(() => import("./pages/staff/Errors"));
 const StaffTeam = lazy(() => import("./pages/staff/Team"));
 const StaffAnalytics = lazy(() => import("./pages/staff/Analytics"));
 const StaffBusinessAnalytics = lazy(() => import("./pages/staff/BusinessAnalytics"));
+const StaffTax = lazy(() => import("./pages/staff/Tax"));
 const PortalChoice = lazy(() => import("./pages/PortalChoice"));
 const Help = lazy(() => import("./pages/Help"));
 const ManualSearch = lazy(() => import("./pages/ManualSearch"));
@@ -161,6 +162,7 @@ const App = () => (
               <Route path="team" element={<StaffTeam />} />
               <Route path="analytics" element={<StaffAnalytics />} />
               <Route path="business" element={<StaffBusinessAnalytics />} />
+              <Route path="tax" element={<StaffTax />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
