@@ -537,33 +537,51 @@ export default function EquipmentRentals() {
             {myRentals.length === 0 ? (
               <EmptyState icon={Wrench} title="You haven't listed any equipment yet" description="Earn extra revenue by renting your gear to other pros." actionLabel="List equipment" onAction={openCreate} />
             ) : (
-              myRentals.map((r) => (
-                <Card key={r.id}>
+              myRentals.map((r) => {
+                const stats = messageStatsByRental[r.id];
+                const msgCount = stats?.total || 0;
+                const unread = stats?.unread || 0;
+                return (
+                <Card key={r.id} className={unread > 0 ? "border-primary/50" : ""}>
                   <CardContent className="p-4 flex flex-wrap gap-3 items-center">
                     {r.photo_urls?.[0] && <img src={r.photo_urls[0]} alt="" className="w-20 h-20 object-cover rounded" />}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-semibold text-sm truncate">{r.title}</h3>
                         <Badge variant={r.available ? "default" : "secondary"} className="text-xs">{r.available ? "Available" : "Hidden"}</Badge>
+                        {unread > 0 && (
+                          <Badge className="text-xs bg-primary text-primary-foreground">
+                            {unread} new message{unread === 1 ? "" : "s"}
+                          </Badge>
+                        )}
                       </div>
                       <div className="text-xs text-muted-foreground">{r.category} · {r.city}, {r.state}</div>
                       {renderPrices(r)}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <div className="flex items-center gap-2 text-xs">
                         <span>Available</span>
                         <Switch checked={r.available} onCheckedChange={() => toggleAvailable(r)} />
                       </div>
+                      <Button
+                        size="sm"
+                        variant={unread > 0 ? "default" : "outline"}
+                        onClick={() => openManage(r)}
+                      >
+                        <Inbox size={14} className="mr-1" />
+                        Manage {msgCount > 0 && <span className="ml-1 opacity-80">({msgCount})</span>}
+                      </Button>
                       <Button size="sm" variant="secondary" onClick={() => openRenterPicker(r)}>
                         <FileSignature size={14} className="mr-1" /> Send agreement
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => openEdit(r)}><Pencil size={14} /></Button>
                       <Button size="sm" variant="ghost" onClick={() => deleteRental(r)}><Trash2 size={14} /></Button>
-
                     </div>
                   </CardContent>
                 </Card>
-              ))
+                );
+              })
+
             )}
           </TabsContent>
 
