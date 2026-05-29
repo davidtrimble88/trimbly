@@ -98,6 +98,7 @@ export default function RentalAgreementDialog({
   const [quantity, setQuantity] = useState<number>(1);
   const [insuranceAck, setInsuranceAck] = useState(false);
   const [signature, setSignature] = useState("");
+  const [customTerms, setCustomTerms] = useState("");
   const [agreement, setAgreement] = useState<Agreement | null>(existingAgreement || null);
 
   useEffect(() => {
@@ -115,8 +116,10 @@ export default function RentalAgreementDialog({
       setQuantity(1);
       setInsuranceAck(false);
       setSignature("");
+      setCustomTerms(rental?.terms || "");
     }
-  }, [existingAgreement, open]);
+  }, [existingAgreement, open, rental]);
+
 
   const isOwner = !!user && (
     (agreement && user.id === agreement.owner_user_id) ||
