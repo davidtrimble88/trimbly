@@ -1,207 +1,180 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Users, MapPin, Wrench, DollarSign, Package, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Tabs, TabsContent, TabsList, TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { Users, MapPin, Wrench, DollarSign, Package, TrendingUp, Download, RefreshCw, Globe } from "lucide-react";
+import {
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend,
+  PieChart, Pie, Cell,
+} from "recharts";
+import * as XLSX from "xlsx";
+import { toast } from "@/hooks/use-toast";
 
-type Row = Record<string, any>;
+type RegionRow = {
+  region: string; homeowners: number; providers: number; jobs: number; rentals: number;
+  total_users: number; bid_count: number; avg_bid: number; avg_rental_day: number;
+};
+type StateRow = {
+  key: string; label: string; region: string; country: string; state: string;
+  homeowners: number; providers: number; jobs: number; rentals: number; total_users: number;
+  bid_count: number; avg_bid: number; min_bid: number; max_bid: number;
+  rental_count: number; avg_rental_day: number;
+};
+type CategoryRow = { category: string; bids: number; avg_bid: number; min_bid: number; max_bid: number };
+type Totals = {
+  homeowners: number; providers: number; jobs: number; bids: number; rentals: number;
+  states_active: number; regions_active: number; avg_bid_overall: number;
+};
+type Payload = {
+  totals: Totals; byRegion: RegionRow[]; byState: StateRow[]; byCategory: CategoryRow[]; generated_at: string;
+};
 
-const fmtMoney = (n: number) =>
-  isFinite(n) ? `$${Math.round(n).toLocaleString()}` : "—";
-
-function groupBy<T extends Row>(rows: T[], keyFn: (r: T) => string) {
-  const map = new Map<string, T[]>();
-  for (const r of rows) {
-    const k = keyFn(r) || "Unknown";
-    if (!map.has(k)) map.set(k, []);
-    map.get(k)!.push(r);
-  }
-  return map;
-}
-
-const locKey = (city?: string | null, state?: string | null) =>
-  [city?.trim() || "Unknown", state?.trim() || ""].filter(Boolean).join(", ");
+const COUNTRY_OPTIONS = [
+  { value: "all", label: "All countries" },
+  { value: "US", label: "United States" },
+  { value: "CA", label: "Canada" },
+];
+const CHART_COLORS = ["#3da06e", "#f59e0b", "#3b82f6", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#10b981", "#f97316", "#6366f1"];
+const fmt = (n: number) => (isFinite(n) ? n.toLocaleString() : "—");
+const fmtMoney = (n: number) => (isFinite(n) && n > 0 ? `$${Math.round(n).toLocaleString()}` : "—");
 
 const StaffAnalytics = () => {
+  const [data, setData] = useState<Payload | null>(null);
   const [loading, setLoading] = useState(true);
-  const [providers, setProviders] = useState<Row[]>([]);
-  const [homes, setHomes] = useState<Row[]>([]);
-  const [jobs, setJobs] = useState<Row[]>([]);
-  const [bids, setBids] = useState<Row[]>([]);
-  const [rentals, setRentals] = useState<Row[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [country, setCountry] = useState<string>("all");
+  const [region, setRegion] = useState<string>("all");
+  const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    (async () => {
-      const [p, h, j, b, r] = await Promise.all([
-        supabase.from("providers").select("id, city, state, country, category, hourly_rate_min, hourly_rate_max"),
-        supabase.from("homes").select("id, user_id, city, state, country"),
-        supabase.from("jobs").select("id, city, state, category, budget_min, budget_max, status"),
-        supabase.from("job_bids").select("id, job_id, bid_amount, estimated_hours, status, created_at"),
-        supabase.from("equipment_rentals").select("id, city, state, category, price_day, price_hour, price_week, deposit_amount, available"),
-      ]);
-      setProviders(p.data || []);
-      setHomes(h.data || []);
-      setJobs(j.data || []);
-      setBids(b.data || []);
-      setRentals(r.data || []);
-      setLoading(false);
-    })();
-  }, []);
-
-  // Derive a job -> location/category lookup for bid analytics
-  const jobLookup = useMemo(() => {
-    const m = new Map<string, Row>();
-    for (const j of jobs) m.set(j.id, j);
-    return m;
-  }, [jobs]);
-
-  // Users by location (homeowners via homes + providers)
-  const usersByLocation = useMemo(() => {
-    const map = new Map<string, { homeowners: Set<string>; providers: number }>();
-    for (const h of homes) {
-      const k = locKey(h.city, h.state);
-      if (!map.has(k)) map.set(k, { homeowners: new Set(), providers: 0 });
-      map.get(k)!.homeowners.add(h.user_id);
+  const load = async () => {
+    setRefreshing(true);
+    const { data: res, error } = await supabase.functions.invoke("staff-analytics");
+    setRefreshing(false);
+    setLoading(false);
+    if (error) {
+      toast({ title: "Failed to load analytics", description: error.message, variant: "destructive" });
+      return;
     }
-    for (const p of providers) {
-      const k = locKey(p.city, p.state);
-      if (!map.has(k)) map.set(k, { homeowners: new Set(), providers: 0 });
-      map.get(k)!.providers += 1;
-    }
-    return Array.from(map.entries())
-      .map(([loc, v]) => ({
-        location: loc,
-        homeowners: v.homeowners.size,
-        providers: v.providers,
-        total: v.homeowners.size + v.providers,
-      }))
-      .sort((a, b) => b.total - a.total);
-  }, [homes, providers]);
+    setData(res as Payload);
+  };
 
-  // Rentals by location
-  const rentalsByLocation = useMemo(() => {
-    const map = groupBy(rentals, (r) => locKey(r.city, r.state));
-    return Array.from(map.entries())
-      .map(([loc, items]) => {
-        const dayPrices = items.map((i) => Number(i.price_day)).filter((n) => n > 0);
-        const avgDay = dayPrices.length ? dayPrices.reduce((a, b) => a + b, 0) / dayPrices.length : 0;
-        return {
-          location: loc,
-          listings: items.length,
-          available: items.filter((i) => i.available).length,
-          categories: new Set(items.map((i) => i.category)).size,
-          avgDay,
-        };
-      })
-      .sort((a, b) => b.listings - a.listings);
-  }, [rentals]);
+  useEffect(() => { load(); }, []);
 
-  // Avg bid cost by area (location of job)
-  const bidsByArea = useMemo(() => {
-    const map = new Map<string, { amounts: number[]; jobs: Set<string> }>();
-    for (const bid of bids) {
-      const job = jobLookup.get(bid.job_id);
-      if (!job) continue;
-      const k = locKey(job.city, job.state);
-      if (!map.has(k)) map.set(k, { amounts: [], jobs: new Set() });
-      const amt = Number(bid.bid_amount);
-      if (amt > 0) map.get(k)!.amounts.push(amt);
-      map.get(k)!.jobs.add(bid.job_id);
-    }
-    return Array.from(map.entries())
-      .map(([loc, v]) => ({
-        location: loc,
-        bids: v.amounts.length,
-        jobs: v.jobs.size,
-        avg: v.amounts.length ? v.amounts.reduce((a, b) => a + b, 0) / v.amounts.length : 0,
-        min: v.amounts.length ? Math.min(...v.amounts) : 0,
-        max: v.amounts.length ? Math.max(...v.amounts) : 0,
-      }))
-      .sort((a, b) => b.bids - a.bids);
-  }, [bids, jobLookup]);
+  const regionOptions = useMemo(() => {
+    if (!data) return [{ value: "all", label: "All regions" }];
+    const filtered = country === "all"
+      ? data.byRegion
+      : data.byRegion.filter((r) => r.region.startsWith(country === "US" ? "US" : "CA"));
+    return [{ value: "all", label: "All regions" }, ...filtered.map((r) => ({ value: r.region, label: r.region }))];
+  }, [data, country]);
 
-  // Avg bid cost by category
-  const bidsByCategory = useMemo(() => {
-    const map = new Map<string, number[]>();
-    for (const bid of bids) {
-      const job = jobLookup.get(bid.job_id);
-      if (!job) continue;
-      const cat = job.category || "Unknown";
-      const amt = Number(bid.bid_amount);
-      if (amt <= 0) continue;
-      if (!map.has(cat)) map.set(cat, []);
-      map.get(cat)!.push(amt);
-    }
-    return Array.from(map.entries())
-      .map(([category, amounts]) => ({
-        category,
-        bids: amounts.length,
-        avg: amounts.reduce((a, b) => a + b, 0) / amounts.length,
-        min: Math.min(...amounts),
-        max: Math.max(...amounts),
-      }))
-      .sort((a, b) => b.bids - a.bids);
-  }, [bids, jobLookup]);
+  const filteredRegions = useMemo(() => {
+    if (!data) return [];
+    return data.byRegion.filter((r) => {
+      if (country !== "all" && !r.region.startsWith(country === "US" ? "US" : "CA")) return false;
+      if (region !== "all" && r.region !== region) return false;
+      return true;
+    }).sort((a, b) => b.total_users - a.total_users);
+  }, [data, country, region]);
 
-  // Top locations overall (combined activity)
-  const topLocations = useMemo(() => {
-    const map = new Map<string, { users: number; jobs: number; rentals: number; providers: number }>();
-    const bump = (k: string, field: "users" | "jobs" | "rentals" | "providers", n = 1) => {
-      if (!map.has(k)) map.set(k, { users: 0, jobs: 0, rentals: 0, providers: 0 });
-      map.get(k)![field] += n;
-    };
-    for (const u of usersByLocation) bump(u.location, "users", u.homeowners);
-    for (const p of providers) bump(locKey(p.city, p.state), "providers");
-    for (const j of jobs) bump(locKey(j.city, j.state), "jobs");
-    for (const r of rentals) bump(locKey(r.city, r.state), "rentals");
-    return Array.from(map.entries())
-      .map(([location, v]) => ({ location, ...v, score: v.users + v.jobs + v.rentals + v.providers }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 15);
-  }, [usersByLocation, providers, jobs, rentals]);
+  const filteredStates = useMemo(() => {
+    if (!data) return [];
+    const q = search.trim().toLowerCase();
+    return data.byState.filter((s) => {
+      if (country !== "all" && s.country !== country) return false;
+      if (region !== "all" && s.region !== region) return false;
+      if (q && !`${s.label} ${s.region}`.toLowerCase().includes(q)) return false;
+      return true;
+    }).sort((a, b) => b.total_users - a.total_users);
+  }, [data, country, region, search]);
 
-  const totals = useMemo(() => {
-    const bidAmounts = bids.map((b) => Number(b.bid_amount)).filter((n) => n > 0);
-    const avgBid = bidAmounts.length ? bidAmounts.reduce((a, b) => a + b, 0) / bidAmounts.length : 0;
-    const uniqueLocations = new Set<string>();
-    [...homes, ...providers, ...jobs, ...rentals].forEach((x: any) =>
-      uniqueLocations.add(locKey(x.city, x.state))
-    );
-    return {
-      totalHomeowners: new Set(homes.map((h) => h.user_id)).size,
-      totalProviders: providers.length,
-      totalJobs: jobs.length,
-      totalRentals: rentals.length,
-      totalBids: bids.length,
-      avgBid,
-      uniqueLocations: uniqueLocations.size,
-    };
-  }, [bids, homes, providers, jobs, rentals]);
+  const exportExcel = () => {
+    if (!data) return;
+    const wb = XLSX.utils.book_new();
 
-  if (loading) return <p className="text-sm text-muted-foreground">Loading analytics...</p>;
+    const summary = [
+      ["Metric", "Value"],
+      ["Generated", new Date(data.generated_at).toLocaleString()],
+      ["Homeowners", data.totals.homeowners],
+      ["Providers", data.totals.providers],
+      ["Jobs", data.totals.jobs],
+      ["Bids", data.totals.bids],
+      ["Rentals", data.totals.rentals],
+      ["Active states/provinces", data.totals.states_active],
+      ["Active regions", data.totals.regions_active],
+      ["Avg bid (all areas)", Math.round(data.totals.avg_bid_overall)],
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summary), "Summary");
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filteredRegions.map((r) => ({
+      Region: r.region, Homeowners: r.homeowners, Providers: r.providers, Jobs: r.jobs, Rentals: r.rentals,
+      "Total Users": r.total_users, Bids: r.bid_count, "Avg Bid": Math.round(r.avg_bid), "Avg Rental/day": Math.round(r.avg_rental_day),
+    }))), "By Region");
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filteredStates.map((s) => ({
+      Country: s.country, State: s.state, Region: s.region, Homeowners: s.homeowners, Providers: s.providers,
+      Jobs: s.jobs, Rentals: s.rentals, "Total Users": s.total_users, Bids: s.bid_count,
+      "Avg Bid": Math.round(s.avg_bid), "Min Bid": Math.round(s.min_bid), "Max Bid": Math.round(s.max_bid),
+      "Avg Rental/day": Math.round(s.avg_rental_day),
+    }))), "By State");
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.byCategory.map((c) => ({
+      Category: c.category, Bids: c.bids, "Avg Bid": Math.round(c.avg_bid),
+      "Min Bid": Math.round(c.min_bid), "Max Bid": Math.round(c.max_bid),
+    }))), "By Category");
+
+    XLSX.writeFile(wb, `trimbly-analytics-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
+  if (loading) return <p className="text-sm text-muted-foreground">Loading analytics…</p>;
+  if (!data) return <p className="text-sm text-muted-foreground">No data available.</p>;
 
   const kpis = [
-    { label: "Homeowners", value: totals.totalHomeowners, icon: Users },
-    { label: "Providers", value: totals.totalProviders, icon: Wrench },
-    { label: "Unique Locations", value: totals.uniqueLocations, icon: MapPin },
-    { label: "Active Jobs", value: totals.totalJobs, icon: TrendingUp },
-    { label: "Rental Listings", value: totals.totalRentals, icon: Package },
-    { label: "Avg Bid", value: fmtMoney(totals.avgBid), icon: DollarSign, accent: true },
+    { label: "Homeowners", value: fmt(data.totals.homeowners), icon: Users },
+    { label: "Providers", value: fmt(data.totals.providers), icon: Wrench },
+    { label: "States / Provinces", value: fmt(data.totals.states_active), icon: MapPin },
+    { label: "Regions", value: fmt(data.totals.regions_active), icon: Globe },
+    { label: "Jobs", value: fmt(data.totals.jobs), icon: TrendingUp },
+    { label: "Rentals", value: fmt(data.totals.rentals), icon: Package },
+    { label: "Avg Bid", value: fmtMoney(data.totals.avg_bid_overall), icon: DollarSign, accent: true },
   ];
+
+  // Top 10 slices for charts (so they stay readable at scale)
+  const topStatesByUsers = [...filteredStates].slice(0, 10);
+  const topStatesByBids = [...filteredStates].filter((s) => s.bid_count > 0).sort((a, b) => b.avg_bid - a.avg_bid).slice(0, 10);
+  const topStatesByRentals = [...filteredStates].filter((s) => s.rentals > 0).sort((a, b) => b.rentals - a.rentals).slice(0, 10);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-display font-bold text-foreground">Platform Analytics</h2>
-        <p className="text-sm text-muted-foreground">
-          Users, locations, rentals, and bid pricing broken down by area
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-display font-bold text-foreground">Platform Analytics</h2>
+          <p className="text-sm text-muted-foreground">
+            US &amp; Canada activity grouped by region and state · {fmt(data.totals.homeowners + data.totals.providers)} users analyzed
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={load} disabled={refreshing}>
+            <RefreshCw className={`w-4 h-4 mr-1 ${refreshing ? "animate-spin" : ""}`} /> Refresh
+          </Button>
+          <Button size="sm" onClick={exportExcel}>
+            <Download className="w-4 h-4 mr-1" /> Excel
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      {/* KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         {kpis.map((k) => (
           <Card key={k.label} className={k.accent ? "border-primary/40 bg-primary/5" : ""}>
             <CardContent className="pt-5">
@@ -213,194 +186,262 @@ const StaffAnalytics = () => {
         ))}
       </div>
 
-      {/* Top locations */}
+      {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-primary" /> Top Locations (combined activity)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {topLocations.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No location data yet.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Location</TableHead>
-                  <TableHead className="text-right">Homeowners</TableHead>
-                  <TableHead className="text-right">Providers</TableHead>
-                  <TableHead className="text-right">Jobs</TableHead>
-                  <TableHead className="text-right">Rentals</TableHead>
-                  <TableHead className="text-right">Score</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {topLocations.map((l) => (
-                  <TableRow key={l.location}>
-                    <TableCell className="font-medium">{l.location}</TableCell>
-                    <TableCell className="text-right">{l.users}</TableCell>
-                    <TableCell className="text-right">{l.providers}</TableCell>
-                    <TableCell className="text-right">{l.jobs}</TableCell>
-                    <TableCell className="text-right">{l.rentals}</TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant="secondary">{l.score}</Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+        <CardContent className="pt-5 flex flex-wrap gap-3 items-end">
+          <div className="flex-1 min-w-[160px]">
+            <label className="text-xs text-muted-foreground mb-1 block">Country</label>
+            <Select value={country} onValueChange={(v) => { setCountry(v); setRegion("all"); }}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {COUNTRY_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1 min-w-[200px]">
+            <label className="text-xs text-muted-foreground mb-1 block">Region</label>
+            <Select value={region} onValueChange={setRegion}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {regionOptions.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1 min-w-[200px]">
+            <label className="text-xs text-muted-foreground mb-1 block">Search state / province</label>
+            <Input placeholder="e.g. CA, Ontario, TX" value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
         </CardContent>
       </Card>
 
-      {/* Users by location */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Users className="w-4 h-4 text-primary" /> Users by Location
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {usersByLocation.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No users yet.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Location</TableHead>
-                  <TableHead className="text-right">Homeowners</TableHead>
-                  <TableHead className="text-right">Providers</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {usersByLocation.slice(0, 25).map((u) => (
-                  <TableRow key={u.location}>
-                    <TableCell className="font-medium">{u.location}</TableCell>
-                    <TableCell className="text-right">{u.homeowners}</TableCell>
-                    <TableCell className="text-right">{u.providers}</TableCell>
-                    <TableCell className="text-right font-semibold">{u.total}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="regions">
+        <TabsList>
+          <TabsTrigger value="regions">Regions</TabsTrigger>
+          <TabsTrigger value="states">States / Provinces</TabsTrigger>
+          <TabsTrigger value="bids">Bid Pricing</TabsTrigger>
+          <TabsTrigger value="rentals">Rentals</TabsTrigger>
+        </TabsList>
 
-      {/* Rentals by location */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Package className="w-4 h-4 text-primary" /> Equipment Rentals by Location
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {rentalsByLocation.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No rental listings yet.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Location</TableHead>
-                  <TableHead className="text-right">Listings</TableHead>
-                  <TableHead className="text-right">Available</TableHead>
-                  <TableHead className="text-right">Categories</TableHead>
-                  <TableHead className="text-right">Avg / day</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rentalsByLocation.slice(0, 25).map((r) => (
-                  <TableRow key={r.location}>
-                    <TableCell className="font-medium">{r.location}</TableCell>
-                    <TableCell className="text-right">{r.listings}</TableCell>
-                    <TableCell className="text-right">{r.available}</TableCell>
-                    <TableCell className="text-right">{r.categories}</TableCell>
-                    <TableCell className="text-right">{fmtMoney(r.avgDay)}</TableCell>
+        {/* REGIONS */}
+        <TabsContent value="regions" className="space-y-4 mt-4">
+          <div className="grid lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader><CardTitle className="text-base">Users by Region</CardTitle></CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={filteredRegions}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="region" tick={{ fontSize: 10 }} angle={-15} textAnchor="end" height={70} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="homeowners" stackId="u" fill={CHART_COLORS[0]} name="Homeowners" />
+                    <Bar dataKey="providers" stackId="u" fill={CHART_COLORS[1]} name="Providers" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle className="text-base">User Share by Region</CardTitle></CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={filteredRegions} dataKey="total_users" nameKey="region" outerRadius={110} label={(e) => e.region}>
+                      {filteredRegions.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+          <Card>
+            <CardHeader><CardTitle className="text-base">Region Breakdown</CardTitle></CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Region</TableHead>
+                    <TableHead className="text-right">Homeowners</TableHead>
+                    <TableHead className="text-right">Providers</TableHead>
+                    <TableHead className="text-right">Jobs</TableHead>
+                    <TableHead className="text-right">Rentals</TableHead>
+                    <TableHead className="text-right">Bids</TableHead>
+                    <TableHead className="text-right">Avg Bid</TableHead>
+                    <TableHead className="text-right">Avg Rental/day</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {filteredRegions.map((r) => (
+                    <TableRow key={r.region}>
+                      <TableCell className="font-medium">{r.region}</TableCell>
+                      <TableCell className="text-right">{fmt(r.homeowners)}</TableCell>
+                      <TableCell className="text-right">{fmt(r.providers)}</TableCell>
+                      <TableCell className="text-right">{fmt(r.jobs)}</TableCell>
+                      <TableCell className="text-right">{fmt(r.rentals)}</TableCell>
+                      <TableCell className="text-right">{fmt(r.bid_count)}</TableCell>
+                      <TableCell className="text-right text-primary font-medium">{fmtMoney(r.avg_bid)}</TableCell>
+                      <TableCell className="text-right">{fmtMoney(r.avg_rental_day)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Avg bid cost by area */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-primary" /> Average Bid Cost by Area
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {bidsByArea.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No bids submitted yet.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Area</TableHead>
-                  <TableHead className="text-right">Bids</TableHead>
-                  <TableHead className="text-right">Jobs</TableHead>
-                  <TableHead className="text-right">Min</TableHead>
-                  <TableHead className="text-right">Avg</TableHead>
-                  <TableHead className="text-right">Max</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {bidsByArea.slice(0, 25).map((b) => (
-                  <TableRow key={b.location}>
-                    <TableCell className="font-medium">{b.location}</TableCell>
-                    <TableCell className="text-right">{b.bids}</TableCell>
-                    <TableCell className="text-right">{b.jobs}</TableCell>
-                    <TableCell className="text-right">{fmtMoney(b.min)}</TableCell>
-                    <TableCell className="text-right font-semibold text-primary">{fmtMoney(b.avg)}</TableCell>
-                    <TableCell className="text-right">{fmtMoney(b.max)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+        {/* STATES */}
+        <TabsContent value="states" className="space-y-4 mt-4">
+          <Card>
+            <CardHeader><CardTitle className="text-base">Top 10 States / Provinces by Users</CardTitle></CardHeader>
+            <CardContent className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={topStatesByUsers} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" tick={{ fontSize: 11 }} />
+                  <YAxis dataKey="label" type="category" width={140} tick={{ fontSize: 11 }} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="homeowners" stackId="u" fill={CHART_COLORS[0]} name="Homeowners" />
+                  <Bar dataKey="providers" stackId="u" fill={CHART_COLORS[1]} name="Providers" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">All States / Provinces ({fmt(filteredStates.length)})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="max-h-[600px] overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>State / Province</TableHead>
+                      <TableHead>Region</TableHead>
+                      <TableHead className="text-right">Homeowners</TableHead>
+                      <TableHead className="text-right">Providers</TableHead>
+                      <TableHead className="text-right">Jobs</TableHead>
+                      <TableHead className="text-right">Rentals</TableHead>
+                      <TableHead className="text-right">Avg Bid</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredStates.map((s) => (
+                      <TableRow key={s.key}>
+                        <TableCell className="font-medium">{s.label}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{s.region}</TableCell>
+                        <TableCell className="text-right">{fmt(s.homeowners)}</TableCell>
+                        <TableCell className="text-right">{fmt(s.providers)}</TableCell>
+                        <TableCell className="text-right">{fmt(s.jobs)}</TableCell>
+                        <TableCell className="text-right">{fmt(s.rentals)}</TableCell>
+                        <TableCell className="text-right text-primary">{fmtMoney(s.avg_bid)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Avg bid cost by category */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Wrench className="w-4 h-4 text-primary" /> Average Bid Cost by Category
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {bidsByCategory.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No bids submitted yet.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="text-right">Bids</TableHead>
-                  <TableHead className="text-right">Min</TableHead>
-                  <TableHead className="text-right">Avg</TableHead>
-                  <TableHead className="text-right">Max</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {bidsByCategory.map((b) => (
-                  <TableRow key={b.category}>
-                    <TableCell className="font-medium">{b.category}</TableCell>
-                    <TableCell className="text-right">{b.bids}</TableCell>
-                    <TableCell className="text-right">{fmtMoney(b.min)}</TableCell>
-                    <TableCell className="text-right font-semibold text-primary">{fmtMoney(b.avg)}</TableCell>
-                    <TableCell className="text-right">{fmtMoney(b.max)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+        {/* BIDS */}
+        <TabsContent value="bids" className="space-y-4 mt-4">
+          <div className="grid lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader><CardTitle className="text-base">Avg Bid by Region</CardTitle></CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={filteredRegions}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="region" tick={{ fontSize: 10 }} angle={-15} textAnchor="end" height={70} />
+                    <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `$${v}`} />
+                    <Tooltip formatter={(v: any) => fmtMoney(Number(v))} />
+                    <Bar dataKey="avg_bid" fill={CHART_COLORS[2]} name="Avg Bid" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle className="text-base">Top 10 States by Avg Bid</CardTitle></CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topStatesByBids} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" tickFormatter={(v) => `$${v}`} tick={{ fontSize: 11 }} />
+                    <YAxis dataKey="label" type="category" width={140} tick={{ fontSize: 11 }} />
+                    <Tooltip formatter={(v: any) => fmtMoney(Number(v))} />
+                    <Bar dataKey="avg_bid" fill={CHART_COLORS[2]} name="Avg Bid" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+          <Card>
+            <CardHeader><CardTitle className="text-base">Avg Bid by Category</CardTitle></CardHeader>
+            <CardContent className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data.byCategory}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="category" tick={{ fontSize: 11 }} angle={-15} textAnchor="end" height={70} />
+                  <YAxis tickFormatter={(v) => `$${v}`} tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={(v: any) => fmtMoney(Number(v))} />
+                  <Legend />
+                  <Bar dataKey="avg_bid" fill={CHART_COLORS[3]} name="Avg Bid" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* RENTALS */}
+        <TabsContent value="rentals" className="space-y-4 mt-4">
+          <div className="grid lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader><CardTitle className="text-base">Rentals by Region</CardTitle></CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={filteredRegions}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="region" tick={{ fontSize: 10 }} angle={-15} textAnchor="end" height={70} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip />
+                    <Bar dataKey="rentals" fill={CHART_COLORS[4]} name="Listings" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle className="text-base">Top 10 States by Rental Listings</CardTitle></CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topStatesByRentals} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" tick={{ fontSize: 11 }} />
+                    <YAxis dataKey="label" type="category" width={140} tick={{ fontSize: 11 }} />
+                    <Tooltip />
+                    <Bar dataKey="rentals" fill={CHART_COLORS[4]} name="Listings" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+          <Card>
+            <CardHeader><CardTitle className="text-base">Avg Rental Day Rate by Region</CardTitle></CardHeader>
+            <CardContent className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={filteredRegions}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="region" tick={{ fontSize: 10 }} angle={-15} textAnchor="end" height={70} />
+                  <YAxis tickFormatter={(v) => `$${v}`} tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={(v: any) => fmtMoney(Number(v))} />
+                  <Bar dataKey="avg_rental_day" fill={CHART_COLORS[5]} name="Avg / day" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
