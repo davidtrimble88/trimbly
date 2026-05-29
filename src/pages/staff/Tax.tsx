@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -138,6 +139,51 @@ const Tax = () => {
   const [revenueOverride, setRevenueOverride] = useState<string>(""); // blank = use projected
   const [ownerSalary, setOwnerSalary] = useState<string>("0"); // for pass-through / S-corp
   const [writeOffs, setWriteOffs] = useState(DEFAULT_WRITE_OFFS);
+  const [demoMode, setDemoMode] = useState(false);
+
+  // ---------- Demo: 10k-subscriber mix (used when demoMode is on) ----------
+  const DEMO_MIX = {
+    home_hero: { count: 7000, monthly: 5 },        // 70% on entry tier
+    home_super_hero: { count: 1500, monthly: 20 }, // 15% on multi-home
+    pro_provider: { count: 1500, monthly: 29 },    // 15% paying pros
+  };
+  const demoMRR =
+    DEMO_MIX.home_hero.count * DEMO_MIX.home_hero.monthly +
+    DEMO_MIX.home_super_hero.count * DEMO_MIX.home_super_hero.monthly +
+    DEMO_MIX.pro_provider.count * DEMO_MIX.pro_provider.monthly;
+  const demoARR = demoMRR * 12; // $1,302,000
+
+  // Realistic operating cost mix at ~$1.3M ARR
+  const DEMO_WRITE_OFFS: typeof DEFAULT_WRITE_OFFS = [
+    { category: "Cloud hosting & infrastructure (Supabase, Vercel, CDN)", annual: 36_000, irs_ref: "IRC §162 — ordinary business expense" },
+    { category: "Software & SaaS subscriptions (dev tools, APIs)", annual: 24_000, irs_ref: "IRC §162" },
+    { category: "Contractor & freelancer payments (1099-NEC)", annual: 120_000, irs_ref: "Schedule C / Form 1120 Line 11" },
+    { category: "Employee salaries & wages (W-2)", annual: 400_000, irs_ref: "Form 1120 Line 13" },
+    { category: "Payroll taxes (employer FICA, FUTA, CA SUI)", annual: 34_000, irs_ref: "Form 1120 Line 17" },
+    { category: "Employee benefits & health insurance", annual: 60_000, irs_ref: "IRC §162(l)" },
+    { category: "Marketing, advertising & SEO", annual: 80_000, irs_ref: "IRC §162 — advertising" },
+    { category: "Professional services (legal, accounting, tax prep)", annual: 24_000, irs_ref: "IRC §162" },
+    { category: "Merchant processing fees (Stripe, Paddle)", annual: 52_000, irs_ref: "IRC §162" },
+    { category: "Office rent / coworking (Hollywood, CA)", annual: 30_000, irs_ref: "IRC §162" },
+    { category: "Home office deduction (if applicable)", annual: 0, irs_ref: "IRC §280A(c)(1) — Form 8829" },
+    { category: "Business insurance (E&O, general liability, cyber)", annual: 12_000, irs_ref: "IRC §162" },
+    { category: "Travel, meals (50%) & conferences", annual: 15_000, irs_ref: "IRC §274" },
+    { category: "Equipment & computer depreciation", annual: 10_000, irs_ref: "IRC §179 / Bonus depreciation" },
+    { category: "R&D expenses (software development)", annual: 20_000, irs_ref: "IRC §174 — must amortize 5 yrs (US)" },
+    { category: "Bank, merchant & SaaS subscription fees", annual: 5_000, irs_ref: "IRC §162" },
+    { category: "Domain, trademarks & IP", annual: 3_000, irs_ref: "IRC §162 / §197 amortization" },
+  ];
+
+  const toggleDemo = (on: boolean) => {
+    setDemoMode(on);
+    if (on) {
+      setRevenueOverride(String(demoARR));
+      setWriteOffs(DEMO_WRITE_OFFS);
+    } else {
+      setRevenueOverride("");
+      setWriteOffs(DEFAULT_WRITE_OFFS);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -435,6 +481,43 @@ const Tax = () => {
           They do not replace a CPA — confirm before filing, especially for §174 R&D capitalization and depreciation.
         </AlertDescription>
       </Alert>
+
+      {/* Demo simulator */}
+      <Card className={demoMode ? "border-primary bg-primary/5" : ""}>
+        <CardContent className="p-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <Switch checked={demoMode} onCheckedChange={toggleDemo} id="demo-toggle" />
+            <div>
+              <Label htmlFor="demo-toggle" className="text-sm font-semibold cursor-pointer">
+                Simulate 10,000 paying subscribers
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Loads a realistic mix and operating costs so you can preview tax obligations at scale.
+              </p>
+            </div>
+          </div>
+          {demoMode && (
+            <div className="grid grid-cols-3 gap-4 text-xs">
+              <div>
+                <p className="text-muted-foreground">Home Hero ($5)</p>
+                <p className="font-semibold">{DEMO_MIX.home_hero.count.toLocaleString()} users</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Super Hero ($20)</p>
+                <p className="font-semibold">{DEMO_MIX.home_super_hero.count.toLocaleString()} users</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Pro Provider ($29)</p>
+                <p className="font-semibold">{DEMO_MIX.pro_provider.count.toLocaleString()} users</p>
+              </div>
+              <div className="col-span-3 pt-2 border-t border-border flex justify-between">
+                <span>Simulated MRR: <strong>{fmtUSD(demoMRR)}</strong></span>
+                <span>ARR: <strong className="text-primary">{fmtUSD(demoARR)}</strong></span>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Inputs */}
       <Card>
