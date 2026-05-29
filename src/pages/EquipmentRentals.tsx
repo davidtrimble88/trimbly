@@ -193,13 +193,17 @@ export default function EquipmentRentals() {
     }
     setRentalMessages(msgs);
 
-    const partyIds = Array.from(new Set(msgs.flatMap((m) => [m.sender_id, m.recipient_id])));
+    const partyIds = Array.from(new Set([
+      ...msgs.flatMap((m) => [m.sender_id, m.recipient_id]),
+      ...((ags.data as any[]) || []).flatMap((a) => [a.owner_user_id, a.renter_user_id]),
+    ]));
     if (partyIds.length) {
       const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", partyIds);
       const pmap: Record<string, string> = {};
       (profs || []).forEach((p: any) => { pmap[p.id] = p.full_name || "Unknown"; });
       setPartyNames(pmap);
     }
+
 
     const ids = Array.from(new Set([...(ags.data || []).map((a: any) => a.rental_id)]));
     if (ids.length) {
