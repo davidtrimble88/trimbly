@@ -716,18 +716,22 @@ Last updated: ${fmtTs(a.updated_at)}
                         {s === "all" ? "All status" : s}
                       </Button>
                     ))}
-                    <span className="mx-2 text-muted-foreground">·</span>
-                    {(["all", "owner", "renter"] as const).map((r) => (
-                      <Button
-                        key={r}
-                        size="sm"
-                        variant={agreementRoleFilter === r ? "default" : "outline"}
-                        onClick={() => setAgreementRoleFilter(r)}
-                        className="capitalize h-7 text-xs"
-                      >
-                        {r === "all" ? "All roles" : `As ${r}`}
-                      </Button>
-                    ))}
+                    {!isHomeowner && (
+                      <>
+                        <span className="mx-2 text-muted-foreground">·</span>
+                        {(["all", "owner", "renter"] as const).map((r) => (
+                          <Button
+                            key={r}
+                            size="sm"
+                            variant={agreementRoleFilter === r ? "default" : "outline"}
+                            onClick={() => setAgreementRoleFilter(r)}
+                            className="capitalize h-7 text-xs"
+                          >
+                            {r === "all" ? "All roles" : `As ${r}`}
+                          </Button>
+                        ))}
+                      </>
+                    )}
                     <span className="ml-auto text-xs text-muted-foreground">
                       {agreements.filter((a) => {
                         if (agreementStatusFilter !== "all" && a.status !== agreementStatusFilter) return false;
@@ -770,7 +774,7 @@ Last updated: ${fmtTs(a.updated_at)}
                                 {role === "Owner" ? "Rented to" : "Rented from"}: <span className="font-medium text-foreground">{counterpartyName}</span>
                               </div>
                             </div>
-                            <Badge variant="outline" className="text-[10px] uppercase tracking-wide">{role}</Badge>
+                            {!isHomeowner && <Badge variant="outline" className="text-[10px] uppercase tracking-wide">{role}</Badge>}
                             <Badge className={`text-[10px] uppercase tracking-wide capitalize ${statusColor}`}>{a.status}</Badge>
                           </div>
 
