@@ -15,10 +15,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 const categories = [
-  "Plumbing", "Electrical", "HVAC", "Roofing", "Painting",
+  "General Contractor", "Plumbing", "Electrical", "HVAC", "Roofing", "Painting",
   "Landscaping", "Cleaning", "Handyman", "Pest Control", "Flooring",
   "Carpentry", "Masonry", "Windows & Doors", "Appliance Repair", "Other",
 ];
+
 
 const tierLabels: Record<string, { label: string; icon: typeof Star; color: string }> = {
   free: { label: "Free", icon: Star, color: "secondary" },
