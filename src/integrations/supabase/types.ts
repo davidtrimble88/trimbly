@@ -246,6 +246,7 @@ export type Database = {
           price_day: number | null
           price_hour: number | null
           price_week: number | null
+          rentable_to: string
           state: string
           terms: string
           title: string
@@ -273,6 +274,7 @@ export type Database = {
           price_day?: number | null
           price_hour?: number | null
           price_week?: number | null
+          rentable_to?: string
           state?: string
           terms?: string
           title: string
@@ -300,6 +302,7 @@ export type Database = {
           price_day?: number | null
           price_hour?: number | null
           price_week?: number | null
+          rentable_to?: string
           state?: string
           terms?: string
           title?: string
