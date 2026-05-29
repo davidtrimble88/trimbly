@@ -69,7 +69,11 @@ interface ConversationPartner {
   pendingCategory?: string;
   pendingLocation?: string;
   chatStatus: ChatStatus;
+  kind: "rental" | "service";
 }
+
+type ConversationFilter = "all" | "rental" | "service";
+
 
 const statusConfig: Record<ChatStatus, { label: string; color: string; icon: typeof MessageCircle }> = {
   active: { label: "Active", color: "bg-green-500/15 text-green-700 dark:text-green-400", icon: MessageCircle },
