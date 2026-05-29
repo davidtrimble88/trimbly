@@ -168,7 +168,8 @@ export default function RentalAgreementDialog({
       return;
     }
     setSaving(true);
-    const termsSnapshot = `${rental.terms || "(No custom terms provided by owner)"}\n\n${LEGAL_BOILERPLATE}`;
+    const termsSnapshot = `${customTerms.trim() || "(No custom terms provided by owner)"}\n\n${LEGAL_BOILERPLATE}`;
+
     const { data, error } = await supabase
       .from("rental_agreements")
       .insert({
