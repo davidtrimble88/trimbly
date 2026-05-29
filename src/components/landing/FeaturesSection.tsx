@@ -63,6 +63,12 @@ const homeownerFeatures = [
     tab: "triage",
   },
   {
+    icon: Hammer,
+    title: "Equipment Rentals Marketplace",
+    description: "Browse tools and equipment from local pros, message owners in-app, and e-sign legally binding rental agreements stored in your Agreement Archive.",
+    tab: "rentals",
+  },
+  {
     icon: Star,
     title: "Verified Reviews",
     description: "Read honest reviews from real homeowners. Rate your experience and help the community find the best pros.",
