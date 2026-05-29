@@ -572,7 +572,14 @@ Last updated: ${fmtTs(a.updated_at)}
           </Card>
         )}
 
-        <Tabs defaultValue="browse">
+        <Tabs
+          defaultValue="browse"
+          onValueChange={() => {
+            // Scroll back to the top of the tabs area whenever the user switches tabs
+            // so long lists (My Listings, Agreements) don't drop them mid-page.
+            requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+          }}
+        >
           <TabsList>
             <TabsTrigger value="browse">Browse <Badge variant="secondary" className="ml-2">{filtered.length}</Badge></TabsTrigger>
             {!isHomeowner && (
