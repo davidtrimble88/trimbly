@@ -567,15 +567,78 @@ export default function RentalAgreementDialog({
               </div>
             </div>
           )}
-
-          {/* Signature line: shown to owner when creating, or to renter when accepting */}
+          {/* ESIGN consent disclosure + signature: shown to owner when creating, or to renter when accepting */}
           {((!agreement && isOwner) || (agreement && isRenter && !agreement.renter_signature && agreement.status === "sent")) && (
-            <div>
-              <Label>Type your full legal name to e-sign</Label>
-              <Input value={signature} onChange={(e) => setSignature(e.target.value)} placeholder="Your full legal name" />
+            <div className="space-y-3 rounded-md border-2 border-primary/30 bg-primary/5 p-3">
+              <div>
+                <Label className="text-xs font-bold uppercase tracking-wide">Electronic Records & Signatures Disclosure</Label>
+                <Textarea
+                  readOnly
+                  value={ESIGN_DISCLOSURE}
+                  className="min-h-[140px] text-[11px] font-mono bg-background mt-1"
+                />
+              </div>
+              <label className="flex items-start gap-2 text-sm">
+                <Checkbox
+                  checked={esignConsent}
+                  onCheckedChange={(v) => setEsignConsent(v === true)}
+                  className="mt-0.5"
+                />
+                <span><strong>I consent</strong> to use electronic records and signatures for this transaction, as described above. I understand my typed name below is my legally binding signature.</span>
+              </label>
+              <div>
+                <Label>Type your full legal name to e-sign</Label>
+                <Input
+                  value={signature}
+                  onChange={(e) => setSignature(e.target.value)}
+                  placeholder="Your full legal name"
+                  disabled={!esignConsent}
+                />
+                {!esignConsent && <p className="text-[11px] text-muted-foreground mt-1">Check the consent box above to enable signing.</p>}
+              </div>
+            </div>
+          )}
+
+          {/* Audit trail — visible to both parties on any existing agreement */}
+          {agreement && (
+            <div className="rounded-md border border-border p-3 bg-muted/30">
+              <div className="text-xs font-bold uppercase tracking-wide mb-2 flex items-center justify-between">
+                <span>Signing Audit Trail</span>
+                {(agreement as any).terms_hash && (
+                  <span className="font-mono text-[10px] text-muted-foreground normal-case font-normal" title="SHA-256 hash of the locked terms — proves the contract was not altered">
+                    SHA-256: {String((agreement as any).terms_hash).slice(0, 16)}…
+                  </span>
+                )}
+              </div>
+              {auditTrail.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No audit entries yet.</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {auditTrail.map((a) => (
+                    <div key={a.id} className="text-[11px] font-mono leading-tight border-l-2 border-primary/40 pl-2">
+                      <div>
+                        <span className="text-muted-foreground">{new Date(a.created_at).toLocaleString()}</span>
+                        {" · "}
+                        <span className="uppercase font-bold">{a.role}</span> {a.event}
+                        {a.signature_name && <span> — "{a.signature_name}"</span>}
+                        {a.esign_consent && <span className="text-primary"> · ESIGN consent ✓</span>}
+                      </div>
+                      <div className="text-muted-foreground">
+                        {a.email && <span>{a.email}</span>}
+                        {a.ip_address && <span> · IP {a.ip_address}</span>}
+                        {a.user_agent && <span title={a.user_agent}> · {a.user_agent.slice(0, 40)}{a.user_agent.length > 40 ? "…" : ""}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-[10px] text-muted-foreground mt-2 italic">
+                Signed under the U.S. ESIGN Act (15 U.S.C. § 7001) and UETA. Signatures, timestamps, and terms are immutable.
+              </p>
             </div>
           )}
         </div>
+
 
         <DialogFooter className="gap-2 flex-wrap">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
