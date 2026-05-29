@@ -707,15 +707,33 @@ export default function EquipmentRentals() {
 
                           <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground pt-1">
                             <span>
-                              Owner sig: {a.owner_signed_at ? <span className="text-foreground">✓ {format(new Date(a.owner_signed_at), "MMM d, yyyy")}</span> : <span className="text-orange-600">pending</span>}
+                              Owner sig: {a.owner_signed_at ? <span className="text-foreground">✓ {format(new Date(a.owner_signed_at), "MMM d, yyyy h:mm a")}</span> : <span className="text-orange-600">pending</span>}
                             </span>
                             <span>
-                              Renter sig: {a.renter_signed_at ? <span className="text-foreground">✓ {format(new Date(a.renter_signed_at), "MMM d, yyyy")}</span> : <span className="text-orange-600">pending</span>}
+                              Renter sig: {a.renter_signed_at ? <span className="text-foreground">✓ {format(new Date(a.renter_signed_at), "MMM d, yyyy h:mm a")}</span> : <span className="text-orange-600">pending</span>}
                             </span>
-                            {fullySigned && <span className="ml-auto text-primary font-medium">Fully executed</span>}
+                            {fullySigned && <span className="text-primary font-medium">Fully executed</span>}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-border/50 mt-1">
+                            <span className="text-[11px] text-muted-foreground">
+                              Created {format(new Date(a.created_at), "MMM d, yyyy h:mm a")}
+                              {a.updated_at && a.updated_at !== a.created_at && (
+                                <> · Updated {format(new Date(a.updated_at), "MMM d, yyyy h:mm a")}</>
+                              )}
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="ml-auto h-7 text-xs"
+                              onClick={(e) => { e.stopPropagation(); printAgreementRecord(a); }}
+                            >
+                              <Printer size={12} className="mr-1" /> Print
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>
+                    );
+                  })}
                     );
                   })}
 
