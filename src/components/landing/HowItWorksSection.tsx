@@ -455,19 +455,22 @@ const proTabs = [
 const HowItWorksSection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [audience, setAudience] = useState<"homeowner" | "pro">("homeowner");
-  const tabs = audience === "homeowner" ? homeownerTabs : proTabs;
+  const [audience, setAudience] = useState<"homeowner" | "pro" | "mechanic">("homeowner");
+  const tabs = audience === "homeowner" ? homeownerTabs : audience === "mechanic" ? mechanicTabs : proTabs;
   const [activeTab, setActiveTab] = useState(tabs[0].id);
 
   useEffect(() => {
     setActiveTab(tabs[0].id);
-  }, [audience]);
+  }, [audience, tabs]);
 
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<string>).detail;
       if (detail && homeownerTabs.some((t) => t.id === detail)) {
         setAudience("homeowner");
+        setActiveTab(detail);
+      } else if (detail && mechanicTabs.some((t) => t.id === detail)) {
+        setAudience("mechanic");
         setActiveTab(detail);
       } else if (detail && proTabs.some((t) => t.id === detail)) {
         setAudience("pro");
