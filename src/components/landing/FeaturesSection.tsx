@@ -157,12 +157,86 @@ const proFeatures = [
   },
 ];
 
+const mechanicFeatures = [
+  {
+    icon: Inbox,
+    title: "Vehicle Job Leads",
+    description: "Get matched with car and motorcycle owners posting real repair and maintenance jobs. Send bids directly from your dashboard.",
+    tab: "m-leads",
+  },
+  {
+    icon: FileText,
+    title: "Unlimited Bids",
+    description: "Free mechanics get 5 active bids per month. Paid mechanics bid as much as they want and never miss an opportunity.",
+  },
+  {
+    icon: BadgeCheck,
+    title: "Verified Mechanic Badge",
+    description: "Show ASE certifications and a trust badge on your profile. Get faster phone-call approvals from vehicle owners.",
+  },
+  {
+    icon: Gauge,
+    title: "Response-Time Badge",
+    description: "Auto-calculated 'Replies in under 1 hr' badge on your listing — proven speed wins more vehicle jobs.",
+  },
+  {
+    icon: Star,
+    title: "Auto-Request Reviews",
+    description: "After a completed job, an automated text and email goes out asking the vehicle owner for a review.",
+  },
+  {
+    icon: Users,
+    title: "Referral Program",
+    description: "Share your unique link with other mechanics and earn credit toward your subscription for every signup.",
+  },
+  {
+    icon: Home,
+    title: "Local SEO Microsite",
+    description: "Your own page at trimbly.com/mechanics/your-shop — designed to rank in Google for your service area.",
+  },
+  {
+    icon: QrCode,
+    title: "Shop QR Codes",
+    description: "Printable QR that scans straight to your Trimbly mechanic profile — turn every repair into a marketing channel.",
+  },
+  {
+    icon: Sparkles,
+    title: "AI Follow-Up Sequences",
+    description: "Automatic nudges to vehicle owners who went quiet — recover lost leads while you're under the hood.",
+  },
+  {
+    icon: TrendingUp,
+    title: "AI Competitor Pricing Intel",
+    description: "See what other mechanics in your zip charge per hour and per job so you can price competitively and confidently.",
+  },
+  {
+    icon: MessageSquare,
+    title: "Message Copilot",
+    description: "AI drafts professional replies to vehicle owner messages — clear, polite, and ready to send in one tap.",
+  },
+  {
+    icon: Hammer,
+    title: "Rent Out Your Equipment",
+    description: "List specialty tools and lifts for other mechanics (and subscribed owners) to rent. ESIGN/UETA-compliant digital agreements included.",
+  },
+  {
+    icon: Car,
+    title: "Mechanic Dashboard",
+    description: "Manage vehicle leads, quotes, service area, business hours, certifications, gallery, and credentials all in one place.",
+  },
+];
+
 const FeaturesSection = () => {
   const [audience, setAudience] = useState<Audience>("homeowner");
-  const features = audience === "homeowner" ? homeownerFeatures : proFeatures;
+  const features =
+    audience === "homeowner"
+      ? homeownerFeatures
+      : audience === "mechanic"
+      ? mechanicFeatures
+      : proFeatures;
 
   const handleClick = (feature: { tab?: string }) => {
-    if (audience !== "homeowner" || !feature.tab) return;
+    if (!feature.tab) return;
     window.dispatchEvent(new CustomEvent("how-it-works:set-tab", { detail: feature.tab }));
     const el = document.getElementById("how-it-works");
     if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -177,7 +251,7 @@ const FeaturesSection = () => {
             Everything you need
           </h2>
           <p className="text-muted-foreground text-lg">
-            Choose your view — we built Trimbly for both sides of the job.
+            Choose your view — we built Trimbly for every side of the job.
           </p>
         </div>
 
@@ -186,7 +260,7 @@ const FeaturesSection = () => {
           <div className="inline-flex p-1 rounded-full bg-secondary border border-border">
             <button
               onClick={() => setAudience("homeowner")}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                 audience === "homeowner"
                   ? "bg-primary text-primary-foreground shadow"
                   : "text-muted-foreground hover:text-foreground"
@@ -196,7 +270,7 @@ const FeaturesSection = () => {
             </button>
             <button
               onClick={() => setAudience("pro")}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                 audience === "pro"
                   ? "bg-primary text-primary-foreground shadow"
                   : "text-muted-foreground hover:text-foreground"
@@ -204,12 +278,22 @@ const FeaturesSection = () => {
             >
               Pro Provider
             </button>
+            <button
+              onClick={() => setAudience("mechanic")}
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                audience === "mechanic"
+                  ? "bg-primary text-primary-foreground shadow"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Mechanic
+            </button>
           </div>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((f) => {
-            const clickable = audience === "homeowner" && "tab" in f && !!f.tab;
+            const clickable = (audience === "homeowner" || audience === "mechanic") && "tab" in f && !!f.tab;
             const Tag = clickable ? "button" : "div";
             return (
               <Tag
