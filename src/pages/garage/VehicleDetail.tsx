@@ -11,8 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, ArrowLeft, Upload, Check } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Upload, Check, ShoppingCart, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { VehicleProductDialog } from "@/components/garage/VehicleProductDialog";
 
 export default function VehicleDetail() {
   const { id } = useParams();
@@ -211,6 +212,7 @@ function ServiceLog({ vehicle, services, onChanged }: { vehicle: any; services: 
 }
 
 function MaintenanceList({ vehicle, tasks, onChanged }: { vehicle: any; tasks: any[]; onChanged: () => void }) {
+  const [shopTask, setShopTask] = useState<any>(null);
   const markDone = async (task: any) => {
     const today = new Date();
     const next_due_date = task.interval_months ? (() => { const d = new Date(today); d.setMonth(d.getMonth() + task.interval_months); return d.toISOString().slice(0,10); })() : null;
@@ -257,6 +259,9 @@ function MaintenanceList({ vehicle, tasks, onChanged }: { vehicle: any; tasks: a
                   </p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  <Button variant="ghost" size="sm" onClick={() => setShopTask(t)} title="Shop on Amazon">
+                    <ShoppingCart size={14} className="mr-1" /> <span className="hidden sm:inline">Shop</span> <ExternalLink size={10} className="ml-0.5" />
+                  </Button>
                   <Button variant="ghost" size="sm" onClick={() => markDone(t)}><Check size={14} className="mr-1" /> Done</Button>
                   <Button variant="ghost" size="icon" onClick={() => remove(t.id)}><Trash2 size={14} className="text-destructive" /></Button>
                 </div>
@@ -265,6 +270,14 @@ function MaintenanceList({ vehicle, tasks, onChanged }: { vehicle: any; tasks: a
           </ul>
         )}
       </CardContent>
+      {shopTask && (
+        <VehicleProductDialog
+          open={!!shopTask}
+          onOpenChange={(o) => !o && setShopTask(null)}
+          task={shopTask}
+          vehicle={vehicle}
+        />
+      )}
     </Card>
   );
 }
