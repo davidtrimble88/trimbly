@@ -255,6 +255,33 @@ const homeownerTabs = [
       },
     ],
   },
+  {
+    id: "garage",
+    label: "My Garage",
+    icon: Car,
+    steps: [
+      {
+        icon: Car, step: "01", title: "Add Your Vehicles",
+        description: "Register cars, trucks, and motorcycles with make, model, mileage, and VIN for a complete garage dashboard.",
+        route: "/garage",
+      },
+      {
+        icon: Wrench, step: "02", title: "Log Service History",
+        description: "Record oil changes, tire rotations, repairs, and upgrades. Everything stays organized with receipts and notes.",
+        route: "/garage",
+      },
+      {
+        icon: Bell, step: "03", title: "Get Maintenance Reminders",
+        description: "Receive timely alerts for scheduled maintenance based on mileage and time — never miss an oil change or inspection.",
+        route: "/garage",
+      },
+      {
+        icon: CheckCircle, step: "04", title: "Find Trusted Mechanics",
+        description: "Search vetted auto and motorcycle pros near you, compare reviews, and message them directly through Trimbly.",
+        route: "/garage",
+      },
+    ],
+  },
 ];
 
 const proTabs = [
