@@ -32,7 +32,7 @@ type VBid = {
   id: string; vehicle_job_id: string; message: string;
   bid_amount: number | null; estimated_hours: number | null;
   status: string; call_approved: boolean; created_at: string;
-  vehicle_job?: { title: string; service_type: string; city: string; state: string; status: string; description: string | null; owner_id: string | null; };
+  vehicle_job?: { title: string; service_type: string; city: string; state: string; status: string; description: string | null; owner_user_id: string | null; };
 };
 
 export default function MechanicDashboard() {
@@ -61,7 +61,7 @@ export default function MechanicDashboard() {
 
     const [bidsRes, reviewsRes, msgsRes] = await Promise.all([
       supabase.from("vehicle_job_bids")
-        .select("*, vehicle_job:vehicle_jobs(title, service_type, city, state, status, description, owner_id)")
+        .select("*, vehicle_job:vehicle_jobs(title, service_type, city, state, status, description, owner_user_id)")
         .eq("provider_id", prov.id)
         .order("created_at", { ascending: false }).limit(50),
       supabase.from("reviews").select("*").eq("provider_id", prov.id).order("created_at", { ascending: false }),
