@@ -71,8 +71,14 @@ const homeownerFeatures = [
   {
     icon: Star,
     title: "Verified Reviews",
-    description: "Read honest reviews from real homeowners. Rate your experience and help the community find the best pros.",
+    description: "Read honest reviews from real picturehowowners. Rate your experience and help the community find the best pros.",
     tab: "pros",
+  },
+  {
+    icon: Car,
+    title: "My Garage",
+    description: "Track vehicles and motorcycles, log service history, get maintenance reminders, and find trusted mechanics — an optional add-on for complete ownership peace of mind.",
+    tab: "garage",
   },
 ];
 
