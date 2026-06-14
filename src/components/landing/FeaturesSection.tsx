@@ -71,7 +71,7 @@ const homeownerFeatures = [
   {
     icon: Star,
     title: "Verified Reviews",
-    description: "Read honest reviews from real picturehowowners. Rate your experience and help the community find the best pros.",
+    description: "Read honest reviews from real homeowners. Rate your experience and help the community find the best pros.",
     tab: "pros",
   },
   {
