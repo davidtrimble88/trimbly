@@ -1,77 +1,90 @@
-# Equipment Rental Marketplace (Pro ↔ Pro)
 
-A new section where service providers can list equipment they rent out to other providers, with messaging, contract generation, and search.
+## What we're building
 
-## Database (one migration)
+**My Garage** — a vehicle-focused companion module to Trimbly's home features. Homeowners (and any user) can add an optional add-on subscription to track cars and motorcycles the same way they track their home: maintenance schedules, service records, documents (registration, insurance, warranties), and pro lookups for mechanics.
 
-**`equipment_rentals`**
-- owner_provider_id, owner_user_id, title, description, category, condition
-- price_hour, price_day, price_week (numeric, nullable — at least one required client-side)
-- deposit_amount, currency (USD)
-- city, state, postal_code, country, pickup_notes
-- photo_urls (text[]), available (boolean, default true)
-- min_rental_hours, max_rental_days, insurance_required (bool)
-- terms (text — owner's custom terms)
-- created_at, updated_at
+It lives **side-by-side** with the homeowner dashboard — not mixed into it. A user with the add-on sees a "Garage" entry in their navbar/bottom nav that opens a dedicated Garage area with its own dashboard, sub-pages, and visual accent (still on-brand: primary green, but garage uses a subtle secondary "shop" tone so it feels distinct).
 
-RLS:
-- Anyone authenticated can SELECT where `available = true` OR owner
-- Owner can INSERT/UPDATE/DELETE own rows
-- Admins manage all
+Pros are **not** changed in this pass — we'll surface existing auto/mechanic pros in Garage search, but no new pro onboarding flow.
 
-**`rental_agreements`**
-- rental_id, owner_user_id, renter_user_id, owner_provider_id, renter_provider_id
-- start_date, end_date, rate_basis ('hour'|'day'|'week'), rate_amount, quantity
-- subtotal, deposit, total
-- terms_snapshot (text — copy of terms at signing)
-- status ('draft','sent','accepted','declined','completed','cancelled')
-- owner_signed_at, renter_signed_at, owner_signature (text/name), renter_signature
-- created_at, updated_at
+## Scope — what gets built
 
-RLS: only parties can view/update; renter can accept/decline; owner creates.
+### Subscription add-on
+- New tier line item: **Garage Add-On** — $3.99/mo or $29/yr (final pricing to confirm with you).
+- Stacks on top of any homeowner tier (Free, Pro, Multi-Home). Available to standalone users too (you don't need to own a home).
+- Upsell surfaces:
+  - Dashboard banner card ("Add My Garage — track your vehicles too")
+  - Pricing page section
+  - One-time post-signup nudge
+- Gated by a single `has_garage_addon` check (RLS + UI).
 
-**`rental_messages`** — reuse existing `messages` table with new optional `rental_id uuid` column (nullable, no FK to avoid coupling).
+### Garage section (dedicated area at `/garage`)
+1. **Garage Dashboard** — overview of all vehicles, upcoming maintenance, document expirations (registration, inspection, insurance).
+2. **My Vehicles** — add/edit cars and motorcycles. Fields: nickname, year/make/model/trim, VIN (optional), license plate, mileage, fuel type, purchase date, photo. VIN decode is a stretch — initial release is manual entry with a "decode VIN" button stub.
+3. **Service Log** — per-vehicle log of past service (date, mileage, what was done, cost, shop/pro, receipt upload).
+4. **Maintenance Schedule** — mileage- and time-based reminders (oil change, tire rotation, brakes, chain/sprocket for bikes, valve adjustment, etc.). Seeded from a default rules set; user can edit or add.
+5. **Documents** — registration, insurance card, title, warranty, owner's manual. Mirrors the existing Home Binder UX/storage pattern.
+6. **Find a Mechanic** — reuses existing provider search, scoped to auto/motorcycle categories. No new pro flow.
 
-## Pages / Components
+### Site/app entry points
+- Navbar: a **Garage** link appears once the add-on is active (otherwise an "Add Garage" upsell pill).
+- Mobile bottom nav: replace the least-used slot with **Garage** when active.
+- Landing page: small "Now with My Garage" strip under the hero (low-key, not a placeholder/launch stat).
+- SEO landing page at `/garage` for logged-out visitors explaining the add-on.
 
-1. **`/equipment` (EquipmentRentals.tsx)** — public browse page (authenticated providers only).
-   - Filters: search text, category, location (city/state), price range, rate basis.
-   - Card grid showing photo, title, owner business, location, rates, "Rent / Message" buttons.
-   - Only `available = true` shown.
-   - Click → detail dialog with full info, photos, terms, message + request agreement buttons.
+### What we are NOT building right now
+- No mechanic onboarding/registration flow (existing pros only).
+- No fuel/MPG tracking, no trip log, no expense reports.
+- No marketplace for parts or Amazon-style affiliate yet (can add later, mirroring existing Amazon module).
+- No insurance/claims chat — Coverage Advisor stays home-focused for now.
+- No multi-garage / fleet features.
 
-2. **`/equipment/manage` (MyEquipmentRentals.tsx)** — provider's own listings.
-   - List + create/edit form (title, description, category, photos via existing `job-photos` bucket reused or simple URL field, all 3 rate fields, deposit, location, terms, available toggle).
-   - Toggle available on/off inline.
-   - Tab: incoming agreement requests.
+## Technical details
 
-3. **`RentalAgreementDialog.tsx`** — generates an agreement:
-   - Pick dates, rate basis, quantity → auto-calc subtotal + deposit + total.
-   - Shows terms snapshot, legal boilerplate (liability, insurance, indemnification, late fees, governing law placeholder), platform disclaimer.
-   - Both parties type full name to e-sign; status flows draft→sent→accepted/declined→completed.
-   - Renter views in same dialog from their inbox.
+### Data model (new tables in Lovable Cloud)
+- `vehicles` — owner_user_id, nickname, vehicle_type ('car'|'motorcycle'), year, make, model, trim, vin, license_plate, current_mileage, fuel_type, purchase_date, photo_url, notes, timestamps.
+- `vehicle_service_records` — vehicle_id, service_date, mileage, service_type, description, cost, currency, shop_name, provider_id (nullable), receipt_url, timestamps.
+- `vehicle_maintenance_tasks` — vehicle_id, task_name, interval_miles, interval_months, last_done_date, last_done_mileage, next_due_date, next_due_mileage, status, notes, timestamps.
+- `vehicle_documents` — vehicle_id, doc_type ('registration'|'insurance'|'title'|'warranty'|'manual'|'other'), file_name, file_url, file_size, expires_on, timestamps.
+- Storage bucket `vehicle-docs` (private, RLS-scoped).
+- `garage_subscriptions` — user_id, status ('active'|'canceled'|'past_due'), started_at, current_period_end, plan_interval ('monthly'|'yearly'). Single source of truth for `has_garage_addon`.
 
-4. **Messaging** — reuse `messages` table; "Message owner" from rental card opens existing send-message flow with `subject` prefilled `"Re: <rental title>"`. Owner sees threads tagged with rental in ProDashboard messages section (light touch — just include rental title in subject for now).
+All tables: RLS enabled, scoped to `owner_user_id = auth.uid()`, plus admin read via `has_role`. Explicit GRANTs to `authenticated` and `service_role` per project standards.
 
-5. **Pro Dashboard** — add cards/links: "My Equipment Rentals" + "Browse Equipment".
+### Routes
+- `/garage` — dashboard (gated)
+- `/garage/vehicles` and `/garage/vehicles/:id`
+- `/garage/maintenance`
+- `/garage/documents`
+- `/garage/mechanics` (provider search scoped to auto/moto)
+- `/garage/upsell` — public landing/upsell page (no gate)
 
-6. **Search** — client-side filter (text on title/description/category, location ilike, type, price).
+### Gating
+- Reusable hook `useGarageSubscription()` returns `{ active, loading, plan }`.
+- Reusable `<GarageGate>` wrapper component redirects non-subscribers to `/garage/upsell`.
 
-## Legal / Protection
+### Payments
+Garage is a paid add-on, so we'll need Stripe (Lovable's built-in seamless payments). I'll handle this as a separate follow-up step after the structural work is approved — enabling payments is its own confirmation flow. For now I'll mock `garage_subscriptions` so the gating logic is real and a staff-only toggle lets us flip a test user on.
 
-- Standard disclaimer in rental detail + agreement: "HomeHero is a venue only; not a party to the rental. Owner and renter are solely responsible for the equipment, condition, insurance, damages, and compliance with local laws."
-- Terms snapshot frozen at agreement time.
-- Required check for insurance acknowledgment when `insurance_required = true`.
-- Deposit + total shown clearly; agreement requires both signatures.
-- All transactions/payments handled offline between parties (no money flow through platform — reduces our liability). Note in UI.
-- Audit trail via timestamps on agreement.
+### Reuse, don't duplicate
+- Storage upload, file viewer, document expiration warnings → reuse Home Binder components, parameterized by bucket and table.
+- Maintenance reminder engine → fork the existing `maintenance-reminders` edge function logic into a shared helper used by both home and vehicle tasks.
+- Provider search UI → reuse `SearchPros` with a category filter prop.
 
-## Technical notes
+### Visual treatment
+Same brand (primary green, Plus Jakarta Sans/DM Sans). Garage pages get a subtle secondary surface tone and a wrench/car iconography set so the section feels distinct without breaking the design system.
 
-- New route entries in `App.tsx`.
-- Reuse `JobPhotoUploader` for rental photos (job-photos bucket is public).
-- Add `equipment_rentals` and `rental_agreements` to realtime if time permits (not required).
-- Use existing `useAuth`, provider lookup pattern from JobBoard.
-- No edge functions needed.
+## Rollout order
+1. Migration: tables, RLS, grants, storage bucket, `garage_subscriptions` table.
+2. Gating hook + upsell landing page + navbar/bottom-nav entry.
+3. Vehicles CRUD + Garage dashboard shell.
+4. Service log + maintenance schedule.
+5. Documents.
+6. Mechanic search scoping.
+7. Payments wiring (separate approval step).
 
-Ready to build on approval.
+## Open questions before I build
+1. Pricing — confirm $3.99/mo + $29/yr, or different?
+2. Should the add-on also be available to **providers** (e.g. a handyman tracking their work truck), or homeowners/standalone users only?
+3. For motorcycles, do you want the default maintenance schedule to include track-bike items (chain, valve adjust, fork oil) or just street-bike basics?
+4. Do you want a free trial on the add-on (e.g. 14 days), or paid from day one?
