@@ -7,7 +7,7 @@ import {
   Upload, Bot, Shield, Briefcase, Send, Phone, UserCheck,
   Brain, Camera, DollarSign, BookOpen, Download, FileSearch,
   Image as ImageIcon, Sparkles, Inbox, Stethoscope, AlertTriangle, Hammer,
-  UserPlus, ListChecks, Send as SendIcon, Star, TrendingUp, BadgeCheck, QrCode, Users
+  UserPlus, ListChecks, Send as SendIcon, Star, TrendingUp, BadgeCheck, QrCode, Users, Car
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
