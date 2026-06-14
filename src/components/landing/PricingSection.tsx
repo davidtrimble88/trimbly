@@ -76,6 +76,7 @@ const homeownerTiers: Tier[] = [
       "Multi-home maintenance dashboard",
       "Priority pro matching",
       "Emergency support channel",
+      "Add My Garage add-on for +$2/month",
     ],
     cta: "Start Free Trial",
     highlighted: false,
