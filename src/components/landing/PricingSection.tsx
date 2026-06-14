@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 
-type Audience = "homeowner" | "pro";
+type Audience = "homeowner" | "pro" | "mechanic";
+
+const GARAGE_ADDON_USD = 2;
 type Billing = "monthly" | "yearly";
 
 const YEARLY_DISCOUNT = 0.1; // 10% off
@@ -56,6 +58,7 @@ const homeownerTiers: Tier[] = [
       "Emergency support channel",
       "Seasonal checklists",
       "Amazon supply recommendations",
+      "Add My Garage add-on for +$2/month",
     ],
     cta: "Start Free Trial",
     highlighted: true,
@@ -73,6 +76,7 @@ const homeownerTiers: Tier[] = [
       "Multi-home maintenance dashboard",
       "Priority pro matching",
       "Emergency support channel",
+      "Add My Garage add-on for +$2/month",
     ],
     cta: "Start Free Trial",
     highlighted: false,
@@ -125,6 +129,48 @@ const proTiers: Tier[] = [
   },
 ];
 
+const mechanicTiers: Tier[] = [
+  {
+    name: "Free",
+    monthlyUsd: 0,
+    description: "List your shop and start receiving vehicle leads",
+    features: [
+      "Mechanic profile listing",
+      "Appear in local vehicle search results",
+      "Up to 5 active bids per month",
+      "In-app messaging with vehicle owners",
+      "Customer reviews & ratings",
+      "Basic analytics dashboard",
+    ],
+    cta: "Get Started Free",
+    highlighted: false,
+    routeBase: "/mechanic-register?tier=free",
+  },
+  {
+    name: "Pro Mechanic",
+    monthlyUsd: 15,
+    description: "Unlimited vehicle leads and AI tools for your shop",
+    features: [
+      "Everything in Free",
+      "Unlimited bids on vehicle jobs",
+      "Verified Mechanic badge (ASE/licenses)",
+      "Response-time badge",
+      "Priority search placement",
+      "AI Message Copilot",
+      "AI Follow-Up sequences",
+      "AI competitor pricing intel",
+      "Auto-request reviews (text + email)",
+      "Shop QR codes for marketing",
+      "Service area, hours & mileage tools",
+      "Photo portfolio (up to 50 images)",
+      "Referral credits toward subscription",
+    ],
+    cta: "Start 14-Day Free Trial",
+    highlighted: true,
+    routeBase: "/mechanic-register?tier=pro",
+  },
+];
+
 const fmtUsd = (n: number) =>
   n % 1 === 0 ? `$${n}` : `$${n.toFixed(2)}`;
 const fmtCad = (n: number) => {
@@ -136,7 +182,7 @@ const PricingSection = () => {
   const navigate = useNavigate();
   const [audience, setAudience] = useState<Audience>("homeowner");
   const [billing, setBilling] = useState<Billing>("monthly");
-  const tiers = audience === "homeowner" ? homeownerTiers : proTiers;
+  const tiers = audience === "homeowner" ? homeownerTiers : audience === "pro" ? proTiers : mechanicTiers;
 
   return (
     <section id="pricing" className="py-20 md:py-28">
@@ -149,6 +195,8 @@ const PricingSection = () => {
           <p className="text-muted-foreground text-lg">
             {audience === "homeowner"
               ? "Start free. Upgrade when you want the full power of Trimbly."
+              : audience === "mechanic"
+              ? "List your shop free. Upgrade to unlock unlimited vehicle leads and AI tools."
               : "Get listed for free. Upgrade to unlock unlimited leads and AI tools."}
           </p>
         </div>
@@ -175,6 +223,16 @@ const PricingSection = () => {
               }`}
             >
               Pro Provider
+            </button>
+            <button
+              onClick={() => setAudience("mechanic")}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                audience === "mechanic"
+                  ? "bg-primary text-primary-foreground shadow"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Mechanic
             </button>
           </div>
         </div>
