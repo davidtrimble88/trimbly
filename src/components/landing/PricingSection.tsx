@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 
-type Audience = "homeowner" | "pro";
+type Audience = "homeowner" | "pro" | "mechanic";
+
+const GARAGE_ADDON_USD = 2;
 type Billing = "monthly" | "yearly";
 
 const YEARLY_DISCOUNT = 0.1; // 10% off
