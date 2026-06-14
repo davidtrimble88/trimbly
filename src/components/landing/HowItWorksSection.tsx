@@ -284,6 +284,90 @@ const homeownerTabs = [
   },
 ];
 
+const mechanicTabs = [
+  {
+    id: "m-signup",
+    label: "Join & Get Verified",
+    icon: UserPlus,
+    steps: [
+      {
+        icon: UserPlus, step: "01", title: "Create Your Mechanic Profile",
+        description: "Sign up as a mechanic, add your shop or mobile services, photos, and ASE certifications in minutes.",
+        route: "/mechanic-register",
+      },
+      {
+        icon: BadgeCheck, step: "02", title: "Add Certifications",
+        description: "Upload ASE certs, licenses, and insurance for review — earn a Verified Mechanic badge that wins trust.",
+        route: "/mechanic-register",
+      },
+      {
+        icon: Car, step: "03", title: "Set Vehicle Specialties",
+        description: "Choose the vehicle types you work on — cars, trucks, SUVs, motorcycles — and set your service area.",
+        route: "/mechanic-register",
+      },
+      {
+        icon: ListChecks, step: "04", title: "Pick Your Plan",
+        description: "Start free with 5 bids/month or upgrade to Pro Mechanic for unlimited bids, analytics, and priority placement.",
+        route: "/mechanic-pricing",
+      },
+    ],
+  },
+  {
+    id: "m-leads",
+    label: "Get Vehicle Leads",
+    icon: Inbox,
+    steps: [
+      {
+        icon: Inbox, step: "01", title: "Browse Vehicle Jobs",
+        description: "See real car and motorcycle repair jobs in your area — filtered by vehicle type, distance, and budget.",
+        route: "/vehicle-jobs",
+      },
+      {
+        icon: SendIcon, step: "02", title: "Send a Bid + Message",
+        description: "Pitch the vehicle owner directly with your price, timeline, and experience — no cold calls.",
+        route: "/vehicle-jobs",
+      },
+      {
+        icon: Sparkles, step: "03", title: "AI Message Copilot",
+        description: "Let AI draft professional, friendly replies so you respond fast and win more vehicle jobs.",
+        route: "/mechanic-dashboard",
+      },
+      {
+        icon: UserCheck, step: "04", title: "Get Approved to Call",
+        description: "Once the owner approves, their phone unlocks — and your Verified Mechanic badge speeds it up.",
+        route: "/mechanic-dashboard",
+      },
+    ],
+  },
+  {
+    id: "m-grow",
+    label: "Grow Your Shop",
+    icon: TrendingUp,
+    steps: [
+      {
+        icon: Star, step: "01", title: "Collect Reviews",
+        description: "After every completed repair, an automated text and email asks the vehicle owner to leave a review.",
+        route: "/mechanic-dashboard",
+      },
+      {
+        icon: QrCode, step: "02", title: "QR Marketing",
+        description: "Print a shop QR that scans to your Trimbly mechanic profile — every repair becomes a marketing channel.",
+        route: "/mechanic-dashboard",
+      },
+      {
+        icon: Users, step: "03", title: "Referral Credits",
+        description: "Share your referral link with other mechanics and earn credit toward your subscription.",
+        route: "/mechanic-dashboard",
+      },
+      {
+        icon: TrendingUp, step: "04", title: "Pricing Intel",
+        description: "See what mechanics in your zip charge per hour and per job so you price competitively.",
+        route: "/mechanic-dashboard",
+      },
+    ],
+  },
+];
+
 const proTabs = [
   {
     id: "signup",
@@ -371,19 +455,22 @@ const proTabs = [
 const HowItWorksSection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [audience, setAudience] = useState<"homeowner" | "pro">("homeowner");
-  const tabs = audience === "homeowner" ? homeownerTabs : proTabs;
+  const [audience, setAudience] = useState<"homeowner" | "pro" | "mechanic">("homeowner");
+  const tabs = audience === "homeowner" ? homeownerTabs : audience === "mechanic" ? mechanicTabs : proTabs;
   const [activeTab, setActiveTab] = useState(tabs[0].id);
 
   useEffect(() => {
     setActiveTab(tabs[0].id);
-  }, [audience]);
+  }, [audience, tabs]);
 
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<string>).detail;
       if (detail && homeownerTabs.some((t) => t.id === detail)) {
         setAudience("homeowner");
+        setActiveTab(detail);
+      } else if (detail && mechanicTabs.some((t) => t.id === detail)) {
+        setAudience("mechanic");
         setActiveTab(detail);
       } else if (detail && proTabs.some((t) => t.id === detail)) {
         setAudience("pro");
@@ -410,7 +497,11 @@ const HowItWorksSection = () => {
         <div className="text-center max-w-2xl mx-auto mb-8">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">How It Works</p>
           <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
-            {audience === "homeowner" ? "Simple steps to a well-maintained home" : "Simple steps to grow your business"}
+            {audience === "homeowner"
+              ? "Simple steps to a well-maintained home"
+              : audience === "mechanic"
+              ? "Simple steps to fill your bays"
+              : "Simple steps to grow your business"}
           </h2>
         </div>
 
@@ -436,6 +527,16 @@ const HowItWorksSection = () => {
               }`}
             >
               Pro Provider
+            </button>
+            <button
+              onClick={() => setAudience("mechanic")}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                audience === "mechanic"
+                  ? "bg-primary text-primary-foreground shadow"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Mechanic
             </button>
           </div>
         </div>
