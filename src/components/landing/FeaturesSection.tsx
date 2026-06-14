@@ -2,10 +2,11 @@ import { useState } from "react";
 import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield,
   Briefcase, BookOpen, Stethoscope, Home, Hammer, Car,
-  Inbox, BadgeCheck, Users, QrCode, TrendingUp, Sparkles, FileText, Gauge
+  Inbox, BadgeCheck, Users, QrCode, TrendingUp, Sparkles, FileText, Gauge,
+  ShoppingCart
 } from "lucide-react";
 
-type Audience = "homeowner" | "pro";
+type Audience = "homeowner" | "pro" | "mechanic";
 
 const homeownerFeatures = [
   {
@@ -69,6 +70,12 @@ const homeownerFeatures = [
     tab: "rentals",
   },
   {
+    icon: ShoppingCart,
+    title: "Smart Product Shopping",
+    description: "AI-powered product recommendations for every maintenance task. Find the right supplies on Amazon in one click, tailored to your home or vehicle.",
+    tab: "maintenance",
+  },
+  {
     icon: Star,
     title: "Verified Reviews",
     description: "Read honest reviews from real homeowners. Rate your experience and help the community find the best pros.",
@@ -77,7 +84,7 @@ const homeownerFeatures = [
   {
     icon: Car,
     title: "My Garage",
-    description: "Track vehicles and motorcycles, log service history, get maintenance reminders, and find trusted mechanics — an optional add-on for complete ownership peace of mind.",
+    description: "Track vehicles and motorcycles, log service history, get maintenance reminders, manage insurance & warranty docs with AI claim help, shop parts through Amazon, and find trusted mechanics — an optional add-on for complete ownership peace of mind.",
     tab: "garage",
   },
 ];
