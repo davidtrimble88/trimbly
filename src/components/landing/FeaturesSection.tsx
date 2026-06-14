@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield,
-  Briefcase, BookOpen, Stethoscope, Home, Hammer,
+  Briefcase, BookOpen, Stethoscope, Home, Hammer, Car,
   Inbox, BadgeCheck, Users, QrCode, TrendingUp, Sparkles, FileText, Gauge
 } from "lucide-react";
 
@@ -73,6 +73,12 @@ const homeownerFeatures = [
     title: "Verified Reviews",
     description: "Read honest reviews from real homeowners. Rate your experience and help the community find the best pros.",
     tab: "pros",
+  },
+  {
+    icon: Car,
+    title: "My Garage",
+    description: "Track vehicles and motorcycles, log service history, get maintenance reminders, and find trusted mechanics — an optional add-on for complete ownership peace of mind.",
+    tab: "garage",
   },
 ];
 
