@@ -256,7 +256,12 @@ function AuthForm({
             .eq("id", uid)
             .maybeSingle();
           if (profile?.user_type === "provider") {
-            navigate("/pro-dashboard");
+            const { data: prov } = await supabase
+              .from("providers")
+              .select("provider_type")
+              .eq("user_id", uid)
+              .maybeSingle();
+            navigate((prov as any)?.provider_type === "mechanic" ? "/mechanic-dashboard" : "/pro-dashboard");
           } else {
             navigate("/dashboard");
           }
