@@ -1,9 +1,10 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, LayoutDashboard, CalendarCheck, Wrench, Search, FileText, Crown, MessageSquare, Shield, Briefcase, Building2, ShieldCheck, Home as HomeIcon, Sparkles } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, CalendarCheck, Wrench, Search, FileText, Crown, MessageSquare, Shield, Briefcase, Building2, ShieldCheck, Home as HomeIcon, Sparkles, Car } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
+import { useGarageSubscription } from "@/hooks/useGarageSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import NotificationPreferencesDialog from "@/components/NotificationPreferencesDialog";
 import { Bell } from "lucide-react";
@@ -16,6 +17,7 @@ const Navbar = () => {
   const location = useLocation();
   const { user, profileName, signOut } = useAuth();
   const { subscriptionTier, isPro } = useHomeLimit();
+  const { active: hasGarage } = useGarageSubscription();
   const [userType, setUserType] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
     return localStorage.getItem(USER_TYPE_CACHE_KEY);
@@ -84,6 +86,15 @@ const Navbar = () => {
       <Link to="/post-job" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
         <Briefcase size={14} /> Jobs
       </Link>
+      {hasGarage ? (
+        <Link to="/garage" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
+          <Car size={14} /> Garage
+        </Link>
+      ) : (
+        <Link to="/garage/upsell" className="text-sm text-primary hover:text-primary/80 transition-colors inline-flex items-center gap-1.5 font-medium">
+          <Car size={14} /> Add Garage
+        </Link>
+      )}
       {!isPro && (
         <a href="/#pricing" className="text-sm text-primary hover:text-primary/80 transition-colors inline-flex items-center gap-1.5 font-medium">
           <Crown size={14} /> Upgrade
@@ -148,6 +159,9 @@ const Navbar = () => {
       </Link>
       <Link to="/post-job" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
         <Briefcase size={14} /> Jobs
+      </Link>
+      <Link to={hasGarage ? "/garage" : "/garage/upsell"} className={`flex items-center gap-2 text-sm ${hasGarage ? "text-muted-foreground" : "text-primary font-medium"}`} onClick={onClose}>
+        <Car size={14} /> {hasGarage ? "Garage" : "Add Garage"}
       </Link>
       {!isPro && (
         <a href="/#pricing" className="flex items-center gap-2 text-sm text-primary font-medium" onClick={onClose}>

@@ -385,6 +385,42 @@ export type Database = {
         }
         Relationships: []
       }
+      garage_subscriptions: {
+        Row: {
+          canceled_at: string | null
+          created_at: string
+          current_period_end: string | null
+          id: string
+          plan_interval: string
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          canceled_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan_interval?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          canceled_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan_interval?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       home_binder_items: {
         Row: {
           brand: string | null
@@ -1703,6 +1739,246 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicle_documents: {
+        Row: {
+          created_at: string
+          doc_type: string
+          expires_on: string | null
+          file_name: string
+          file_size: number | null
+          file_url: string
+          id: string
+          notes: string | null
+          owner_user_id: string
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          doc_type?: string
+          expires_on?: string | null
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          notes?: string | null
+          owner_user_id: string
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          expires_on?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          notes?: string | null
+          owner_user_id?: string
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_documents_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_maintenance_tasks: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          interval_miles: number | null
+          interval_months: number | null
+          last_done_date: string | null
+          last_done_mileage: number | null
+          next_due_date: string | null
+          next_due_mileage: number | null
+          notes: string | null
+          owner_user_id: string
+          status: string
+          task_name: string
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          interval_miles?: number | null
+          interval_months?: number | null
+          last_done_date?: string | null
+          last_done_mileage?: number | null
+          next_due_date?: string | null
+          next_due_mileage?: number | null
+          notes?: string | null
+          owner_user_id: string
+          status?: string
+          task_name: string
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          interval_miles?: number | null
+          interval_months?: number | null
+          last_done_date?: string | null
+          last_done_mileage?: number | null
+          next_due_date?: string | null
+          next_due_mileage?: number | null
+          notes?: string | null
+          owner_user_id?: string
+          status?: string
+          task_name?: string
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_maintenance_tasks_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_service_records: {
+        Row: {
+          cost: number | null
+          created_at: string
+          currency: string
+          description: string
+          id: string
+          mileage: number | null
+          notes: string | null
+          owner_user_id: string
+          provider_id: string | null
+          receipt_url: string | null
+          service_date: string
+          service_type: string
+          shop_name: string | null
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          cost?: number | null
+          created_at?: string
+          currency?: string
+          description?: string
+          id?: string
+          mileage?: number | null
+          notes?: string | null
+          owner_user_id: string
+          provider_id?: string | null
+          receipt_url?: string | null
+          service_date?: string
+          service_type?: string
+          shop_name?: string | null
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          cost?: number | null
+          created_at?: string
+          currency?: string
+          description?: string
+          id?: string
+          mileage?: number | null
+          notes?: string | null
+          owner_user_id?: string
+          provider_id?: string | null
+          receipt_url?: string | null
+          service_date?: string
+          service_type?: string
+          shop_name?: string | null
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_service_records_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicles: {
+        Row: {
+          color: string | null
+          created_at: string
+          current_mileage: number
+          fuel_type: string | null
+          id: string
+          license_plate: string | null
+          make: string
+          mileage_unit: string
+          model: string
+          nickname: string
+          notes: string | null
+          owner_user_id: string
+          photo_url: string | null
+          purchase_date: string | null
+          trim: string | null
+          updated_at: string
+          vehicle_type: string
+          vin: string | null
+          year: number | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          current_mileage?: number
+          fuel_type?: string | null
+          id?: string
+          license_plate?: string | null
+          make?: string
+          mileage_unit?: string
+          model?: string
+          nickname?: string
+          notes?: string | null
+          owner_user_id: string
+          photo_url?: string | null
+          purchase_date?: string | null
+          trim?: string | null
+          updated_at?: string
+          vehicle_type?: string
+          vin?: string | null
+          year?: number | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          current_mileage?: number
+          fuel_type?: string | null
+          id?: string
+          license_plate?: string | null
+          make?: string
+          mileage_unit?: string
+          model?: string
+          nickname?: string
+          notes?: string | null
+          owner_user_id?: string
+          photo_url?: string | null
+          purchase_date?: string | null
+          trim?: string | null
+          updated_at?: string
+          vehicle_type?: string
+          vin?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       provider_response_times: {
@@ -1724,6 +2000,7 @@ export type Database = {
       }
     }
     Functions: {
+      has_garage_addon: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
