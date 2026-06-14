@@ -129,6 +129,48 @@ const proTiers: Tier[] = [
   },
 ];
 
+const mechanicTiers: Tier[] = [
+  {
+    name: "Free",
+    monthlyUsd: 0,
+    description: "List your shop and start receiving vehicle leads",
+    features: [
+      "Mechanic profile listing",
+      "Appear in local vehicle search results",
+      "Up to 5 active bids per month",
+      "In-app messaging with vehicle owners",
+      "Customer reviews & ratings",
+      "Basic analytics dashboard",
+    ],
+    cta: "Get Started Free",
+    highlighted: false,
+    routeBase: "/mechanic-register?tier=free",
+  },
+  {
+    name: "Pro Mechanic",
+    monthlyUsd: 15,
+    description: "Unlimited vehicle leads and AI tools for your shop",
+    features: [
+      "Everything in Free",
+      "Unlimited bids on vehicle jobs",
+      "Verified Mechanic badge (ASE/licenses)",
+      "Response-time badge",
+      "Priority search placement",
+      "AI Message Copilot",
+      "AI Follow-Up sequences",
+      "AI competitor pricing intel",
+      "Auto-request reviews (text + email)",
+      "Shop QR codes for marketing",
+      "Service area, hours & mileage tools",
+      "Photo portfolio (up to 50 images)",
+      "Referral credits toward subscription",
+    ],
+    cta: "Start 14-Day Free Trial",
+    highlighted: true,
+    routeBase: "/mechanic-register?tier=pro",
+  },
+];
+
 const fmtUsd = (n: number) =>
   n % 1 === 0 ? `$${n}` : `$${n.toFixed(2)}`;
 const fmtCad = (n: number) => {
