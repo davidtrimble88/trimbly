@@ -71,7 +71,9 @@ const VehicleDetail = lazy(() => import("./pages/garage/VehicleDetail"));
 const GarageMaintenance = lazy(() => import("./pages/garage/GarageMaintenance"));
 const GarageDocuments = lazy(() => import("./pages/garage/GarageDocuments"));
 const GarageMechanics = lazy(() => import("./pages/garage/GarageMechanics"));
+const GarageJobs = lazy(() => import("./pages/garage/GarageJobs"));
 const GarageUpsell = lazy(() => import("./pages/garage/GarageUpsell"));
+const VehicleJobBoard = lazy(() => import("./pages/VehicleJobBoard"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
