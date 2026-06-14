@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.sitemap]
 verify_jwt = false
+
+[functions.vehicle-coverage-chat]
+verify_jwt = false

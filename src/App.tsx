@@ -73,6 +73,7 @@ const GarageDocuments = lazy(() => import("./pages/garage/GarageDocuments"));
 const GarageMechanics = lazy(() => import("./pages/garage/GarageMechanics"));
 const GarageJobs = lazy(() => import("./pages/garage/GarageJobs"));
 const GarageUpsell = lazy(() => import("./pages/garage/GarageUpsell"));
+const VehicleCoverage = lazy(() => import("./pages/garage/VehicleCoverage"));
 const VehicleJobBoard = lazy(() => import("./pages/VehicleJobBoard"));
 
 const queryClient = new QueryClient({
@@ -184,6 +185,7 @@ const App = () => (
               <Route path="maintenance" element={<GarageMaintenance />} />
               <Route path="jobs" element={<GarageJobs />} />
               <Route path="documents" element={<GarageDocuments />} />
+              <Route path="coverage" element={<VehicleCoverage />} />
               <Route path="mechanics" element={<GarageMechanics />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
