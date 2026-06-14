@@ -58,6 +58,7 @@ const homeownerTiers: Tier[] = [
       "Emergency support channel",
       "Seasonal checklists",
       "Amazon supply recommendations",
+      "Add My Garage add-on for +$2/month",
     ],
     cta: "Start Free Trial",
     highlighted: true,
