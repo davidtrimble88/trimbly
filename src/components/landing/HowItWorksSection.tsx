@@ -528,6 +528,16 @@ const HowItWorksSection = () => {
             >
               Pro Provider
             </button>
+            <button
+              onClick={() => setAudience("mechanic")}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                audience === "mechanic"
+                  ? "bg-primary text-primary-foreground shadow"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Mechanic
+            </button>
           </div>
         </div>
 
