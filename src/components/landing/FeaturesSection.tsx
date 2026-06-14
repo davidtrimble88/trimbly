@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield,
-  Briefcase, BookOpen, Stethoscope, Home, Hammer,
+  Briefcase, BookOpen, Stethoscope, Home, Hammer, Car,
   Inbox, BadgeCheck, Users, QrCode, TrendingUp, Sparkles, FileText, Gauge
 } from "lucide-react";
 
