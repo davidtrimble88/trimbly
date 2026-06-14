@@ -182,7 +182,7 @@ const PricingSection = () => {
   const navigate = useNavigate();
   const [audience, setAudience] = useState<Audience>("homeowner");
   const [billing, setBilling] = useState<Billing>("monthly");
-  const tiers = audience === "homeowner" ? homeownerTiers : proTiers;
+  const tiers = audience === "homeowner" ? homeownerTiers : audience === "pro" ? proTiers : mechanicTiers;
 
   return (
     <section id="pricing" className="py-20 md:py-28">
