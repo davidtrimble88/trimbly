@@ -63,6 +63,15 @@ const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const StaffLogin = lazy(() => import("./pages/StaffLogin"));
 const EquipmentRentals = lazy(() => import("./pages/EquipmentRentals"));
+const GarageLayout = lazy(() => import("./components/garage/GarageLayout"));
+const GarageGate = lazy(() => import("./components/garage/GarageGate"));
+const GarageDashboard = lazy(() => import("./pages/garage/GarageDashboard"));
+const GarageVehicles = lazy(() => import("./pages/garage/Vehicles"));
+const VehicleDetail = lazy(() => import("./pages/garage/VehicleDetail"));
+const GarageMaintenance = lazy(() => import("./pages/garage/GarageMaintenance"));
+const GarageDocuments = lazy(() => import("./pages/garage/GarageDocuments"));
+const GarageMechanics = lazy(() => import("./pages/garage/GarageMechanics"));
+const GarageUpsell = lazy(() => import("./pages/garage/GarageUpsell"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -163,6 +172,15 @@ const App = () => (
               <Route path="analytics" element={<StaffAnalytics />} />
               <Route path="business" element={<StaffBusinessAnalytics />} />
               <Route path="tax" element={<StaffTax />} />
+            </Route>
+            <Route path="/garage/upsell" element={<GarageUpsell />} />
+            <Route path="/garage" element={<GarageGate><GarageLayout /></GarageGate>}>
+              <Route index element={<GarageDashboard />} />
+              <Route path="vehicles" element={<GarageVehicles />} />
+              <Route path="vehicles/:id" element={<VehicleDetail />} />
+              <Route path="maintenance" element={<GarageMaintenance />} />
+              <Route path="documents" element={<GarageDocuments />} />
+              <Route path="mechanics" element={<GarageMechanics />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

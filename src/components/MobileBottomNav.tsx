@@ -1,13 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Search, MessageSquare, FolderOpen, Briefcase, LayoutDashboard } from "lucide-react";
+import { Home, Search, MessageSquare, FolderOpen, Briefcase, LayoutDashboard, Car } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useGarageSubscription } from "@/hooks/useGarageSubscription";
 
 const homeownerItems = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
   { to: "/search", label: "Find Pros", icon: Search },
-  { to: "/post-job", label: "Post Job", icon: Briefcase },
   { to: "/binder", label: "Binder", icon: FolderOpen },
   { to: "/messages", label: "Inbox", icon: MessageSquare },
 ];
@@ -22,6 +22,7 @@ const providerItems = [
 export function MobileBottomNav() {
   const { user } = useAuth();
   const { pathname } = useLocation();
+  const { active: hasGarage } = useGarageSubscription();
   const [userType, setUserType] = useState<string>("homeowner");
 
   useEffect(() => {
@@ -34,7 +35,10 @@ export function MobileBottomNav() {
   if (pathname.startsWith("/staff")) return null;
   if (pathname === "/auth" || pathname === "/reset-password") return null;
 
-  const items = userType === "provider" ? providerItems : homeownerItems;
+  const baseItems = userType === "provider" ? providerItems : homeownerItems;
+  const items = hasGarage
+    ? [...baseItems, { to: "/garage", label: "Garage", icon: Car }]
+    : baseItems;
 
   return (
     <nav
@@ -42,7 +46,7 @@ export function MobileBottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="Primary"
     >
-      <ul className="grid grid-cols-5 max-w-screen-sm mx-auto">
+      <ul className={`grid ${items.length === 5 ? "grid-cols-5" : "grid-cols-4"} max-w-screen-sm mx-auto`}>
         {items.map(({ to, label, icon: Icon }) => {
           const active = pathname === to || (to !== "/dashboard" && pathname.startsWith(to));
           return (
