@@ -1121,6 +1121,7 @@ export type Database = {
           licensed: boolean
           phone: string | null
           postal_code: string | null
+          provider_type: string
           service_radius_miles: number
           slug: string | null
           state: string
@@ -1161,6 +1162,7 @@ export type Database = {
           licensed?: boolean
           phone?: string | null
           postal_code?: string | null
+          provider_type?: string
           service_radius_miles?: number
           slug?: string | null
           state: string
@@ -1201,6 +1203,7 @@ export type Database = {
           licensed?: boolean
           phone?: string | null
           postal_code?: string | null
+          provider_type?: string
           service_radius_miles?: number
           slug?: string | null
           state?: string
