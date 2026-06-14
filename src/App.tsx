@@ -75,6 +75,9 @@ const GarageJobs = lazy(() => import("./pages/garage/GarageJobs"));
 const GarageUpsell = lazy(() => import("./pages/garage/GarageUpsell"));
 const VehicleCoverage = lazy(() => import("./pages/garage/VehicleCoverage"));
 const VehicleJobBoard = lazy(() => import("./pages/VehicleJobBoard"));
+const MechanicPricing = lazy(() => import("./pages/MechanicPricing"));
+const MechanicRegister = lazy(() => import("./pages/MechanicRegister"));
+const MechanicDashboard = lazy(() => import("./pages/MechanicDashboard"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -178,6 +181,9 @@ const App = () => (
             </Route>
             <Route path="/garage/upsell" element={<GarageUpsell />} />
             <Route path="/vehicle-jobs" element={<VehicleJobBoard />} />
+            <Route path="/mechanic-pricing" element={<MechanicPricing />} />
+            <Route path="/mechanic-register" element={<MechanicRegister />} />
+            <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
             <Route path="/garage" element={<GarageGate><GarageLayout /></GarageGate>}>
               <Route index element={<GarageDashboard />} />
               <Route path="vehicles" element={<GarageVehicles />} />
