@@ -111,6 +111,9 @@ const Navbar = () => {
       <Link to="/job-board" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
         <Briefcase size={14} /> Job Board
       </Link>
+      <Link to="/vehicle-jobs" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
+        <Briefcase size={14} /> Vehicle Jobs
+      </Link>
       <Link to="/messages" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5">
         <MessageSquare size={14} /> Messages
       </Link>
@@ -178,6 +181,9 @@ const Navbar = () => {
       </Link>
       <Link to="/job-board" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
         <Briefcase size={14} /> Job Board
+      </Link>
+      <Link to="/vehicle-jobs" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
+        <Briefcase size={14} /> Vehicle Jobs
       </Link>
       <Link to="/messages" className="flex items-center gap-2 text-sm text-muted-foreground" onClick={onClose}>
         <MessageSquare size={14} /> Messages

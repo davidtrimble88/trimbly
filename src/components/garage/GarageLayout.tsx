@@ -1,11 +1,12 @@
 import { NavLink, Outlet } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import { LayoutDashboard, Car, Wrench, FileText, Search } from "lucide-react";
+import { LayoutDashboard, Car, Wrench, FileText, Search, Briefcase } from "lucide-react";
 
 const navItems = [
   { to: "/garage", label: "Overview", icon: LayoutDashboard, end: true },
   { to: "/garage/vehicles", label: "Vehicles", icon: Car },
   { to: "/garage/maintenance", label: "Maintenance", icon: Wrench },
+  { to: "/garage/jobs", label: "Jobs", icon: Briefcase },
   { to: "/garage/documents", label: "Documents", icon: FileText },
   { to: "/garage/mechanics", label: "Mechanics", icon: Search },
 ];

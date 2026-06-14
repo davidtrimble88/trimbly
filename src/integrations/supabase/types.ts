@@ -1789,6 +1789,145 @@ export type Database = {
           },
         ]
       }
+      vehicle_job_bids: {
+        Row: {
+          bid_amount: number | null
+          call_approved: boolean
+          created_at: string
+          estimated_hours: number | null
+          id: string
+          message: string
+          phone_number: string | null
+          provider_id: string
+          status: string
+          updated_at: string
+          vehicle_job_id: string
+        }
+        Insert: {
+          bid_amount?: number | null
+          call_approved?: boolean
+          created_at?: string
+          estimated_hours?: number | null
+          id?: string
+          message: string
+          phone_number?: string | null
+          provider_id: string
+          status?: string
+          updated_at?: string
+          vehicle_job_id: string
+        }
+        Update: {
+          bid_amount?: number | null
+          call_approved?: boolean
+          created_at?: string
+          estimated_hours?: number | null
+          id?: string
+          message?: string
+          phone_number?: string | null
+          provider_id?: string
+          status?: string
+          updated_at?: string
+          vehicle_job_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_job_bids_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_response_times"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "vehicle_job_bids_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_stats"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "vehicle_job_bids_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_job_bids_vehicle_job_id_fkey"
+            columns: ["vehicle_job_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_jobs: {
+        Row: {
+          budget_max: number | null
+          budget_min: number | null
+          category: string
+          city: string
+          country: string
+          created_at: string
+          description: string | null
+          id: string
+          mobile_service: boolean
+          owner_user_id: string
+          photo_urls: string[] | null
+          service_type: string
+          state: string
+          status: string
+          title: string
+          updated_at: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
+          category: string
+          city: string
+          country?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          mobile_service?: boolean
+          owner_user_id: string
+          photo_urls?: string[] | null
+          service_type?: string
+          state: string
+          status?: string
+          title: string
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number | null
+          category?: string
+          city?: string
+          country?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          mobile_service?: boolean
+          owner_user_id?: string
+          photo_urls?: string[] | null
+          service_type?: string
+          state?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_jobs_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicle_maintenance_tasks: {
         Row: {
           category: string | null
