@@ -116,6 +116,7 @@ const MechanicPricing = () => {
             <h2 className="text-2xl font-bold text-foreground mb-8">Frequently Asked Questions</h2>
             <div className="text-left space-y-6">
               {[
+                { q: "Are there any additional fees?", a: "No. We only charge the monthly subscription — Trimbly does not take any portion of what you earn from your jobs." },
                 { q: "Do I need a shop to join?", a: "No. Independent and mobile mechanics are welcome alongside full shops." },
                 { q: "What kinds of vehicles?", a: "Cars, trucks, SUVs, and motorcycles. You pick your specialties at signup." },
                 { q: "Can I switch plans later?", a: "Yes. Upgrade or downgrade any time — changes take effect on your next cycle." },
