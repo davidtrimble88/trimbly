@@ -115,6 +115,7 @@ const ProPricing = () => {
             <h2 className="text-2xl font-bold text-foreground mb-8">Frequently Asked Questions</h2>
             <div className="text-left space-y-6">
               {[
+                { q: "Are there any additional fees?", a: "No. We only charge the monthly subscription — Trimbly does not take any portion of what you earn from your jobs." },
                 { q: "Can I switch plans later?", a: "Yes! You can upgrade or downgrade your plan at any time. Changes take effect on your next billing cycle." },
                 { q: "Is there a contract?", a: "No contracts. All plans are month-to-month. Cancel anytime with no penalties." },
                 { q: "What payment methods do you accept?", a: "We accept all major credit cards, debit cards, and ACH bank transfers." },
