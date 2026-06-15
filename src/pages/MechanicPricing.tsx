@@ -15,7 +15,7 @@ const tiers = [
     features: [
       "Shop / mobile mechanic profile",
       "Appear in My Garage search results",
-      "Bid on open vehicle jobs",
+      "Up to 3 bids per month on vehicle jobs",
       "Customer reviews & ratings",
     ],
     cta: "Get Started Free",
