@@ -383,7 +383,11 @@ const PostJob = () => {
   };
 
   const toggleCallApproval = async (bidId: string, jobId: string, current: boolean) => {
-    await supabase.from("job_bids").update({ call_approved: !current }).eq("id", bidId);
+    // When revoking, also clear the stored phone number so it isn't retained without consent.
+    const updates = !current
+      ? { call_approved: true }
+      : { call_approved: false, phone_number: null };
+    await supabase.from("job_bids").update(updates).eq("id", bidId);
     loadBids(jobId);
     toast({ title: !current ? "Call approved" : "Call permission revoked" });
   };
