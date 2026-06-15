@@ -131,7 +131,7 @@ export default function GarageJobs() {
       if (!phone || phone.trim().length < 7) return;
       await supabase.from("vehicle_job_bids").update({ phone_number: phone.trim(), call_approved: true }).eq("id", bid.id);
     } else {
-      await supabase.from("vehicle_job_bids").update({ call_approved: false }).eq("id", bid.id);
+      await supabase.from("vehicle_job_bids").update({ call_approved: false, phone_number: null }).eq("id", bid.id);
     }
     loadBids(bid.vehicle_job_id);
   };
