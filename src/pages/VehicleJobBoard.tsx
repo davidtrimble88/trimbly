@@ -190,7 +190,11 @@ export default function VehicleJobBoard() {
                         mine ? (
                           <Badge variant={mine.status === "accepted" ? "default" : "secondary"}>Bid {mine.status}</Badge>
                         ) : (
-                          <Button size="sm" onClick={() => setBidJob(job)}>Place Bid</Button>
+                          <Button
+                            size="sm"
+                            onClick={() => setBidJob(job)}
+                            disabled={providerType === "mechanic" && providerTier === "free" && bidsThisMonth >= FREE_MECHANIC_BID_LIMIT}
+                          >Place Bid</Button>
                         )
                       )}
                     </div>
