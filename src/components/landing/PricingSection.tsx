@@ -162,7 +162,7 @@ const mechanicTiers: Tier[] = [
       "Auto-request reviews (text + email)",
       "Shop QR codes for marketing",
       "Service area, hours & mileage tools",
-      "Photo portfolio (up to 50 images)",
+      "Photo portfolio (up to 20 images)",
       "Referral credits toward subscription",
     ],
     cta: "Start 14-Day Free Trial",
