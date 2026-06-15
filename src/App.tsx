@@ -52,6 +52,7 @@ const StaffBusinessAnalytics = lazy(() => import("./pages/staff/BusinessAnalytic
 const StaffTax = lazy(() => import("./pages/staff/Tax"));
 const PortalChoice = lazy(() => import("./pages/PortalChoice"));
 const Help = lazy(() => import("./pages/Help"));
+const FAQ = lazy(() => import("./pages/FAQ"));
 const ManualSearch = lazy(() => import("./pages/ManualSearch"));
 const PublicHomeownerProfile = lazy(() => import("./pages/PublicHomeownerProfile"));
 const PublicProviderProfile = lazy(() => import("./pages/PublicProviderProfile"));
@@ -153,6 +154,7 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/portal-choice" element={<PortalChoice />} />
             <Route path="/help" element={<Help />} />
+            <Route path="/faq" element={<FAQ />} />
             <Route path="/manual-search" element={<ManualSearch />} />
             <Route path="/u/:userId" element={<PublicHomeownerProfile />} />
             <Route path="/pro/:providerId" element={<PublicProviderProfile />} />

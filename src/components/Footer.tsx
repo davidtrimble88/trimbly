@@ -23,6 +23,7 @@ const Footer = () => {
               <li><Link to="/#pricing" className="hover:text-foreground transition-colors">Pricing</Link></li>
               <li><Link to="/#how-it-works" className="hover:text-foreground transition-colors">How It Works</Link></li>
               <li><Link to="/search" className="hover:text-foreground transition-colors">Find a Pro</Link></li>
+              <li><Link to="/faq" className="hover:text-foreground transition-colors">FAQ</Link></li>
             </ul>
           </div>
           <div>
@@ -40,6 +41,7 @@ const Footer = () => {
               <li><Link to="/blog" className="hover:text-foreground transition-colors">Blog</Link></li>
               <li><Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link></li>
               <li><Link to="/help" className="hover:text-foreground transition-colors">Help Center</Link></li>
+              <li><Link to="/faq" className="hover:text-foreground transition-colors">FAQ</Link></li>
               <li><Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link></li>
               <li><Link to="/staff-login" className="text-muted-foreground/40 hover:text-muted-foreground transition-colors text-xs">Staff Portal</Link></li>
