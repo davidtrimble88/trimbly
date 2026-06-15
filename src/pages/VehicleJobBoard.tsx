@@ -46,8 +46,10 @@ export default function VehicleJobBoard() {
   const load = async () => {
     if (!user) return;
     setLoading(true);
-    const { data: prov } = await supabase.from("providers").select("id").eq("user_id", user.id).maybeSingle();
+    const { data: prov } = await supabase.from("providers").select("id, subscription_tier, provider_type").eq("user_id", user.id).maybeSingle();
     setProviderId(prov?.id ?? null);
+    setProviderTier(prov?.subscription_tier ?? null);
+    setProviderType(prov?.provider_type ?? null);
 
     const { data: jobsData } = await supabase
       .from("vehicle_jobs")
@@ -57,13 +59,19 @@ export default function VehicleJobBoard() {
     setJobs((jobsData as Job[]) || []);
 
     if (prov?.id) {
-      const { data: bidsData } = await supabase
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      const { data: bidsData, count } = await supabase
         .from("vehicle_job_bids")
-        .select("id, vehicle_job_id, status")
-        .eq("provider_id", prov.id);
+        .select("id, vehicle_job_id, status", { count: "exact" })
+        .eq("provider_id", prov.id)
+        .in("status", ["pending", "accepted"])
+        .gte("created_at", startOfMonth.toISOString());
       const map: Record<string, { id: string; status: string }> = {};
       (bidsData || []).forEach((b: any) => { map[b.vehicle_job_id] = { id: b.id, status: b.status }; });
       setMyBids(map);
+      setBidsThisMonth(count || 0);
     }
     setLoading(false);
   };
