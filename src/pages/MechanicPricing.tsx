@@ -35,7 +35,7 @@ const tiers = [
       "Verified Mechanic badge",
       "Bid analytics & win-rate insights",
       "Direct messaging with vehicle owners",
-      "Shop photo portfolio (up to 50 images)",
+      "Shop photo portfolio (up to 20 images)",
     ],
     cta: "Start 14-Day Free Trial",
     highlighted: true,
