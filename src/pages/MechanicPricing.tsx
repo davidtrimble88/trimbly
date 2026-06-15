@@ -25,8 +25,8 @@ const tiers = [
   {
     name: "Pro Mechanic",
     icon: Zap,
-    price: "$29",
-    cadPrice: "CA$40",
+    price: "$15",
+    cadPrice: "CA$21",
     period: "/month",
     description: "More vehicle leads, more bay throughput",
     features: [
