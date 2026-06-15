@@ -1,9 +1,10 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, HelpCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Helmet } from "react-helmet-async";
+
 
 const sections: { title: string; faqs: { q: string; a: string }[] }[] = [
   {
@@ -61,14 +62,27 @@ const FAQ = () => {
     ),
   };
 
+  useEffect(() => {
+    document.title = "FAQ | Trimbly Pricing, Fees & Subscriptions";
+    const setMeta = (name: string, content: string) => {
+      let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+      if (!el) { el = document.createElement("meta"); el.setAttribute("name", name); document.head.appendChild(el); }
+      el.setAttribute("content", content);
+    };
+    setMeta("description", "Answers about Trimbly pricing, fees, and subscription tiers for homeowners, service pros, and mechanics. No hidden fees, no commission on jobs.");
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
+    canonical.href = window.location.origin + "/faq";
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.text = JSON.stringify(schema);
+    script.dataset.faqSchema = "1";
+    document.head.appendChild(script);
+    return () => { script.remove(); };
+  }, []);
+
   return (
     <div className="min-h-screen">
-      <Helmet>
-        <title>FAQ | Trimbly Pricing, Fees & Subscriptions</title>
-        <meta name="description" content="Answers about Trimbly pricing, fees, and subscription tiers for homeowners, service pros, and mechanics. No hidden fees, no commission on jobs." />
-        <link rel="canonical" href="/faq" />
-        <script type="application/ld+json">{JSON.stringify(schema)}</script>
-      </Helmet>
       <Navbar />
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4">
