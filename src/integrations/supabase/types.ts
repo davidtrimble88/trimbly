@@ -2203,6 +2203,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      mechanic_bids_this_month: {
+        Args: { _provider_id: string }
+        Returns: number
+      }
       pro_active_bids_this_month: {
         Args: { _provider_id: string }
         Returns: number
