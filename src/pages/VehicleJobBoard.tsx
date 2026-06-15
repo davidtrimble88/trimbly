@@ -127,6 +127,28 @@ export default function VehicleJobBoard() {
           </Card>
         )}
 
+        {providerType === "mechanic" && providerTier === "free" && (
+          <Card className={`mb-4 ${bidsThisMonth >= FREE_MECHANIC_BID_LIMIT ? "border-destructive bg-destructive/5" : "border-primary/30 bg-primary/5"}`}>
+            <CardContent className="py-4 flex items-center justify-between gap-3 flex-wrap">
+              <div className="text-sm">
+                <span className="font-semibold">
+                  {bidsThisMonth >= FREE_MECHANIC_BID_LIMIT
+                    ? "Monthly bid limit reached"
+                    : `${FREE_MECHANIC_BID_LIMIT - bidsThisMonth} of ${FREE_MECHANIC_BID_LIMIT} free bids left this month`}
+                </span>
+                <p className="text-muted-foreground text-xs mt-0.5">
+                  {bidsThisMonth >= FREE_MECHANIC_BID_LIMIT
+                    ? "Upgrade to Pro Mechanic to bid on unlimited vehicle jobs."
+                    : "Upgrade to Pro Mechanic for unlimited bids."}
+                </p>
+              </div>
+              <Button size="sm" variant={bidsThisMonth >= FREE_MECHANIC_BID_LIMIT ? "default" : "outline"} onClick={() => navigate("/mechanic-pricing")}>
+                <Zap size={14} className="mr-1.5" /> Upgrade
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="flex gap-2 mb-4">
           {(["all", "auto", "motorcycle"] as const).map((f) => (
             <Button key={f} size="sm" variant={filter === f ? "default" : "outline"} onClick={() => setFilter(f)}>
