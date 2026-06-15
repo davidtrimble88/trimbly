@@ -35,6 +35,9 @@ export default function VehicleJobBoard() {
   const [bidForm, setBidForm] = useState({ message: "", bid_amount: "", estimated_hours: "" });
   const [submitting, setSubmitting] = useState(false);
   const [filter, setFilter] = useState<"all" | "auto" | "motorcycle">("all");
+  const [providerTier, setProviderTier] = useState<string | null>(null);
+  const [providerType, setProviderType] = useState<string | null>(null);
+  const [bidsThisMonth, setBidsThisMonth] = useState(0);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
