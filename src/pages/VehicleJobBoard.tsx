@@ -12,8 +12,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Car, Bike, MapPin, DollarSign, Wrench } from "lucide-react";
+import { Car, Bike, MapPin, DollarSign, Wrench, Zap } from "lucide-react";
 import { toast } from "sonner";
+
+const FREE_MECHANIC_BID_LIMIT = 3;
 
 type Job = {
   id: string; title: string; description: string | null; category: string;
