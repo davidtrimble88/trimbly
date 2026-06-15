@@ -34,7 +34,11 @@ export async function fetchProviders(filters?: {
   locationQuery?: string;
 }): Promise<ProviderWithStats[]> {
   // Fetch registered providers from DB
-  let query = supabase.from("providers").select("*");
+  // Note: sensitive columns (phone, license_number, license_expiry, insurance_details, insurance_expiry)
+  // are intentionally excluded so this query works for anonymous visitors and never leaks PII.
+  let query = supabase.from("providers").select(
+    "id, user_id, business_name, category, description, hourly_rate_min, hourly_rate_max, currency, licensed, insured, available, city, state, country, website, years_experience, subscription_tier, verified, featured, bio, gallery_urls, emergency_available, emergency_rate_multiplier, service_radius_miles, business_hours, slug, provider_type, created_at"
+  );
 
   if (filters?.category && filters.category !== "All") {
     query = query.eq("category", filters.category);
