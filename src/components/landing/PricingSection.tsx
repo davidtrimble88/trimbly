@@ -137,7 +137,7 @@ const mechanicTiers: Tier[] = [
     features: [
       "Mechanic profile listing",
       "Appear in local vehicle search results",
-      "Up to 5 active bids per month",
+      "Up to 3 active bids per month",
       "In-app messaging with vehicle owners",
       "Customer reviews & ratings",
       "Basic analytics dashboard",

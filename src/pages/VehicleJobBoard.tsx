@@ -12,8 +12,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Car, Bike, MapPin, DollarSign, Wrench } from "lucide-react";
+import { Car, Bike, MapPin, DollarSign, Wrench, Zap } from "lucide-react";
 import { toast } from "sonner";
+
+const FREE_MECHANIC_BID_LIMIT = 3;
 
 type Job = {
   id: string; title: string; description: string | null; category: string;
@@ -33,6 +35,9 @@ export default function VehicleJobBoard() {
   const [bidForm, setBidForm] = useState({ message: "", bid_amount: "", estimated_hours: "" });
   const [submitting, setSubmitting] = useState(false);
   const [filter, setFilter] = useState<"all" | "auto" | "motorcycle">("all");
+  const [providerTier, setProviderTier] = useState<string | null>(null);
+  const [providerType, setProviderType] = useState<string | null>(null);
+  const [bidsThisMonth, setBidsThisMonth] = useState(0);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -41,8 +46,10 @@ export default function VehicleJobBoard() {
   const load = async () => {
     if (!user) return;
     setLoading(true);
-    const { data: prov } = await supabase.from("providers").select("id").eq("user_id", user.id).maybeSingle();
+    const { data: prov } = await supabase.from("providers").select("id, subscription_tier, provider_type").eq("user_id", user.id).maybeSingle();
     setProviderId(prov?.id ?? null);
+    setProviderTier(prov?.subscription_tier ?? null);
+    setProviderType(prov?.provider_type ?? null);
 
     const { data: jobsData } = await supabase
       .from("vehicle_jobs")
@@ -52,13 +59,19 @@ export default function VehicleJobBoard() {
     setJobs((jobsData as Job[]) || []);
 
     if (prov?.id) {
-      const { data: bidsData } = await supabase
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      const { data: bidsData, count } = await supabase
         .from("vehicle_job_bids")
-        .select("id, vehicle_job_id, status")
-        .eq("provider_id", prov.id);
+        .select("id, vehicle_job_id, status", { count: "exact" })
+        .eq("provider_id", prov.id)
+        .in("status", ["pending", "accepted"])
+        .gte("created_at", startOfMonth.toISOString());
       const map: Record<string, { id: string; status: string }> = {};
       (bidsData || []).forEach((b: any) => { map[b.vehicle_job_id] = { id: b.id, status: b.status }; });
       setMyBids(map);
+      setBidsThisMonth(count || 0);
     }
     setLoading(false);
   };
@@ -114,6 +127,28 @@ export default function VehicleJobBoard() {
           </Card>
         )}
 
+        {providerType === "mechanic" && providerTier === "free" && (
+          <Card className={`mb-4 ${bidsThisMonth >= FREE_MECHANIC_BID_LIMIT ? "border-destructive bg-destructive/5" : "border-primary/30 bg-primary/5"}`}>
+            <CardContent className="py-4 flex items-center justify-between gap-3 flex-wrap">
+              <div className="text-sm">
+                <span className="font-semibold">
+                  {bidsThisMonth >= FREE_MECHANIC_BID_LIMIT
+                    ? "Monthly bid limit reached"
+                    : `${FREE_MECHANIC_BID_LIMIT - bidsThisMonth} of ${FREE_MECHANIC_BID_LIMIT} free bids left this month`}
+                </span>
+                <p className="text-muted-foreground text-xs mt-0.5">
+                  {bidsThisMonth >= FREE_MECHANIC_BID_LIMIT
+                    ? "Upgrade to Pro Mechanic to bid on unlimited vehicle jobs."
+                    : "Upgrade to Pro Mechanic for unlimited bids."}
+                </p>
+              </div>
+              <Button size="sm" variant={bidsThisMonth >= FREE_MECHANIC_BID_LIMIT ? "default" : "outline"} onClick={() => navigate("/mechanic-pricing")}>
+                <Zap size={14} className="mr-1.5" /> Upgrade
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="flex gap-2 mb-4">
           {(["all", "auto", "motorcycle"] as const).map((f) => (
             <Button key={f} size="sm" variant={filter === f ? "default" : "outline"} onClick={() => setFilter(f)}>
@@ -155,7 +190,11 @@ export default function VehicleJobBoard() {
                         mine ? (
                           <Badge variant={mine.status === "accepted" ? "default" : "secondary"}>Bid {mine.status}</Badge>
                         ) : (
-                          <Button size="sm" onClick={() => setBidJob(job)}>Place Bid</Button>
+                          <Button
+                            size="sm"
+                            onClick={() => setBidJob(job)}
+                            disabled={providerType === "mechanic" && providerTier === "free" && bidsThisMonth >= FREE_MECHANIC_BID_LIMIT}
+                          >Place Bid</Button>
                         )
                       )}
                     </div>
