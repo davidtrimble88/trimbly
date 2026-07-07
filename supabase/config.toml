@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.vehicle-coverage-chat]
 verify_jwt = false
+
+[functions.checkr-webhook]
+verify_jwt = false

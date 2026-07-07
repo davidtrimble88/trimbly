@@ -40,6 +40,7 @@ import ReferralPanel from "@/components/pro/ReferralPanel";
 import AutoReviewPanel from "@/components/pro/AutoReviewPanel";
 import AIFollowUpPanel from "@/components/pro/AIFollowUpPanel";
 import CompetitorPricingPanel from "@/components/pro/CompetitorPricingPanel";
+import VerificationPanel from "@/components/pro/VerificationPanel";
 import { useProNotifications } from "@/hooks/useProNotifications";
 
 type ProviderProfile = {
@@ -453,6 +454,9 @@ const ProDashboard = () => {
               </TabsTrigger>
                 <TabsTrigger value="profile" className="gap-1.5">
                   <Building2 size={14} /> Profile
+                </TabsTrigger>
+                <TabsTrigger value="verification" className="gap-1.5">
+                  <Shield size={14} /> Verification
                 </TabsTrigger>
                 <button
                   type="button"
@@ -881,6 +885,11 @@ const ProDashboard = () => {
                   </CardContent>
                 </Card>
               )}
+            </TabsContent>
+
+            {/* Verification Tab */}
+            <TabsContent value="verification">
+              <VerificationPanel providerId={provider.id} />
             </TabsContent>
           </Tabs>
 

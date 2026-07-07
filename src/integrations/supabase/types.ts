@@ -1090,6 +1090,133 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_documents: {
+        Row: {
+          created_at: string
+          document_type: string
+          file_name: string
+          file_size: number | null
+          file_url: string
+          id: string
+          provider_id: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          provider_id: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          provider_id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_documents_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      provider_verifications: {
+        Row: {
+          background_check_completed_at: string | null
+          background_check_expires_at: string | null
+          background_check_requested_at: string | null
+          background_check_status: string
+          checkr_candidate_id: string | null
+          checkr_invitation_id: string | null
+          checkr_report_id: string | null
+          created_at: string
+          id: string
+          insurance_rejection_reason: string | null
+          insurance_verification_status: string
+          insurance_verified_at: string | null
+          insurance_verified_by: string | null
+          license_rejection_reason: string | null
+          license_verification_status: string
+          license_verified_at: string | null
+          license_verified_by: string | null
+          provider_id: string
+          updated_at: string
+        }
+        Insert: {
+          background_check_completed_at?: string | null
+          background_check_expires_at?: string | null
+          background_check_requested_at?: string | null
+          background_check_status?: string
+          checkr_candidate_id?: string | null
+          checkr_invitation_id?: string | null
+          checkr_report_id?: string | null
+          created_at?: string
+          id?: string
+          insurance_rejection_reason?: string | null
+          insurance_verification_status?: string
+          insurance_verified_at?: string | null
+          insurance_verified_by?: string | null
+          license_rejection_reason?: string | null
+          license_verification_status?: string
+          license_verified_at?: string | null
+          license_verified_by?: string | null
+          provider_id: string
+          updated_at?: string
+        }
+        Update: {
+          background_check_completed_at?: string | null
+          background_check_expires_at?: string | null
+          background_check_requested_at?: string | null
+          background_check_status?: string
+          checkr_candidate_id?: string | null
+          checkr_invitation_id?: string | null
+          checkr_report_id?: string | null
+          created_at?: string
+          id?: string
+          insurance_rejection_reason?: string | null
+          insurance_verification_status?: string
+          insurance_verified_at?: string | null
+          insurance_verified_by?: string | null
+          license_rejection_reason?: string | null
+          license_verification_status?: string
+          license_verified_at?: string | null
+          license_verified_by?: string | null
+          provider_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_verifications_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: true
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       providers: {
         Row: {
           available: boolean

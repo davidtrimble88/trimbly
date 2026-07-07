@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, ShieldCheck, EyeOff, Eye, Star } from "lucide-react";
+import { Search, ShieldCheck, EyeOff, Eye, Star, ChevronDown, ChevronUp, FileText, Check, X, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { logActivity } from "./activityLog";
 
@@ -26,17 +26,111 @@ interface Provider {
   website: string | null;
 }
 
+interface Verification {
+  id: string;
+  provider_id: string;
+  background_check_status: string;
+  background_check_completed_at: string | null;
+  background_check_expires_at: string | null;
+  license_verification_status: string;
+  license_rejection_reason: string | null;
+  insurance_verification_status: string;
+  insurance_rejection_reason: string | null;
+}
+
+interface ProviderDoc {
+  id: string;
+  provider_id: string;
+  document_type: string;
+  file_name: string;
+  file_url: string;
+  status: string;
+  rejection_reason: string | null;
+}
+
+function bgBadge(status: string) {
+  const map: Record<string, string> = {
+    not_started: "bg-muted text-muted-foreground",
+    pending: "bg-yellow-500/15 text-yellow-700 border-yellow-500/40",
+    clear: "bg-green-500/15 text-green-700 border-green-500/40",
+    consider: "bg-orange-500/15 text-orange-700 border-orange-500/40",
+    failed: "bg-destructive/15 text-destructive border-destructive/40",
+    expired: "bg-destructive/15 text-destructive border-destructive/40",
+  };
+  return <Badge variant="outline" className={`text-[10px] ${map[status] || map.not_started}`}>{status.replace("_", " ")}</Badge>;
+}
+
 const Providers = () => {
   const { user } = useAuth();
   const [providers, setProviders] = useState<Provider[]>([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "unverified" | "verified" | "featured" | "hidden">("all");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [verifications, setVerifications] = useState<Record<string, Verification>>({});
+  const [docs, setDocs] = useState<Record<string, ProviderDoc[]>>({});
+  const [docUrls, setDocUrls] = useState<Record<string, string>>({});
 
   useEffect(() => { load(); }, []);
 
   const load = async () => {
     const { data } = await supabase.from("providers").select("*").order("created_at", { ascending: false });
     setProviders((data as Provider[]) || []);
+  };
+
+  const toggleExpand = async (providerId: string) => {
+    if (expandedId === providerId) { setExpandedId(null); return; }
+    setExpandedId(providerId);
+    if (!verifications[providerId]) {
+      const { data: v } = await supabase.from("provider_verifications").select("*").eq("provider_id", providerId).maybeSingle();
+      if (v) setVerifications((prev) => ({ ...prev, [providerId]: v as Verification }));
+    }
+    if (!docs[providerId]) {
+      const { data: d } = await supabase.from("provider_documents").select("*").eq("provider_id", providerId).order("created_at", { ascending: false });
+      setDocs((prev) => ({ ...prev, [providerId]: (d as ProviderDoc[]) || [] }));
+    }
+  };
+
+  const previewDoc = async (doc: ProviderDoc) => {
+    const { data, error } = await supabase.storage.from("provider-verification-docs").createSignedUrl(doc.file_url, 120);
+    if (error || !data) { toast.error("Couldn't open that document"); return; }
+    setDocUrls((prev) => ({ ...prev, [doc.id]: data.signedUrl }));
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const reviewDoc = async (doc: ProviderDoc, status: "approved" | "rejected") => {
+    if (!user) return;
+    let rejection_reason: string | null = null;
+    if (status === "rejected") {
+      rejection_reason = window.prompt("Reason for rejecting this document?") || "Not specified";
+    }
+    const { error } = await supabase.from("provider_documents").update({
+      status, reviewed_by: user.id, reviewed_at: new Date().toISOString(), rejection_reason,
+    }).eq("id", doc.id);
+    if (error) { toast.error(error.message); return; }
+
+    // Roll the decision up to the corresponding verification field.
+    const field = doc.document_type === "license" ? "license_verification_status" : doc.document_type === "insurance" ? "insurance_verification_status" : null;
+    if (field) {
+      const verifiedField = doc.document_type === "license" ? "license_verified_at" : "insurance_verified_at";
+      const verifiedByField = doc.document_type === "license" ? "license_verified_by" : "insurance_verified_by";
+      const reasonField = doc.document_type === "license" ? "license_rejection_reason" : "insurance_rejection_reason";
+      await supabase.from("provider_verifications").update({
+        [field]: status === "approved" ? "verified" : "rejected",
+        [verifiedField]: status === "approved" ? new Date().toISOString() : null,
+        [verifiedByField]: status === "approved" ? user.id : null,
+        [reasonField]: status === "rejected" ? rejection_reason : null,
+      }).eq("provider_id", doc.provider_id);
+    }
+
+    await logActivity(user.id, `provider_document_${status}`, "provider", doc.provider_id, { document_type: doc.document_type, file_name: doc.file_name });
+    toast.success(status === "approved" ? "Document approved" : "Document rejected");
+
+    const [{ data: v }, { data: d }] = await Promise.all([
+      supabase.from("provider_verifications").select("*").eq("provider_id", doc.provider_id).maybeSingle(),
+      supabase.from("provider_documents").select("*").eq("provider_id", doc.provider_id).order("created_at", { ascending: false }),
+    ]);
+    if (v) setVerifications((prev) => ({ ...prev, [doc.provider_id]: v as Verification }));
+    setDocs((prev) => ({ ...prev, [doc.provider_id]: (d as ProviderDoc[]) || [] }));
   };
 
   const filtered = providers.filter((p) => {
@@ -104,7 +198,55 @@ const Providers = () => {
                   {p.hidden ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                   {p.hidden ? "Unhide" : "Hide"}
                 </Button>
+                <Button size="sm" variant="ghost" onClick={() => toggleExpand(p.id)} className="ml-auto">
+                  <FileText className="w-3 h-3" /> Review
+                  {expandedId === p.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                </Button>
               </div>
+
+              {expandedId === p.id && (
+                <div className="mt-3 pt-3 border-t border-border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-foreground">Background check</span>
+                    {bgBadge(verifications[p.id]?.background_check_status || "not_started")}
+                  </div>
+                  {verifications[p.id]?.background_check_completed_at && (
+                    <p className="text-[10px] text-muted-foreground -mt-2">
+                      Completed {new Date(verifications[p.id].background_check_completed_at!).toLocaleDateString()}
+                    </p>
+                  )}
+
+                  {(docs[p.id] || []).length === 0 && (
+                    <p className="text-xs text-muted-foreground">No documents submitted yet.</p>
+                  )}
+                  {(docs[p.id] || []).map((doc) => (
+                    <div key={doc.id} className="flex items-center justify-between gap-2 text-xs bg-muted/50 rounded-md px-2.5 py-2">
+                      <div className="min-w-0">
+                        <p className="font-medium text-foreground capitalize">{doc.document_type} &middot; <span className="font-normal text-muted-foreground truncate">{doc.file_name}</span></p>
+                        {doc.status === "rejected" && doc.rejection_reason && (
+                          <p className="text-destructive">{doc.rejection_reason}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Badge variant="outline" className="text-[10px]">{doc.status}</Badge>
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => previewDoc(doc)} title="View document">
+                          <ExternalLink className="w-3 h-3" />
+                        </Button>
+                        {doc.status === "pending" && (
+                          <>
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-green-600" onClick={() => reviewDoc(doc, "approved")} title="Approve">
+                              <Check className="w-3 h-3" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => reviewDoc(doc, "rejected")} title="Reject">
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
