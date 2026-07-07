@@ -501,6 +501,44 @@ export type Database = {
           },
         ]
       }
+      home_weather_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          dismissed: boolean
+          home_id: string
+          id: string
+          message: string
+          valid_date: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          dismissed?: boolean
+          home_id: string
+          id?: string
+          message: string
+          valid_date: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          dismissed?: boolean
+          home_id?: string
+          id?: string
+          message?: string
+          valid_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "home_weather_alerts_home_id_fkey"
+            columns: ["home_id"]
+            isOneToOne: false
+            referencedRelation: "homes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       homes: {
         Row: {
           city: string
@@ -512,6 +550,8 @@ export type Database = {
           home_type: string
           hvac_type: string | null
           id: string
+          latitude: number | null
+          longitude: number | null
           name: string
           notes: string | null
           roof_type: string | null
@@ -531,6 +571,8 @@ export type Database = {
           home_type?: string
           hvac_type?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           name?: string
           notes?: string | null
           roof_type?: string | null
@@ -550,6 +592,8 @@ export type Database = {
           home_type?: string
           hvac_type?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           name?: string
           notes?: string | null
           roof_type?: string | null
@@ -632,6 +676,102 @@ export type Database = {
           },
         ]
       }
+      job_milestones: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          funded_at: string | null
+          homeowner_id: string
+          id: string
+          job_id: string | null
+          provider_id: string
+          quote_id: string | null
+          refunded_at: string | null
+          released_at: string | null
+          status: string
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
+          stripe_transfer_id: string | null
+          title: string
+          transfer_group: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          funded_at?: string | null
+          homeowner_id: string
+          id?: string
+          job_id?: string | null
+          provider_id: string
+          quote_id?: string | null
+          refunded_at?: string | null
+          released_at?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_transfer_id?: string | null
+          title: string
+          transfer_group?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          funded_at?: string | null
+          homeowner_id?: string
+          id?: string
+          job_id?: string | null
+          provider_id?: string
+          quote_id?: string | null
+          refunded_at?: string | null
+          released_at?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_transfer_id?: string | null
+          title?: string
+          transfer_group?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_milestones_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_milestones_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_response_times"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "job_milestones_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_stats"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "job_milestones_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_milestones_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           budget_max: number | null
@@ -641,6 +781,7 @@ export type Database = {
           country: string
           created_at: string
           description: string | null
+          home_id: string | null
           homeowner_id: string
           id: string
           photo_urls: string[]
@@ -659,6 +800,7 @@ export type Database = {
           country?: string
           created_at?: string
           description?: string | null
+          home_id?: string | null
           homeowner_id: string
           id?: string
           photo_urls?: string[]
@@ -677,6 +819,7 @@ export type Database = {
           country?: string
           created_at?: string
           description?: string | null
+          home_id?: string | null
           homeowner_id?: string
           id?: string
           photo_urls?: string[]
@@ -688,6 +831,13 @@ export type Database = {
           video_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "jobs_home_id_fkey"
+            columns: ["home_id"]
+            isOneToOne: false
+            referencedRelation: "homes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "jobs_provider_id_fkey"
             columns: ["provider_id"]
@@ -1301,6 +1451,9 @@ export type Database = {
           service_radius_miles: number
           slug: string | null
           state: string
+          stripe_connect_account_id: string | null
+          stripe_connect_charges_enabled: boolean
+          stripe_connect_payouts_enabled: boolean
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           subscription_current_period_end: string | null
@@ -1346,6 +1499,9 @@ export type Database = {
           service_radius_miles?: number
           slug?: string | null
           state: string
+          stripe_connect_account_id?: string | null
+          stripe_connect_charges_enabled?: boolean
+          stripe_connect_payouts_enabled?: boolean
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_current_period_end?: string | null
@@ -1391,6 +1547,9 @@ export type Database = {
           service_radius_miles?: number
           slug?: string | null
           state?: string
+          stripe_connect_account_id?: string | null
+          stripe_connect_charges_enabled?: boolean
+          stripe_connect_payouts_enabled?: boolean
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_current_period_end?: string | null
