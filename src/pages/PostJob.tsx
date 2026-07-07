@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import JobPhotoUploader from "@/components/JobPhotoUploader";
 import JobVideoUploader from "@/components/JobVideoUploader";
+import PricingInsightBox from "@/components/PricingInsightBox";
 
 const categories = [
   "Appliance Repair", "Carpentry", "Cleaning", "Drywall", "Electrical",
@@ -77,6 +78,7 @@ type Job = {
   video_url?: string | null;
   budget_min?: number | null;
   budget_max?: number | null;
+  home_id?: string | null;
   created_at: string;
 };
 
@@ -131,10 +133,18 @@ const PostJob = () => {
 
   const [form, setForm] = useState({
     title: "", description: "", category: "", city: "", state: "", country: "US",
-    budget_min: "", budget_max: "",
+    budget_min: "", budget_max: "", home_id: "",
   });
   const [photos, setPhotos] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [homes, setHomes] = useState<{ id: string; name: string; city: string; state: string }[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("homes").select("id, name, city, state").eq("user_id", user.id).then(({ data }) => {
+      setHomes(data || []);
+    });
+  }, [user]);
 
   // AI description helper
   const [aiLoading, setAiLoading] = useState(false);
@@ -316,12 +326,13 @@ const PostJob = () => {
         video_url: videoUrl,
         budget_min: bMin,
         budget_max: bMax,
+        home_id: form.home_id || null,
       }).eq("id", editingJobId);
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       } else {
         toast({ title: "Job updated" });
-        setForm({ title: "", description: "", category: "", city: "", state: "", country: "US", budget_min: "", budget_max: "" });
+        setForm({ title: "", description: "", category: "", city: "", state: "", country: "US", budget_min: "", budget_max: "", home_id: "" });
         setPhotos([]);
         setVideoUrl(null);
         setEditingJobId(null);
@@ -345,12 +356,13 @@ const PostJob = () => {
       video_url: videoUrl,
       budget_min: bMin,
       budget_max: bMax,
+      home_id: form.home_id || null,
     });
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Job posted!", description: "Pros can now see and bid on your job." });
-      setForm({ title: "", description: "", category: "", city: "", state: "", country: "US", budget_min: "", budget_max: "" });
+      setForm({ title: "", description: "", category: "", city: "", state: "", country: "US", budget_min: "", budget_max: "", home_id: "" });
       setPhotos([]);
       setVideoUrl(null);
       setShowForm(false);
@@ -370,6 +382,7 @@ const PostJob = () => {
       country: job.country || "US",
       budget_min: job.budget_min != null ? String(job.budget_min) : "",
       budget_max: job.budget_max != null ? String(job.budget_max) : "",
+      home_id: job.home_id || "",
     });
     setPhotos(job.photo_urls || []);
     setVideoUrl((job as any).video_url || null);
@@ -718,6 +731,25 @@ const PostJob = () => {
               <Label>Job Title *</Label>
               <Input placeholder="e.g. Kitchen faucet replacement" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="mt-1" />
             </div>
+            {homes.length > 0 && (
+              <div>
+                <Label>Which property is this for? (optional)</Label>
+                <Select
+                  value={form.home_id || "none"}
+                  onValueChange={(v) => {
+                    const home = homes.find((h) => h.id === v);
+                    setForm((f) => ({ ...f, home_id: v === "none" ? "" : v, city: home?.city || f.city, state: home?.state || f.state }));
+                  }}
+                >
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Select a property" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Not tied to a specific property —</SelectItem>
+                    {homes.map((h) => <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">Ties this job into that property's maintenance history report.</p>
+              </div>
+            )}
             <div>
               <Label>Category *</Label>
               <Select value={form.category} onValueChange={(v) => setForm((f) => ({ ...f, category: v }))}>
@@ -866,6 +898,9 @@ const PostJob = () => {
                     className="pl-7"
                   />
                 </div>
+              </div>
+              <div className="mt-2">
+                <PricingInsightBox category={form.category} state={form.state} />
               </div>
             </div>
             <div>

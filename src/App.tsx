@@ -77,6 +77,8 @@ const GarageUpsell = lazy(() => import("./pages/garage/GarageUpsell"));
 const VehicleCoverage = lazy(() => import("./pages/garage/VehicleCoverage"));
 const VehicleJobBoard = lazy(() => import("./pages/VehicleJobBoard"));
 const VehicleReport = lazy(() => import("./pages/garage/VehicleReport"));
+const HomeReport = lazy(() => import("./pages/HomeReport"));
+const EnergyAdvisor = lazy(() => import("./pages/EnergyAdvisor"));
 const MechanicPricing = lazy(() => import("./pages/MechanicPricing"));
 const MechanicRegister = lazy(() => import("./pages/MechanicRegister"));
 const MechanicDashboard = lazy(() => import("./pages/MechanicDashboard"));
@@ -148,6 +150,8 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/coverage" element={<CoverageAdvisor />} />
+            <Route path="/energy-advisor" element={<EnergyAdvisor />} />
+            <Route path="/dashboard/homes/:id/report" element={<HomeReport />} />
             <Route path="/post-job" element={<PostJob />} />
             <Route path="/job-board" element={<JobBoard />} />
             <Route path="/pro-dashboard" element={<ProDashboard />} />

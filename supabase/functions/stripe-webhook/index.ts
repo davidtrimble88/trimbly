@@ -135,6 +135,21 @@ Deno.serve(async (req) => {
             });
           }
         }
+      } else if (kind === "milestone_payment") {
+        const milestoneId = session.metadata?.milestone_id || session.client_reference_id;
+        if (milestoneId) {
+          const { error } = await admin.from("job_milestones").update({
+            status: "funded",
+            funded_at: new Date().toISOString(),
+            stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id ?? null,
+          }).eq("id", milestoneId);
+          if (error) {
+            console.error("stripe-webhook: failed to mark milestone funded", error);
+            return new Response(JSON.stringify({ error: "Failed to record milestone payment" }), {
+              status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        }
       }
     } else if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.created") {
       const sub = event.data.object as Stripe.Subscription;
@@ -170,6 +185,12 @@ Deno.serve(async (req) => {
           canceled_at: new Date().toISOString(),
         }).eq("user_id", sub.metadata.user_id);
       }
+    } else if (event.type === "account.updated") {
+      const account = event.data.object as Stripe.Account;
+      await admin.from("providers").update({
+        stripe_connect_charges_enabled: !!account.charges_enabled,
+        stripe_connect_payouts_enabled: !!account.payouts_enabled,
+      }).eq("stripe_connect_account_id", account.id);
     }
 
     return new Response(JSON.stringify({ received: true }), {

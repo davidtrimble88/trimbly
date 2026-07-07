@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Check, X, Loader2, Printer, ArrowLeft } from "lucide-react";
+import MilestonesPanel from "@/components/quotes/MilestonesPanel";
 
 interface LineItem {
   description: string;
@@ -223,6 +224,15 @@ const QuoteView = () => {
               </div>
             </CardContent>
           </Card>
+
+          {quote.status === "accepted" && (
+            <MilestonesPanel
+              quoteId={quote.id}
+              providerId={quote.provider_id}
+              homeownerId={quote.homeowner_id}
+              isHomeowner={isHomeowner}
+            />
+          )}
         </div>
       </main>
       <Footer />

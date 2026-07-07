@@ -23,11 +23,12 @@ import { ReviewPromptDialog } from "@/components/ReviewPromptDialog";
 import { ShareTrimblyCard } from "@/components/ShareTrimblyCard";
 import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
 import SavedProvidersCard from "@/components/SavedProvidersCard";
+import WeatherAlertsBanner from "@/components/home/WeatherAlertsBanner";
 import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star,
   Lock, Crown, Home, AlertTriangle, CheckCircle2, Clock, Shield,
   MapPin, Ruler, Calendar, Thermometer, Plus, MoreVertical, Pencil, Trash2,
-  Briefcase, BookOpen, Stethoscope, Hammer
+  Briefcase, BookOpen, Stethoscope, Hammer, FileText, CloudSun, Zap, X
 } from "lucide-react";
 
 // ─── Service definitions ───
@@ -39,6 +40,7 @@ const allServices: Array<{
   { icon: FolderOpen, title: "Digital Home Binder", description: "Store appliance info, warranties, and documents.", route: "/binder", minTier: "homeowner_pro", group: "home_care" },
   { icon: Shield, title: "Coverage Advisor", description: "Upload warranty & insurance docs and ask AI about your coverage.", route: "/coverage", minTier: "homeowner_pro", group: "home_care" },
   { icon: Stethoscope, title: "AI Symptom Triage", description: "Describe a noise, smell, or issue — get instant diagnosis, urgency, and DIY vs. pro guidance.", route: "/symptom-triage", minTier: "homeowner_pro", group: "home_care" },
+  { icon: Zap, title: "Energy & Utility Advisor", description: "AI-prioritized upgrades with real cost, savings, and payback numbers.", route: "/energy-advisor", minTier: "homeowner_pro", group: "home_care" },
 
   { icon: Wrench, title: "Find Local Pros", description: "Search by service, distance, rating, and availability.", route: "/search", minTier: "free", group: "get_help" },
   { icon: Briefcase, title: "Post a Job", description: "Post job requests for pros to bid on.", route: "/post-job", minTier: "free", group: "get_help" },
@@ -365,6 +367,7 @@ const Dashboard = () => {
 
           {/* ─── Home Analysis Section ─── */}
           <div className="mb-12">
+            <WeatherAlertsBanner homeIds={homes.map((h) => h.id)} />
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
                 <Home size={20} className="text-primary" />
@@ -394,6 +397,56 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
             ) : (
+              <>
+              {homes.length > 1 && (
+                <Card className="mb-6">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      <Home size={16} className="text-primary" /> Portfolio overview — {homes.length} properties
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                      <div className="rounded-lg border border-border p-3">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Total tasks</p>
+                        <p className="font-display text-xl font-bold">{Object.values(homeStats).reduce((s, h) => s + h.totalTasks, 0)}</p>
+                      </div>
+                      <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Overdue</p>
+                        <p className="font-display text-xl font-bold text-destructive">{Object.values(homeStats).reduce((s, h) => s + h.overdueTasks, 0)}</p>
+                      </div>
+                      <div className="rounded-lg border border-border p-3">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Upcoming</p>
+                        <p className="font-display text-xl font-bold">{Object.values(homeStats).reduce((s, h) => s + h.upcomingTasks, 0)}</p>
+                      </div>
+                      <div className="rounded-lg border border-border p-3">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Warranties expiring</p>
+                        <p className="font-display text-xl font-bold">{Object.values(homeStats).reduce((s, h) => s + h.expiringWarranties, 0)}</p>
+                      </div>
+                    </div>
+                    {allTasks.filter(t => t.status !== "completed" && t.due_date).length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Across all properties, soonest due</p>
+                        <ul className="divide-y divide-border">
+                          {allTasks
+                            .filter(t => t.status !== "completed" && t.due_date)
+                            .sort((a, b) => new Date(a.due_date!).getTime() - new Date(b.due_date!).getTime())
+                            .slice(0, 6)
+                            .map((t, i) => {
+                              const home = homes.find(h => h.id === t.home_id);
+                              return (
+                                <li key={i} className="py-2 flex items-center justify-between gap-2 text-sm">
+                                  <span className="truncate">{t.title} <span className="text-muted-foreground">· {home?.name || "Property"}</span></span>
+                                  <Badge variant={t.status === "overdue" ? "destructive" : "outline"} className="shrink-0">{t.due_date}</Badge>
+                                </li>
+                              );
+                            })}
+                        </ul>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
               <div className="grid md:grid-cols-2 gap-6">
                 {homes.map((home) => {
                   const stats = homeStats[home.id];
@@ -427,6 +480,9 @@ const Dashboard = () => {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => startEdit(home)}>
                                   <Pencil size={14} className="mr-2" /> Edit Home
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => navigate(`/dashboard/homes/${home.id}/report`)}>
+                                  <FileText size={14} className="mr-2" /> Printable Report
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => setDeletingHome(home)} className="text-destructive focus:text-destructive">
                                   <Trash2 size={14} className="mr-2" /> Remove Home
@@ -536,6 +592,7 @@ const Dashboard = () => {
                   );
                 })}
               </div>
+              </>
             )}
           </div>
 

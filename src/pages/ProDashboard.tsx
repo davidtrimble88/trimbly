@@ -41,6 +41,7 @@ import AutoReviewPanel from "@/components/pro/AutoReviewPanel";
 import AIFollowUpPanel from "@/components/pro/AIFollowUpPanel";
 import CompetitorPricingPanel from "@/components/pro/CompetitorPricingPanel";
 import VerificationPanel from "@/components/pro/VerificationPanel";
+import PayoutSetupPanel from "@/components/pro/PayoutSetupPanel";
 import { useProNotifications } from "@/hooks/useProNotifications";
 
 type ProviderProfile = {
@@ -912,7 +913,8 @@ const ProDashboard = () => {
             </TabsContent>
 
             {/* Verification Tab */}
-            <TabsContent value="verification">
+            <TabsContent value="verification" className="space-y-4">
+              <PayoutSetupPanel providerId={provider.id} />
               <VerificationPanel providerId={provider.id} />
             </TabsContent>
           </Tabs>
