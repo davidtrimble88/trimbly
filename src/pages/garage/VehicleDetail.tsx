@@ -667,90 +667,120 @@ function ScanServiceReport({ vehicle, onImported }: { vehicle: any; onImported: 
           <DialogHeader>
             <DialogTitle>Review extracted service info</DialogTitle>
           </DialogHeader>
-          {extracted && (
-            <div className="space-y-3 text-sm">
-              {extracted.confidence && extracted.confidence !== "high" && (
-                <div className="rounded-md border border-yellow-500/40 bg-yellow-500/10 p-2 text-xs">
-                  AI confidence is {extracted.confidence}. Please double-check the fields below before saving.
+          {extracted && (() => {
+            const fc = extracted.field_confidence || {};
+            const conf = (k: string): "high" | "medium" | "low" => (fc[k] === "low" || fc[k] === "medium" ? fc[k] : "high");
+            const ringCls = (k: string) => {
+              const c = conf(k);
+              if (c === "low") return "ring-2 ring-destructive/50 focus-visible:ring-destructive";
+              if (c === "medium") return "ring-2 ring-yellow-500/60 focus-visible:ring-yellow-500";
+              return "";
+            };
+            const ConfBadge = ({ k }: { k: string }) => {
+              const c = conf(k);
+              if (c === "high") return null;
+              return (
+                <span className={`ml-1.5 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${c === "low" ? "bg-destructive/15 text-destructive" : "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400"}`}>
+                  {c === "low" ? "Check" : "Review"}
+                </span>
+              );
+            };
+            const lowCount = Object.values(fc).filter((v) => v === "low").length;
+            const medCount = Object.values(fc).filter((v) => v === "medium").length;
+            return (
+              <div className="space-y-3 text-sm">
+                {(lowCount > 0 || medCount > 0 || (extracted.confidence && extracted.confidence !== "high")) && (
+                  <div className="rounded-md border border-yellow-500/40 bg-yellow-500/10 p-2 text-xs space-y-1">
+                    <p>
+                      Highlighted fields need a second look before saving
+                      {lowCount > 0 && <> — <span className="text-destructive font-semibold">{lowCount} likely wrong</span></>}
+                      {medCount > 0 && <>, <span className="text-yellow-700 dark:text-yellow-400 font-semibold">{medCount} unclear</span></>}.
+                    </p>
+                    <p className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                      <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-destructive" /> Check</span>
+                      <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-500" /> Review</span>
+                      <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary" /> Confident</span>
+                    </p>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Date<ConfBadge k="service_date" /></Label>
+                    <Input className={ringCls("service_date")} value={extracted.service_date || ""} onChange={(e) => setExtracted({ ...extracted, service_date: e.target.value, field_confidence: { ...fc, service_date: "high" } })} />
+                  </div>
+                  <div>
+                    <Label>Mileage<ConfBadge k="mileage" /></Label>
+                    <Input className={ringCls("mileage")} inputMode="numeric" value={String(extracted.mileage || "")} onChange={(e) => setExtracted({ ...extracted, mileage: parseInt(e.target.value.replace(/\D/g, ""), 10) || 0, field_confidence: { ...fc, mileage: "high" } })} />
+                  </div>
                 </div>
-              )}
-              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>Date</Label>
-                  <Input value={extracted.service_date || ""} onChange={(e) => setExtracted({ ...extracted, service_date: e.target.value })} />
+                  <Label>Type<ConfBadge k="service_type" /></Label>
+                  <Select value={extracted.service_type || "maintenance"} onValueChange={(v) => setExtracted({ ...extracted, service_type: v, field_confidence: { ...fc, service_type: "high" } })}>
+                    <SelectTrigger className={ringCls("service_type")}><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="maintenance">Maintenance</SelectItem>
+                      <SelectItem value="repair">Repair</SelectItem>
+                      <SelectItem value="inspection">Inspection</SelectItem>
+                      <SelectItem value="modification">Modification</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
-                  <Label>Mileage</Label>
-                  <Input inputMode="numeric" value={String(extracted.mileage || "")} onChange={(e) => setExtracted({ ...extracted, mileage: parseInt(e.target.value.replace(/\D/g, ""), 10) || 0 })} />
-                </div>
-              </div>
-              <div>
-                <Label>Type</Label>
-                <Select value={extracted.service_type || "maintenance"} onValueChange={(v) => setExtracted({ ...extracted, service_type: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="repair">Repair</SelectItem>
-                    <SelectItem value="inspection">Inspection</SelectItem>
-                    <SelectItem value="modification">Modification</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Services performed</Label>
-                <Textarea
-                  rows={4}
-                  value={Array.isArray(extracted.services_performed) ? extracted.services_performed.join("\n") : ""}
-                  onChange={(e) => setExtracted({ ...extracted, services_performed: e.target.value.split("\n").map((s) => s.trim()).filter(Boolean) })}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>Shop</Label>
-                  <Input value={extracted.shop_name || ""} onChange={(e) => setExtracted({ ...extracted, shop_name: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Total cost</Label>
-                  <Input inputMode="decimal" value={String(extracted.total_cost || "")} onChange={(e) => setExtracted({ ...extracted, total_cost: parseFloat(e.target.value.replace(/[^\d.]/g, "")) || 0 })} />
-                </div>
-              </div>
-              {extracted.technician_notes && (
-                <div>
-                  <Label>Technician notes</Label>
-                  <Textarea rows={2} value={extracted.technician_notes} onChange={(e) => setExtracted({ ...extracted, technician_notes: e.target.value })} />
-                </div>
-              )}
-              <div className="rounded-md border border-border p-3 space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">Next recommended service</p>
-                  <label className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                    <input type="checkbox" checked={addNextTask} onChange={(e) => setAddNextTask(e.target.checked)} />
-                    Add as task
-                  </label>
+                  <Label>Services performed</Label>
+                  <Textarea
+                    rows={4}
+                    value={Array.isArray(extracted.services_performed) ? extracted.services_performed.join("\n") : ""}
+                    onChange={(e) => setExtracted({ ...extracted, services_performed: e.target.value.split("\n").map((s) => s.trim()).filter(Boolean) })}
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-xs">Due date</Label>
-                    <Input value={extracted.next_service_date || ""} onChange={(e) => setExtracted({ ...extracted, next_service_date: e.target.value })} />
+                    <Label>Shop<ConfBadge k="shop_name" /></Label>
+                    <Input className={ringCls("shop_name")} value={extracted.shop_name || ""} onChange={(e) => setExtracted({ ...extracted, shop_name: e.target.value, field_confidence: { ...fc, shop_name: "high" } })} />
                   </div>
                   <div>
-                    <Label className="text-xs">Due mileage</Label>
-                    <Input inputMode="numeric" value={String(extracted.next_service_mileage || "")} onChange={(e) => setExtracted({ ...extracted, next_service_mileage: parseInt(e.target.value.replace(/\D/g, ""), 10) || 0 })} />
+                    <Label>Total cost<ConfBadge k="total_cost" /></Label>
+                    <Input className={ringCls("total_cost")} inputMode="decimal" value={String(extracted.total_cost || "")} onChange={(e) => setExtracted({ ...extracted, total_cost: parseFloat(e.target.value.replace(/[^\d.]/g, "")) || 0, field_confidence: { ...fc, total_cost: "high" } })} />
                   </div>
                 </div>
-                {extracted.next_service_notes && (
-                  <p className="text-xs text-muted-foreground">{extracted.next_service_notes}</p>
+                {extracted.technician_notes && (
+                  <div>
+                    <Label>Technician notes</Label>
+                    <Textarea rows={2} value={extracted.technician_notes} onChange={(e) => setExtracted({ ...extracted, technician_notes: e.target.value })} />
+                  </div>
+                )}
+                <div className="rounded-md border border-border p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Next recommended service</p>
+                    <label className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                      <input type="checkbox" checked={addNextTask} onChange={(e) => setAddNextTask(e.target.checked)} />
+                      Add as task
+                    </label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs">Due date<ConfBadge k="next_service_date" /></Label>
+                      <Input className={ringCls("next_service_date")} value={extracted.next_service_date || ""} onChange={(e) => setExtracted({ ...extracted, next_service_date: e.target.value, field_confidence: { ...fc, next_service_date: "high" } })} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Due mileage<ConfBadge k="next_service_mileage" /></Label>
+                      <Input className={ringCls("next_service_mileage")} inputMode="numeric" value={String(extracted.next_service_mileage || "")} onChange={(e) => setExtracted({ ...extracted, next_service_mileage: parseInt(e.target.value.replace(/\D/g, ""), 10) || 0, field_confidence: { ...fc, next_service_mileage: "high" } })} />
+                    </div>
+                  </div>
+                  {extracted.next_service_notes && (
+                    <p className="text-xs text-muted-foreground">{extracted.next_service_notes}</p>
+                  )}
+                </div>
+                {docRow && (
+                  <p className="text-xs text-muted-foreground">
+                    <Check size={12} className="inline mr-1 text-primary" />
+                    File saved to Documents as "{docRow.file_name}".
+                  </p>
                 )}
               </div>
-              {docRow && (
-                <p className="text-xs text-muted-foreground">
-                  <Check size={12} className="inline mr-1 text-primary" />
-                  File saved to Documents as "{docRow.file_name}".
-                </p>
-              )}
-            </div>
-          )}
+            );
+          })()}
           <DialogFooter>
             <Button variant="ghost" onClick={closeDialog} disabled={saving}>Cancel</Button>
             <Button onClick={importIt} disabled={saving}>
