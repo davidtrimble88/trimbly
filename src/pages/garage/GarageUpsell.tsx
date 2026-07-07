@@ -79,7 +79,7 @@ export default function GarageUpsell() {
               <Button size="lg" onClick={startTrial} disabled={activating} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 {activating ? "Redirecting…" : "Start 14-day free trial"}
               </Button>
-              <Button size="lg" variant="outline" className="border-background/30 text-background hover:bg-background/10" asChild>
+              <Button size="lg" variant="outline" className="border-background/30 bg-background/20 text-background hover:bg-background/30 hover:text-background" asChild>
                 <a href="#features">See what's inside</a>
               </Button>
             </div>
