@@ -394,8 +394,6 @@ export type Database = {
           plan_interval: string
           started_at: string
           status: string
-          stripe_customer_id: string | null
-          stripe_subscription_id: string | null
           updated_at: string
           user_id: string
         }
@@ -407,8 +405,6 @@ export type Database = {
           plan_interval?: string
           started_at?: string
           status?: string
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -420,8 +416,6 @@ export type Database = {
           plan_interval?: string
           started_at?: string
           status?: string
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -501,44 +495,6 @@ export type Database = {
           },
         ]
       }
-      home_weather_alerts: {
-        Row: {
-          alert_type: string
-          created_at: string
-          dismissed: boolean
-          home_id: string
-          id: string
-          message: string
-          valid_date: string
-        }
-        Insert: {
-          alert_type: string
-          created_at?: string
-          dismissed?: boolean
-          home_id: string
-          id?: string
-          message: string
-          valid_date: string
-        }
-        Update: {
-          alert_type?: string
-          created_at?: string
-          dismissed?: boolean
-          home_id?: string
-          id?: string
-          message?: string
-          valid_date?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "home_weather_alerts_home_id_fkey"
-            columns: ["home_id"]
-            isOneToOne: false
-            referencedRelation: "homes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       homes: {
         Row: {
           city: string
@@ -550,8 +506,6 @@ export type Database = {
           home_type: string
           hvac_type: string | null
           id: string
-          latitude: number | null
-          longitude: number | null
           name: string
           notes: string | null
           roof_type: string | null
@@ -571,8 +525,6 @@ export type Database = {
           home_type?: string
           hvac_type?: string | null
           id?: string
-          latitude?: number | null
-          longitude?: number | null
           name?: string
           notes?: string | null
           roof_type?: string | null
@@ -592,8 +544,6 @@ export type Database = {
           home_type?: string
           hvac_type?: string | null
           id?: string
-          latitude?: number | null
-          longitude?: number | null
           name?: string
           notes?: string | null
           roof_type?: string | null
@@ -685,7 +635,6 @@ export type Database = {
           country: string
           created_at: string
           description: string | null
-          home_id: string | null
           homeowner_id: string
           id: string
           photo_urls: string[]
@@ -704,7 +653,6 @@ export type Database = {
           country?: string
           created_at?: string
           description?: string | null
-          home_id?: string | null
           homeowner_id: string
           id?: string
           photo_urls?: string[]
@@ -723,7 +671,6 @@ export type Database = {
           country?: string
           created_at?: string
           description?: string | null
-          home_id?: string | null
           homeowner_id?: string
           id?: string
           photo_urls?: string[]
@@ -754,88 +701,6 @@ export type Database = {
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "providers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      job_milestones: {
-        Row: {
-          amount_cents: number
-          created_at: string
-          funded_at: string | null
-          homeowner_id: string
-          id: string
-          job_id: string | null
-          provider_id: string
-          quote_id: string | null
-          refunded_at: string | null
-          released_at: string | null
-          status: string
-          stripe_checkout_session_id: string | null
-          stripe_payment_intent_id: string | null
-          stripe_transfer_id: string | null
-          title: string
-          transfer_group: string | null
-          updated_at: string
-        }
-        Insert: {
-          amount_cents: number
-          created_at?: string
-          funded_at?: string | null
-          homeowner_id: string
-          id?: string
-          job_id?: string | null
-          provider_id: string
-          quote_id?: string | null
-          refunded_at?: string | null
-          released_at?: string | null
-          status?: string
-          stripe_checkout_session_id?: string | null
-          stripe_payment_intent_id?: string | null
-          stripe_transfer_id?: string | null
-          title: string
-          transfer_group?: string | null
-          updated_at?: string
-        }
-        Update: {
-          amount_cents?: number
-          created_at?: string
-          funded_at?: string | null
-          homeowner_id?: string
-          id?: string
-          job_id?: string | null
-          provider_id?: string
-          quote_id?: string | null
-          refunded_at?: string | null
-          released_at?: string | null
-          status?: string
-          stripe_checkout_session_id?: string | null
-          stripe_payment_intent_id?: string | null
-          stripe_transfer_id?: string | null
-          title?: string
-          transfer_group?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "job_milestones_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "providers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "job_milestones_quote_id_fkey"
-            columns: ["quote_id"]
-            isOneToOne: false
-            referencedRelation: "quotes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "job_milestones_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
-            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
         ]
@@ -1225,148 +1090,6 @@ export type Database = {
         }
         Relationships: []
       }
-      provider_documents: {
-        Row: {
-          created_at: string
-          document_type: string
-          file_name: string
-          file_size: number | null
-          file_url: string
-          id: string
-          provider_id: string
-          rejection_reason: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          document_type: string
-          file_name: string
-          file_size?: number | null
-          file_url: string
-          id?: string
-          provider_id: string
-          rejection_reason?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          document_type?: string
-          file_name?: string
-          file_size?: number | null
-          file_url?: string
-          id?: string
-          provider_id?: string
-          rejection_reason?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "provider_documents_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "providers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      provider_verifications: {
-        Row: {
-          background_check_completed_at: string | null
-          background_check_expires_at: string | null
-          background_check_requested_at: string | null
-          background_check_status: string
-          checkr_candidate_id: string | null
-          checkr_invitation_id: string | null
-          checkr_report_id: string | null
-          created_at: string
-          id: string
-          insurance_rejection_reason: string | null
-          insurance_verification_status: string
-          insurance_verified_at: string | null
-          insurance_verified_by: string | null
-          license_rejection_reason: string | null
-          license_verification_status: string
-          license_verified_at: string | null
-          license_verified_by: string | null
-          provider_id: string
-          stripe_checkout_session_id: string | null
-          stripe_payment_intent_id: string | null
-          updated_at: string
-          verification_fee_amount_cents: number | null
-          verification_fee_paid_at: string | null
-          verification_fee_status: string
-        }
-        Insert: {
-          background_check_completed_at?: string | null
-          background_check_expires_at?: string | null
-          background_check_requested_at?: string | null
-          background_check_status?: string
-          checkr_candidate_id?: string | null
-          checkr_invitation_id?: string | null
-          checkr_report_id?: string | null
-          created_at?: string
-          id?: string
-          insurance_rejection_reason?: string | null
-          insurance_verification_status?: string
-          insurance_verified_at?: string | null
-          insurance_verified_by?: string | null
-          license_rejection_reason?: string | null
-          license_verification_status?: string
-          license_verified_at?: string | null
-          license_verified_by?: string | null
-          provider_id: string
-          stripe_checkout_session_id?: string | null
-          stripe_payment_intent_id?: string | null
-          updated_at?: string
-          verification_fee_amount_cents?: number | null
-          verification_fee_paid_at?: string | null
-          verification_fee_status?: string
-        }
-        Update: {
-          background_check_completed_at?: string | null
-          background_check_expires_at?: string | null
-          background_check_requested_at?: string | null
-          background_check_status?: string
-          checkr_candidate_id?: string | null
-          checkr_invitation_id?: string | null
-          checkr_report_id?: string | null
-          created_at?: string
-          id?: string
-          insurance_rejection_reason?: string | null
-          insurance_verification_status?: string
-          insurance_verified_at?: string | null
-          insurance_verified_by?: string | null
-          license_rejection_reason?: string | null
-          license_verification_status?: string
-          license_verified_at?: string | null
-          license_verified_by?: string | null
-          provider_id?: string
-          stripe_checkout_session_id?: string | null
-          stripe_payment_intent_id?: string | null
-          updated_at?: string
-          verification_fee_amount_cents?: number | null
-          verification_fee_paid_at?: string | null
-          verification_fee_status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "provider_verifications_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: true
-            referencedRelation: "providers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       providers: {
         Row: {
           available: boolean
@@ -1402,13 +1125,6 @@ export type Database = {
           service_radius_miles: number
           slug: string | null
           state: string
-          stripe_connect_account_id: string | null
-          stripe_connect_charges_enabled: boolean
-          stripe_connect_payouts_enabled: boolean
-          stripe_customer_id: string | null
-          stripe_subscription_id: string | null
-          subscription_current_period_end: string | null
-          subscription_status: string
           subscription_tier: string
           updated_at: string
           user_id: string
@@ -1450,13 +1166,6 @@ export type Database = {
           service_radius_miles?: number
           slug?: string | null
           state: string
-          stripe_connect_account_id?: string | null
-          stripe_connect_charges_enabled?: boolean
-          stripe_connect_payouts_enabled?: boolean
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          subscription_current_period_end?: string | null
-          subscription_status?: string
           subscription_tier?: string
           updated_at?: string
           user_id: string
@@ -1498,13 +1207,6 @@ export type Database = {
           service_radius_miles?: number
           slug?: string | null
           state?: string
-          stripe_connect_account_id?: string | null
-          stripe_connect_charges_enabled?: boolean
-          stripe_connect_payouts_enabled?: boolean
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          subscription_current_period_end?: string | null
-          subscription_status?: string
           subscription_tier?: string
           updated_at?: string
           user_id?: string
@@ -2233,7 +1935,6 @@ export type Database = {
           title: string
           updated_at: string
           vehicle_id: string | null
-          video_url: string | null
         }
         Insert: {
           budget_max?: number | null
@@ -2253,7 +1954,6 @@ export type Database = {
           title: string
           updated_at?: string
           vehicle_id?: string | null
-          video_url?: string | null
         }
         Update: {
           budget_max?: number | null
@@ -2273,7 +1973,6 @@ export type Database = {
           title?: string
           updated_at?: string
           vehicle_id?: string | null
-          video_url?: string | null
         }
         Relationships: [
           {
@@ -2409,208 +2108,6 @@ export type Database = {
           },
         ]
       }
-      vehicle_mileage_logs: {
-        Row: {
-          created_at: string
-          id: string
-          logged_at: string
-          mileage: number
-          owner_user_id: string
-          source: string
-          vehicle_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          logged_at?: string
-          mileage: number
-          owner_user_id: string
-          source?: string
-          vehicle_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          logged_at?: string
-          mileage?: number
-          owner_user_id?: string
-          source?: string
-          vehicle_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vehicle_mileage_logs_vehicle_id_fkey"
-            columns: ["vehicle_id"]
-            isOneToOne: false
-            referencedRelation: "vehicles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vehicle_fuel_logs: {
-        Row: {
-          cost: number | null
-          created_at: string
-          full_tank: boolean
-          id: string
-          logged_at: string
-          mileage: number
-          notes: string | null
-          owner_user_id: string
-          station: string | null
-          updated_at: string
-          vehicle_id: string
-          volume: number
-        }
-        Insert: {
-          cost?: number | null
-          created_at?: string
-          full_tank?: boolean
-          id?: string
-          logged_at?: string
-          mileage: number
-          notes?: string | null
-          owner_user_id: string
-          station?: string | null
-          updated_at?: string
-          vehicle_id: string
-          volume: number
-        }
-        Update: {
-          cost?: number | null
-          created_at?: string
-          full_tank?: boolean
-          id?: string
-          logged_at?: string
-          mileage?: number
-          notes?: string | null
-          owner_user_id?: string
-          station?: string | null
-          updated_at?: string
-          vehicle_id?: string
-          volume?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vehicle_fuel_logs_vehicle_id_fkey"
-            columns: ["vehicle_id"]
-            isOneToOne: false
-            referencedRelation: "vehicles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vehicle_inspections: {
-        Row: {
-          created_at: string
-          id: string
-          owner_user_id: string
-          provider_id: string
-          sent_at: string | null
-          status: string
-          summary: string | null
-          title: string
-          updated_at: string
-          vehicle_id: string
-          vehicle_job_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          owner_user_id: string
-          provider_id: string
-          sent_at?: string | null
-          status?: string
-          summary?: string | null
-          title?: string
-          updated_at?: string
-          vehicle_id: string
-          vehicle_job_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          owner_user_id?: string
-          provider_id?: string
-          sent_at?: string | null
-          status?: string
-          summary?: string | null
-          title?: string
-          updated_at?: string
-          vehicle_id?: string
-          vehicle_job_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vehicle_inspections_vehicle_id_fkey"
-            columns: ["vehicle_id"]
-            isOneToOne: false
-            referencedRelation: "vehicles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "vehicle_inspections_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "providers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "vehicle_inspections_vehicle_job_id_fkey"
-            columns: ["vehicle_job_id"]
-            isOneToOne: false
-            referencedRelation: "vehicle_jobs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vehicle_inspection_items: {
-        Row: {
-          category: string
-          condition: string
-          cost_estimate: number | null
-          created_at: string
-          id: string
-          inspection_id: string
-          item_name: string
-          notes: string | null
-          photo_url: string | null
-          sort_order: number
-        }
-        Insert: {
-          category?: string
-          condition?: string
-          cost_estimate?: number | null
-          created_at?: string
-          id?: string
-          inspection_id: string
-          item_name: string
-          notes?: string | null
-          photo_url?: string | null
-          sort_order?: number
-        }
-        Update: {
-          category?: string
-          condition?: string
-          cost_estimate?: number | null
-          created_at?: string
-          id?: string
-          inspection_id?: string
-          item_name?: string
-          notes?: string | null
-          photo_url?: string | null
-          sort_order?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vehicle_inspection_items_inspection_id_fkey"
-            columns: ["inspection_id"]
-            isOneToOne: false
-            referencedRelation: "vehicle_inspections"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       vehicles: {
         Row: {
           color: string | null
@@ -2699,17 +2196,6 @@ export type Database = {
     }
     Functions: {
       has_garage_addon: { Args: { _user_id: string }; Returns: boolean }
-      update_provider_trusted: {
-        Args: {
-          p_provider_id: string
-          p_stripe_customer_id?: string | null
-          p_stripe_subscription_id?: string | null
-          p_subscription_tier?: string | null
-          p_subscription_status?: string | null
-          p_subscription_current_period_end?: string | null
-        }
-        Returns: undefined
-      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
