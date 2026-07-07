@@ -80,6 +80,7 @@ export default function VehicleDetail() {
         </TabsContent>
 
         <TabsContent value="maintenance" className="space-y-3">
+          <ScanServiceReport vehicle={vehicle} onImported={load} />
           <MaintenanceList vehicle={vehicle} tasks={tasks} onChanged={load} />
         </TabsContent>
 
@@ -498,5 +499,266 @@ function DocumentsList({ vehicle, docs, onChanged }: { vehicle: any; docs: any[]
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function ScanServiceReport({ vehicle, onImported }: { vehicle: any; onImported: () => void }) {
+  const { user } = useAuth();
+  const [scanning, setScanning] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [extracted, setExtracted] = useState<any>(null);
+  const [docRow, setDocRow] = useState<any>(null);
+  const [addNextTask, setAddNextTask] = useState(true);
+
+  const runScan = async (file: File) => {
+    if (!user) return;
+    if (file.size > 10 * 1024 * 1024) return toast.error("Max 10MB");
+    const allowed = ["application/pdf", "image/png", "image/jpeg", "image/webp", "image/heic"];
+    if (!allowed.includes(file.type) && !file.name.match(/\.(pdf|png|jpe?g|webp|heic)$/i)) {
+      return toast.error("Upload a PDF or image");
+    }
+    setScanning(true);
+    try {
+      const ext = file.name.split(".").pop() || "bin";
+      const path = `${user.id}/${vehicle.id}/${crypto.randomUUID()}.${ext}`;
+
+      // 1. upload to storage
+      const { error: upErr } = await supabase.storage.from("vehicle-docs").upload(path, file, {
+        contentType: file.type || undefined,
+      });
+      if (upErr) { setScanning(false); return toast.error(upErr.message); }
+
+      // 2. save documents row so it also appears in Documents
+      const { data: docIns, error: docErr } = await supabase.from("vehicle_documents").insert({
+        vehicle_id: vehicle.id,
+        owner_user_id: user.id,
+        doc_type: "inspection",
+        file_name: file.name,
+        file_url: path,
+        file_size: file.size,
+      }).select().single();
+      if (docErr) { setScanning(false); return toast.error(docErr.message); }
+      setDocRow(docIns);
+
+      // 3. create signed URL for AI to read
+      const { data: signed, error: sErr } = await supabase.storage
+        .from("vehicle-docs").createSignedUrl(path, 300);
+      if (sErr || !signed?.signedUrl) {
+        setScanning(false);
+        return toast.error("Couldn't read the uploaded file");
+      }
+
+      // 4. call parse function
+      const { data, error } = await supabase.functions.invoke("parse-vehicle-service-doc", {
+        body: {
+          file_url: signed.signedUrl,
+          mime_type: file.type || (ext.toLowerCase() === "pdf" ? "application/pdf" : `image/${ext}`),
+          vehicle_context: {
+            year: vehicle.year, make: vehicle.make, model: vehicle.model,
+            current_mileage: vehicle.current_mileage, mileage_unit: vehicle.mileage_unit,
+          },
+        },
+      });
+      setScanning(false);
+      if (error || data?.error) {
+        return toast.error(data?.error || error?.message || "AI couldn't read that report");
+      }
+      setExtracted(data.extracted);
+    } catch (e: any) {
+      setScanning(false);
+      toast.error(e?.message || "Something went wrong");
+    }
+  };
+
+  const closeDialog = () => {
+    setExtracted(null);
+    setDocRow(null);
+  };
+
+  const importIt = async () => {
+    if (!user || !extracted) return;
+    setSaving(true);
+
+    const perfList = Array.isArray(extracted.services_performed) ? extracted.services_performed : [];
+    const description = [
+      perfList.join(", "),
+      extracted.technician_notes ? `Notes: ${extracted.technician_notes}` : "",
+    ].filter(Boolean).join(" — ").slice(0, 900) || "Service performed";
+
+    const svcDate = extracted.service_date || new Date().toISOString().slice(0, 10);
+    const mileage = Number(extracted.mileage) > 0 ? Number(extracted.mileage) : null;
+    const cost = Number(extracted.total_cost) > 0 ? Number(extracted.total_cost) : null;
+
+    const { error: svcErr } = await supabase.from("vehicle_service_records").insert({
+      vehicle_id: vehicle.id,
+      owner_user_id: user.id,
+      service_date: svcDate,
+      service_type: extracted.service_type || "maintenance",
+      description,
+      cost,
+      shop_name: (extracted.shop_name || "").slice(0, 80) || null,
+      mileage,
+    });
+    if (svcErr) { setSaving(false); return toast.error(svcErr.message); }
+
+    // Update vehicle mileage if newer
+    if (mileage && mileage > (vehicle.current_mileage || 0)) {
+      await supabase.from("vehicles").update({ current_mileage: mileage }).eq("id", vehicle.id);
+      await supabase.from("vehicle_mileage_logs").insert({
+        vehicle_id: vehicle.id, owner_user_id: user.id, mileage, source: "service_record",
+      });
+    }
+
+    // Optionally add a task for next recommended service
+    const nextDate = extracted.next_service_date || null;
+    const nextMi = Number(extracted.next_service_mileage) > 0 ? Number(extracted.next_service_mileage) : null;
+    if (addNextTask && (nextDate || nextMi)) {
+      const taskName = (extracted.next_service_notes || "Next recommended service").slice(0, 80);
+      await supabase.from("vehicle_maintenance_tasks").insert({
+        vehicle_id: vehicle.id,
+        owner_user_id: user.id,
+        task_name: taskName,
+        next_due_date: nextDate || null,
+        next_due_mileage: nextMi,
+        status: "upcoming",
+      });
+    }
+
+    setSaving(false);
+    toast.success("Service report imported");
+    closeDialog();
+    onImported();
+  };
+
+  return (
+    <>
+      <Card className="border-dashed">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <ScanLine size={16} className="text-primary" /> Scan a service report
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Upload a PDF or photo of a maintenance invoice, oil-change receipt, or dealer report and we'll
+            pull out the service date, mileage, work performed, and the next recommended service.
+            The file is also saved to your Documents.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <Input
+              id="scan-report"
+              type="file"
+              accept="image/*,.pdf"
+              disabled={scanning}
+              onChange={(e) => e.target.files?.[0] && runScan(e.target.files[0])}
+              className="max-w-xs"
+            />
+            {scanning && (
+              <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                <Loader2 size={14} className="animate-spin" /> Reading report…
+              </span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={!!extracted} onOpenChange={(o) => !o && closeDialog()}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Review extracted service info</DialogTitle>
+          </DialogHeader>
+          {extracted && (
+            <div className="space-y-3 text-sm">
+              {extracted.confidence && extracted.confidence !== "high" && (
+                <div className="rounded-md border border-yellow-500/40 bg-yellow-500/10 p-2 text-xs">
+                  AI confidence is {extracted.confidence}. Please double-check the fields below before saving.
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Date</Label>
+                  <Input value={extracted.service_date || ""} onChange={(e) => setExtracted({ ...extracted, service_date: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Mileage</Label>
+                  <Input inputMode="numeric" value={String(extracted.mileage || "")} onChange={(e) => setExtracted({ ...extracted, mileage: parseInt(e.target.value.replace(/\D/g, ""), 10) || 0 })} />
+                </div>
+              </div>
+              <div>
+                <Label>Type</Label>
+                <Select value={extracted.service_type || "maintenance"} onValueChange={(v) => setExtracted({ ...extracted, service_type: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                    <SelectItem value="repair">Repair</SelectItem>
+                    <SelectItem value="inspection">Inspection</SelectItem>
+                    <SelectItem value="modification">Modification</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Services performed</Label>
+                <Textarea
+                  rows={4}
+                  value={Array.isArray(extracted.services_performed) ? extracted.services_performed.join("\n") : ""}
+                  onChange={(e) => setExtracted({ ...extracted, services_performed: e.target.value.split("\n").map((s) => s.trim()).filter(Boolean) })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Shop</Label>
+                  <Input value={extracted.shop_name || ""} onChange={(e) => setExtracted({ ...extracted, shop_name: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Total cost</Label>
+                  <Input inputMode="decimal" value={String(extracted.total_cost || "")} onChange={(e) => setExtracted({ ...extracted, total_cost: parseFloat(e.target.value.replace(/[^\d.]/g, "")) || 0 })} />
+                </div>
+              </div>
+              {extracted.technician_notes && (
+                <div>
+                  <Label>Technician notes</Label>
+                  <Textarea rows={2} value={extracted.technician_notes} onChange={(e) => setExtracted({ ...extracted, technician_notes: e.target.value })} />
+                </div>
+              )}
+              <div className="rounded-md border border-border p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">Next recommended service</p>
+                  <label className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                    <input type="checkbox" checked={addNextTask} onChange={(e) => setAddNextTask(e.target.checked)} />
+                    Add as task
+                  </label>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Due date</Label>
+                    <Input value={extracted.next_service_date || ""} onChange={(e) => setExtracted({ ...extracted, next_service_date: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Due mileage</Label>
+                    <Input inputMode="numeric" value={String(extracted.next_service_mileage || "")} onChange={(e) => setExtracted({ ...extracted, next_service_mileage: parseInt(e.target.value.replace(/\D/g, ""), 10) || 0 })} />
+                  </div>
+                </div>
+                {extracted.next_service_notes && (
+                  <p className="text-xs text-muted-foreground">{extracted.next_service_notes}</p>
+                )}
+              </div>
+              {docRow && (
+                <p className="text-xs text-muted-foreground">
+                  <Check size={12} className="inline mr-1 text-primary" />
+                  File saved to Documents as "{docRow.file_name}".
+                </p>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="ghost" onClick={closeDialog} disabled={saving}>Cancel</Button>
+            <Button onClick={importIt} disabled={saving}>
+              {saving ? "Saving…" : "Save to service log"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
