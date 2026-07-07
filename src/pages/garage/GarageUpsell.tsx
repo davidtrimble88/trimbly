@@ -13,6 +13,11 @@ export default function GarageUpsell() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [activating, setActivating] = useState(false);
+  const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("monthly");
+
+  const MONTHLY_PRICE = 3.99;
+  const YEARLY_PRICE = 29;
+  const yearlySavingsPct = Math.round((1 - YEARLY_PRICE / (MONTHLY_PRICE * 12)) * 100);
 
   const startTrial = async () => {
     if (!user) {
@@ -20,7 +25,7 @@ export default function GarageUpsell() {
       return;
     }
     setActivating(true);
-    const { url, error } = await startGarageCheckout("monthly");
+    const { url, error } = await startGarageCheckout(billingInterval);
     setActivating(false);
     if (error) {
       toast.error(error);
@@ -28,6 +33,28 @@ export default function GarageUpsell() {
     }
     if (url) window.location.href = url;
   };
+
+  const PlanToggle = () => (
+    <div className="inline-flex items-center rounded-full border border-border bg-muted/50 p-1">
+      <button
+        type="button"
+        onClick={() => setBillingInterval("monthly")}
+        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${billingInterval === "monthly" ? "bg-background shadow text-foreground" : "text-muted-foreground"}`}
+      >
+        Monthly · ${MONTHLY_PRICE}/mo
+      </button>
+      <button
+        type="button"
+        onClick={() => setBillingInterval("yearly")}
+        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 ${billingInterval === "yearly" ? "bg-background shadow text-foreground" : "text-muted-foreground"}`}
+      >
+        Yearly · ${YEARLY_PRICE}/yr
+        <span className="text-[10px] font-bold uppercase tracking-wide bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full">
+          Save {yearlySavingsPct}%
+        </span>
+      </button>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -45,15 +72,20 @@ export default function GarageUpsell() {
               The same hassle-free maintenance tracking you love for your home — now for your cars and motorcycles.
               Service history, smart reminders, documents, and nearby mechanics in one place.
             </p>
+            <div className="mb-5">
+              <PlanToggle />
+            </div>
             <div className="flex flex-wrap gap-3">
               <Button size="lg" onClick={startTrial} disabled={activating} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                {activating ? "Activating…" : "Start 14-day free trial"}
+                {activating ? "Redirecting…" : "Start 14-day free trial"}
               </Button>
               <Button size="lg" variant="outline" className="border-background/30 text-background hover:bg-background/10" asChild>
                 <a href="#features">See what's inside</a>
               </Button>
             </div>
-            <p className="text-xs text-background/60 mt-4">$3.99/mo or $29/yr after trial. Cancel anytime.</p>
+            <p className="text-xs text-background/60 mt-4">
+              {billingInterval === "monthly" ? `$${MONTHLY_PRICE}/mo` : `$${YEARLY_PRICE}/yr`} after your 14-day trial. Cancel anytime.
+            </p>
           </div>
         </section>
 
@@ -86,8 +118,11 @@ export default function GarageUpsell() {
           <p className="text-muted-foreground mb-6">
             My Garage stacks on top of any Trimbly plan, including Free. Cancel any time from your dashboard.
           </p>
+          <div className="mb-5 flex justify-center">
+            <PlanToggle />
+          </div>
           <Button size="lg" onClick={startTrial} disabled={activating}>
-            {activating ? "Activating…" : "Start free trial"}
+            {activating ? "Redirecting…" : `Start free trial — then $${billingInterval === "monthly" ? MONTHLY_PRICE + "/mo" : YEARLY_PRICE + "/yr"}`}
           </Button>
           {!user && (
             <p className="text-xs text-muted-foreground mt-3">
