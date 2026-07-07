@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Wrench, MapPin, DollarSign, Trash2, ChevronDown, ChevronUp, Phone, PhoneOff, MessageSquare, CheckCircle, XCircle, Car, Bike } from "lucide-react";
 import { toast } from "sonner";
+import JobPhotoUploader from "@/components/JobPhotoUploader";
+import JobVideoUploader from "@/components/JobVideoUploader";
 
 const AUTO_CATEGORIES = [
   "Oil Change", "Brakes", "Tires", "Battery", "Engine Diagnostics",
@@ -31,6 +33,7 @@ type Job = {
   service_type: string; city: string; state: string; country: string;
   mobile_service: boolean; budget_min: number | null; budget_max: number | null;
   status: string; vehicle_id: string | null; created_at: string;
+  photo_urls: string[] | null; video_url: string | null;
 };
 type Bid = {
   id: string; vehicle_job_id: string; provider_id: string; message: string;
@@ -52,6 +55,7 @@ export default function GarageJobs() {
     vehicle_id: "", title: "", description: "", category: "",
     service_type: "auto", city: "", state: "", country: "US",
     mobile_service: false, budget_min: "", budget_max: "",
+    photo_urls: [] as string[], video_url: null as string | null,
   });
 
   const load = async () => {
@@ -102,12 +106,14 @@ export default function GarageJobs() {
       mobile_service: form.mobile_service,
       budget_min: form.budget_min ? Number(form.budget_min) : null,
       budget_max: form.budget_max ? Number(form.budget_max) : null,
+      photo_urls: form.photo_urls,
+      video_url: form.video_url,
       status: "open",
     });
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Job posted — mechanics can now bid.");
-    setForm({ vehicle_id: "", title: "", description: "", category: "", service_type: "auto", city: "", state: "", country: "US", mobile_service: false, budget_min: "", budget_max: "" });
+    setForm({ vehicle_id: "", title: "", description: "", category: "", service_type: "auto", city: "", state: "", country: "US", mobile_service: false, budget_min: "", budget_max: "", photo_urls: [], video_url: null });
     setShowForm(false);
     load();
   };
@@ -208,6 +214,18 @@ export default function GarageJobs() {
                 {isOpen && (
                   <CardContent className="pt-0 space-y-3">
                     {job.description && <p className="text-sm text-muted-foreground">{job.description}</p>}
+                    {((job.photo_urls && job.photo_urls.length > 0) || job.video_url) && (
+                      <div className="flex flex-wrap gap-2">
+                        {(job.photo_urls || []).map((url) => (
+                          <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="block w-16 h-16 rounded-md overflow-hidden border border-border">
+                            <img src={url} alt="Job photo" className="w-full h-full object-cover" loading="lazy" />
+                          </a>
+                        ))}
+                        {job.video_url && (
+                          <video src={job.video_url} controls className="w-32 h-16 rounded-md border border-border object-cover" />
+                        )}
+                      </div>
+                    )}
                     <div className="border-t pt-3">
                       <h4 className="text-sm font-semibold mb-2">Bids ({jobBids.length})</h4>
                       {jobBids.length === 0 ? (
@@ -321,6 +339,14 @@ export default function GarageJobs() {
               <Checkbox checked={form.mobile_service} onCheckedChange={(v) => setForm({ ...form, mobile_service: !!v })} />
               Open to mobile mechanics coming to me
             </label>
+            <div>
+              <Label>Photos (optional)</Label>
+              <JobPhotoUploader value={form.photo_urls} onChange={(urls) => setForm({ ...form, photo_urls: urls })} />
+            </div>
+            <div>
+              <Label>Video (optional)</Label>
+              <JobVideoUploader value={form.video_url} onChange={(url) => setForm({ ...form, video_url: url })} />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setShowForm(false)}>Cancel</Button>

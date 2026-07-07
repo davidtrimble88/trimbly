@@ -21,7 +21,7 @@ type Job = {
   id: string; title: string; description: string | null; category: string;
   service_type: string; city: string; state: string;
   mobile_service: boolean; budget_min: number | null; budget_max: number | null;
-  created_at: string;
+  created_at: string; photo_urls: string[] | null; video_url: string | null;
 };
 
 export default function VehicleJobBoard() {
@@ -120,8 +120,8 @@ export default function VehicleJobBoard() {
           <Card className="mb-4 border-amber-300 bg-amber-50 dark:bg-amber-950/20">
             <CardContent className="py-4 text-sm">
               Set up a provider profile to bid on vehicle jobs.{" "}
-              <Button size="sm" variant="link" className="px-1" onClick={() => navigate("/become-a-pro")}>
-                Become a Pro →
+              <Button size="sm" variant="link" className="px-1" onClick={() => navigate("/mechanic-register")}>
+                Become a Mechanic →
               </Button>
             </CardContent>
           </Card>
@@ -200,7 +200,21 @@ export default function VehicleJobBoard() {
                     </div>
                   </CardHeader>
                   {job.description && (
-                    <CardContent className="pt-0 text-sm text-muted-foreground">{job.description}</CardContent>
+                    <CardContent className="pt-0 text-sm text-muted-foreground space-y-2">
+                      <p>{job.description}</p>
+                      {((job.photo_urls && job.photo_urls.length > 0) || job.video_url) && (
+                        <div className="flex flex-wrap gap-2">
+                          {(job.photo_urls || []).map((url) => (
+                            <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="block w-16 h-16 rounded-md overflow-hidden border border-border">
+                              <img src={url} alt="Job photo" className="w-full h-full object-cover" loading="lazy" />
+                            </a>
+                          ))}
+                          {job.video_url && (
+                            <video src={job.video_url} controls className="w-32 h-16 rounded-md border border-border object-cover" />
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
                   )}
                 </Card>
               );

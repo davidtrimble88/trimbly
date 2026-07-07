@@ -11,9 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, ArrowLeft, Upload, Check, ShoppingCart, ExternalLink } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Upload, Check, ShoppingCart, ExternalLink, ScanLine, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { VehicleProductDialog } from "@/components/garage/VehicleProductDialog";
+import FuelMileagePanel from "@/components/garage/FuelMileagePanel";
+import VehicleInspectionsPanel from "@/components/garage/VehicleInspectionsPanel";
 
 export default function VehicleDetail() {
   const { id } = useParams();
@@ -52,14 +54,24 @@ export default function VehicleDetail() {
         <div>
           <h1 className="font-display text-2xl font-bold">{vehicle.nickname || `${vehicle.year ?? ""} ${vehicle.make} ${vehicle.model}`.trim()}</h1>
           <p className="text-sm text-muted-foreground">{[vehicle.year, vehicle.make, vehicle.model, vehicle.trim].filter(Boolean).join(" ")} · {vehicle.current_mileage.toLocaleString()} {vehicle.mileage_unit}{vehicle.license_plate ? ` · ${vehicle.license_plate}` : ""}</p>
+          <p className="text-xs text-muted-foreground font-mono mt-0.5 flex items-center gap-2">
+            {vehicle.vin ? `VIN: ${vehicle.vin}` : "No VIN on file"}
+            <VinDialog vehicle={vehicle} onSaved={load} />
+          </p>
         </div>
-        <UpdateMileageDialog vehicle={vehicle} onSaved={load} />
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" asChild><Link to={`/garage/vehicles/${vehicle.id}/report`}>Printable report</Link></Button>
+          <RecallCheck vehicle={vehicle} />
+          <UpdateMileageDialog vehicle={vehicle} onSaved={load} />
+        </div>
       </div>
 
       <Tabs defaultValue="service">
         <TabsList>
           <TabsTrigger value="service">Service log ({services.length})</TabsTrigger>
           <TabsTrigger value="maintenance">Maintenance ({tasks.length})</TabsTrigger>
+          <TabsTrigger value="fuel">Fuel & Mileage</TabsTrigger>
+          <TabsTrigger value="inspections">Inspections</TabsTrigger>
           <TabsTrigger value="documents">Documents ({docs.length})</TabsTrigger>
         </TabsList>
 
@@ -71,6 +83,14 @@ export default function VehicleDetail() {
           <MaintenanceList vehicle={vehicle} tasks={tasks} onChanged={load} />
         </TabsContent>
 
+        <TabsContent value="fuel" className="space-y-3">
+          <FuelMileagePanel vehicle={vehicle} />
+        </TabsContent>
+
+        <TabsContent value="inspections" className="space-y-3">
+          <VehicleInspectionsPanel vehicleId={vehicle.id} />
+        </TabsContent>
+
         <TabsContent value="documents" className="space-y-3">
           <DocumentsList vehicle={vehicle} docs={docs} onChanged={load} />
         </TabsContent>
@@ -79,7 +99,97 @@ export default function VehicleDetail() {
   );
 }
 
+function VinDialog({ vehicle, onSaved }: { vehicle: any; onSaved: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [val, setVal] = useState(vehicle.vin || "");
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    const vin = val.trim().toUpperCase();
+    if (vin && vin.length !== 17) return toast.error("VIN should be 17 characters");
+    setSaving(true);
+    const { error } = await supabase.from("vehicles").update({ vin: vin || null }).eq("id", vehicle.id);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success("VIN saved");
+    setOpen(false);
+    onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button type="button" className="underline hover:text-foreground">{vehicle.vin ? "Edit" : "Add VIN"}</button>
+      </DialogTrigger>
+      <DialogContent className="max-w-sm">
+        <DialogHeader><DialogTitle>{vehicle.vin ? "Edit VIN" : "Add VIN"}</DialogTitle></DialogHeader>
+        <div className="space-y-2">
+          <Label>VIN</Label>
+          <Input className="font-mono" value={val} maxLength={17} onChange={(e) => setVal(e.target.value.toUpperCase().slice(0, 17))} placeholder="17-character VIN" />
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function RecallCheck({ vehicle }: { vehicle: any }) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [recalls, setRecalls] = useState<any[] | null>(null);
+
+  const check = async () => {
+    if (!vehicle.make || !vehicle.model || !vehicle.year) {
+      toast.error("Add year, make, and model first");
+      return;
+    }
+    setOpen(true);
+    setLoading(true);
+    const { data, error } = await supabase.functions.invoke("vin-lookup", {
+      body: { make: vehicle.make, model: vehicle.model, modelYear: String(vehicle.year) },
+    });
+    setLoading(false);
+    if (error || data?.error) {
+      toast.error(data?.error || error?.message || "Couldn't check recalls");
+      setRecalls([]);
+      return;
+    }
+    setRecalls(data.recalls || []);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Button variant="outline" size="sm" onClick={check}>
+        <AlertTriangle size={14} className="mr-1" /> Check recalls
+      </Button>
+      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogHeader><DialogTitle>Open recalls — {vehicle.year} {vehicle.make} {vehicle.model}</DialogTitle></DialogHeader>
+        {loading ? (
+          <div className="flex items-center justify-center py-8"><Loader2 className="animate-spin" size={24} /></div>
+        ) : recalls && recalls.length > 0 ? (
+          <ul className="space-y-3">
+            {recalls.map((r: any, i: number) => (
+              <li key={i} className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
+                <p className="font-semibold text-foreground">{r.component}</p>
+                <p className="text-muted-foreground mt-1">{r.summary}</p>
+                {r.remedy && <p className="text-xs text-muted-foreground mt-1"><strong>Remedy:</strong> {r.remedy}</p>}
+                <p className="text-xs text-muted-foreground mt-1">Campaign {r.campaignNumber} · {r.reportedDate}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground py-4">No open recalls found via NHTSA for this year/make/model. Note this checks by model, not your specific VIN's build date — always confirm with your dealer for anything safety-critical.</p>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function UpdateMileageDialog({ vehicle, onSaved }: { vehicle: any; onSaved: () => void }) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [val, setVal] = useState(String(vehicle.current_mileage));
   const save = async () => {
@@ -87,6 +197,11 @@ function UpdateMileageDialog({ vehicle, onSaved }: { vehicle: any; onSaved: () =
     if (isNaN(m) || m < 0) return toast.error("Enter a valid mileage");
     const { error } = await supabase.from("vehicles").update({ current_mileage: m }).eq("id", vehicle.id);
     if (error) return toast.error(error.message);
+    if (user) {
+      await supabase.from("vehicle_mileage_logs").insert({
+        vehicle_id: vehicle.id, owner_user_id: user.id, mileage: m, source: "manual",
+      });
+    }
     toast.success("Mileage updated");
     setOpen(false);
     onSaved();
@@ -128,6 +243,11 @@ function ServiceLog({ vehicle, services, onChanged }: { vehicle: any; services: 
       mileage: form.mileage ? parseInt(form.mileage, 10) : null,
     });
     if (error) return toast.error(error.message);
+    if (form.mileage) {
+      await supabase.from("vehicle_mileage_logs").insert({
+        vehicle_id: vehicle.id, owner_user_id: user.id, mileage: parseInt(form.mileage, 10), source: "service_record",
+      });
+    }
     setOpen(false);
     setForm({ service_date: new Date().toISOString().slice(0,10), service_type: "maintenance", description: "", cost: "", shop_name: "", mileage: String(vehicle.current_mileage) });
     toast.success("Service logged");

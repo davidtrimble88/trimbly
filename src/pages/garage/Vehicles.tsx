@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Car, Bike, Plus } from "lucide-react";
+import { Car, Bike, Plus, ScanLine, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { getPresetsFor, computeNextDueDate, computeNextDueMileage } from "@/lib/garage/maintenancePresets";
 
@@ -23,6 +23,7 @@ type Vehicle = {
   current_mileage: number;
   mileage_unit: string;
   license_plate: string | null;
+  vin: string | null;
 };
 
 export default function GarageVehicles() {
@@ -40,8 +41,34 @@ export default function GarageVehicles() {
     license_plate: "",
     current_mileage: "0",
     mileage_unit: "mi",
+    vin: "",
   });
   const [saving, setSaving] = useState(false);
+  const [decoding, setDecoding] = useState(false);
+
+  const decodeVin = async () => {
+    const vin = form.vin.trim().toUpperCase();
+    if (vin.length !== 17) {
+      toast.error("VIN should be 17 characters");
+      return;
+    }
+    setDecoding(true);
+    const { data, error } = await supabase.functions.invoke("vin-lookup", { body: { vin } });
+    setDecoding(false);
+    if (error || data?.error) {
+      toast.error(data?.error || error?.message || "Couldn't decode that VIN");
+      return;
+    }
+    setForm((f) => ({
+      ...f,
+      year: data.year ? String(data.year) : f.year,
+      make: data.make || f.make,
+      model: data.model || f.model,
+      trim: data.trim || f.trim,
+      vehicle_type: data.vehicleType?.toLowerCase().includes("motorcycle") ? "motorcycle" : f.vehicle_type,
+    }));
+    toast.success("VIN decoded — details filled in below");
+  };
 
   const load = async () => {
     if (!user) return;
@@ -52,7 +79,7 @@ export default function GarageVehicles() {
 
   useEffect(() => { load(); }, [user]);
 
-  const reset = () => setForm({ nickname: "", vehicle_type: "car", year: "", make: "", model: "", trim: "", license_plate: "", current_mileage: "0", mileage_unit: "mi" });
+  const reset = () => setForm({ nickname: "", vehicle_type: "car", year: "", make: "", model: "", trim: "", license_plate: "", current_mileage: "0", mileage_unit: "mi", vin: "" });
 
   const submit = async () => {
     if (!user) return;
@@ -73,6 +100,7 @@ export default function GarageVehicles() {
       license_plate: form.license_plate.trim() || null,
       current_mileage: mileage,
       mileage_unit: form.mileage_unit,
+      vin: form.vin.trim().toUpperCase() || null,
     }).select().single();
 
     if (error || !data) {
@@ -124,6 +152,23 @@ export default function GarageVehicles() {
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label>VIN (optional)</Label>
+                <div className="flex gap-1">
+                  <Input
+                    value={form.vin}
+                    onChange={(e) => setForm({ ...form, vin: e.target.value.toUpperCase().slice(0, 17) })}
+                    placeholder="17-character VIN"
+                    maxLength={17}
+                    className="font-mono"
+                  />
+                  <Button type="button" variant="outline" onClick={decodeVin} disabled={decoding || form.vin.trim().length !== 17}>
+                    {decoding ? <Loader2 size={14} className="animate-spin" /> : <ScanLine size={14} />}
+                    <span className="ml-1 hidden sm:inline">Decode</span>
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Decoding fills in year, make, model, and trim automatically.</p>
               </div>
               <div>
                 <Label>Nickname (optional)</Label>

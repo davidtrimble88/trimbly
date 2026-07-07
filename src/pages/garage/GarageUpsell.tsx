@@ -5,40 +5,28 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Car, Wrench, FileText, Bell, Bike, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState } from "react";
+import { startGarageCheckout } from "@/lib/billing";
 
 export default function GarageUpsell() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [activating, setActivating] = useState(false);
 
-  // TEMP: until payments are wired, allow direct activation for testing.
-  // Replace this with the Stripe checkout flow once payments are enabled.
   const startTrial = async () => {
     if (!user) {
       navigate("/auth");
       return;
     }
     setActivating(true);
-    const { error } = await supabase.from("garage_subscriptions").upsert(
-      {
-        user_id: user.id,
-        status: "trial",
-        plan_interval: "monthly",
-        current_period_end: new Date(Date.now() + 14 * 86400000).toISOString(),
-      },
-      { onConflict: "user_id" }
-    );
+    const { url, error } = await startGarageCheckout("monthly");
     setActivating(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(error);
       return;
     }
-    try { localStorage.setItem("trimbly:garageActive", "1"); } catch {}
-    toast.success("My Garage trial activated");
-    navigate("/garage");
+    if (url) window.location.href = url;
   };
 
   return (

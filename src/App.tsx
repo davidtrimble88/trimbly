@@ -76,6 +76,7 @@ const GarageJobs = lazy(() => import("./pages/garage/GarageJobs"));
 const GarageUpsell = lazy(() => import("./pages/garage/GarageUpsell"));
 const VehicleCoverage = lazy(() => import("./pages/garage/VehicleCoverage"));
 const VehicleJobBoard = lazy(() => import("./pages/VehicleJobBoard"));
+const VehicleReport = lazy(() => import("./pages/garage/VehicleReport"));
 const MechanicPricing = lazy(() => import("./pages/MechanicPricing"));
 const MechanicRegister = lazy(() => import("./pages/MechanicRegister"));
 const MechanicDashboard = lazy(() => import("./pages/MechanicDashboard"));
@@ -186,6 +187,7 @@ const App = () => (
             <Route path="/mechanic-pricing" element={<MechanicPricing />} />
             <Route path="/mechanic-register" element={<MechanicRegister />} />
             <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
+            <Route path="/garage/vehicles/:id/report" element={<GarageGate><VehicleReport /></GarageGate>} />
             <Route path="/garage" element={<GarageGate><GarageLayout /></GarageGate>}>
               <Route index element={<GarageDashboard />} />
               <Route path="vehicles" element={<GarageVehicles />} />

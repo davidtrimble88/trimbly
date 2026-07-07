@@ -168,6 +168,18 @@ const ProDashboard = () => {
   }, []);
 
   useEffect(() => {
+    const result = searchParams.get("subscription");
+    if (!result) return;
+    if (result === "success") {
+      toast({ title: "Welcome to Pro!", description: "Your subscription is active. It may take a moment to reflect below." });
+    } else if (result === "cancelled") {
+      toast({ title: "Checkout cancelled", description: "No charge was made. You're still on the Free plan." });
+    }
+    searchParams.delete("subscription");
+    setSearchParams(searchParams, { replace: true });
+  }, []);
+
+  useEffect(() => {
     if (!user) return;
     loadAll();
   }, [user]);

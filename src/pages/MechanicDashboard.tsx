@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ import {
   Briefcase, Zap, ExternalLink, Pencil,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import InspectionReportDialog from "@/components/mechanic/InspectionReportDialog";
 
 type Provider = {
   id: string; user_id: string; business_name: string; category: string;
@@ -32,12 +33,13 @@ type VBid = {
   id: string; vehicle_job_id: string; message: string;
   bid_amount: number | null; estimated_hours: number | null;
   status: string; call_approved: boolean; created_at: string;
-  vehicle_job?: { title: string; service_type: string; city: string; state: string; status: string; description: string | null; owner_user_id: string | null; };
+  vehicle_job?: { title: string; service_type: string; city: string; state: string; status: string; description: string | null; owner_user_id: string | null; vehicle_id: string | null; };
 };
 
 export default function MechanicDashboard() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [provider, setProvider] = useState<Provider | null>(null);
   const [bids, setBids] = useState<VBid[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
@@ -52,6 +54,19 @@ export default function MechanicDashboard() {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading, navigate]);
 
+  useEffect(() => {
+    const result = searchParams.get("subscription");
+    if (!result) return;
+    if (result === "success") {
+      toast.success("Welcome to Pro Mechanic! Your subscription is active.");
+    } else if (result === "cancelled") {
+      toast.info("Checkout cancelled. No charge was made.");
+    }
+    searchParams.delete("subscription");
+    setSearchParams(searchParams, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const load = async () => {
     if (!user) return;
     setLoading(true);
@@ -61,7 +76,7 @@ export default function MechanicDashboard() {
 
     const [bidsRes, reviewsRes, msgsRes] = await Promise.all([
       supabase.from("vehicle_job_bids")
-        .select("*, vehicle_job:vehicle_jobs(title, service_type, city, state, status, description, owner_user_id)")
+        .select("*, vehicle_job:vehicle_jobs(title, service_type, city, state, status, description, owner_user_id, vehicle_id)")
         .eq("provider_id", prov.id)
         .order("created_at", { ascending: false }).limit(50),
       supabase.from("reviews").select("*").eq("provider_id", prov.id).order("created_at", { ascending: false }),
@@ -217,9 +232,17 @@ export default function MechanicDashboard() {
                       {b.bid_amount && <span className="text-sm font-semibold">${b.bid_amount}</span>}
                     </div>
                   </CardHeader>
-                  <CardContent className="text-sm text-muted-foreground space-y-1">
+                  <CardContent className="text-sm text-muted-foreground space-y-2">
                     <p>{b.message}</p>
                     {b.vehicle_job && <p className="text-xs">{b.vehicle_job.city}, {b.vehicle_job.state} · {new Date(b.created_at).toLocaleDateString()}</p>}
+                    {b.status === "accepted" && b.vehicle_job?.vehicle_id && b.vehicle_job?.owner_user_id && provider && (
+                      <InspectionReportDialog
+                        vehicleId={b.vehicle_job.vehicle_id}
+                        providerId={provider.id}
+                        ownerUserId={b.vehicle_job.owner_user_id}
+                        vehicleJobId={b.vehicle_job_id}
+                      />
+                    )}
                   </CardContent>
                 </Card>
               ))}

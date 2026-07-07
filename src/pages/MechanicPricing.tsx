@@ -1,8 +1,13 @@
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Check, ArrowLeft, Star, Zap, Wrench } from "lucide-react";
+import { Check, ArrowLeft, Star, Zap, Wrench, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { startProviderSubscriptionCheckout } from "@/lib/billing";
 
 const tiers = [
   {
@@ -45,6 +50,30 @@ const tiers = [
 
 const MechanicPricing = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [hasProvider, setHasProvider] = useState(false);
+  const [upgrading, setUpgrading] = useState(false);
+
+  useEffect(() => {
+    if (!user) { setHasProvider(false); return; }
+    (async () => {
+      const { data } = await supabase.from("providers").select("id").eq("user_id", user.id).maybeSingle();
+      setHasProvider(!!data);
+    })();
+  }, [user]);
+
+  const handleSelect = async (tierKey: string) => {
+    if (tierKey === "pro" && hasProvider) {
+      setUpgrading(true);
+      const { url, error } = await startProviderSubscriptionCheckout("pro");
+      setUpgrading(false);
+      if (error) { toast({ title: "Couldn't start checkout", description: error, variant: "destructive" }); return; }
+      if (url) window.location.href = url;
+      return;
+    }
+    navigate(`/mechanic-register?tier=${tierKey}`);
+  };
 
   return (
     <div className="min-h-screen">
@@ -104,9 +133,11 @@ const MechanicPricing = () => {
                   className="w-full"
                   variant={tier.highlighted ? "default" : "outline"}
                   size="lg"
-                  onClick={() => navigate(`/mechanic-register?tier=${tier.tier}`)}
+                  onClick={() => handleSelect(tier.tier)}
+                  disabled={upgrading}
                 >
-                  {tier.cta}
+                  {upgrading ? <Loader2 size={16} className="animate-spin mr-1.5" /> : null}
+                  {hasProvider && tier.tier === "pro" ? "Upgrade to Pro" : tier.cta}
                 </Button>
               </div>
             ))}

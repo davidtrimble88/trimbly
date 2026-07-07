@@ -182,6 +182,31 @@ const PRESETS: Preset[] = [
       ]},
     ],
   },
+  {
+    match: /brake\s*fluid/i,
+    baseTerm: "brake fluid",
+    questions: [
+      { key: "auto_brake_fluid_dot", label: "DOT rating", type: "select", options: [
+        { value: "DOT 3", label: "DOT 3" },
+        { value: "DOT 4", label: "DOT 4 (most common)" },
+        { value: "DOT 5.1", label: "DOT 5.1 (high performance)" },
+      ]},
+    ],
+  },
+  {
+    match: /fork\s*oil/i,
+    baseTerm: "motorcycle fork oil",
+    questions: [
+      { key: "moto_fork_oil_weight", label: "Weight / viscosity", type: "input", placeholder: "e.g. 10W, 15W" },
+    ],
+  },
+  {
+    match: /sprocket|chain\s*&?\s*sprocket/i,
+    baseTerm: "motorcycle chain and sprocket kit",
+    questions: [
+      { key: "moto_sprocket_size", label: "Front/rear tooth count (if known)", type: "input", placeholder: "e.g. 16T front / 47T rear" },
+    ],
+  },
   // Motorcycle-specific
   {
     match: /chain.*(lube|clean|adjust)|drive\s*chain/i,

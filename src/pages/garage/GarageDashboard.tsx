@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Car, Bike, Wrench, FileText, AlertTriangle, Plus } from "lucide-react";
+import { toast } from "sonner";
 
 type Vehicle = { id: string; nickname: string; vehicle_type: string; year: number | null; make: string; model: string; current_mileage: number; mileage_unit: string };
 type Task = { id: string; vehicle_id: string; task_name: string; next_due_date: string | null; next_due_mileage: number | null; status: string };
@@ -17,6 +18,20 @@ export default function GarageDashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [expiring, setExpiring] = useState<Doc[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const result = searchParams.get("subscription");
+    if (!result) return;
+    if (result === "success") {
+      toast.success("My Garage is set up — welcome aboard!");
+    } else if (result === "cancelled") {
+      toast.info("Checkout cancelled. No charge was made.");
+    }
+    searchParams.delete("subscription");
+    setSearchParams(searchParams, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!user) return;

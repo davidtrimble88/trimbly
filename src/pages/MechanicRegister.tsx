@@ -12,6 +12,7 @@ import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { startProviderSubscriptionCheckout } from "@/lib/billing";
 
 const categories = [
   "Auto Repair", "Motorcycle Repair", "Mobile Mechanic", "Auto Body",
@@ -109,10 +110,24 @@ const MechanicRegister = () => {
         license_number: form.licensed ? form.license_number : null,
         insured: form.insured,
         insurance_details: form.insured ? form.insurance_details : null,
-        subscription_tier: selectedTier,
+        subscription_tier: "free",
         provider_type: "mechanic",
       } as any);
       if (error) throw error;
+
+      if (selectedTier === "pro") {
+        toast({ title: "Almost there", description: "Redirecting you to complete your Pro Mechanic upgrade..." });
+        const { url, error: checkoutErr } = await startProviderSubscriptionCheckout("pro");
+        if (checkoutErr) {
+          toast({ title: "Couldn't start upgrade", description: `${checkoutErr} You're set up on the Free plan for now — you can upgrade anytime from your dashboard.`, variant: "destructive" });
+          navigate("/mechanic-dashboard");
+        } else if (url) {
+          window.location.href = url;
+        }
+        setLoading(false);
+        return;
+      }
+
       toast({ title: "Welcome aboard! 🔧", description: "Your mechanic profile is live. Vehicle jobs incoming." });
       navigate("/mechanic-dashboard");
     } catch (err: any) {
