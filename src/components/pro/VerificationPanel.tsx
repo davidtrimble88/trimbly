@@ -4,7 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, ShieldAlert, Loader2, Upload, FileText, ExternalLink } from "lucide-react";
+import { ShieldCheck, ShieldAlert, Loader2, Upload, FileText, ExternalLink, Lock, BadgeCheck } from "lucide-react";
+
+// Mirrors VERIFICATION_FEE_CENTS default in the create-verification-checkout
+// edge function. If you change the env var there, update this display value too.
+const VERIFICATION_FEE_DISPLAY = "$29";
 
 type Verification = {
   background_check_status: string;
@@ -15,6 +19,8 @@ type Verification = {
   license_rejection_reason: string | null;
   insurance_verification_status: string;
   insurance_rejection_reason: string | null;
+  verification_fee_status: string;
+  verification_fee_paid_at: string | null;
 };
 
 type ProviderDoc = {
@@ -59,6 +65,7 @@ export default function VerificationPanel({ providerId }: Props) {
   const [loading, setLoading] = useState(true);
   const [startingCheck, setStartingCheck] = useState(false);
   const [uploadingType, setUploadingType] = useState<string | null>(null);
+  const [startingCheckout, setStartingCheckout] = useState(false);
 
   const load = async () => {
     const [{ data: v }, { data: d }] = await Promise.all([
@@ -71,6 +78,19 @@ export default function VerificationPanel({ providerId }: Props) {
   };
 
   useEffect(() => { load(); }, [providerId]);
+
+  const startCheckout = async () => {
+    setStartingCheckout(true);
+    const { data, error } = await supabase.functions.invoke("create-verification-checkout", { body: {} });
+    setStartingCheckout(false);
+    if (error) {
+      toast({ title: "Couldn't start checkout", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (data?.url) {
+      window.location.href = data.url;
+    }
+  };
 
   const startBackgroundCheck = async () => {
     setStartingCheck(true);
@@ -137,7 +157,38 @@ export default function VerificationPanel({ providerId }: Props) {
   }
 
   const bgStatus = verification?.background_check_status || "not_started";
+  const feePaid = verification?.verification_fee_status === "paid";
   const canStartCheck = ["not_started", "failed", "expired", "consider"].includes(bgStatus);
+
+  if (!feePaid) {
+    return (
+      <Card className="border-primary/30">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <BadgeCheck size={18} className="text-primary" /> Get the Verified badge
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Verification is optional. You can list your business without it &mdash; but homeowners
+            trust and choose Verified pros more often. For a one-time {VERIFICATION_FEE_DISPLAY} fee, we run:
+          </p>
+          <ul className="text-sm space-y-1.5">
+            <li className="flex items-center gap-2"><ShieldCheck size={14} className="text-primary shrink-0" /> A background check through our screening partner, Checkr</li>
+            <li className="flex items-center gap-2"><FileText size={14} className="text-primary shrink-0" /> Review of your license certificate (if you're licensed)</li>
+            <li className="flex items-center gap-2"><FileText size={14} className="text-primary shrink-0" /> Review of your insurance certificate (if you're insured)</li>
+          </ul>
+          <p className="text-xs text-muted-foreground">
+            No fee, no badge, no problem &mdash; your listing still works fine either way. This is entirely optional.
+          </p>
+          <Button onClick={startCheckout} disabled={startingCheckout} className="gap-1.5">
+            {startingCheckout ? <Loader2 className="animate-spin" size={14} /> : <Lock size={14} />}
+            Pay {VERIFICATION_FEE_DISPLAY} & start verification
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-4">

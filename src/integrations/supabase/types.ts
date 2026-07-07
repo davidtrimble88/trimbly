@@ -1163,7 +1163,12 @@ export type Database = {
           license_verified_at: string | null
           license_verified_by: string | null
           provider_id: string
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
           updated_at: string
+          verification_fee_amount_cents: number | null
+          verification_fee_paid_at: string | null
+          verification_fee_status: string
         }
         Insert: {
           background_check_completed_at?: string | null
@@ -1184,7 +1189,12 @@ export type Database = {
           license_verified_at?: string | null
           license_verified_by?: string | null
           provider_id: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
           updated_at?: string
+          verification_fee_amount_cents?: number | null
+          verification_fee_paid_at?: string | null
+          verification_fee_status?: string
         }
         Update: {
           background_check_completed_at?: string | null
@@ -1205,7 +1215,12 @@ export type Database = {
           license_verified_at?: string | null
           license_verified_by?: string | null
           provider_id?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
           updated_at?: string
+          verification_fee_amount_cents?: number | null
+          verification_fee_paid_at?: string | null
+          verification_fee_status?: string
         }
         Relationships: [
           {

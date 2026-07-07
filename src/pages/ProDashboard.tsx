@@ -156,6 +156,18 @@ const ProDashboard = () => {
   }, [authLoading, user]);
 
   useEffect(() => {
+    const result = searchParams.get("verification");
+    if (!result) return;
+    if (result === "success") {
+      toast({ title: "Payment received", description: "We're setting up your verification now. It may take a moment to appear below." });
+    } else if (result === "cancelled") {
+      toast({ title: "Checkout cancelled", description: "No charge was made. You can start verification again anytime." });
+    }
+    searchParams.delete("verification");
+    setSearchParams(searchParams, { replace: true });
+  }, []);
+
+  useEffect(() => {
     if (!user) return;
     loadAll();
   }, [user]);

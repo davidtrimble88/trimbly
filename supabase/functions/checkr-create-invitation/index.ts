@@ -110,6 +110,13 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (verification?.verification_fee_status !== "paid") {
+      return new Response(
+        JSON.stringify({ error: "Verification fee has not been paid yet" }),
+        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     const { data: profile } = await admin
       .from("profiles")
       .select("full_name")

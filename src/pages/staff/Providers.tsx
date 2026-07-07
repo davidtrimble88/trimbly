@@ -36,6 +36,7 @@ interface Verification {
   license_rejection_reason: string | null;
   insurance_verification_status: string;
   insurance_rejection_reason: string | null;
+  verification_fee_status: string;
 }
 
 interface ProviderDoc {
@@ -206,6 +207,12 @@ const Providers = () => {
 
               {expandedId === p.id && (
                 <div className="mt-3 pt-3 border-t border-border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-foreground">Verification fee</span>
+                    <Badge variant="outline" className={`text-[10px] ${verifications[p.id]?.verification_fee_status === "paid" ? "bg-green-500/15 text-green-700 border-green-500/40" : "bg-muted text-muted-foreground"}`}>
+                      {verifications[p.id]?.verification_fee_status || "unpaid"}
+                    </Badge>
+                  </div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-foreground">Background check</span>
                     {bgBadge(verifications[p.id]?.background_check_status || "not_started")}
