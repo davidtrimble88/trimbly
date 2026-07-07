@@ -80,6 +80,7 @@ export default function VehicleDetail() {
         </TabsContent>
 
         <TabsContent value="maintenance" className="space-y-3">
+          <ScanServiceReport vehicle={vehicle} onImported={load} />
           <MaintenanceList vehicle={vehicle} tasks={tasks} onChanged={load} />
         </TabsContent>
 
