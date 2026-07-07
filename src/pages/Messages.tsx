@@ -13,6 +13,7 @@ import {
 import ReportDialog from "@/components/ReportDialog";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
@@ -435,7 +436,9 @@ const Messages = () => {
 
               <div className="divide-y divide-border max-h-[500px] overflow-y-auto">
                 {loading ? (
-                  <div className="p-6 text-center text-sm text-muted-foreground">Loading...</div>
+                  <div className="p-3 space-y-2">
+                    {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
+                  </div>
                 ) : conversations.length === 0 ? (
                   <EmptyState
                     icon={MessageSquare}

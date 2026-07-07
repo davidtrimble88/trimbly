@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import { Search, Star, ShieldCheck } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const AUTO_CATEGORIES = ["Auto Repair", "Mechanic", "Motorcycle Repair", "Auto Body", "Tire Shop"];
 
@@ -94,9 +95,19 @@ export default function GarageMechanics() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-32 w-full" />)}
+        </div>
       ) : visible.length === 0 ? (
-        <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">No mechanics matched. Try a broader search or visit <Link to="/search" className="underline">Find Pros</Link>.</CardContent></Card>
+        <Card className="text-center py-10">
+          <CardContent>
+            <Search size={36} className="mx-auto text-primary mb-3" />
+            <h3 className="font-display font-bold text-lg mb-1">No mechanics matched</h3>
+            <p className="text-muted-foreground text-sm">
+              Try a broader search or visit <Link to="/search" className="underline text-primary">Find Pros</Link> for the full directory.
+            </p>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {visible.map((p) => {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -163,7 +164,9 @@ export default function StaffSearches() {
           </div>
 
           {loading ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">Loading…</p>
+            <div className="space-y-2 py-4">
+              {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}
+            </div>
           ) : filtered.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">No searches recorded yet for this range.</p>
           ) : (

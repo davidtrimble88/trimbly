@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Car, Plus, Trash2, Download } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Trip = {
   id: string;
@@ -182,7 +183,9 @@ export default function MileageLogPanel({ providerId, userId }: { providerId: st
         )}
 
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+          </div>
         ) : trips.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-4">No trips logged yet. Track miles for tax deductions.</p>
         ) : (

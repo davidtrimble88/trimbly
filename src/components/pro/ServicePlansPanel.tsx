@@ -15,6 +15,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Repeat, Plus, Users, Trash2, Pencil } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Plan = {
   id: string;
@@ -143,7 +144,9 @@ export default function ServicePlansPanel({ providerId }: { providerId: string }
         </p>
 
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <div className="space-y-2">
+            {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
+          </div>
         ) : plans.length === 0 ? (
           <div className="text-sm text-muted-foreground border border-dashed rounded-lg p-6 text-center">
             No plans yet. Create your first recurring service plan.

@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { VehicleProductDialog } from "@/components/garage/VehicleProductDialog";
 import FuelMileagePanel from "@/components/garage/FuelMileagePanel";
 import VehicleInspectionsPanel from "@/components/garage/VehicleInspectionsPanel";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function VehicleDetail() {
   const { id } = useParams();
@@ -43,7 +44,13 @@ export default function VehicleDetail() {
 
   useEffect(() => { load(); }, [user, id]);
 
-  if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (loading) return (
+    <div className="space-y-4">
+      <Skeleton className="h-8 w-32" />
+      <Skeleton className="h-16 w-full" />
+      <Skeleton className="h-64 w-full" />
+    </div>
+  );
   if (!vehicle) return <p className="text-sm text-muted-foreground">Vehicle not found.</p>;
 
   return (

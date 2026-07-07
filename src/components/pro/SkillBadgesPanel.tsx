@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Award, Star, Zap, Trophy, Shield, Flame, MessageCircle, ThumbsUp, Lock } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type BadgeDef = {
   id: string;
@@ -67,7 +68,9 @@ export default function SkillBadgesPanel({ providerId, userId }: { providerId: s
           <Badge variant="secondary" className="text-xs">{earnedCount} / {badges.length} earned</Badge>
         </div>
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
+          </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {badges.map(b => {

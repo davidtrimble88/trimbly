@@ -101,7 +101,7 @@ export default function InspectionReportDialog({
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-muted-foreground">Item {i + 1}</span>
                   {items.length > 1 && (
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeItem(i)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeItem(i)}>
                       <Trash2 size={12} className="text-destructive" />
                     </Button>
                   )}

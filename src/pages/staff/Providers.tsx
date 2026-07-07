@@ -234,17 +234,17 @@ const Providers = () => {
                           <p className="text-destructive">{doc.rejection_reason}</p>
                         )}
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-2 shrink-0">
                         <Badge variant="outline" className="text-[10px]">{doc.status}</Badge>
-                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => previewDoc(doc)} title="View document">
+                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => previewDoc(doc)} title="View document">
                           <ExternalLink className="w-3 h-3" />
                         </Button>
                         {doc.status === "pending" && (
                           <>
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-green-600" onClick={() => reviewDoc(doc, "approved")} title="Approve">
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-green-600" onClick={() => reviewDoc(doc, "approved")} title="Approve">
                               <Check className="w-3 h-3" />
                             </Button>
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => reviewDoc(doc, "rejected")} title="Reject">
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive" onClick={() => reviewDoc(doc, "rejected")} title="Reject">
                               <X className="w-3 h-3" />
                             </Button>
                           </>

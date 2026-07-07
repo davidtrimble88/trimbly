@@ -12,6 +12,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { FileText, Plus, Send, Trash2, DollarSign, Eye } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface LineItem {
   description: string;
@@ -200,7 +201,9 @@ const QuotesPanel = ({ providerId, providerUserId, businessName }: Props) => {
         </div>
 
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
+          </div>
         ) : quotes.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No quotes yet. Create your first quote to send a homeowner a professional breakdown.

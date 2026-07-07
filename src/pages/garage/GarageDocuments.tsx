@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { FileText } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function GarageDocuments() {
   const { user } = useAuth();
@@ -34,13 +36,28 @@ export default function GarageDocuments() {
     window.open(data.signedUrl, "_blank");
   };
 
-  if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (loading) return (
+    <div className="space-y-4">
+      <Skeleton className="h-8 w-40" />
+      <div className="space-y-2">
+        {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
       <h1 className="font-display text-2xl font-bold">All Documents</h1>
       {docs.length === 0 ? (
-        <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Upload documents from a vehicle's page.</CardContent></Card>
+        <Card className="text-center py-10">
+          <CardContent>
+            <FileText size={40} className="mx-auto text-primary mb-3" />
+            <h3 className="font-display font-bold text-lg mb-1">No documents yet</h3>
+            <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+              Registration, insurance, titles, and manuals uploaded from any vehicle's page will show up here.
+            </p>
+          </CardContent>
+        </Card>
       ) : (
         <Card>
           <CardHeader><CardTitle className="text-base">Across all vehicles</CardTitle></CardHeader>

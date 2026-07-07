@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, ExternalLink } from "lucide-react";
 import { VehicleProductDialog } from "@/components/garage/VehicleProductDialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function GarageMaintenance() {
   const { user } = useAuth();
@@ -32,7 +33,11 @@ export default function GarageMaintenance() {
 
   const shopVehicle = shopTask ? vehicleMap[shopTask.vehicle_id] : null;
 
-  if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (loading) return (
+    <div className="space-y-2">
+      {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
+    </div>
+  );
 
   return (
     <div className="space-y-4">

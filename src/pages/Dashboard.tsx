@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ProfileEditor from "@/components/profile/ProfileEditor";
@@ -28,7 +30,7 @@ import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star,
   Lock, Crown, Home, AlertTriangle, CheckCircle2, Clock, Shield,
   MapPin, Ruler, Calendar, Thermometer, Plus, MoreVertical, Pencil, Trash2,
-  Briefcase, BookOpen, Stethoscope, Hammer, FileText, CloudSun, Zap, X
+  Briefcase, BookOpen, Stethoscope, Hammer, FileText, Zap
 } from "lucide-react";
 
 // ─── Service definitions ───
@@ -287,8 +289,15 @@ const Dashboard = () => {
 
   if (authLoading || limitLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">Loading…</p>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 pt-24">
+          <Skeleton className="h-10 w-64 mb-6" />
+          <Skeleton className="h-24 w-full mb-4" />
+          <div className="grid md:grid-cols-2 gap-6">
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-48 w-full" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -332,23 +341,10 @@ const Dashboard = () => {
           <NotificationPermissionPrompt />
           <ReviewPromptDialog />
           {/* Header */}
-          <div className="mb-10">
-            <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
-              <h1 className="text-3xl md:text-4xl font-extrabold text-foreground">
-                Welcome back, {displayName}
-              </h1>
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" onClick={() => navigate("/maintenance")}>
-                  <CalendarCheck size={14} className="mr-1.5" /> Maintenance
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => navigate("/equipment")}>
-                  <Hammer size={14} className="mr-1.5" /> Rentals
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => navigate("/messages")}>
-                  <MessageSquare size={14} className="mr-1.5" /> Messages
-                </Button>
-              </div>
-            </div>
+          <div className="mb-8">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
+              Welcome back, {displayName}
+            </h1>
             <div className="flex items-center gap-3">
               <Badge variant="secondary" className="text-sm px-3 py-1">
                 <Crown size={14} className="mr-1.5 text-primary" />
@@ -360,10 +356,136 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* ─── Public Profile ─── */}
-          <div className="mb-12">
-            <ProfileEditor userId={user.id} displayName={displayName} />
+          <Tabs defaultValue="overview" className="space-y-8">
+            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+              <TabsList className="inline-flex w-auto h-auto">
+                <TabsTrigger value="overview" className="gap-1.5">This Week</TabsTrigger>
+                <TabsTrigger value="homes" className="gap-1.5">
+                  <Home size={14} /> My Homes {homes.length > 0 && <Badge variant="secondary" className="text-xs ml-1">{homes.length}</Badge>}
+                </TabsTrigger>
+                <TabsTrigger value="tools" className="gap-1.5">Home Care & Tools</TabsTrigger>
+                <TabsTrigger value="profile" className="gap-1.5">Profile</TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="overview" className="space-y-8 mt-0">
+          {/* ─── My Job Posts Section ─── */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                <Briefcase size={20} className="text-primary" />
+                My Job Posts
+                <span className="text-sm font-normal text-muted-foreground">({jobStats.total})</span>
+              </h2>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => navigate("/job-board")}>View Board</Button>
+                <Button size="sm" onClick={() => navigate("/post-job")}>
+                  <Plus size={14} className="mr-1.5" /> Post Job
+                </Button>
+              </div>
+            </div>
+            {jobStats.total === 0 ? (
+              <Card className="text-center py-10">
+                <CardContent>
+                  <Briefcase size={36} className="mx-auto text-primary mb-3" />
+                  <h3 className="font-display font-bold text-lg mb-1">No job posts yet</h3>
+                  <p className="text-muted-foreground text-sm mb-4 max-w-sm mx-auto">
+                    Post a repair or project and local pros will bid on it — usually within a day.
+                  </p>
+                  <Button onClick={() => navigate("/post-job")}><Plus size={14} className="mr-1.5" /> Post your first job</Button>
+                </CardContent>
+              </Card>
+            ) : (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-card p-4 text-left hover:border-primary/40 hover:shadow-sm transition-all">
+                <div className="text-2xl font-bold text-foreground">{jobStats.total}</div>
+                <div className="text-xs text-muted-foreground mt-1">Total Posts</div>
+              </button>
+              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-orange-50 dark:bg-orange-900/10 p-4 text-left hover:ring-2 hover:ring-orange-300 dark:hover:ring-orange-700 transition-all">
+                <div className="text-2xl font-bold text-orange-700 dark:text-orange-400">{jobStats.pending}</div>
+                <div className="text-xs text-orange-700/80 dark:text-orange-400/80 mt-1">Pending</div>
+              </button>
+              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-primary/10 p-4 text-left hover:ring-2 hover:ring-primary/30 transition-all">
+                <div className="text-2xl font-bold text-primary">{jobStats.withBids}</div>
+                <div className="text-xs text-primary/80 mt-1">With Bids</div>
+              </button>
+              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-blue-50 dark:bg-blue-900/10 p-4 text-left hover:ring-2 hover:ring-blue-300 dark:hover:ring-blue-700 transition-all">
+                <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">{jobStats.accepted}</div>
+                <div className="text-xs text-blue-700/80 dark:text-blue-400/80 mt-1">Accepted</div>
+              </button>
+              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-green-50 dark:bg-green-900/10 p-4 text-left hover:ring-2 hover:ring-green-300 dark:hover:ring-green-700 transition-all">
+                <div className="text-2xl font-bold text-green-700 dark:text-green-400">{jobStats.completed}</div>
+                <div className="text-xs text-green-700/80 dark:text-green-400/80 mt-1">Completed</div>
+              </button>
+            </div>
+            )}
           </div>
+
+          {subscriptionTier !== "multi_pro" && (() => {
+            const nextTier = subscriptionTier === "free" ? "homeowner_pro" : "multi_pro";
+            const upgradeConfig: Record<string, { name: string; price: string; period: string; cta: string; newFeatures: string[]; }> = {
+              homeowner_pro: {
+                name: "Home Hero",
+                price: "$5",
+                period: "/month",
+                cta: "Start Free Trial",
+                newFeatures: [
+                  "Unlimited job requests",
+                  "AI job estimator (unlimited)",
+                  "Advanced maintenance schedules",
+                  "Priority pro matching",
+                  "Emergency support channel",
+                  "Digital Home Binder (5 items) + export",
+                  "Coverage Advisor (AI-powered)",
+                  "Seasonal checklists",
+                ],
+              },
+              multi_pro: {
+                name: "Home Super Hero",
+                price: "$20",
+                period: "/month",
+                cta: "Upgrade Now",
+                newFeatures: [
+                  "Up to 10 home profiles",
+                  "View homes individually or all together",
+                  "Unlimited Digital Home Binder entries",
+                ],
+              },
+            };
+            const cfg = upgradeConfig[nextTier];
+            return (
+              <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 overflow-hidden">
+                <CardContent className="p-6 md:p-8">
+                  <div className="flex flex-col md:flex-row md:items-center gap-6">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Crown size={20} className="text-primary" />
+                        <h3 className="text-lg font-bold text-foreground">Unlock {cfg.name}</h3>
+                        <Badge className="bg-primary text-primary-foreground text-xs">{cfg.price}{cfg.period}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-4">Here's what you'll get by upgrading:</p>
+                      <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
+                        {cfg.newFeatures.map(f => (
+                          <li key={f} className="flex items-start gap-2 text-sm text-foreground">
+                            <Check size={15} className="text-primary mt-0.5 shrink-0" />
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="shrink-0">
+                      <Button size="lg" onClick={() => navigate("/#pricing")} className="w-full md:w-auto">
+                        <Crown size={16} className="mr-2" /> {cfg.cta}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
+            </TabsContent>
+
+            <TabsContent value="homes" className="mt-0">
 
           {/* ─── Home Analysis Section ─── */}
           <div className="mb-12">
@@ -375,14 +497,17 @@ const Dashboard = () => {
                 <span className="text-sm font-normal text-muted-foreground">({homes.length}/{maxHomes})</span>
               </h2>
               {homes.length < maxHomes && (
-                <Button size="sm" onClick={() => navigate("/maintenance")}>
+                <Button size="sm" onClick={() => setShowWizard(true)}>
                   <Plus size={14} className="mr-1.5" /> Add Home
                 </Button>
               )}
             </div>
 
             {loadingHomes ? (
-              <div className="text-muted-foreground text-sm py-8 text-center">Loading home data…</div>
+              <div className="grid md:grid-cols-2 gap-6">
+                <Skeleton className="h-64 w-full" />
+                <Skeleton className="h-64 w-full" />
+              </div>
             ) : homes.length === 0 ? (
               <Card className="text-center py-10">
                 <CardContent>
@@ -595,109 +720,9 @@ const Dashboard = () => {
               </>
             )}
           </div>
+            </TabsContent>
 
-          {/* ─── My Job Posts Section ─── */}
-          <div className="mb-12">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-                <Briefcase size={20} className="text-primary" />
-                My Job Posts
-                <span className="text-sm font-normal text-muted-foreground">({jobStats.total})</span>
-              </h2>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => navigate("/job-board")}>View Board</Button>
-                <Button size="sm" onClick={() => navigate("/post-job")}>
-                  <Plus size={14} className="mr-1.5" /> Post Job
-                </Button>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-card p-4 text-left hover:border-primary/40 hover:shadow-sm transition-all">
-                <div className="text-2xl font-bold text-foreground">{jobStats.total}</div>
-                <div className="text-xs text-muted-foreground mt-1">Total Posts</div>
-              </button>
-              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-orange-50 dark:bg-orange-900/10 p-4 text-left hover:ring-2 hover:ring-orange-300 dark:hover:ring-orange-700 transition-all">
-                <div className="text-2xl font-bold text-orange-700 dark:text-orange-400">{jobStats.pending}</div>
-                <div className="text-xs text-orange-700/80 dark:text-orange-400/80 mt-1">Pending</div>
-              </button>
-              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-primary/10 p-4 text-left hover:ring-2 hover:ring-primary/30 transition-all">
-                <div className="text-2xl font-bold text-primary">{jobStats.withBids}</div>
-                <div className="text-xs text-primary/80 mt-1">With Bids</div>
-              </button>
-              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-blue-50 dark:bg-blue-900/10 p-4 text-left hover:ring-2 hover:ring-blue-300 dark:hover:ring-blue-700 transition-all">
-                <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">{jobStats.accepted}</div>
-                <div className="text-xs text-blue-700/80 dark:text-blue-400/80 mt-1">Accepted</div>
-              </button>
-              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-green-50 dark:bg-green-900/10 p-4 text-left hover:ring-2 hover:ring-green-300 dark:hover:ring-green-700 transition-all">
-                <div className="text-2xl font-bold text-green-700 dark:text-green-400">{jobStats.completed}</div>
-                <div className="text-xs text-green-700/80 dark:text-green-400/80 mt-1">Completed</div>
-              </button>
-            </div>
-          </div>
-
-
-          {subscriptionTier !== "multi_pro" && (() => {
-            const nextTier = subscriptionTier === "free" ? "homeowner_pro" : "multi_pro";
-            const upgradeConfig: Record<string, { name: string; price: string; period: string; cta: string; newFeatures: string[]; }> = {
-              homeowner_pro: {
-                name: "Home Hero",
-                price: "$5",
-                period: "/month",
-                cta: "Start Free Trial",
-                newFeatures: [
-                  "Unlimited job requests",
-                  "AI job estimator (unlimited)",
-                  "Advanced maintenance schedules",
-                  "Priority pro matching",
-                  "Emergency support channel",
-                  "Digital Home Binder (5 items) + export",
-                  "Coverage Advisor (AI-powered)",
-                  "Seasonal checklists",
-                ],
-              },
-              multi_pro: {
-                name: "Home Super Hero",
-                price: "$20",
-                period: "/month",
-                cta: "Upgrade Now",
-                newFeatures: [
-                  "Up to 10 home profiles",
-                  "View homes individually or all together",
-                  "Unlimited Digital Home Binder entries",
-                ],
-              },
-            };
-            const cfg = upgradeConfig[nextTier];
-            return (
-              <Card className="mb-12 border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 overflow-hidden">
-                <CardContent className="p-6 md:p-8">
-                  <div className="flex flex-col md:flex-row md:items-center gap-6">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Crown size={20} className="text-primary" />
-                        <h3 className="text-lg font-bold text-foreground">Unlock {cfg.name}</h3>
-                        <Badge className="bg-primary text-primary-foreground text-xs">{cfg.price}{cfg.period}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-4">Here's what you'll get by upgrading:</p>
-                      <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
-                        {cfg.newFeatures.map(f => (
-                          <li key={f} className="flex items-start gap-2 text-sm text-foreground">
-                            <Check size={15} className="text-primary mt-0.5 shrink-0" />
-                            {f}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="shrink-0">
-                      <Button size="lg" onClick={() => navigate("/#pricing")} className="w-full md:w-auto">
-                        <Crown size={16} className="mr-2" /> {cfg.cta}
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })()}
+            <TabsContent value="tools" className="mt-0">
 
           {/* ─── Services Section (grouped) ─── */}
           <div className="space-y-8">
@@ -747,15 +772,17 @@ const Dashboard = () => {
               );
             })}
           </div>
+            </TabsContent>
 
-          {/* Profile completeness + Saved pros + Invite */}
-          <div className="mt-8 grid md:grid-cols-2 gap-4">
+            <TabsContent value="profile" className="space-y-6 mt-0">
+          <ProfileEditor userId={user.id} displayName={displayName} />
+          <div className="grid md:grid-cols-2 gap-4">
             <ProfileCompletenessCard />
             <SavedProvidersCard />
           </div>
-          <div className="mt-4">
-            <ShareTrimblyCard />
-          </div>
+          <ShareTrimblyCard />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
 

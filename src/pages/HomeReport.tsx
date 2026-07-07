@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Printer } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function HomeReport() {
   const { id } = useParams();
@@ -29,7 +30,13 @@ export default function HomeReport() {
     })();
   }, [id]);
 
-  if (loading) return <p className="p-6 text-sm text-muted-foreground">Loading…</p>;
+  if (loading) return (
+    <div className="max-w-3xl mx-auto p-8 space-y-4">
+      <Skeleton className="h-8 w-64" />
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-48 w-full" />
+    </div>
+  );
   if (!home) return <p className="p-6 text-sm text-muted-foreground">Home not found.</p>;
 
   return (

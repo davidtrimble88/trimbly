@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Car, Bike, Plus, ScanLine, Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { getPresetsFor, computeNextDueDate, computeNextDueMileage } from "@/lib/garage/maintenancePresets";
 
@@ -224,9 +225,20 @@ export default function GarageVehicles() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+        </div>
       ) : vehicles.length === 0 ? (
-        <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">No vehicles yet. Add your first one above.</CardContent></Card>
+        <Card className="text-center py-10">
+          <CardContent>
+            <Car size={40} className="mx-auto text-primary mb-3" />
+            <h3 className="font-display font-bold text-lg mb-1">Add your first vehicle</h3>
+            <p className="text-muted-foreground text-sm mb-4 max-w-sm mx-auto">
+              Track service history, reminders, and documents for any car, truck, or motorcycle.
+            </p>
+            <Button onClick={() => setOpen(true)}><Plus size={14} className="mr-1.5" /> Add vehicle</Button>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {vehicles.map((v) => (

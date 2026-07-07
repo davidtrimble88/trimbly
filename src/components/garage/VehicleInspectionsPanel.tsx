@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ClipboardList } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Item = { id: string; category: string; item_name: string; condition: string; notes: string | null; cost_estimate: number | null };
 type Inspection = { id: string; title: string; summary: string | null; sent_at: string | null; created_at: string };
@@ -45,7 +46,11 @@ export default function VehicleInspectionsPanel({ vehicleId }: { vehicleId: stri
     })();
   }, [vehicleId]);
 
-  if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (loading) return (
+    <div className="space-y-3">
+      {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-32 w-full" />)}
+    </div>
+  );
   if (inspections.length === 0) {
     return <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">No inspection reports yet. Mechanics can send one after completing accepted work.</CardContent></Card>;
   }
