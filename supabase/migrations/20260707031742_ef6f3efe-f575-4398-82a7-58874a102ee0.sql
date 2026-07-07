@@ -1,12 +1,5 @@
--- ============================================================================
--- Paid verification: providers pay a one-time fee to unlock the background
--- check + document review flow and earn the "Verified" badge. Without
--- paying, providers can still self-report licensed/insured and list normally
--- — they just don't get the badge.
--- ============================================================================
-
 ALTER TABLE public.provider_verifications
-  ADD COLUMN verification_fee_status TEXT NOT NULL DEFAULT 'unpaid', -- unpaid | paid | refunded
+  ADD COLUMN verification_fee_status TEXT NOT NULL DEFAULT 'unpaid',
   ADD COLUMN verification_fee_amount_cents INTEGER,
   ADD COLUMN verification_fee_paid_at TIMESTAMP WITH TIME ZONE,
   ADD COLUMN stripe_checkout_session_id TEXT,
@@ -14,10 +7,6 @@ ALTER TABLE public.provider_verifications
 
 CREATE INDEX idx_provider_verifications_fee_status ON public.provider_verifications(verification_fee_status);
 
--- ----------------------------------------------------------------------------
--- Gate document upload behind payment: replace the earlier "any owner can
--- upload" policy with one that also requires the fee to be paid.
--- ----------------------------------------------------------------------------
 DROP POLICY IF EXISTS "Providers can upload own documents" ON public.provider_documents;
 CREATE POLICY "Paid providers can upload documents"
   ON public.provider_documents FOR INSERT TO authenticated
@@ -35,14 +24,6 @@ CREATE POLICY "Paid providers can upload verification docs"
     AND (storage.foldername(name))[1] IN (SELECT provider_id::text FROM public.provider_verifications WHERE verification_fee_status = 'paid')
   );
 
--- ----------------------------------------------------------------------------
--- Close a pre-existing hole: "Providers can update own listing" lets a
--- provider PATCH any column on their own row, including `verified` itself.
--- A BEFORE UPDATE trigger is used (rather than RLS, which can't compare
--- OLD/NEW values of the same row per-column) to silently revert any
--- client-side attempt to change `verified` unless the change comes from
--- staff or our own trusted sync function below.
--- ----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.protect_provider_verified_column()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
@@ -62,12 +43,6 @@ CREATE TRIGGER trg_protect_provider_verified
   BEFORE UPDATE ON public.providers
   FOR EACH ROW EXECUTE FUNCTION public.protect_provider_verified_column();
 
--- ----------------------------------------------------------------------------
--- Auto-sync the public `verified` badge whenever verification state changes:
--- fee paid + background check clear + (license verified, if the provider
--- claims to be licensed) + (insurance verified, if the provider claims to be
--- insured). Runs as a trusted update so the protect trigger above lets it through.
--- ----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.sync_provider_verified_badge()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE

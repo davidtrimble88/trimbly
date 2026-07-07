@@ -676,88 +676,6 @@ export type Database = {
           },
         ]
       }
-      jobs: {
-        Row: {
-          budget_max: number | null
-          budget_min: number | null
-          category: string
-          city: string
-          country: string
-          created_at: string
-          description: string | null
-          home_id: string | null
-          homeowner_id: string
-          id: string
-          photo_urls: string[]
-          provider_id: string | null
-          state: string
-          status: string
-          title: string
-          updated_at: string
-          video_url: string | null
-        }
-        Insert: {
-          budget_max?: number | null
-          budget_min?: number | null
-          category: string
-          city: string
-          country?: string
-          created_at?: string
-          description?: string | null
-          home_id?: string | null
-          homeowner_id: string
-          id?: string
-          photo_urls?: string[]
-          provider_id?: string | null
-          state: string
-          status?: string
-          title: string
-          updated_at?: string
-          video_url?: string | null
-        }
-        Update: {
-          budget_max?: number | null
-          budget_min?: number | null
-          category?: string
-          city?: string
-          country?: string
-          created_at?: string
-          description?: string | null
-          home_id?: string | null
-          homeowner_id?: string
-          id?: string
-          photo_urls?: string[]
-          provider_id?: string | null
-          state?: string
-          status?: string
-          title?: string
-          updated_at?: string
-          video_url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "jobs_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "provider_response_times"
-            referencedColumns: ["provider_id"]
-          },
-          {
-            foreignKeyName: "jobs_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "provider_stats"
-            referencedColumns: ["provider_id"]
-          },
-          {
-            foreignKeyName: "jobs_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "providers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       job_milestones: {
         Row: {
           amount_cents: number
@@ -818,6 +736,27 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "job_milestones_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_milestones_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_response_times"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "job_milestones_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_stats"
+            referencedColumns: ["provider_id"]
+          },
+          {
             foreignKeyName: "job_milestones_provider_id_fkey"
             columns: ["provider_id"]
             isOneToOne: false
@@ -831,11 +770,93 @@ export type Database = {
             referencedRelation: "quotes"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      jobs: {
+        Row: {
+          budget_max: number | null
+          budget_min: number | null
+          category: string
+          city: string
+          country: string
+          created_at: string
+          description: string | null
+          home_id: string | null
+          homeowner_id: string
+          id: string
+          photo_urls: string[]
+          provider_id: string | null
+          state: string
+          status: string
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
+          category: string
+          city: string
+          country?: string
+          created_at?: string
+          description?: string | null
+          home_id?: string | null
+          homeowner_id: string
+          id?: string
+          photo_urls?: string[]
+          provider_id?: string | null
+          state: string
+          status?: string
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number | null
+          category?: string
+          city?: string
+          country?: string
+          created_at?: string
+          description?: string | null
+          home_id?: string | null
+          homeowner_id?: string
+          id?: string
+          photo_urls?: string[]
+          provider_id?: string | null
+          state?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: [
           {
-            foreignKeyName: "job_milestones_job_id_fkey"
-            columns: ["job_id"]
+            foreignKeyName: "jobs_home_id_fkey"
+            columns: ["home_id"]
             isOneToOne: false
-            referencedRelation: "jobs"
+            referencedRelation: "homes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_response_times"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "jobs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_stats"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "jobs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
             referencedColumns: ["id"]
           },
         ]
@@ -1273,6 +1294,20 @@ export type Database = {
             foreignKeyName: "provider_documents_provider_id_fkey"
             columns: ["provider_id"]
             isOneToOne: false
+            referencedRelation: "provider_response_times"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "provider_documents_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_stats"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "provider_documents_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
             referencedRelation: "providers"
             referencedColumns: ["id"]
           },
@@ -1358,6 +1393,20 @@ export type Database = {
           verification_fee_status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "provider_verifications_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: true
+            referencedRelation: "provider_response_times"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "provider_verifications_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: true
+            referencedRelation: "provider_stats"
+            referencedColumns: ["provider_id"]
+          },
           {
             foreignKeyName: "provider_verifications_provider_id_fkey"
             columns: ["provider_id"]
@@ -2143,6 +2192,184 @@ export type Database = {
           },
         ]
       }
+      vehicle_fuel_logs: {
+        Row: {
+          cost: number | null
+          created_at: string
+          full_tank: boolean
+          id: string
+          logged_at: string
+          mileage: number
+          notes: string | null
+          owner_user_id: string
+          station: string | null
+          updated_at: string
+          vehicle_id: string
+          volume: number
+        }
+        Insert: {
+          cost?: number | null
+          created_at?: string
+          full_tank?: boolean
+          id?: string
+          logged_at?: string
+          mileage: number
+          notes?: string | null
+          owner_user_id: string
+          station?: string | null
+          updated_at?: string
+          vehicle_id: string
+          volume: number
+        }
+        Update: {
+          cost?: number | null
+          created_at?: string
+          full_tank?: boolean
+          id?: string
+          logged_at?: string
+          mileage?: number
+          notes?: string | null
+          owner_user_id?: string
+          station?: string | null
+          updated_at?: string
+          vehicle_id?: string
+          volume?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_fuel_logs_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_inspection_items: {
+        Row: {
+          category: string
+          condition: string
+          cost_estimate: number | null
+          created_at: string
+          id: string
+          inspection_id: string
+          item_name: string
+          notes: string | null
+          photo_url: string | null
+          sort_order: number
+        }
+        Insert: {
+          category?: string
+          condition?: string
+          cost_estimate?: number | null
+          created_at?: string
+          id?: string
+          inspection_id: string
+          item_name: string
+          notes?: string | null
+          photo_url?: string | null
+          sort_order?: number
+        }
+        Update: {
+          category?: string
+          condition?: string
+          cost_estimate?: number | null
+          created_at?: string
+          id?: string
+          inspection_id?: string
+          item_name?: string
+          notes?: string | null
+          photo_url?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_inspection_items_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_inspections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_inspections: {
+        Row: {
+          created_at: string
+          id: string
+          owner_user_id: string
+          provider_id: string
+          sent_at: string | null
+          status: string
+          summary: string | null
+          title: string
+          updated_at: string
+          vehicle_id: string
+          vehicle_job_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_user_id: string
+          provider_id: string
+          sent_at?: string | null
+          status?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          vehicle_id: string
+          vehicle_job_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_user_id?: string
+          provider_id?: string
+          sent_at?: string | null
+          status?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          vehicle_id?: string
+          vehicle_job_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_inspections_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_response_times"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "vehicle_inspections_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider_stats"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "vehicle_inspections_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_inspections_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_inspections_vehicle_job_id_fkey"
+            columns: ["vehicle_job_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicle_job_bids: {
         Row: {
           bid_amount: number | null
@@ -2347,6 +2574,44 @@ export type Database = {
           },
         ]
       }
+      vehicle_mileage_logs: {
+        Row: {
+          created_at: string
+          id: string
+          logged_at: string
+          mileage: number
+          owner_user_id: string
+          source: string
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logged_at?: string
+          mileage: number
+          owner_user_id: string
+          source?: string
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logged_at?: string
+          mileage?: number
+          owner_user_id?: string
+          source?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_mileage_logs_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicle_service_records: {
         Row: {
           cost: number | null
@@ -2405,208 +2670,6 @@ export type Database = {
             columns: ["vehicle_id"]
             isOneToOne: false
             referencedRelation: "vehicles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vehicle_mileage_logs: {
-        Row: {
-          created_at: string
-          id: string
-          logged_at: string
-          mileage: number
-          owner_user_id: string
-          source: string
-          vehicle_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          logged_at?: string
-          mileage: number
-          owner_user_id: string
-          source?: string
-          vehicle_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          logged_at?: string
-          mileage?: number
-          owner_user_id?: string
-          source?: string
-          vehicle_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vehicle_mileage_logs_vehicle_id_fkey"
-            columns: ["vehicle_id"]
-            isOneToOne: false
-            referencedRelation: "vehicles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vehicle_fuel_logs: {
-        Row: {
-          cost: number | null
-          created_at: string
-          full_tank: boolean
-          id: string
-          logged_at: string
-          mileage: number
-          notes: string | null
-          owner_user_id: string
-          station: string | null
-          updated_at: string
-          vehicle_id: string
-          volume: number
-        }
-        Insert: {
-          cost?: number | null
-          created_at?: string
-          full_tank?: boolean
-          id?: string
-          logged_at?: string
-          mileage: number
-          notes?: string | null
-          owner_user_id: string
-          station?: string | null
-          updated_at?: string
-          vehicle_id: string
-          volume: number
-        }
-        Update: {
-          cost?: number | null
-          created_at?: string
-          full_tank?: boolean
-          id?: string
-          logged_at?: string
-          mileage?: number
-          notes?: string | null
-          owner_user_id?: string
-          station?: string | null
-          updated_at?: string
-          vehicle_id?: string
-          volume?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vehicle_fuel_logs_vehicle_id_fkey"
-            columns: ["vehicle_id"]
-            isOneToOne: false
-            referencedRelation: "vehicles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vehicle_inspections: {
-        Row: {
-          created_at: string
-          id: string
-          owner_user_id: string
-          provider_id: string
-          sent_at: string | null
-          status: string
-          summary: string | null
-          title: string
-          updated_at: string
-          vehicle_id: string
-          vehicle_job_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          owner_user_id: string
-          provider_id: string
-          sent_at?: string | null
-          status?: string
-          summary?: string | null
-          title?: string
-          updated_at?: string
-          vehicle_id: string
-          vehicle_job_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          owner_user_id?: string
-          provider_id?: string
-          sent_at?: string | null
-          status?: string
-          summary?: string | null
-          title?: string
-          updated_at?: string
-          vehicle_id?: string
-          vehicle_job_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vehicle_inspections_vehicle_id_fkey"
-            columns: ["vehicle_id"]
-            isOneToOne: false
-            referencedRelation: "vehicles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "vehicle_inspections_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "providers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "vehicle_inspections_vehicle_job_id_fkey"
-            columns: ["vehicle_job_id"]
-            isOneToOne: false
-            referencedRelation: "vehicle_jobs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vehicle_inspection_items: {
-        Row: {
-          category: string
-          condition: string
-          cost_estimate: number | null
-          created_at: string
-          id: string
-          inspection_id: string
-          item_name: string
-          notes: string | null
-          photo_url: string | null
-          sort_order: number
-        }
-        Insert: {
-          category?: string
-          condition?: string
-          cost_estimate?: number | null
-          created_at?: string
-          id?: string
-          inspection_id: string
-          item_name: string
-          notes?: string | null
-          photo_url?: string | null
-          sort_order?: number
-        }
-        Update: {
-          category?: string
-          condition?: string
-          cost_estimate?: number | null
-          created_at?: string
-          id?: string
-          inspection_id?: string
-          item_name?: string
-          notes?: string | null
-          photo_url?: string | null
-          sort_order?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vehicle_inspection_items_inspection_id_fkey"
-            columns: ["inspection_id"]
-            isOneToOne: false
-            referencedRelation: "vehicle_inspections"
             referencedColumns: ["id"]
           },
         ]
@@ -2699,17 +2762,6 @@ export type Database = {
     }
     Functions: {
       has_garage_addon: { Args: { _user_id: string }; Returns: boolean }
-      update_provider_trusted: {
-        Args: {
-          p_provider_id: string
-          p_stripe_customer_id?: string | null
-          p_stripe_subscription_id?: string | null
-          p_subscription_tier?: string | null
-          p_subscription_status?: string | null
-          p_subscription_current_period_end?: string | null
-        }
-        Returns: undefined
-      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2724,6 +2776,17 @@ export type Database = {
       pro_active_bids_this_month: {
         Args: { _provider_id: string }
         Returns: number
+      }
+      update_provider_trusted: {
+        Args: {
+          p_provider_id: string
+          p_stripe_customer_id?: string
+          p_stripe_subscription_id?: string
+          p_subscription_current_period_end?: string
+          p_subscription_status?: string
+          p_subscription_tier?: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

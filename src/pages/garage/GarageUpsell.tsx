@@ -35,18 +35,18 @@ export default function GarageUpsell() {
   };
 
   const PlanToggle = () => (
-    <div className="inline-flex items-center rounded-full border border-border bg-muted/50 p-1">
+    <div className="inline-flex items-center rounded-full border border-background/20 bg-background/10 p-1">
       <button
         type="button"
         onClick={() => setBillingInterval("monthly")}
-        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${billingInterval === "monthly" ? "bg-background shadow text-foreground" : "text-muted-foreground"}`}
+        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${billingInterval === "monthly" ? "bg-background shadow text-foreground" : "text-background/80 hover:text-background"}`}
       >
         Monthly · ${MONTHLY_PRICE}/mo
       </button>
       <button
         type="button"
         onClick={() => setBillingInterval("yearly")}
-        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 ${billingInterval === "yearly" ? "bg-background shadow text-foreground" : "text-muted-foreground"}`}
+        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 ${billingInterval === "yearly" ? "bg-background shadow text-foreground" : "text-background/80 hover:text-background"}`}
       >
         Yearly · ${YEARLY_PRICE}/yr
         <span className="text-[10px] font-bold uppercase tracking-wide bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full">
@@ -79,7 +79,7 @@ export default function GarageUpsell() {
               <Button size="lg" onClick={startTrial} disabled={activating} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 {activating ? "Redirecting…" : "Start 14-day free trial"}
               </Button>
-              <Button size="lg" variant="outline" className="border-background/30 text-background hover:bg-background/10" asChild>
+              <Button size="lg" className="bg-background text-foreground hover:bg-background/90" asChild>
                 <a href="#features">See what's inside</a>
               </Button>
             </div>
