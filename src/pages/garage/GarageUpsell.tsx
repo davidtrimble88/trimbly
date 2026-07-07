@@ -35,18 +35,18 @@ export default function GarageUpsell() {
   };
 
   const PlanToggle = () => (
-    <div className="inline-flex items-center rounded-full border border-border bg-muted/50 p-1">
+    <div className="inline-flex items-center rounded-full border border-background/20 bg-background/10 p-1">
       <button
         type="button"
         onClick={() => setBillingInterval("monthly")}
-        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${billingInterval === "monthly" ? "bg-background shadow text-foreground" : "text-muted-foreground"}`}
+        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${billingInterval === "monthly" ? "bg-background shadow text-foreground" : "text-background/80 hover:text-background"}`}
       >
         Monthly · ${MONTHLY_PRICE}/mo
       </button>
       <button
         type="button"
         onClick={() => setBillingInterval("yearly")}
-        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 ${billingInterval === "yearly" ? "bg-background shadow text-foreground" : "text-muted-foreground"}`}
+        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 ${billingInterval === "yearly" ? "bg-background shadow text-foreground" : "text-background/80 hover:text-background"}`}
       >
         Yearly · ${YEARLY_PRICE}/yr
         <span className="text-[10px] font-bold uppercase tracking-wide bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full">
