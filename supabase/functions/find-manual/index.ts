@@ -22,6 +22,18 @@ const TRUSTED_AGGREGATORS = [
 const MIN_MANUAL_BYTES = 200_000; // below this, it's almost always a spec sheet or quick-start card
 const OFFICIAL_PAGE_BONUS = 12; // a PDF pulled off the manufacturer's own confirmed page is about as good as it gets
 
+// Confirmed URL templates for manufacturer support pages, used so we don't
+// have to rely on search-engine ranking to surface the single best source.
+// {MODEL} gets replaced with the model number. Add more brands here as
+// they're confirmed — an unlisted brand just falls back to search, same as before.
+const KNOWN_SUPPORT_PAGE_TEMPLATES: Record<string, string> = {
+  ge: "https://products.geappliances.com/appliance/gea-specs/{MODEL}/support",
+};
+
+function normalize(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
 const PARTIAL_RX = /(performance\s*data|spec(ification)?\s*sheet|data\s*sheet|cut\s*sheet|submittal|brochure|sales\s*sheet|quick\s*start|quick\s*reference|warranty|parts\s*list|parts\s*diagram|declaration|safety\s*data|\bsds\b|\bmsds\b|flyer|catalog)/i;
 const FULL_RX = /(owner'?s?\s*manual|user\s*manual|installation\s*(and|&)?\s*(operation|maintenance)?\s*manual|installation\s*manual|instruction\s*manual|service\s*manual|operation\s*manual|use\s*and\s*care)/i;
 
@@ -205,7 +217,7 @@ Deno.serve(async (req) => {
 
         const hostRoot = hostRootOf(host);
         if (TRUSTED_AGGREGATORS.includes(host)) score += 6;
-        if (normalizedBrand.length >= 3 && (hostRoot === normalizedBrand || hostRoot.startsWith(normalizedBrand))) score += 8;
+        if (normalizedBrand.length >= 2 && (hostRoot === normalizedBrand || hostRoot.startsWith(normalizedBrand))) score += 8;
 
         return { title, url, description: desc, source: host, score };
       })
@@ -214,13 +226,20 @@ Deno.serve(async (req) => {
       .slice(0, 6);
 
     // --- Path 2: official/support pages worth scraping for an embedded PDF link ---
-    const pageCandidates = (pageRaw as any[])
+    // First, try a confirmed URL template for this brand if we have one —
+    // this doesn't depend on search-engine ranking surfacing the right page at all.
+    const brandKey = normalize(brand);
+    const templatePage = KNOWN_SUPPORT_PAGE_TEMPLATES[brandKey]
+      ? { url: KNOWN_SUPPORT_PAGE_TEMPLATES[brandKey].replace("{MODEL}", encodeURIComponent(model.trim())), isOfficialDomain: true, title: `${brand} official support page` }
+      : null;
+
+    const searchedPageCandidates = (pageRaw as any[])
       .map((r) => {
         const url: string = r.url || r.link || "";
         if (!url) return null;
         const host = hostOf(url);
         const hostRoot = hostRootOf(host);
-        const isOfficialDomain = normalizedBrand.length >= 3 && (hostRoot === normalizedBrand || hostRoot.startsWith(normalizedBrand));
+        const isOfficialDomain = normalizedBrand.length >= 2 && (hostRoot === normalizedBrand || hostRoot.startsWith(normalizedBrand));
         const pathLooksRelevant = /support|manual|spec|documentation|owner/i.test(url);
         if (!isOfficialDomain && !pathLooksRelevant) return null;
         return { url, isOfficialDomain, title: r.title || r.name || url };
@@ -229,6 +248,10 @@ Deno.serve(async (req) => {
       // Official domain pages first, scrape at most 2 to keep this fast.
       .sort((a, b) => Number(b.isOfficialDomain) - Number(a.isOfficialDomain))
       .slice(0, 2);
+
+    const pageCandidates = templatePage
+      ? [templatePage, ...searchedPageCandidates.filter((p) => p.url !== templatePage!.url)].slice(0, 3)
+      : searchedPageCandidates;
 
     const scrapedLinkSets = await Promise.all(
       pageCandidates.map((p) => extractPdfLinksFromPage(p.url, FIRECRAWL_API_KEY))
@@ -299,7 +322,7 @@ Deno.serve(async (req) => {
             const desc = r.description || r.snippet || "";
             const hay = `${title} ${desc} ${url}`;
             const hostRoot = hostRootOf(host);
-            const brandDomainMatch = normalizedBrand.length >= 3 && hostRoot.includes(normalizedBrand);
+            const brandDomainMatch = normalizedBrand.length >= 2 && hostRoot.includes(normalizedBrand);
             if (!(REQ_RX.test(hay) || brandDomainMatch)) return null;
             return { title, url, description: desc, isPdf: /\.pdf($|\?)/i.test(url), source: host, _brand: brandDomainMatch ? 1 : 0 };
           })
