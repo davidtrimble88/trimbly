@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Search, Loader2, Download, BookOpen, FileX } from "lucide-react";
+import { ArrowLeft, Search, Loader2, Download, BookOpen, FileX, ExternalLink } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,7 @@ const ManualSearch = () => {
   const [loading, setLoading] = useState(false);
   const [manual, setManual] = useState<ManualResult | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [requestSources, setRequestSources] = useState<ManualResult[]>([]);
 
   const filename = `${brand}-${model}-manual`.replace(/\s+/g, "-").toLowerCase() || "user-manual";
 
@@ -46,6 +47,7 @@ const ManualSearch = () => {
     setLoading(true);
     setManual(null);
     setNotFound(false);
+    setRequestSources([]);
     try {
       const { data, error } = await supabase.functions.invoke("find-manual", {
         body: { brand, model, productType },
@@ -53,6 +55,7 @@ const ManualSearch = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       const results: ManualResult[] = data?.results || [];
+      const sources: ManualResult[] = data?.requestSources || [];
       const topPdf = results.find((r) => r.isPdf) || null;
       logSearch({
         search_type: "manual",
@@ -65,7 +68,13 @@ const ManualSearch = () => {
         setManual(topPdf);
       } else {
         setNotFound(true);
-        toast({ title: "No manual PDF found", description: "Try a different model number or add the product type." });
+        setRequestSources(sources);
+        toast({
+          title: "No manual PDF found",
+          description: sources.length
+            ? "We found pages where you can request it from the manufacturer."
+            : "Try a different model number or add the product type.",
+        });
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Search failed";
@@ -147,12 +156,44 @@ const ManualSearch = () => {
           )}
 
           {notFound && !loading && (
-            <Card className="p-8 text-center">
-              <FileX className="mx-auto text-muted-foreground mb-3" size={32} />
-              <h3 className="font-semibold text-foreground mb-1">No manual found</h3>
-              <p className="text-sm text-muted-foreground">
-                We couldn't locate an official PDF manual for that model. Try adjusting the brand, model, or product type.
-              </p>
+            <Card className="p-6">
+              <div className="text-center mb-4">
+                <FileX className="mx-auto text-muted-foreground mb-3" size={32} />
+                <h3 className="font-semibold text-foreground mb-1">No manual found</h3>
+                <p className="text-sm text-muted-foreground">
+                  We couldn't locate an official PDF manual for that model.
+                  {requestSources.length > 0 && " Here's where you can request it directly from the manufacturer:"}
+                </p>
+              </div>
+
+              {requestSources.length > 0 && (
+                <div className="space-y-2 mt-4">
+                  {requestSources.map((r) => (
+                    <a
+                      key={r.url}
+                      href={r.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-medium text-sm text-foreground truncate">{r.title}</div>
+                        <div className="text-xs text-muted-foreground truncate">{r.source}</div>
+                        {r.description && (
+                          <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{r.description}</div>
+                        )}
+                      </div>
+                      <ExternalLink size={16} className="text-muted-foreground flex-shrink-0 mt-1" />
+                    </a>
+                  ))}
+                </div>
+              )}
+
+              {requestSources.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center">
+                  Try adjusting the brand, model, or product type.
+                </p>
+              )}
             </Card>
           )}
         </div>
