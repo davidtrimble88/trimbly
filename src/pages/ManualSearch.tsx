@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Search, Loader2, Download, BookOpen, FileX, ExternalLink } from "lucide-react";
+import { ArrowLeft, Search, Loader2, Download, BookOpen, FileX, ExternalLink, ShieldCheck, ShieldQuestion, ShieldAlert } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { logSearch } from "@/lib/analytics/searchLog";
 import { useToast } from "@/hooks/use-toast";
@@ -19,11 +20,19 @@ type ManualResult = {
   description?: string;
   isPdf: boolean;
   source: string;
+  sizeBytes?: number;
+  confidence?: "likely_full" | "uncertain" | "likely_partial";
 };
 
 const buildProxyUrl = (manualUrl: string, mode: "inline" | "download", filename: string) => {
   const params = new URLSearchParams({ url: manualUrl, mode, filename });
   return `${SUPABASE_URL}/functions/v1/manual-proxy?${params.toString()}`;
+};
+
+const confidenceStyle: Record<string, { icon: typeof ShieldCheck; className: string; label: string }> = {
+  likely_full: { icon: ShieldCheck, className: "border-primary/40 bg-primary/5 text-primary", label: "Likely full manual" },
+  uncertain: { icon: ShieldQuestion, className: "border-border bg-muted/40 text-muted-foreground", label: "Unconfirmed" },
+  likely_partial: { icon: ShieldAlert, className: "border-orange-400/50 bg-orange-500/5 text-orange-600", label: "May be partial" },
 };
 
 const ManualSearch = () => {
@@ -32,7 +41,8 @@ const ManualSearch = () => {
   const [model, setModel] = useState("");
   const [productType, setProductType] = useState("");
   const [loading, setLoading] = useState(false);
-  const [manual, setManual] = useState<ManualResult | null>(null);
+  const [results, setResults] = useState<ManualResult[]>([]);
+  const [selected, setSelected] = useState<ManualResult | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [requestSources, setRequestSources] = useState<ManualResult[]>([]);
 
@@ -45,7 +55,8 @@ const ManualSearch = () => {
       return;
     }
     setLoading(true);
-    setManual(null);
+    setResults([]);
+    setSelected(null);
     setNotFound(false);
     setRequestSources([]);
     try {
@@ -54,25 +65,26 @@ const ManualSearch = () => {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      const results: ManualResult[] = data?.results || [];
+      const found: ManualResult[] = data?.results || [];
       const sources: ManualResult[] = data?.requestSources || [];
-      const topPdf = results.find((r) => r.isPdf) || null;
       logSearch({
         search_type: "manual",
         query: `${brand} ${model}`.trim(),
         category: productType || null,
-        results_count: results.length,
-        metadata: { brand, model, productType, foundPdf: !!topPdf },
+        results_count: found.length,
+        metadata: { brand, model, productType, topConfidence: found[0]?.confidence || null },
       });
-      if (topPdf) {
-        setManual(topPdf);
+      if (found.length > 0) {
+        setResults(found);
+        setSelected(found[0]);
+        setRequestSources(sources); // still show request-a-manual sources even with results, in case none are right
       } else {
         setNotFound(true);
         setRequestSources(sources);
         toast({
-          title: "No manual PDF found",
+          title: "No verified manual found",
           description: sources.length
-            ? "We found pages where you can request it from the manufacturer."
+            ? "We found pages where you can request it directly from the manufacturer."
             : "Try a different model number or add the product type.",
         });
       }
@@ -84,8 +96,8 @@ const ManualSearch = () => {
     }
   };
 
-  const viewerUrl = manual ? buildProxyUrl(manual.url, "inline", filename) : "";
-  const downloadUrl = manual ? buildProxyUrl(manual.url, "download", filename) : "";
+  const viewerUrl = selected ? buildProxyUrl(selected.url, "inline", filename) : "";
+  const downloadUrl = selected ? buildProxyUrl(selected.url, "download", filename) : "";
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -104,7 +116,7 @@ const ManualSearch = () => {
               User Manual Finder
             </h1>
             <p className="text-muted-foreground">
-              Enter the brand and model number — we'll find the official manual and let you view or download it right here.
+              Enter the brand and model number. We verify each result is a real, complete PDF before showing it to you.
             </p>
           </div>
 
@@ -126,7 +138,7 @@ const ManualSearch = () => {
               </div>
               <Button type="submit" disabled={loading} className="w-full" size="lg">
                 {loading ? (
-                  <><Loader2 className="animate-spin mr-2" size={18} /> Searching...</>
+                  <><Loader2 className="animate-spin mr-2" size={18} /> Searching and verifying...</>
                 ) : (
                   <><Search className="mr-2" size={18} /> Find Manual</>
                 )}
@@ -134,12 +146,45 @@ const ManualSearch = () => {
             </form>
           </Card>
 
-          {manual && (
-            <Card className="overflow-hidden">
+          {results.length > 0 && (
+            <div className="mb-6 space-y-2">
+              {results.length > 1 && (
+                <p className="text-sm font-medium text-foreground">
+                  {results.length} verified results. Pick the one that looks right:
+                </p>
+              )}
+              {results.map((r) => {
+                const style = confidenceStyle[r.confidence || "uncertain"];
+                const Icon = style.icon;
+                const isSelected = selected?.url === r.url;
+                const sizeLabel = r.sizeBytes ? `${(r.sizeBytes / (1024 * 1024)).toFixed(1)} MB` : null;
+                return (
+                  <button
+                    key={r.url}
+                    onClick={() => setSelected(r)}
+                    className={`w-full text-left rounded-lg border p-3 transition-all ${isSelected ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/30"}`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{r.title}</p>
+                        <p className="text-xs text-muted-foreground truncate">{r.source}</p>
+                      </div>
+                      <Badge variant="outline" className={`shrink-0 text-xs gap-1 ${style.className}`}>
+                        <Icon size={12} /> {style.label}{sizeLabel ? ` \u00b7 ${sizeLabel}` : ""}
+                      </Badge>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {selected && (
+            <Card className="overflow-hidden mb-8">
               <div className="flex items-start justify-between gap-3 p-4 border-b border-border">
                 <div className="min-w-0">
-                  <h2 className="font-semibold text-foreground truncate">{brand} {model} — User Manual</h2>
-                  <p className="text-xs text-muted-foreground truncate">{manual.title}</p>
+                  <h2 className="font-semibold text-foreground truncate">{brand} {model} User Manual</h2>
+                  <p className="text-xs text-muted-foreground truncate">{selected.title}</p>
                 </div>
                 <Button asChild size="sm">
                   <a href={downloadUrl} download={`${filename}.pdf`}>
@@ -159,9 +204,9 @@ const ManualSearch = () => {
             <Card className="p-6">
               <div className="text-center mb-4">
                 <FileX className="mx-auto text-muted-foreground mb-3" size={32} />
-                <h3 className="font-semibold text-foreground mb-1">No manual found</h3>
+                <h3 className="font-semibold text-foreground mb-1">No verified manual found</h3>
                 <p className="text-sm text-muted-foreground">
-                  We couldn't locate an official PDF manual for that model.
+                  We couldn't confirm a complete PDF manual for that model.
                   {requestSources.length > 0 && " Here's where you can request it directly from the manufacturer:"}
                 </p>
               </div>
