@@ -47,6 +47,7 @@ const ManualSearch = () => {
     setLoading(true);
     setManual(null);
     setNotFound(false);
+    setRequestSources([]);
     try {
       const { data, error } = await supabase.functions.invoke("find-manual", {
         body: { brand, model, productType },
@@ -54,6 +55,7 @@ const ManualSearch = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       const results: ManualResult[] = data?.results || [];
+      const sources: ManualResult[] = data?.requestSources || [];
       const topPdf = results.find((r) => r.isPdf) || null;
       logSearch({
         search_type: "manual",
@@ -66,7 +68,13 @@ const ManualSearch = () => {
         setManual(topPdf);
       } else {
         setNotFound(true);
-        toast({ title: "No manual PDF found", description: "Try a different model number or add the product type." });
+        setRequestSources(sources);
+        toast({
+          title: "No manual PDF found",
+          description: sources.length
+            ? "We found pages where you can request it from the manufacturer."
+            : "Try a different model number or add the product type.",
+        });
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Search failed";
