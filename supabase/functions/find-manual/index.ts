@@ -34,6 +34,41 @@ function normalize(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
+// Common home-product categories, used to catch the exact failure mode where
+// a technically-real, technically-verified PDF for the WRONG product (e.g. a
+// washer warranty) is the only survivor and gets shown anyway. This applies
+// to any brand and any product type — not brand-specific.
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  microwave: ["microwave"],
+  refrigerator: ["refrigerator", "fridge", "freezer"],
+  washer: ["washer", "washing machine", "clothes washer"],
+  dryer: ["dryer", "clothes dryer"],
+  dishwasher: ["dishwasher"],
+  range: ["range", "stove", "cooktop", "oven"],
+  hood: ["range hood", "vent hood", "exhaust hood"],
+  water_heater: ["water heater", "tankless heater"],
+  hvac: ["furnace", "air conditioner", "heat pump", "hvac", "thermostat", "mini split"],
+  disposal: ["garbage disposal", "disposer"],
+  vacuum: ["vacuum", "vacuum cleaner"],
+  dehumidifier: ["dehumidifier", "humidifier"],
+  tv: ["television", " tv ", "tv."],
+  generator: ["generator"],
+  grill: ["grill", "bbq"],
+  sump_pump: ["sump pump"],
+  washer_dryer_combo: ["washer dryer combo", "all-in-one washer"],
+};
+
+function detectCategory(text: string): string | null {
+  const lower = ` ${text.toLowerCase()} `;
+  for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (keywords.some((k) => lower.includes(k))) return category;
+  }
+  return null;
+}
+
+// A large negative score that guarantees exclusion (results are filtered at > -50).
+const CATEGORY_MISMATCH_PENALTY = -60;
+
 const PARTIAL_RX = /(performance\s*data|spec(ification)?\s*sheet|data\s*sheet|cut\s*sheet|submittal|brochure|sales\s*sheet|quick\s*start|quick\s*reference|warranty|parts\s*list|parts\s*diagram|declaration|safety\s*data|\bsds\b|\bmsds\b|flyer|catalog)/i;
 const FULL_RX = /(owner'?s?\s*manual|user\s*manual|installation\s*(and|&)?\s*(operation|maintenance)?\s*manual|installation\s*manual|instruction\s*manual|service\s*manual|operation\s*manual|use\s*and\s*care)/i;
 
@@ -172,6 +207,8 @@ Deno.serve(async (req) => {
     }
 
     const normalizedBrand = brand.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const targetCategory = productType ? detectCategory(productType) : null;
+    const normalizedModel = normalize(model);
 
     // Two searches run in parallel:
     //  1. Direct PDF search — catches manuals search engines have already indexed as a bare file.
@@ -214,6 +251,18 @@ Deno.serve(async (req) => {
         let score = 0;
         if (FULL_RX.test(hay)) score += 10;
         if (PARTIAL_RX.test(hay)) score -= 8;
+        if (targetCategory) {
+          const candidateCategory = detectCategory(hay);
+          if (candidateCategory && candidateCategory !== targetCategory) score += CATEGORY_MISMATCH_PENALTY;
+        }
+        // A document that never mentions this specific model at all is often a
+        // generic warranty card, brochure, or a manual for a different product
+        // entirely that just happens to share the brand. Real model-specific
+        // manuals almost always have the model number in the title or filename.
+        if (normalizedModel.length >= 4) {
+          if (normalize(hay).includes(normalizedModel)) score += 6;
+          else score -= 6;
+        }
 
         const hostRoot = hostRootOf(host);
         if (TRUSTED_AGGREGATORS.includes(host)) score += 6;
@@ -264,6 +313,14 @@ Deno.serve(async (req) => {
         let score = OFFICIAL_PAGE_BONUS;
         if (PARTIAL_RX.test(hay)) score -= 8;
         if (FULL_RX.test(hay) || !l.text) score += 4; // extracted links rarely have "user manual" in the anchor text itself
+        if (targetCategory) {
+          const candidateCategory = detectCategory(hay);
+          if (candidateCategory && candidateCategory !== targetCategory) score += CATEGORY_MISMATCH_PENALTY;
+        }
+        // Links pulled off the model's own official page are trusted more even
+        // without the model number in the anchor text (the page itself is already
+        // model-specific), so this only adds a small bonus here, not a penalty.
+        if (normalizedModel.length >= 4 && normalize(hay).includes(normalizedModel)) score += 6;
         return { title: l.text || `${brand} ${model} manual`, url: l.url, description: `Found on ${hostOf(p.url)}`, source: hostOf(l.url), score };
       });
     });
