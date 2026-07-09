@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
 
 
 
-    const queryParts = [brand, model, productType, "user manual filetype:pdf"].filter(Boolean);
+    const queryParts = [brand, model, productType, '"owner\'s manual" OR "user manual" OR "installation manual" OR "instruction manual" filetype:pdf'].filter(Boolean);
     const query = queryParts.join(" ");
 
     const res = await fetch("https://api.firecrawl.dev/v2/search", {
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ query, limit: 10 }),
+      body: JSON.stringify({ query, limit: 15 }),
     });
 
     const data = await res.json();
@@ -61,30 +61,40 @@ Deno.serve(async (req) => {
       (Array.isArray(data?.data?.web) && data.data.web) ||
       [];
 
-    const results: ManualResult[] = raw
+    // Keywords indicating a partial/supplementary document (not a full manual)
+    const PARTIAL_RX = /(performance\s*data|spec(ification)?\s*sheet|data\s*sheet|cut\s*sheet|submittal|brochure|sales\s*sheet|quick\s*start|quick\s*reference|warranty|parts\s*list|parts\s*diagram|declaration|safety\s*data|\bsds\b|\bmsds\b|flyer|catalog)/i;
+    const FULL_RX = /(owner'?s?\s*manual|user\s*manual|installation\s*(and|&)?\s*(operation|maintenance)?\s*manual|installation\s*manual|instruction\s*manual|service\s*manual|operation\s*manual|use\s*and\s*care)/i;
+
+    const results: (ManualResult & { _score: number; _size: number })[] = raw
       .map((r) => {
         const url: string = r.url || r.link || "";
         if (!url) return null;
         const isPdf = /\.pdf($|\?)/i.test(url) || /pdf/i.test(r.mimeType || "");
         const host = (() => { try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return ""; } })();
+        const title = r.title || r.name || url;
+        const desc = r.description || r.snippet || "";
+        const hay = `${title} ${desc} ${url}`;
+        let score = 0;
+        if (FULL_RX.test(hay)) score += 10;
+        if (PARTIAL_RX.test(hay)) score -= 8;
+        if (isPdf) score += 2;
         return {
-          title: r.title || r.name || url,
+          title,
           url,
-          description: r.description || r.snippet || "",
+          description: desc,
           isPdf,
           source: host,
-        } as ManualResult;
+          _score: score,
+          _size: 0,
+        };
       })
-      .filter(Boolean) as ManualResult[];
+      .filter(Boolean) as any[];
 
-    // PDFs first
-    results.sort((a, b) => Number(b.isPdf) - Number(a.isPdf));
-
-    // Validate reachability of PDF results (some hosts reject Deno's TLS).
-    // Probe up to the first 6 PDFs in parallel and drop unreachable ones so
-    // the client never tries to proxy a URL we already know will fail.
-    const pdfs = results.filter((r) => r.isPdf).slice(0, 6);
-    const probes = await Promise.all(
+    // Probe PDFs (reachability + size). Reject tiny PDFs (< 200KB) — likely
+    // spec sheets or single-page datasheets rather than full manuals.
+    const MIN_MANUAL_BYTES = 200_000;
+    const pdfs = results.filter((r) => r.isPdf).slice(0, 8);
+    await Promise.all(
       pdfs.map(async (r) => {
         try {
           const ctrl = new AbortController();
@@ -99,16 +109,24 @@ Deno.serve(async (req) => {
             },
           });
           clearTimeout(t);
-          return head.ok ? r.url : null;
+          if (!head.ok) { r._score = -100; return; }
+          const len = Number(head.headers.get("content-length") || 0);
+          r._size = len;
+          if (len && len < MIN_MANUAL_BYTES) {
+            r._score -= 15;
+          } else if (len > 1_000_000) {
+            r._score += 3;
+          }
         } catch {
-          return null;
+          r._score = -100;
         }
       })
     );
-    const reachable = new Set(probes.filter(Boolean) as string[]);
-    const validated = results.filter((r) => !r.isPdf || reachable.has(r.url));
-    // Re-sort so reachable PDFs stay on top
-    validated.sort((a, b) => Number(b.isPdf) - Number(a.isPdf));
+
+    const validated = results
+      .filter((r) => r._score > -50)
+      .sort((a, b) => b._score - a._score)
+      .map(({ _score, _size, ...rest }) => rest);
 
     return new Response(JSON.stringify({ results: validated, query }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
