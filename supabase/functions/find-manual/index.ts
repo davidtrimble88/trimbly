@@ -80,7 +80,37 @@ Deno.serve(async (req) => {
     // PDFs first
     results.sort((a, b) => Number(b.isPdf) - Number(a.isPdf));
 
-    return new Response(JSON.stringify({ results, query }), {
+    // Validate reachability of PDF results (some hosts reject Deno's TLS).
+    // Probe up to the first 6 PDFs in parallel and drop unreachable ones so
+    // the client never tries to proxy a URL we already know will fail.
+    const pdfs = results.filter((r) => r.isPdf).slice(0, 6);
+    const probes = await Promise.all(
+      pdfs.map(async (r) => {
+        try {
+          const ctrl = new AbortController();
+          const t = setTimeout(() => ctrl.abort(), 6000);
+          const head = await fetch(r.url, {
+            method: "HEAD",
+            redirect: "follow",
+            signal: ctrl.signal,
+            headers: {
+              "User-Agent": "Mozilla/5.0 (compatible; Trimbly/1.0; +https://trimbly.app)",
+              Accept: "application/pdf,*/*;q=0.8",
+            },
+          });
+          clearTimeout(t);
+          return head.ok ? r.url : null;
+        } catch {
+          return null;
+        }
+      })
+    );
+    const reachable = new Set(probes.filter(Boolean) as string[]);
+    const validated = results.filter((r) => !r.isPdf || reachable.has(r.url));
+    // Re-sort so reachable PDFs stay on top
+    validated.sort((a, b) => Number(b.isPdf) - Number(a.isPdf));
+
+    return new Response(JSON.stringify({ results: validated, query }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
