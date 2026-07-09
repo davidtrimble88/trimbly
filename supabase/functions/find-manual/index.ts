@@ -128,9 +128,70 @@ Deno.serve(async (req) => {
       .sort((a, b) => b._score - a._score)
       .map(({ _score, _size, ...rest }) => rest);
 
-    return new Response(JSON.stringify({ results: validated, query }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // If no usable PDF manual was found, search for pages where the user can
+    // request the manual (support, contact, literature request pages).
+    let requestSources: ManualResult[] = [];
+    const hasUsablePdf = validated.some((r) => r.isPdf);
+    if (!hasUsablePdf) {
+      const reqQueryParts = [
+        brand,
+        model,
+        productType,
+        '(support OR "contact us" OR "request manual" OR "request documentation" OR "literature request" OR "owner center" OR "product registration")',
+      ].filter(Boolean);
+      const reqQuery = reqQueryParts.join(" ");
+      try {
+        const reqRes = await fetch("https://api.firecrawl.dev/v2/search", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ query: reqQuery, limit: 8 }),
+        });
+        const reqData = await reqRes.json();
+        if (reqRes.ok) {
+          const reqRaw: any[] =
+            (Array.isArray(reqData?.data) && reqData.data) ||
+            (Array.isArray(reqData?.data?.web) && reqData.data.web) ||
+            [];
+          const brandHost = brand.toLowerCase().replace(/[^a-z0-9]/g, "");
+          const REQ_RX = /(support|contact|request|literature|owner|customer|help|service|register)/i;
+          requestSources = reqRaw
+            .map((r) => {
+              const url: string = r.url || r.link || "";
+              if (!url) return null;
+              const host = (() => { try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return ""; } })();
+              const title = r.title || r.name || url;
+              const desc = r.description || r.snippet || "";
+              const hay = `${title} ${desc} ${url}`;
+              // Prefer the manufacturer's own domain when we can detect it
+              const brandDomainMatch = brandHost && host.replace(/[^a-z0-9]/g, "").includes(brandHost);
+              const relevant = REQ_RX.test(hay) || brandDomainMatch;
+              if (!relevant) return null;
+              return {
+                title,
+                url,
+                description: desc,
+                isPdf: /\.pdf($|\?)/i.test(url),
+                source: host,
+                _brand: brandDomainMatch ? 1 : 0,
+              };
+            })
+            .filter(Boolean)
+            .sort((a: any, b: any) => b._brand - a._brand)
+            .slice(0, 5)
+            .map(({ _brand, ...rest }: any) => rest);
+        }
+      } catch (e) {
+        console.error("find-manual request-sources fallback error:", e);
+      }
+    }
+
+    return new Response(
+      JSON.stringify({ results: validated, requestSources, query }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     console.error("find-manual error:", msg);
