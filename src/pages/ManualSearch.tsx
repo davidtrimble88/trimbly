@@ -34,6 +34,7 @@ const ManualSearch = () => {
   const [loading, setLoading] = useState(false);
   const [manual, setManual] = useState<ManualResult | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [requestSources, setRequestSources] = useState<ManualResult[]>([]);
 
   const filename = `${brand}-${model}-manual`.replace(/\s+/g, "-").toLowerCase() || "user-manual";
 
