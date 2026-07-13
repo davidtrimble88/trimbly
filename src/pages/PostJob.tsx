@@ -481,13 +481,16 @@ const PostJob = () => {
       <Navbar />
       <div className="container mx-auto max-w-4xl px-4 pb-10 pt-24">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Briefcase className="h-8 w-8 text-primary" /> My Job Requests
-            </h1>
-            <p className="text-muted-foreground">Post jobs and manage bids from pros</p>
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Briefcase className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold">My Job Requests</h1>
+              <p className="text-muted-foreground text-sm">Post jobs and manage bids from pros</p>
+            </div>
           </div>
-          <Button onClick={() => setShowForm(true)} className="gap-2">
+          <Button onClick={() => setShowForm(true)} className="gap-2 rounded-lg">
             <Plus size={16} /> Post a Job
           </Button>
         </div>
@@ -514,7 +517,7 @@ const PostJob = () => {
         ) : (
           <div className="space-y-4">
             {jobs.map((job) => (
-              <Card key={job.id}>
+              <Card key={job.id} className="shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">

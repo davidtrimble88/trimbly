@@ -578,19 +578,23 @@ const Dashboard = () => {
                   const homeAge = home.year_built ? new Date().getFullYear() - home.year_built : null;
 
                   return (
-                    <Card key={home.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <Card key={home.id} className="overflow-hidden shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] transition-shadow">
                       {/* Home header */}
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle className="text-lg flex items-center gap-2">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                               <Home size={18} className="text-primary" />
-                              {home.name}
-                            </CardTitle>
-                            <CardDescription className="flex items-center gap-1 mt-1">
-                              <MapPin size={13} />
-                              {home.city}, {home.state?.toUpperCase()}
-                            </CardDescription>
+                            </div>
+                            <div>
+                              <CardTitle className="font-display text-lg">
+                                {home.name}
+                              </CardTitle>
+                              <CardDescription className="flex items-center gap-1 mt-1">
+                                <MapPin size={13} />
+                                {home.city}, {home.state?.toUpperCase()}
+                              </CardDescription>
+                            </div>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <Badge variant="outline" className="text-xs shrink-0">

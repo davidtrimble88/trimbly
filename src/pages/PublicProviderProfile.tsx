@@ -190,55 +190,59 @@ const PublicProviderProfile = () => {
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-4xl space-y-6">
           {/* Header */}
-          <Card>
-            <CardContent className="p-8 flex flex-col sm:flex-row gap-6 items-center sm:items-start text-center sm:text-left">
-              <Avatar className="h-28 w-28">
-                <AvatarImage src={avatarUrl ?? undefined} alt={provider.business_name} />
-                <AvatarFallback>{provider.business_name?.[0]?.toUpperCase() ?? "P"}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-3xl font-extrabold text-foreground">{provider.business_name}</h1>
-                <p className="text-primary font-medium mt-1">{provider.category}</p>
-                <div className="flex items-center justify-center sm:justify-start gap-2 text-sm text-muted-foreground mt-2">
-                  <MapPin size={14} />
-                  {[provider.city, provider.state, provider.country].filter(Boolean).join(", ")}
-                  {provider.service_radius_miles > 0 && (
-                    <span className="text-xs">· serves within {provider.service_radius_miles} mi</span>
-                  )}
+          <Card className="overflow-hidden shadow-[var(--card-shadow)]">
+            <div className="h-28 sm:h-32" style={{ background: "var(--hero-gradient)" }} />
+            <CardContent className="p-6 sm:p-8 pt-0">
+              <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 items-center sm:items-end -mt-14 sm:-mt-16">
+                <Avatar className="h-28 w-28 border-4 border-card shadow-[var(--card-shadow-hover)] shrink-0">
+                  <AvatarImage src={avatarUrl ?? undefined} alt={provider.business_name} />
+                  <AvatarFallback className="font-display text-2xl bg-primary text-primary-foreground">{provider.business_name?.[0]?.toUpperCase() ?? "P"}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0 text-center sm:text-left sm:pb-1">
+                  <h1 className="font-display text-3xl font-semibold text-foreground">{provider.business_name}</h1>
+                  <p className="text-primary font-medium mt-0.5">{provider.category}</p>
                 </div>
-                <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
-                  {provider.emergency_available && (
-                    <Badge className="bg-red-500 text-white hover:bg-red-600 gap-1">
-                      <Zap size={12} /> Available for urgent jobs
-                    </Badge>
-                  )}
-                  {provider.verified && (
-                    <Badge variant="secondary"><ShieldCheck size={12} className="mr-1" /> Verified</Badge>
-                  )}
-                  {provider.subscription_tier === "pro" && (
-                    <Badge className="bg-primary text-primary-foreground gap-1">
-                      <Zap size={12} /> Pro
-                    </Badge>
-                  )}
-                  {avgReplyMinutes !== null && avgReplyMinutes <= 60 && (
-                    <Badge className="bg-green-600 text-white hover:bg-green-700 gap-1">
-                      <Clock size={12} /> Replies in under {avgReplyMinutes < 15 ? "15 min" : avgReplyMinutes < 30 ? "30 min" : "1 hr"}
-                    </Badge>
-                  )}
-                  {provider.licensed && <Badge variant="secondary">Licensed</Badge>}
-                  {provider.insured && <Badge variant="secondary">Insured</Badge>}
-                  {provider.years_experience ? (
-                    <Badge variant="outline">
-                      <Award size={12} className="mr-1" /> {provider.years_experience}+ yrs experience
-                    </Badge>
-                  ) : null}
-                </div>
-                <div className="flex gap-2 mt-5 justify-center sm:justify-start">
-                  <Button onClick={() => navigate(`/search?provider=${provider.id}`)}>
-                    <MessageSquare size={14} className="mr-1.5" /> Message
-                  </Button>
-                  <SaveProviderButton providerId={provider.id} />
-                </div>
+              </div>
+
+              <div className="flex items-center justify-center sm:justify-start gap-2 text-sm text-muted-foreground mt-4">
+                <MapPin size={14} />
+                {[provider.city, provider.state, provider.country].filter(Boolean).join(", ")}
+                {provider.service_radius_miles > 0 && (
+                  <span className="text-xs">· serves within {provider.service_radius_miles} mi</span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
+                {provider.emergency_available && (
+                  <Badge className="bg-red-500 text-white hover:bg-red-600 gap-1">
+                    <Zap size={12} /> Available for urgent jobs
+                  </Badge>
+                )}
+                {provider.verified && (
+                  <Badge variant="secondary"><ShieldCheck size={12} className="mr-1" /> Verified</Badge>
+                )}
+                {provider.subscription_tier === "pro" && (
+                  <Badge className="bg-primary text-primary-foreground gap-1">
+                    <Zap size={12} /> Pro
+                  </Badge>
+                )}
+                {avgReplyMinutes !== null && avgReplyMinutes <= 60 && (
+                  <Badge className="bg-green-600 text-white hover:bg-green-700 gap-1">
+                    <Clock size={12} /> Replies in under {avgReplyMinutes < 15 ? "15 min" : avgReplyMinutes < 30 ? "30 min" : "1 hr"}
+                  </Badge>
+                )}
+                {provider.licensed && <Badge variant="secondary">Licensed</Badge>}
+                {provider.insured && <Badge variant="secondary">Insured</Badge>}
+                {provider.years_experience ? (
+                  <Badge variant="outline">
+                    <Award size={12} className="mr-1" /> {provider.years_experience}+ yrs experience
+                  </Badge>
+                ) : null}
+              </div>
+              <div className="flex gap-2 mt-5 justify-center sm:justify-start">
+                <Button className="rounded-lg" onClick={() => navigate(`/search?provider=${provider.id}`)}>
+                  <MessageSquare size={14} className="mr-1.5" /> Message
+                </Button>
+                <SaveProviderButton providerId={provider.id} />
               </div>
             </CardContent>
           </Card>
@@ -255,9 +259,9 @@ const PublicProviderProfile = () => {
 
           {/* About */}
           {bioText && (
-            <Card>
+            <Card className="shadow-[var(--card-shadow)]">
               <CardContent className="p-6">
-                <h2 className="font-bold text-lg text-foreground mb-3">About</h2>
+                <h2 className="font-display font-semibold text-lg text-foreground mb-3">About</h2>
                 <p className="text-muted-foreground whitespace-pre-line">{bioText}</p>
               </CardContent>
             </Card>
@@ -265,9 +269,9 @@ const PublicProviderProfile = () => {
 
           {/* Business Hours */}
           {provider.business_hours && (
-            <Card>
+            <Card className="shadow-[var(--card-shadow)]">
               <CardContent className="p-6">
-                <h2 className="font-bold text-lg text-foreground mb-3 flex items-center gap-2">
+                <h2 className="font-display font-semibold text-lg text-foreground mb-3 flex items-center gap-2">
                   <Clock size={18} className="text-primary" /> Business Hours
                 </h2>
                 <ul className="divide-y divide-border">
@@ -301,9 +305,9 @@ const PublicProviderProfile = () => {
 
           {/* Gallery */}
           {provider.gallery_urls?.length > 0 && (
-            <Card>
+            <Card className="shadow-[var(--card-shadow)]">
               <CardContent className="p-6">
-                <h2 className="font-bold text-lg text-foreground mb-4">Portfolio</h2>
+                <h2 className="font-display font-semibold text-lg text-foreground mb-4">Portfolio</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {provider.gallery_urls.map((url) => (
                     <a key={url} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden bg-muted hover:opacity-90 transition-opacity">
@@ -317,26 +321,31 @@ const PublicProviderProfile = () => {
 
           {/* Reviews */}
           {reviews.length > 0 && (
-            <Card>
+            <Card className="shadow-[var(--card-shadow)]">
               <CardContent className="p-6">
-                <h2 className="font-bold text-lg text-foreground mb-4">Recent Reviews</h2>
-                <div className="space-y-4">
+                <h2 className="font-display font-semibold text-lg text-foreground mb-4">Recent Reviews</h2>
+                <div className="space-y-5">
                   {reviews.map((r) => (
-                    <div key={r.id} className="border-b border-border last:border-0 pb-4 last:pb-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="flex items-center text-primary">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star key={i} size={14} fill={i < r.rating ? "currentColor" : "none"} />
-                          ))}
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(r.created_at).toLocaleDateString()}
-                        </span>
-                        <div className="ml-auto">
-                          <ReportDialog targetType="review" targetId={r.id} />
-                        </div>
+                    <div key={r.id} className="flex gap-3 border-b border-border last:border-0 pb-5 last:pb-0">
+                      <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                        <Star size={15} className="text-muted-foreground" />
                       </div>
-                      {r.comment && <p className="text-sm text-muted-foreground">{r.comment}</p>}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center text-accent">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star key={i} size={14} fill={i < r.rating ? "currentColor" : "none"} />
+                            ))}
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(r.created_at).toLocaleDateString()}
+                          </span>
+                          <div className="ml-auto">
+                            <ReportDialog targetType="review" targetId={r.id} />
+                          </div>
+                        </div>
+                        {r.comment && <p className="text-sm text-muted-foreground">{r.comment}</p>}
+                      </div>
                     </div>
                   ))}
                 </div>
