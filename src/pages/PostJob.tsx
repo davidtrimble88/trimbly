@@ -644,6 +644,14 @@ const PostJob = () => {
 
                               {/* Actions */}
                               <div className="flex flex-wrap gap-2 pt-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => navigate(`/pro/${bid.provider_id}`)}
+                                  className="gap-1"
+                                >
+                                  <User size={14} /> View profile
+                                </Button>
                                 {bid.status === "pending" && (
                                   <>
                                     <Button size="sm" onClick={() => updateBidStatus(bid.id, job.id, "accepted")} className="gap-1">
