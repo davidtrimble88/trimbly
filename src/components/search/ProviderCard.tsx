@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Star, MapPin, Shield, Clock, BadgeCheck, Crown, Globe, ExternalLink, UserCircle } from "lucide-react";
+import { Star, MapPin, Shield, Clock, BadgeCheck, Crown, Globe, ExternalLink, UserCircle, ArrowRight } from "lucide-react";
 import type { ProviderWithStats } from "@/lib/api/providers";
 
 interface ProviderCardProps {
@@ -53,7 +53,13 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
               </span>
             )}
           </div>
-          <h3 className="font-display font-semibold text-card-foreground leading-tight truncate">{provider.business_name}</h3>
+          {!isWeb && provider.id ? (
+            <Link to={`/pro/${provider.id}`} className="font-display font-semibold text-card-foreground leading-tight truncate hover:text-primary hover:underline block">
+              {provider.business_name}
+            </Link>
+          ) : (
+            <h3 className="font-display font-semibold text-card-foreground leading-tight truncate">{provider.business_name}</h3>
+          )}
           <span className="text-xs text-muted-foreground">{provider.category}</span>
         </div>
         <span className="text-xs shrink-0">{provider.country === "US" ? "🇺🇸" : "🇨🇦"}</span>
@@ -62,9 +68,9 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
       {!isWeb && provider.id && (
         <Link
           to={`/pro/${provider.id}`}
-          className="inline-flex items-center gap-1 text-xs text-primary hover:underline -mt-2 mb-3"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline -mt-2 mb-3"
         >
-          View profile
+          View full profile <ArrowRight size={12} />
         </Link>
       )}
 
