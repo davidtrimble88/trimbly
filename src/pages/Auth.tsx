@@ -21,8 +21,7 @@ const Auth = () => {
   const [userType, setUserType] = useState<UserType>(initialType);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -34,44 +33,32 @@ const Auth = () => {
     if (t === "provider" || t === "homeowner") setUserType(t);
   }, [searchParams]);
 
-  // Redirect if already logged in — handled after login via navigate
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      if (mode === "signup") {
-        const { error } = await (await import("@/hooks/useAuth")).useAuth().signUp(
-          form.email,
-          form.password,
-          { full_name: form.name, user_type: userType }
-        );
-        // Can't call hook like this, let's fix
-      }
-    } catch {}
-
-    setLoading(false);
-  };
+  // Redirect if already logged in — someone landing on /auth with an active
+  // session shouldn't see a login form, same behavior as the homepage.
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [authLoading, user, navigate]);
 
   return (
     <div className="min-h-screen flex">
       {/* Left panel - branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-primary relative overflow-hidden items-center justify-center p-12">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-primary-foreground blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full bg-primary-foreground blur-3xl" />
-        </div>
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center p-12" style={{ background: "var(--hero-gradient)" }}>
+        <div className="absolute inset-0 opacity-[0.15]" style={{
+          backgroundImage: "radial-gradient(circle at 1.5px 1.5px, white 1.5px, transparent 0)",
+          backgroundSize: "26px 26px",
+        }} />
         <div className="relative z-10 text-center">
           <Link to="/" className="inline-flex items-center gap-2 mb-8">
-            <div className="w-12 h-12 rounded-xl bg-primary-foreground/20 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-primary-foreground/15 border border-primary-foreground/20 flex items-center justify-center">
               <span className="text-primary-foreground font-display font-bold text-2xl">T</span>
             </div>
           </Link>
-          <h1 className="text-4xl font-extrabold text-primary-foreground mb-4 font-display">
+          <h1 className="text-4xl font-semibold text-primary-foreground mb-4 font-display">
             {mode === "login" ? "Welcome back" : mode === "signup" ? "Join Trimbly" : "Reset password"}
           </h1>
-          <p className="text-primary-foreground/70 text-lg max-w-md">
+          <p className="text-primary-foreground/75 text-lg max-w-md">
             {mode === "login"
               ? "Log in to manage your home, connect with pros, and stay on top of maintenance."
               : mode === "signup"
@@ -89,7 +76,7 @@ const Auth = () => {
           </Link>
 
           <div className="lg:hidden flex items-center gap-2 mb-6">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "var(--hero-gradient)" }}>
               <span className="text-primary-foreground font-display font-bold text-sm">T</span>
             </div>
             <span className="font-display font-bold text-xl text-foreground">Trimbly</span>
