@@ -79,7 +79,7 @@ function hostRootOf(host: string): string {
   return host.replace(/\.[a-z]{2,}$/i, "").replace(/[^a-z0-9]/g, "");
 }
 
-async function verifyPdf(url: string): Promise<{ ok: boolean; sizeBytes: number }> {
+async function verifyPdf(url: string): Promise<{ ok: boolean; sizeBytes: number; reason: string }> {
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 6000);
@@ -90,7 +90,7 @@ async function verifyPdf(url: string): Promise<{ ok: boolean; sizeBytes: number 
       headers: { "User-Agent": "Mozilla/5.0 (compatible; Trimbly/1.0; +https://trimbly.app)" },
     });
     clearTimeout(t);
-    if (!headRes.ok) return { ok: false, sizeBytes: 0 };
+    if (!headRes.ok) return { ok: false, sizeBytes: 0, reason: `HEAD ${headRes.status}` };
     const sizeBytes = Number(headRes.headers.get("content-length") || 0);
 
     // Confirm real PDF bytes via a small ranged GET, reading only a few KB.
@@ -106,7 +106,7 @@ async function verifyPdf(url: string): Promise<{ ok: boolean; sizeBytes: number 
       },
     });
     clearTimeout(t2);
-    if (!getRes.ok && getRes.status !== 206) return { ok: false, sizeBytes };
+    if (!getRes.ok && getRes.status !== 206) return { ok: false, sizeBytes, reason: `GET ${getRes.status}` };
 
     const reader = getRes.body?.getReader();
     let head = "";
@@ -125,9 +125,10 @@ async function verifyPdf(url: string): Promise<{ ok: boolean; sizeBytes: number 
       for (const chunk of chunks) { merged.set(chunk, offset); offset += chunk.length; }
       head = new TextDecoder("latin1").decode(merged.slice(0, 8));
     }
-    return { ok: head.includes("%PDF-"), sizeBytes };
-  } catch {
-    return { ok: false, sizeBytes: 0 };
+    const isPdf = head.includes("%PDF-");
+    return { ok: isPdf, sizeBytes, reason: isPdf ? "ok" : `not a real PDF (first bytes: ${JSON.stringify(head)})` };
+  } catch (e) {
+    return { ok: false, sizeBytes: 0, reason: `exception: ${e instanceof Error ? e.message : String(e)}` };
   }
 }
 
@@ -149,7 +150,10 @@ async function extractPdfLinksFromPage(
     });
     clearTimeout(t);
     const data = await res.json();
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.log(`[scrape] ${pageUrl} -> HTTP ${res.status}, body: ${JSON.stringify(data).slice(0, 300)}`);
+      return [];
+    }
 
     const found: { url: string; text: string }[] = [];
     const linkArr: any[] = data?.data?.links || data?.links || [];
@@ -166,7 +170,7 @@ async function extractPdfLinksFromPage(
     }
 
     // Resolve to absolute PDF-looking links only.
-    return found
+    const resolved = found
       .map((f) => {
         try {
           const abs = new URL(f.url, pageUrl).toString();
@@ -174,6 +178,9 @@ async function extractPdfLinksFromPage(
         } catch { return null; }
       })
       .filter((f): f is { url: string; text: string } => !!f && /\.pdf($|\?)/i.test(f.url));
+
+    console.log(`[scrape] ${pageUrl} -> found ${found.length} total links, ${resolved.length} look like PDFs: ${JSON.stringify(resolved.slice(0, 5))}`);
+    return resolved;
   } catch (e) {
     console.error("find-manual: page scrape failed", pageUrl, e);
     return [];
@@ -241,6 +248,9 @@ Deno.serve(async (req) => {
       searchFirecrawl(pageQuery, 8),
       searchFirecrawl(aggregatorQuery, 8),
     ]);
+    console.log(`[search] pdfQuery="${pdfQuery}" -> ${pdfRaw.length} results`);
+    console.log(`[search] pageQuery="${pageQuery}" -> ${pageRaw.length} results`);
+    console.log(`[search] aggregatorQuery="${aggregatorQuery}" -> ${aggregatorRaw.length} results`);
 
     // --- Path 1: directly-indexed PDF links ---
     const directCandidates = (pdfRaw as any[])
@@ -341,6 +351,7 @@ Deno.serve(async (req) => {
       if (!dedupedPages.has(p.url)) dedupedPages.set(p.url, p);
     }
     const pageCandidates = Array.from(dedupedPages.values()).slice(0, 5);
+    console.log(`[pages] scraping ${pageCandidates.length} candidates: ${JSON.stringify(pageCandidates.map((p) => p.url))}`);
 
     const scrapedLinkSets = await Promise.all(
       pageCandidates.map((p) => extractPdfLinksFromPage(p.url, FIRECRAWL_API_KEY))
@@ -372,11 +383,13 @@ Deno.serve(async (req) => {
       if (!existing || c.score > existing.score) merged.set(c.url, c);
     }
     const candidates = Array.from(merged.values()).sort((a, b) => b.score - a.score).slice(0, 8);
+    console.log(`[candidates] ${candidates.length} pre-verification: ${JSON.stringify(candidates.map((c) => ({ url: c.url, score: c.score, title: c.title })))}`);
 
     // Real verification: confirm each candidate is actually a reachable, real PDF.
     const verified = await Promise.all(
       candidates.map(async (c) => {
-        const { ok, sizeBytes } = await verifyPdf(c.url);
+        const { ok, sizeBytes, reason } = await verifyPdf(c.url);
+        console.log(`[verify] ${c.url} -> ok=${ok} sizeBytes=${sizeBytes} reason="${reason}"`);
         if (!ok) return { ...c, score: -100, sizeBytes: 0 };
         let adjustedScore = c.score;
         if (sizeBytes && sizeBytes < MIN_MANUAL_BYTES) adjustedScore -= 15;
@@ -384,6 +397,7 @@ Deno.serve(async (req) => {
         return { ...c, score: adjustedScore, sizeBytes };
       })
     );
+    console.log(`[verified] post-verification scores: ${JSON.stringify(verified.map((v) => ({ url: v.url, score: v.score })))}`);
 
     const results: ManualResult[] = verified
       .filter((r) => r.score > -50)
@@ -431,6 +445,9 @@ Deno.serve(async (req) => {
         console.error("find-manual request-sources fallback error:", e);
       }
     }
+
+    console.log(`[final] results=${JSON.stringify(results)}`);
+    console.log(`[final] requestSources=${JSON.stringify(requestSources.map((r) => r.url))}`);
 
     return new Response(JSON.stringify({ results, requestSources, query: pdfQuery }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
