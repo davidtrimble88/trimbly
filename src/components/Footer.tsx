@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import BrandMark from "@/components/BrandMark";
 
 const Footer = () => {
   const { user } = useAuth();
@@ -9,9 +10,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-5 gap-8 mb-8">
           <div className="md:col-span-2">
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: "var(--hero-gradient)" }}>
-                <span className="text-primary-foreground font-display font-bold text-xs">T</span>
-              </div>
+              <BrandMark className="w-7 h-7" />
               <span className="font-display font-bold text-lg text-foreground">Trimbly</span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-sm">Your home, handled. AI-powered maintenance and trusted local pros.</p>

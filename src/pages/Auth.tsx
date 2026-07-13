@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import BrandMark from "@/components/BrandMark";
 
 type AuthMode = "login" | "signup" | "forgot";
 type UserType = "homeowner" | "provider";
@@ -51,9 +52,7 @@ const Auth = () => {
         }} />
         <div className="relative z-10 text-center">
           <Link to="/" className="inline-flex items-center gap-2 mb-8">
-            <div className="w-12 h-12 rounded-xl bg-primary-foreground/15 border border-primary-foreground/20 flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-2xl">T</span>
-            </div>
+            <BrandMark className="w-14 h-14" fillClassName="fill-primary-foreground" markClassName="fill-primary" />
           </Link>
           <h1 className="text-4xl font-semibold text-primary-foreground mb-4 font-display">
             {mode === "login" ? "Welcome back" : mode === "signup" ? "Join Trimbly" : "Reset password"}
@@ -76,9 +75,7 @@ const Auth = () => {
           </Link>
 
           <div className="lg:hidden flex items-center gap-2 mb-6">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "var(--hero-gradient)" }}>
-              <span className="text-primary-foreground font-display font-bold text-sm">T</span>
-            </div>
+            <BrandMark className="w-8 h-8" />
             <span className="font-display font-bold text-xl text-foreground">Trimbly</span>
           </div>
 

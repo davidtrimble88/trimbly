@@ -1,5 +1,6 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import BrandMark from "@/components/BrandMark";
 import { Menu, X, LogOut, LayoutDashboard, CalendarCheck, Wrench, Search, FileText, Crown, MessageSquare, Shield, Briefcase, Building2, ShieldCheck, Home as HomeIcon, Sparkles, Car } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -205,9 +206,7 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <Link to={user ? dashboardRoute : "/"} className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-sm" style={{ background: "var(--hero-gradient)" }}>
-            <span className="text-primary-foreground font-display font-bold text-sm">T</span>
-          </div>
+          <BrandMark className="w-8 h-8" />
           <span className="font-display font-bold text-xl text-foreground">Trimbly</span>
         </Link>
 

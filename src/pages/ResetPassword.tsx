@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import BrandMark from "@/components/BrandMark";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Lock, Eye, EyeOff, CheckCircle } from "lucide-react";
@@ -76,8 +77,8 @@ const ResetPassword = () => {
         </Link>
 
         <div className="flex items-center gap-2 mb-6">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-display font-bold text-sm">T</span>
+          <div className="w-8 h-8">
+            <BrandMark className="w-8 h-8" />
           </div>
           <span className="font-display font-bold text-xl text-foreground">Trimbly</span>
         </div>

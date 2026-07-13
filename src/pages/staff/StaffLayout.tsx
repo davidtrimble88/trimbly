@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Outlet, NavLink as RRNavLink, useLocation } from "react-router-dom";
+import BrandMark from "@/components/BrandMark";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -40,8 +41,8 @@ function StaffSidebar({ roles }: { roles: StaffRole[] }) {
       <SidebarContent>
         <div className="px-3 py-4 border-b border-sidebar-border">
           <RRNavLink to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-              <span className="text-primary-foreground font-display font-bold text-sm">T</span>
+            <div className="w-8 h-8 shrink-0">
+              <BrandMark className="w-8 h-8" />
             </div>
             {!collapsed && (
               <div className="min-w-0">
