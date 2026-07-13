@@ -588,9 +588,15 @@ const PostJob = () => {
                             <div key={bid.id} className="rounded-lg border border-border p-4 space-y-3">
                               <div className="flex items-start justify-between">
                                 <div>
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-2 flex-wrap">
                                     <User size={14} className="text-primary" />
-                                    <span className="font-medium text-sm">{bid.provider?.business_name || "Unknown Pro"}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => navigate(`/pro/${bid.provider_id}`)}
+                                      className="font-medium text-sm text-primary hover:underline text-left"
+                                    >
+                                      {bid.provider?.business_name || "Unknown Pro"}
+                                    </button>
                                     {bid.provider?.licensed && (
                                       <Badge variant="outline" className="text-xs gap-1"><Shield size={10} /> Licensed</Badge>
                                     )}
@@ -638,6 +644,14 @@ const PostJob = () => {
 
                               {/* Actions */}
                               <div className="flex flex-wrap gap-2 pt-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => navigate(`/pro/${bid.provider_id}`)}
+                                  className="gap-1"
+                                >
+                                  <User size={14} /> View profile
+                                </Button>
                                 {bid.status === "pending" && (
                                   <>
                                     <Button size="sm" onClick={() => updateBidStatus(bid.id, job.id, "accepted")} className="gap-1">
