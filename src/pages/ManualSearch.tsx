@@ -70,7 +70,12 @@ const ManualSearch = () => {
       if (data?.error) throw new Error(data.error);
       const found: ManualResult[] = data?.results || [];
       const sources: ManualResult[] = data?.requestSources || [];
-      setDebugInfo(data?.debug || null);
+      setDebugInfo(data?.debug || {
+        note: "No detailed diagnostics were returned by the manual search function.",
+        resultCount: found.length,
+        requestSourceCount: sources.length,
+        responseKeys: data ? Object.keys(data) : [],
+      });
       logSearch({
         search_type: "manual",
         query: `${brand} ${model}`.trim(),
