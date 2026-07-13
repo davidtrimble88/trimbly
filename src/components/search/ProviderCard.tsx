@@ -24,46 +24,49 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
 
   const tier = tierConfig[provider.subscription_tier] || tierConfig.free;
   const isPaid = provider.subscription_tier !== "free";
-  
+  const initials = provider.business_name
+    .split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
 
   return (
-    <div className={`rounded-xl border bg-card p-6 transition-all ${
+    <div className={`rounded-xl border bg-card p-5 transition-all ${
       isPaid
-        ? "border-primary/30 shadow-md hover:shadow-lg ring-1 ring-primary/10"
-        : "border-border hover:border-primary/30 hover:shadow-lg"
+        ? "border-primary/25 shadow-[var(--card-shadow-hover)]"
+        : "border-border shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] hover:border-primary/25"
     }`}>
-      {/* Top badges row */}
-      <div className="flex items-center gap-2 mb-3">
-        {tier.label && tier.icon && (
-          <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${tier.color}`}>
-            <tier.icon size={12} />
-            {tier.label}
-          </span>
-        )}
-        {isWeb && (
-          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
-            <Globe size={10} /> Found online
-          </span>
-        )}
+      <div className="flex items-start gap-3.5 mb-3.5">
+        <div className={`shrink-0 w-11 h-11 rounded-full flex items-center justify-center font-display font-semibold text-sm ${
+          isPaid ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+        }`}>
+          {initials || <UserCircle size={20} />}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+            {tier.label && tier.icon && (
+              <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${tier.color}`}>
+                <tier.icon size={11} />
+                {tier.label}
+              </span>
+            )}
+            {isWeb && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                <Globe size={10} /> Found online
+              </span>
+            )}
+          </div>
+          <h3 className="font-display font-semibold text-card-foreground leading-tight truncate">{provider.business_name}</h3>
+          <span className="text-xs text-muted-foreground">{provider.category}</span>
+        </div>
+        <span className="text-xs shrink-0">{provider.country === "US" ? "🇺🇸" : "🇨🇦"}</span>
       </div>
 
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <h3 className="font-bold text-card-foreground">{provider.business_name}</h3>
-          <span className="text-xs text-muted-foreground">{provider.category}</span>
-          {!isWeb && provider.id && (
-            <div className="mt-1">
-              <Link
-                to={`/pro/${provider.id}`}
-                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-              >
-                <UserCircle size={12} /> View profile
-              </Link>
-            </div>
-          )}
-        </div>
-        <span className="text-xs">{provider.country === "US" ? "🇺🇸" : "🇨🇦"}</span>
-      </div>
+      {!isWeb && provider.id && (
+        <Link
+          to={`/pro/${provider.id}`}
+          className="inline-flex items-center gap-1 text-xs text-primary hover:underline -mt-2 mb-3"
+        >
+          View profile
+        </Link>
+      )}
 
       {provider.description && (
         <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{provider.description}</p>
@@ -105,9 +108,9 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
         </span>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-3.5 border-t border-border">
         <span className={`text-sm font-semibold ${isWeb ? "text-muted-foreground italic" : "text-card-foreground"}`}>{rateLabel}</span>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {isWeb && provider.website ? (
             <a
               href={provider.website}
@@ -122,7 +125,7 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
               <Clock size={12} /> {provider.available ? "Available" : "Booked"}
             </span>
           )}
-          <Button size="sm" disabled={!provider.available} onClick={() => onRequestQuote?.(provider)}>
+          <Button size="sm" className="rounded-lg" disabled={!provider.available} onClick={() => onRequestQuote?.(provider)}>
             {isWeb ? "View Details" : provider.available ? "Request Quote" : "Unavailable"}
           </Button>
         </div>

@@ -283,20 +283,20 @@ const PricingSection = () => {
             return (
               <div
                 key={tier.name}
-                className={`rounded-2xl p-8 border ${
+                className={`relative rounded-2xl p-8 border transition-transform ${
                   tier.highlighted
-                    ? "border-primary bg-card shadow-xl ring-2 ring-primary/20"
-                    : "border-border bg-card"
+                    ? "border-primary/30 bg-card shadow-[var(--card-shadow-hover)] md:scale-[1.04] md:-translate-y-1 z-10"
+                    : "border-border bg-card shadow-[var(--card-shadow)]"
                 }`}
               >
                 {tier.highlighted && (
-                  <span className="inline-block text-xs font-bold uppercase tracking-wider text-primary-foreground bg-primary px-3 py-1 rounded-full mb-4">
+                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-block text-xs font-bold uppercase tracking-wider text-primary-foreground bg-primary px-4 py-1.5 rounded-full shadow-sm whitespace-nowrap">
                     Most Popular
                   </span>
                 )}
-                <h3 className="font-bold text-xl text-card-foreground">{tier.name}</h3>
+                <h3 className="font-display font-semibold text-xl text-card-foreground">{tier.name}</h3>
                 <div className="flex items-baseline gap-1 mt-3 mb-1">
-                  <span className="text-4xl font-extrabold text-card-foreground">{fmtUsd(displayUsd)}</span>
+                  <span className="font-display text-4xl font-semibold text-card-foreground">{fmtUsd(displayUsd)}</span>
                   {periodLabel && <span className="text-muted-foreground text-sm">{periodLabel} USD</span>}
                 </div>
                 {!isFree && (
@@ -325,7 +325,7 @@ const PricingSection = () => {
                   ))}
                 </ul>
                 <Button
-                  className="w-full"
+                  className="w-full rounded-lg"
                   variant={tier.highlighted ? "default" : "outline"}
                   size="lg"
                   onClick={() => navigate(route)}

@@ -299,14 +299,14 @@ const FeaturesSection = () => {
               <Tag
                 key={f.title}
                 onClick={clickable ? () => handleClick(f as any) : undefined}
-                className={`group p-6 rounded-xl bg-card border border-border transition-all duration-300 text-left ${
-                  clickable ? "hover:border-primary/30 hover:shadow-lg cursor-pointer" : ""
+                className={`group p-6 rounded-xl bg-card border border-border shadow-[var(--card-shadow)] transition-all duration-300 text-left ${
+                  clickable ? "hover:border-primary/25 hover:shadow-[var(--card-shadow-hover)] cursor-pointer" : ""
                 }`}
               >
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <f.icon size={24} className="text-primary" />
+                <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                  <f.icon size={20} className="text-primary group-hover:text-primary-foreground transition-colors" />
                 </div>
-                <h3 className="font-bold text-lg text-card-foreground mb-2">{f.title}</h3>
+                <h3 className="font-display font-semibold text-lg text-card-foreground mb-2">{f.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">{f.description}</p>
               </Tag>
             );
