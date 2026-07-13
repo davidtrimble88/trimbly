@@ -141,7 +141,7 @@ async function extractPdfLinksFromPage(
 ): Promise<{ links: { url: string; text: string }[]; note: string }> {
   try {
     const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 12000);
+    const t = setTimeout(() => ctrl.abort(), 25000);
     const res = await fetch("https://api.firecrawl.dev/v2/scrape", {
       method: "POST",
       signal: ctrl.signal,
@@ -428,12 +428,12 @@ Deno.serve(async (req) => {
     debug.candidatesPostVerification = verified.map((v) => ({ url: v.url, score: v.score, sizeBytes: v.sizeBytes }));
 
     const results: ManualResult[] = verified
-      .filter((r) => r.score > -50)
+      .filter((r) => r.score >= 0) // if our own scoring leans negative on a candidate, don't show it at all
       .sort((a, b) => b.score - a.score)
       .slice(0, 3)
       .map((r) => {
         const confidence: ManualResult["confidence"] =
-          r.score >= 12 ? "likely_full" : r.score >= 0 ? "uncertain" : "likely_partial";
+          r.score >= 12 ? "likely_full" : "uncertain";
         return {
           title: r.title, url: r.url, description: r.description,
           isPdf: true, source: r.source, sizeBytes: r.sizeBytes, confidence,
