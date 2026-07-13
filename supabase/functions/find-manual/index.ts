@@ -210,15 +210,20 @@ Deno.serve(async (req) => {
     const targetCategory = productType ? detectCategory(productType) : null;
     const normalizedModel = normalize(model);
 
-    // Two searches run in parallel:
+    // Three searches run in parallel:
     //  1. Direct PDF search — catches manuals search engines have already indexed as a bare file.
     //  2. General page search — catches the manufacturer's own support/product page, which is
     //     usually HTML with the actual manual one click away, not a directly indexed PDF.
+    //  3. Trusted-aggregator search — dedicated manual databases (manualslib, manuals.plus, etc.)
+    //     very often have a real, correctly-matched page for this exact model even when a plain
+    //     web search doesn't rank it highly. Search their domains directly instead of hoping.
     const pdfQuery = [
       brand, model, productType,
       '"owner\'s manual" OR "user manual" OR "installation manual" OR "instruction manual" filetype:pdf',
     ].filter(Boolean).join(" ");
     const pageQuery = [brand, model, productType, "manual support specifications"].filter(Boolean).join(" ");
+    const aggregatorSiteFilter = TRUSTED_AGGREGATORS.map((d) => `site:${d}`).join(" OR ");
+    const aggregatorQuery = [brand, model, productType, "manual", `(${aggregatorSiteFilter})`].filter(Boolean).join(" ");
 
     const searchFirecrawl = async (query: string, limit: number) => {
       const res = await fetch("https://api.firecrawl.dev/v2/search", {
@@ -231,9 +236,10 @@ Deno.serve(async (req) => {
       return (Array.isArray(data?.data) && data.data) || (Array.isArray(data?.data?.web) && data.data.web) || [];
     };
 
-    const [pdfRaw, pageRaw] = await Promise.all([
+    const [pdfRaw, pageRaw, aggregatorRaw] = await Promise.all([
       searchFirecrawl(pdfQuery, 15),
       searchFirecrawl(pageQuery, 8),
+      searchFirecrawl(aggregatorQuery, 8),
     ]);
 
     // --- Path 1: directly-indexed PDF links ---
@@ -274,6 +280,34 @@ Deno.serve(async (req) => {
       .sort((a, b) => b.score - a.score)
       .slice(0, 6);
 
+    // Aggregator results split two ways: some are already a direct PDF link,
+    // others are an HTML manual page on a trusted site (get scraped below,
+    // same as the manufacturer's own page) with a strong trust bonus either way.
+    const aggregatorDirectPdfs: typeof directCandidates = [];
+    const aggregatorPagesToScrape: { url: string; isOfficialDomain: boolean; title: string }[] = [];
+    for (const r of aggregatorRaw as any[]) {
+      const url: string = r.url || r.link || "";
+      if (!url) continue;
+      const host = hostOf(url);
+      if (!TRUSTED_AGGREGATORS.includes(host)) continue; // only trust results actually on the domains we asked for
+      const title = r.title || r.name || url;
+      const desc = r.description || r.snippet || "";
+      const hay = `${title} ${desc} ${url}`;
+      if (/\.pdf($|\?)/i.test(url)) {
+        let score = 6; // trusted-aggregator bonus
+        if (FULL_RX.test(hay)) score += 10;
+        if (PARTIAL_RX.test(hay)) score -= 8;
+        if (targetCategory) {
+          const cat = detectCategory(hay);
+          if (cat && cat !== targetCategory) score += CATEGORY_MISMATCH_PENALTY;
+        }
+        if (normalizedModel.length >= 4) score += normalize(hay).includes(normalizedModel) ? 6 : -6;
+        aggregatorDirectPdfs.push({ title, url, description: desc, source: host, score });
+      } else {
+        aggregatorPagesToScrape.push({ url, isOfficialDomain: true, title });
+      }
+    }
+
     // --- Path 2: official/support pages worth scraping for an embedded PDF link ---
     // First, try a confirmed URL template for this brand if we have one —
     // this doesn't depend on search-engine ranking surfacing the right page at all.
@@ -298,9 +332,15 @@ Deno.serve(async (req) => {
       .sort((a, b) => Number(b.isOfficialDomain) - Number(a.isOfficialDomain))
       .slice(0, 2);
 
-    const pageCandidates = templatePage
-      ? [templatePage, ...searchedPageCandidates.filter((p) => p.url !== templatePage!.url)].slice(0, 3)
-      : searchedPageCandidates;
+    const dedupedPages = new Map<string, { url: string; isOfficialDomain: boolean; title: string }>();
+    for (const p of [
+      ...(templatePage ? [templatePage] : []),
+      ...aggregatorPagesToScrape,
+      ...searchedPageCandidates,
+    ]) {
+      if (!dedupedPages.has(p.url)) dedupedPages.set(p.url, p);
+    }
+    const pageCandidates = Array.from(dedupedPages.values()).slice(0, 5);
 
     const scrapedLinkSets = await Promise.all(
       pageCandidates.map((p) => extractPdfLinksFromPage(p.url, FIRECRAWL_API_KEY))
@@ -327,7 +367,7 @@ Deno.serve(async (req) => {
 
     // Merge both paths, de-duplicating by URL, keeping the higher score.
     const merged = new Map<string, typeof directCandidates[number]>();
-    for (const c of [...directCandidates, ...scrapedCandidates]) {
+    for (const c of [...directCandidates, ...aggregatorDirectPdfs, ...scrapedCandidates]) {
       const existing = merged.get(c.url);
       if (!existing || c.score > existing.score) merged.set(c.url, c);
     }
