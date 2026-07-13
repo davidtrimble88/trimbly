@@ -138,7 +138,7 @@ async function verifyPdf(url: string): Promise<{ ok: boolean; sizeBytes: number;
 // indexed PDF URL a plain filetype:pdf search would ever surface.
 async function extractPdfLinksFromPage(
   pageUrl: string, apiKey: string,
-): Promise<{ url: string; text: string }[]> {
+): Promise<{ links: { url: string; text: string }[]; note: string }> {
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 12000);
@@ -151,8 +151,9 @@ async function extractPdfLinksFromPage(
     clearTimeout(t);
     const data = await res.json();
     if (!res.ok) {
-      console.log(`[scrape] ${pageUrl} -> HTTP ${res.status}, body: ${JSON.stringify(data).slice(0, 300)}`);
-      return [];
+      const note = `scrape HTTP ${res.status}: ${JSON.stringify(data).slice(0, 300)}`;
+      console.log(`[scrape] ${pageUrl} -> ${note}`);
+      return { links: [], note };
     }
 
     const found: { url: string; text: string }[] = [];
@@ -179,11 +180,13 @@ async function extractPdfLinksFromPage(
       })
       .filter((f): f is { url: string; text: string } => !!f && /\.pdf($|\?)/i.test(f.url));
 
-    console.log(`[scrape] ${pageUrl} -> found ${found.length} total links, ${resolved.length} look like PDFs: ${JSON.stringify(resolved.slice(0, 5))}`);
-    return resolved;
+    const note = `scraped ok: ${found.length} total links on page, ${markdown.length} chars of markdown, ${resolved.length} look like PDFs`;
+    console.log(`[scrape] ${pageUrl} -> ${note}: ${JSON.stringify(resolved.slice(0, 5))}`);
+    return { links: resolved, note };
   } catch (e) {
+    const note = `exception: ${e instanceof Error ? e.message : String(e)}`;
     console.error("find-manual: page scrape failed", pageUrl, e);
-    return [];
+    return { links: [], note };
   }
 }
 
@@ -212,6 +215,10 @@ Deno.serve(async (req) => {
     if (!FIRECRAWL_API_KEY) {
       throw new Error("FIRECRAWL_API_KEY is not configured");
     }
+
+    // Diagnostic trail returned directly in the response (not just server logs,
+    // which this platform doesn't seem to surface console.log output through).
+    const debug: Record<string, unknown> = {};
 
     const normalizedBrand = brand.toLowerCase().replace(/[^a-z0-9]/g, "");
     const targetCategory = productType ? detectCategory(productType) : null;
@@ -251,6 +258,14 @@ Deno.serve(async (req) => {
     console.log(`[search] pdfQuery="${pdfQuery}" -> ${pdfRaw.length} results`);
     console.log(`[search] pageQuery="${pageQuery}" -> ${pageRaw.length} results`);
     console.log(`[search] aggregatorQuery="${aggregatorQuery}" -> ${aggregatorRaw.length} results`);
+    debug.searches = {
+      pdfQuery, pdfResultCount: pdfRaw.length,
+      pageQuery, pageResultCount: pageRaw.length,
+      aggregatorQuery, aggregatorResultCount: aggregatorRaw.length,
+      pdfResultUrls: (pdfRaw as any[]).map((r) => r.url || r.link).filter(Boolean).slice(0, 10),
+      pageResultUrls: (pageRaw as any[]).map((r) => r.url || r.link).filter(Boolean).slice(0, 10),
+      aggregatorResultUrls: (aggregatorRaw as any[]).map((r) => r.url || r.link).filter(Boolean).slice(0, 10),
+    };
 
     // --- Path 1: directly-indexed PDF links ---
     const directCandidates = (pdfRaw as any[])
@@ -352,13 +367,21 @@ Deno.serve(async (req) => {
     }
     const pageCandidates = Array.from(dedupedPages.values()).slice(0, 5);
     console.log(`[pages] scraping ${pageCandidates.length} candidates: ${JSON.stringify(pageCandidates.map((p) => p.url))}`);
+    debug.pageCandidatesToScrape = pageCandidates.map((p) => p.url);
+    debug.templatePageUsed = templatePage?.url || null;
 
-    const scrapedLinkSets = await Promise.all(
+    const scrapedResults = await Promise.all(
       pageCandidates.map((p) => extractPdfLinksFromPage(p.url, FIRECRAWL_API_KEY))
     );
+    debug.scrapeResults = pageCandidates.map((p, i) => ({
+      page: p.url,
+      note: scrapedResults[i].note,
+      pdfLinksFound: scrapedResults[i].links.length,
+      links: scrapedResults[i].links.slice(0, 5),
+    }));
 
     const scrapedCandidates = pageCandidates.flatMap((p, i) => {
-      const links = scrapedLinkSets[i];
+      const links = scrapedResults[i].links;
       return links.map((l) => {
         const hay = `${l.text} ${l.url}`;
         let score = OFFICIAL_PAGE_BONUS;
@@ -384,12 +407,15 @@ Deno.serve(async (req) => {
     }
     const candidates = Array.from(merged.values()).sort((a, b) => b.score - a.score).slice(0, 8);
     console.log(`[candidates] ${candidates.length} pre-verification: ${JSON.stringify(candidates.map((c) => ({ url: c.url, score: c.score, title: c.title })))}`);
+    debug.candidatesPreVerification = candidates.map((c) => ({ url: c.url, score: c.score, title: c.title, source: c.source }));
 
     // Real verification: confirm each candidate is actually a reachable, real PDF.
+    const verificationLog: { url: string; ok: boolean; sizeBytes: number; reason: string }[] = [];
     const verified = await Promise.all(
       candidates.map(async (c) => {
         const { ok, sizeBytes, reason } = await verifyPdf(c.url);
         console.log(`[verify] ${c.url} -> ok=${ok} sizeBytes=${sizeBytes} reason="${reason}"`);
+        verificationLog.push({ url: c.url, ok, sizeBytes, reason });
         if (!ok) return { ...c, score: -100, sizeBytes: 0 };
         let adjustedScore = c.score;
         if (sizeBytes && sizeBytes < MIN_MANUAL_BYTES) adjustedScore -= 15;
@@ -398,6 +424,8 @@ Deno.serve(async (req) => {
       })
     );
     console.log(`[verified] post-verification scores: ${JSON.stringify(verified.map((v) => ({ url: v.url, score: v.score })))}`);
+    debug.verification = verificationLog;
+    debug.candidatesPostVerification = verified.map((v) => ({ url: v.url, score: v.score, sizeBytes: v.sizeBytes }));
 
     const results: ManualResult[] = verified
       .filter((r) => r.score > -50)
@@ -449,7 +477,7 @@ Deno.serve(async (req) => {
     console.log(`[final] results=${JSON.stringify(results)}`);
     console.log(`[final] requestSources=${JSON.stringify(requestSources.map((r) => r.url))}`);
 
-    return new Response(JSON.stringify({ results, requestSources, query: pdfQuery }), {
+    return new Response(JSON.stringify({ results, requestSources, query: pdfQuery, debug }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {

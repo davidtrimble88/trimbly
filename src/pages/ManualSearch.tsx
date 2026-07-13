@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Search, Loader2, Download, BookOpen, FileX, ExternalLink, ShieldCheck, ShieldQuestion, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Search, Loader2, Download, BookOpen, FileX, ExternalLink, ShieldCheck, ShieldQuestion, ShieldAlert, Bug } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,8 @@ const ManualSearch = () => {
   const [selected, setSelected] = useState<ManualResult | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [requestSources, setRequestSources] = useState<ManualResult[]>([]);
+  const [debugInfo, setDebugInfo] = useState<Record<string, unknown> | null>(null);
+  const [showDebug, setShowDebug] = useState(false);
 
   const filename = `${brand}-${model}-manual`.replace(/\s+/g, "-").toLowerCase() || "user-manual";
 
@@ -59,6 +61,7 @@ const ManualSearch = () => {
     setSelected(null);
     setNotFound(false);
     setRequestSources([]);
+    setDebugInfo(null);
     try {
       const { data, error } = await supabase.functions.invoke("find-manual", {
         body: { brand, model, productType },
@@ -67,6 +70,7 @@ const ManualSearch = () => {
       if (data?.error) throw new Error(data.error);
       const found: ManualResult[] = data?.results || [];
       const sources: ManualResult[] = data?.requestSources || [];
+      setDebugInfo(data?.debug || null);
       logSearch({
         search_type: "manual",
         query: `${brand} ${model}`.trim(),
@@ -238,6 +242,22 @@ const ManualSearch = () => {
                 <p className="text-sm text-muted-foreground text-center">
                   Try adjusting the brand, model, or product type.
                 </p>
+              )}
+            </Card>
+          )}
+
+          {debugInfo && (
+            <Card className="p-4 mt-4 border-dashed">
+              <button
+                onClick={() => setShowDebug((v) => !v)}
+                className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground w-full"
+              >
+                <Bug size={14} /> {showDebug ? "Hide" : "Show"} search diagnostics (for troubleshooting)
+              </button>
+              {showDebug && (
+                <pre className="mt-3 text-[10px] leading-tight bg-muted/50 rounded-md p-3 overflow-x-auto whitespace-pre-wrap max-h-[60vh] overflow-y-auto">
+                  {JSON.stringify(debugInfo, null, 2)}
+                </pre>
               )}
             </Card>
           )}
