@@ -61,7 +61,7 @@ const PublicProviderProfile = () => {
   const [hoursDialogOpen, setHoursDialogOpen] = useState(false);
   const [provider, setProvider] = useState<ProviderRow | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [stats, setStats] = useState({ completed: 0, bids: 0, reviews: 0, avgRating: 0 });
+  const [stats, setStats] = useState({ reviews: 0, avgRating: 0 });
   const [reviews, setReviews] = useState<Review[]>([]);
   const [avgReplyMinutes, setAvgReplyMinutes] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
