@@ -193,6 +193,8 @@ const App = () => (
             <Route path="/mechanic-pricing" element={<MechanicPricing />} />
             <Route path="/mechanic-register" element={<MechanicRegister />} />
             <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
+            <Route path="/my-qr" element={<MyQR />} />
+
             <Route path="/garage/vehicles/:id/report" element={<GarageGate><VehicleReport /></GarageGate>} />
             <Route path="/garage" element={<GarageGate><GarageLayout /></GarageGate>}>
               <Route index element={<GarageDashboard />} />
