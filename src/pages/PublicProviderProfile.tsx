@@ -9,8 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import BusinessHoursPanel, { type BusinessHours } from "@/components/pro/BusinessHoursPanel";
 import {
-  MapPin, Briefcase, CheckCircle, Star, Loader2, ShieldCheck, Award,
-  MessageSquare, Inbox, Zap, Clock, Phone, Pencil,
+  MapPin, Briefcase, Star, Loader2, ShieldCheck, Award,
+  MessageSquare, Zap, Clock, Phone, Pencil,
+
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
