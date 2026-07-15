@@ -240,7 +240,35 @@ export default function ServicePlansPanel({ providerId }: { providerId: string }
               </div>
               <div>
                 <Label>Price per service ($)</Label>
-                <Input type="number" min="0" step="0.01" value={editing.price} onChange={(e) => setEditing({ ...editing, price: parseFloat(e.target.value) || 0 })} />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">$</span>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="pl-7"
+                    value={editing.price || ""}
+                    onChange={(e) => setEditing({ ...editing, price: e.target.value === "" ? 0 : parseFloat(e.target.value) })}
+                    onBlur={(e) => {
+                      const n = parseFloat(e.target.value);
+                      setEditing({ ...editing, price: isNaN(n) ? 0 : Math.round(n * 100) / 100 });
+                    }}
+                  />
+                </div>
+                <div className="flex gap-2 mt-2">
+                  {[50, 100, 150, 250, 500].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setEditing({ ...editing, price: preset })}
+                      className="text-xs px-2 py-1 rounded-md border border-border bg-background hover:bg-secondary transition-colors"
+                    >
+                      ${preset}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="flex items-center justify-between border rounded p-3">
                 <Label>Active (visible to homeowners)</Label>
