@@ -144,6 +144,14 @@ const Dashboard = () => {
     if (!authLoading && !user) navigate("/auth");
   }, [authLoading, user, navigate]);
 
+  // Redirect providers to their own dashboard so they don't see the homeowner UI
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("user_type").eq("id", user.id).maybeSingle().then(({ data }) => {
+      if (data?.user_type === "provider") navigate("/pro-dashboard", { replace: true });
+    });
+  }, [user, navigate]);
+
   useEffect(() => {
     if (!user) return;
     loadHomesAndStats();
