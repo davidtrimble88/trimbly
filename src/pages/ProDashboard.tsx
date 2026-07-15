@@ -391,10 +391,10 @@ const ProDashboard = () => {
         steps={[
           { title: "Overview", body: "Your at-a-glance stats: profile views, pending bids, unread messages, and reviews. Watch the credential alert banner — keep your license and insurance dates current to stay visible in search." },
           { title: "Bids Tab", body: "Browse open job posts from homeowners in your service area and submit bids. Accepted bids move into an active chat thread." },
-          { title: "Tools Tab", body: "Pro-only growth tools: service area, business hours, service plans, mileage log, yard sign QR code, AI follow-ups, competitor pricing intel, and more." },
+          { title: "Tools Tab", body: "Pro-only growth tools: service area, service plans, mileage log, yard sign QR code, AI follow-ups, competitor pricing intel, and more." },
           { title: "Reviews Tab", body: "Monitor your ratings and respond to homeowner reviews. Auto-review requests can be enabled in Tools." },
           { title: "Messages Tab", body: "Chat with homeowners in-app. Phone numbers stay private until the homeowner explicitly shares them — keep first contact in messaging." },
-          { title: "Profile Tab", body: "Edit your business details, services, gallery, license & insurance info. A complete, up-to-date profile gets significantly more leads." },
+          { title: "Profile Tab", body: "Edit your business details, services, gallery, business hours, license & insurance info. A complete, up-to-date profile gets significantly more leads." },
           { title: "Go Pro for More", body: "Upgrade to Pro Provider for unlimited bids, priority placement, AI tools, and advanced analytics. Find pricing on the Pro Pricing page." },
         ]}
       />
