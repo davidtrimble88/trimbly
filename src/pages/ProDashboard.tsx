@@ -53,6 +53,7 @@ type ProviderProfile = {
   country: string;
   postal_code: string | null;
   phone: string | null;
+  show_phone_publicly: boolean;
   website: string | null;
   description: string | null;
   hourly_rate_min: number;
@@ -278,6 +279,7 @@ const ProDashboard = () => {
       city: editForm.city,
       state: editForm.state,
       phone: editForm.phone || null,
+      show_phone_publicly: editForm.show_phone_publicly ?? false,
       website: editForm.website || null,
       description: editForm.description || null,
       hourly_rate_min: editForm.hourly_rate_min,
@@ -1037,6 +1039,13 @@ const ProDashboard = () => {
               <div>
                 <Label>Phone</Label>
                 <Input value={editForm.phone || ""} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} className="mt-1" />
+                <label className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                  <Switch
+                    checked={!!editForm.show_phone_publicly}
+                    onCheckedChange={(v) => setEditForm(f => ({ ...f, show_phone_publicly: v }))}
+                  />
+                  Show this number on my public profile
+                </label>
               </div>
               <div>
                 <Label>Website</Label>

@@ -22,7 +22,7 @@ import InspectionReportDialog from "@/components/mechanic/InspectionReportDialog
 
 type Provider = {
   id: string; user_id: string; business_name: string; category: string;
-  city: string; state: string; phone: string | null; website: string | null;
+  city: string; state: string; phone: string | null; show_phone_publicly: boolean; website: string | null;
   description: string | null; hourly_rate_min: number; hourly_rate_max: number;
   available: boolean; subscription_tier: string; licensed: boolean;
   license_number: string | null; insured: boolean; insurance_details: string | null;
@@ -106,7 +106,7 @@ export default function MechanicDashboard() {
       business_name: editForm.business_name,
       category: editForm.category,
       city: editForm.city, state: editForm.state,
-      phone: editForm.phone || null, website: editForm.website || null,
+      phone: editForm.phone || null, show_phone_publicly: editForm.show_phone_publicly ?? false, website: editForm.website || null,
       description: editForm.description || null,
       hourly_rate_min: editForm.hourly_rate_min,
       hourly_rate_max: editForm.hourly_rate_max,
@@ -300,7 +300,17 @@ export default function MechanicDashboard() {
               <div><Label>Min $/hr</Label><Input type="number" value={editForm.hourly_rate_min || 0} onChange={e => setEditForm(f => ({ ...f, hourly_rate_min: Number(e.target.value) }))} /></div>
               <div><Label>Max $/hr</Label><Input type="number" value={editForm.hourly_rate_max || 0} onChange={e => setEditForm(f => ({ ...f, hourly_rate_max: Number(e.target.value) }))} /></div>
             </div>
-            <div><Label>Phone</Label><Input value={editForm.phone || ""} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} /></div>
+            <div>
+              <Label>Phone</Label>
+              <Input value={editForm.phone || ""} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} />
+              <label className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                <Switch
+                  checked={!!editForm.show_phone_publicly}
+                  onCheckedChange={(v) => setEditForm(f => ({ ...f, show_phone_publicly: v }))}
+                />
+                Show this number on my public profile
+              </label>
+            </div>
             <div><Label>Website</Label><Input value={editForm.website || ""} onChange={e => setEditForm(f => ({ ...f, website: e.target.value }))} /></div>
             <div><Label>About</Label>
               <textarea className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm min-h-[80px]" value={editForm.description || ""} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} />

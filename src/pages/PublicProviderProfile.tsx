@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   MapPin, Briefcase, CheckCircle, Star, Loader2, ShieldCheck, Award,
-  MessageSquare, Inbox, Zap, Clock,
+  MessageSquare, Inbox, Zap, Clock, Phone,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import StatsGrid from "@/components/profile/StatsGrid";
@@ -37,6 +37,8 @@ interface ProviderRow {
   emergency_rate_multiplier: number;
   service_radius_miles: number;
   business_hours: Record<string, { open: string; close: string; closed: boolean }> | null;
+  phone: string | null;
+  show_phone_publicly: boolean;
 }
 
 interface Review {
@@ -60,7 +62,7 @@ const PublicProviderProfile = () => {
     (async () => {
       const lookup = supabase
         .from("providers")
-        .select("id, user_id, business_name, category, description, bio, city, state, country, slug, years_experience, licensed, insured, verified, subscription_tier, gallery_urls, emergency_available, emergency_rate_multiplier, service_radius_miles, business_hours");
+        .select("id, user_id, business_name, category, description, bio, city, state, country, slug, years_experience, licensed, insured, verified, subscription_tier, gallery_urls, emergency_available, emergency_rate_multiplier, service_radius_miles, business_hours, phone, show_phone_publicly");
       const { data: prov } = slug
         ? await lookup.eq("slug", slug).maybeSingle()
         : await lookup.eq("id", providerId).maybeSingle();
@@ -327,6 +329,15 @@ const PublicProviderProfile = () => {
                 <CardContent className="p-6">
                   <h2 className="font-display font-semibold text-lg text-foreground mb-1">Get in touch</h2>
                   <p className="text-sm text-muted-foreground mb-4">Message {provider.business_name} directly through Trimbly.</p>
+                  {provider.show_phone_publicly && provider.phone && (
+                    <a
+                      href={`tel:${provider.phone}`}
+                      className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary mb-4 rounded-lg border border-border px-3 py-2.5 transition-colors hover:border-primary/30"
+                    >
+                      <Phone size={15} className="text-primary shrink-0" />
+                      {provider.phone}
+                    </a>
+                  )}
                   <div className="space-y-2">
                     <Button className="w-full rounded-lg" size="lg" onClick={() => navigate(`/search?provider=${provider.id}`)}>
                       <MessageSquare size={15} className="mr-1.5" /> Message
