@@ -299,8 +299,6 @@ const PublicProviderProfile = () => {
             <div className="space-y-6 min-w-0">
               <StatsGrid
                 stats={[
-                  { label: "Jobs Completed", value: stats.completed, icon: CheckCircle },
-                  { label: "Bids Submitted", value: stats.bids, icon: Inbox },
                   { label: "Reviews", value: stats.reviews, icon: Star },
                   { label: "Avg Rating", value: stats.avgRating || "—", icon: Star },
                 ]}
