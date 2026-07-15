@@ -4,12 +4,13 @@ import { Bookmark, BookmarkCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function SaveProviderButton({ providerId, size = "sm" }: { providerId: string; size?: "sm" | "default" | "icon" }) {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -25,7 +26,10 @@ export default function SaveProviderButton({ providerId, size = "sm" }: { provid
   }, [user, providerId]);
 
   const toggle = async () => {
-    if (!user) { navigate("/auth"); return; }
+    if (!user) {
+      navigate(`/auth?redirect=${encodeURIComponent(location.pathname + location.search)}`);
+      return;
+    }
     setBusy(true);
     if (saved) {
       await supabase.from("saved_providers").delete().eq("user_id", user.id).eq("provider_id", providerId);

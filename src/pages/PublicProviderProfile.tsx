@@ -3,14 +3,18 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import BusinessHoursPanel, { type BusinessHours } from "@/components/pro/BusinessHoursPanel";
 import {
   MapPin, Briefcase, CheckCircle, Star, Loader2, ShieldCheck, Award,
-  MessageSquare, Inbox, Zap, Clock, Phone,
+  MessageSquare, Inbox, Zap, Clock, Phone, Pencil,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import AuthGateDialog from "@/components/AuthGateDialog";
 import StatsGrid from "@/components/profile/StatsGrid";
 import ProviderPlansList from "@/components/pro/ProviderPlansList";
 import SaveProviderButton from "@/components/SaveProviderButton";
@@ -51,6 +55,9 @@ interface Review {
 const PublicProviderProfile = () => {
   const { providerId = "", slug = "" } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [gateOpen, setGateOpen] = useState(false);
+  const [hoursDialogOpen, setHoursDialogOpen] = useState(false);
   const [provider, setProvider] = useState<ProviderRow | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [stats, setStats] = useState({ completed: 0, bids: 0, reviews: 0, avgRating: 0 });
@@ -165,6 +172,7 @@ const PublicProviderProfile = () => {
   }
 
   const bioText = provider.bio?.trim() || provider.description?.trim() || "";
+  const isOwner = !!user && user.id === provider.user_id;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -339,43 +347,66 @@ const PublicProviderProfile = () => {
                     </a>
                   )}
                   <div className="space-y-2">
-                    <Button className="w-full rounded-lg" size="lg" onClick={() => navigate(`/search?provider=${provider.id}`)}>
+                    <Button
+                      className="w-full rounded-lg"
+                      size="lg"
+                      onClick={() => user ? navigate(`/search?provider=${provider.id}`) : setGateOpen(true)}
+                    >
                       <MessageSquare size={15} className="mr-1.5" /> Message
                     </Button>
-                    <SaveProviderButton providerId={provider.id} />
+                    {user ? (
+                      <SaveProviderButton providerId={provider.id} />
+                    ) : (
+                      <Button variant="outline" className="w-full rounded-lg" onClick={() => setGateOpen(true)}>
+                        Save Pro
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
 
               {/* Business Hours */}
-              {provider.business_hours && (
+              {(provider.business_hours || isOwner) && (
                 <Card className="shadow-[var(--card-shadow)]">
                   <CardContent className="p-6">
-                    <h2 className="font-display font-semibold text-lg text-foreground mb-3 flex items-center gap-2">
-                      <Clock size={18} className="text-primary" /> Business Hours
-                    </h2>
-                    <ul className="divide-y divide-border">
-                      {([
-                        ["mon", "Monday"], ["tue", "Tuesday"], ["wed", "Wednesday"],
-                        ["thu", "Thursday"], ["fri", "Friday"], ["sat", "Saturday"], ["sun", "Sunday"],
-                      ] as const).map(([k, label]) => {
-                        const h = provider.business_hours?.[k];
-                        const fmt = (t: string) => {
-                          const [hh, mm] = t.split(":").map(Number);
-                          const period = hh >= 12 ? "PM" : "AM";
-                          const h12 = ((hh + 11) % 12) + 1;
-                          return `${h12}:${String(mm).padStart(2, "0")} ${period}`;
-                        };
-                        return (
-                          <li key={k} className="flex justify-between items-center py-2 text-sm">
-                            <span className="text-foreground font-medium">{label}</span>
-                            <span className={h?.closed ? "text-muted-foreground italic" : "text-muted-foreground"}>
-                              {!h || h.closed ? "Closed" : `${fmt(h.open)} – ${fmt(h.close)}`}
-                            </span>
-                          </li>
-                        );
-                      })}
-                    </ul>
+                    <div className="flex items-center justify-between mb-3">
+                      <h2 className="font-display font-semibold text-lg text-foreground flex items-center gap-2">
+                        <Clock size={18} className="text-primary" /> Business Hours
+                      </h2>
+                      {isOwner && (
+                        <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => setHoursDialogOpen(true)}>
+                          <Pencil size={12} /> Edit
+                        </Button>
+                      )}
+                    </div>
+                    {provider.business_hours ? (
+                      <ul className="divide-y divide-border">
+                        {([
+                          ["mon", "Monday"], ["tue", "Tuesday"], ["wed", "Wednesday"],
+                          ["thu", "Thursday"], ["fri", "Friday"], ["sat", "Saturday"], ["sun", "Sunday"],
+                        ] as const).map(([k, label]) => {
+                          const h = provider.business_hours?.[k];
+                          const fmt = (t: string) => {
+                            const [hh, mm] = t.split(":").map(Number);
+                            const period = hh >= 12 ? "PM" : "AM";
+                            const h12 = ((hh + 11) % 12) + 1;
+                            return `${h12}:${String(mm).padStart(2, "0")} ${period}`;
+                          };
+                          return (
+                            <li key={k} className="flex justify-between items-center py-2 text-sm">
+                              <span className="text-foreground font-medium">{label}</span>
+                              <span className={h?.closed ? "text-muted-foreground italic" : "text-muted-foreground"}>
+                                {!h || h.closed ? "Closed" : `${fmt(h.open)} – ${fmt(h.close)}`}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        You haven't set your hours yet — homeowners can't see when you're open. Click Edit to add them.
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -383,6 +414,29 @@ const PublicProviderProfile = () => {
           </div>
         </div>
       </main>
+      <AuthGateDialog
+        open={gateOpen}
+        onOpenChange={setGateOpen}
+        title={`Sign in to contact ${provider.business_name}`}
+        description="Create a free Trimbly account or log in to message this pro or save them for later."
+      />
+      {isOwner && (
+        <Dialog open={hoursDialogOpen} onOpenChange={setHoursDialogOpen}>
+          <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit business hours</DialogTitle>
+            </DialogHeader>
+            <BusinessHoursPanel
+              providerId={provider.id}
+              initial={provider.business_hours as BusinessHours | null}
+              onSaved={(hours) => {
+                setProvider((p) => p ? { ...p, business_hours: hours } : p);
+                setHoursDialogOpen(false);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
       <Footer />
     </div>
   );

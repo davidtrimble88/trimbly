@@ -35,12 +35,15 @@ const Auth = () => {
   }, [searchParams]);
 
   // Redirect if already logged in — someone landing on /auth with an active
-  // session shouldn't see a login form, same behavior as the homepage.
+  // session shouldn't see a login form, same behavior as the homepage. If they
+  // arrived here from a gated action (e.g. "message this pro"), send them back
+  // to that page instead of always defaulting to the dashboard.
   useEffect(() => {
     if (!authLoading && user) {
-      navigate("/dashboard", { replace: true });
+      const redirect = searchParams.get("redirect");
+      navigate(redirect || "/dashboard", { replace: true });
     }
-  }, [authLoading, user, navigate]);
+  }, [authLoading, user, navigate, searchParams]);
 
   return (
     <div className="min-h-screen flex">
@@ -199,6 +202,8 @@ function AuthForm({
   const { signUp, signIn } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get("redirect");
   const [loading, setLoading] = useState(false);
   const [acceptedTos, setAcceptedTos] = useState(false);
 
@@ -221,6 +226,9 @@ function AuthForm({
         } else {
           if (userType === "provider") {
             toast({ title: "Check your email", description: "We sent you a confirmation link to verify your account." });
+          } else if (redirect) {
+            toast({ title: "Welcome!", description: "You're all set." });
+            navigate(redirect);
           } else {
             // Upsell homeowners before onboarding
             toast({ title: "Welcome!", description: "Let's pick the right plan for you." });
@@ -231,6 +239,8 @@ function AuthForm({
         const { error } = await signIn(form.email, form.password);
         if (error) {
           toast({ title: "Login failed", description: error.message, variant: "destructive" });
+        } else if (redirect) {
+          navigate(redirect);
         } else {
           const { data: { user: authUser } } = await supabase.auth.getUser();
           const uid = authUser?.id || "";
