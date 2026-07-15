@@ -1,0 +1,1 @@
+ALTER TABLE public.providers ADD COLUMN IF NOT EXISTS show_phone_publicly boolean NOT NULL DEFAULT false;

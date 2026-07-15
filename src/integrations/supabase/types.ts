@@ -1449,6 +1449,7 @@ export type Database = {
           postal_code: string | null
           provider_type: string
           service_radius_miles: number
+          show_phone_publicly: boolean
           slug: string | null
           state: string
           stripe_connect_account_id: string | null
@@ -1497,6 +1498,7 @@ export type Database = {
           postal_code?: string | null
           provider_type?: string
           service_radius_miles?: number
+          show_phone_publicly?: boolean
           slug?: string | null
           state: string
           stripe_connect_account_id?: string | null
@@ -1545,6 +1547,7 @@ export type Database = {
           postal_code?: string | null
           provider_type?: string
           service_radius_miles?: number
+          show_phone_publicly?: boolean
           slug?: string | null
           state?: string
           stripe_connect_account_id?: string | null
