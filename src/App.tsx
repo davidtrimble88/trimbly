@@ -82,6 +82,8 @@ const EnergyAdvisor = lazy(() => import("./pages/EnergyAdvisor"));
 const MechanicPricing = lazy(() => import("./pages/MechanicPricing"));
 const MechanicRegister = lazy(() => import("./pages/MechanicRegister"));
 const MechanicDashboard = lazy(() => import("./pages/MechanicDashboard"));
+const MyQR = lazy(() => import("./pages/MyQR"));
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
