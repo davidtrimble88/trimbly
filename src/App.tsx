@@ -82,6 +82,8 @@ const EnergyAdvisor = lazy(() => import("./pages/EnergyAdvisor"));
 const MechanicPricing = lazy(() => import("./pages/MechanicPricing"));
 const MechanicRegister = lazy(() => import("./pages/MechanicRegister"));
 const MechanicDashboard = lazy(() => import("./pages/MechanicDashboard"));
+const MyQR = lazy(() => import("./pages/MyQR"));
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -191,6 +193,8 @@ const App = () => (
             <Route path="/mechanic-pricing" element={<MechanicPricing />} />
             <Route path="/mechanic-register" element={<MechanicRegister />} />
             <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
+            <Route path="/my-qr" element={<MyQR />} />
+
             <Route path="/garage/vehicles/:id/report" element={<GarageGate><VehicleReport /></GarageGate>} />
             <Route path="/garage" element={<GarageGate><GarageLayout /></GarageGate>}>
               <Route index element={<GarageDashboard />} />
