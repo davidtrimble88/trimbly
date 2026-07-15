@@ -453,9 +453,13 @@ const ProDashboard = () => {
                   <DropdownMenuItem onClick={openLocation}>
                     <MapPinned size={14} className="mr-2" /> Change Location
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/my-qr")}>
+                    <QrCode size={14} className="mr-2" /> My QR Code
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate(`/pro/${provider.id}`)} className="md:hidden">
                     <ExternalLink size={14} className="mr-2" /> View Public Profile
                   </DropdownMenuItem>
+
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
