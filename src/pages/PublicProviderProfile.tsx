@@ -68,28 +68,44 @@ const PublicProviderProfile = () => {
 
   useEffect(() => {
     (async () => {
+      // Note: phone/show_phone_publicly are excluded from the anon-visible
+      // column grants (intentional, to keep phone numbers out of scraped
+      // datasets). Selecting them here breaks the whole query for logged-out
+      // visitors — including anyone scanning a yard-sign QR. Fetch them in a
+      // second query only when the viewer is authenticated.
       const lookup = supabase
         .from("providers")
-        .select("id, user_id, business_name, category, description, bio, city, state, country, slug, years_experience, licensed, insured, verified, subscription_tier, gallery_urls, emergency_available, emergency_rate_multiplier, service_radius_miles, business_hours, phone, show_phone_publicly");
-      const { data: prov, error: provErr } = slug
+        .select("id, user_id, business_name, category, description, bio, city, state, country, slug, years_experience, licensed, insured, verified, subscription_tier, gallery_urls, emergency_available, emergency_rate_multiplier, service_radius_miles, business_hours");
+      const { data: provBase, error: provErr } = slug
         ? await lookup.eq("slug", slug).maybeSingle()
         : await lookup.eq("id", providerId).maybeSingle();
 
       if (provErr) {
-        // A real query failure (e.g. a column referenced here doesn't exist
-        // yet because a migration hasn't been applied) looks identical to a
-        // missing profile unless we log it — surface it loudly so this never
-        // gets mistaken for "this pro doesn't exist" again.
         console.error("PublicProviderProfile: failed to load provider", provErr);
         setLoadError(provErr.message);
         setLoading(false);
         return;
       }
 
-      if (!prov) {
+      if (!provBase) {
         setLoading(false);
         return;
       }
+
+      // Optional follow-up: phone fields (auth-only column grants).
+      let phone: string | null = null;
+      let show_phone_publicly = false;
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (authUser) {
+        const { data: phoneRow } = await supabase
+          .from("providers")
+          .select("phone, show_phone_publicly")
+          .eq("id", provBase.id)
+          .maybeSingle();
+        phone = phoneRow?.phone ?? null;
+        show_phone_publicly = !!phoneRow?.show_phone_publicly;
+      }
+      const prov = { ...provBase, phone, show_phone_publicly };
 
       // Update SEO meta tags for the microsite
       const title = `${prov.business_name} — ${prov.category} in ${prov.city}, ${prov.state} | Trimbly`;
