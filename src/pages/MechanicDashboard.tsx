@@ -156,25 +156,29 @@ export default function MechanicDashboard() {
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="flex items-start justify-between gap-3 mb-6">
-            <div className="min-w-0 flex-1">
-              <h1 className="text-2xl md:text-3xl font-extrabold text-foreground flex items-center gap-2">
-                <Wrench className="h-7 w-7 text-primary shrink-0" />
-                <span className="truncate">{provider.business_name}</span>
-              </h1>
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                <Badge variant="secondary" className="text-xs">{provider.category}</Badge>
-                <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                  <MapPin size={12} /> {provider.city}, {provider.state}
-                </span>
-                {provider.subscription_tier === "pro" && (
-                  <Badge className="bg-primary text-primary-foreground text-xs gap-1"><Zap size={10} /> Verified Pro</Badge>
-                )}
+            <div className="min-w-0 flex-1 flex items-center gap-3.5">
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Wrench className="h-6 w-6 md:h-7 md:w-7 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="font-display text-2xl md:text-3xl font-semibold text-foreground truncate">
+                  {provider.business_name}
+                </h1>
+                <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                  <Badge variant="secondary" className="text-xs">{provider.category}</Badge>
+                  <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                    <MapPin size={12} /> {provider.city}, {provider.state}
+                  </span>
+                  {provider.subscription_tier === "pro" && (
+                    <Badge className="bg-primary text-primary-foreground text-xs gap-1"><Zap size={10} /> Verified Pro</Badge>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <span className="text-xs text-muted-foreground hidden sm:inline">Available</span>
               <Switch checked={provider.available} onCheckedChange={toggleAvailable} />
-              <Button variant="outline" size="sm" onClick={openEdit}><Pencil size={14} className="mr-1.5" />Edit</Button>
+              <Button variant="outline" size="sm" className="rounded-lg" onClick={openEdit}><Pencil size={14} className="mr-1.5" />Edit</Button>
             </div>
           </div>
 
@@ -316,9 +320,12 @@ export default function MechanicDashboard() {
 
 function StatCard({ icon: Icon, label, value }: { icon: any; label: string; value: any }) {
   return (
-    <Card><CardContent className="py-4">
-      <div className="flex items-center gap-2 text-muted-foreground text-xs"><Icon size={14} />{label}</div>
-      <div className="text-2xl font-bold mt-1">{value}</div>
+    <Card className="shadow-[var(--card-shadow)]"><CardContent className="py-4">
+      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+        <Icon size={15} className="text-primary" />
+      </div>
+      <div className="font-display text-2xl font-semibold">{value}</div>
+      <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
     </CardContent></Card>
   );
 }

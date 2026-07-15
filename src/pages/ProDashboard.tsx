@@ -399,26 +399,30 @@ const ProDashboard = () => {
       <Navbar />
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-5xl">
-          {/* Header — compact */}
+          {/* Header */}
           <div className="flex items-start justify-between mb-6 gap-3">
-            <div className="min-w-0 flex-1">
-              <h1 className="text-2xl md:text-3xl font-extrabold text-foreground flex items-center gap-2 md:gap-3">
-                <Building2 className="h-7 w-7 md:h-8 md:w-8 text-primary shrink-0" />
-                <span className="truncate">{displayName}</span>
-              </h1>
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                <Badge variant="secondary" className="text-xs">{provider.category}</Badge>
-                <button
-                  onClick={openLocation}
-                  className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 underline-offset-2 hover:underline"
-                >
-                  <MapPin size={12} /> {provider.city}, {provider.state}
-                </button>
-                {provider.subscription_tier === "pro" && (
-                  <Badge className="bg-primary text-primary-foreground text-xs gap-1">
-                    <Zap size={10} /> Verified Pro
-                  </Badge>
-                )}
+            <div className="min-w-0 flex-1 flex items-center gap-3.5">
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Building2 className="h-6 w-6 md:h-7 md:w-7 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="font-display text-2xl md:text-3xl font-semibold text-foreground truncate">
+                  {displayName}
+                </h1>
+                <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                  <Badge variant="secondary" className="text-xs">{provider.category}</Badge>
+                  <button
+                    onClick={openLocation}
+                    className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 underline-offset-2 hover:underline"
+                  >
+                    <MapPin size={12} /> {provider.city}, {provider.state}
+                  </button>
+                  {provider.subscription_tier === "pro" && (
+                    <Badge className="bg-primary text-primary-foreground text-xs gap-1">
+                      <Zap size={10} /> Verified Pro
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -426,9 +430,12 @@ const ProDashboard = () => {
                 <span className="text-xs text-muted-foreground">Available</span>
                 <Switch checked={provider.available} onCheckedChange={toggleAvailability} />
               </div>
+              <Button variant="outline" size="sm" className="hidden md:inline-flex rounded-lg" onClick={() => navigate(`/pro/${provider.id}`)}>
+                <ExternalLink size={14} className="mr-1.5" /> View Public Profile
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon">
+                  <Button variant="outline" size="icon" className="rounded-lg">
                     <MoreVertical size={16} />
                   </Button>
                 </DropdownMenuTrigger>
@@ -443,7 +450,7 @@ const ProDashboard = () => {
                   <DropdownMenuItem onClick={openLocation}>
                     <MapPinned size={14} className="mr-2" /> Change Location
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate(`/pro/${provider.id}`)}>
+                  <DropdownMenuItem onClick={() => navigate(`/pro/${provider.id}`)} className="md:hidden">
                     <ExternalLink size={14} className="mr-2" /> View Public Profile
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -498,24 +505,32 @@ const ProDashboard = () => {
               <div className="space-y-6">
                 {/* Quick stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <button onClick={() => setActiveTab("reviews")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/40 hover:shadow-sm transition-all">
-                    <Star className="mx-auto h-5 w-5 text-yellow-500 mb-1" />
-                    <p className="text-xl font-bold text-foreground">{avgRating}</p>
+                  <button onClick={() => setActiveTab("reviews")} className="rounded-xl border border-border bg-card p-4 text-center shadow-[var(--card-shadow)] hover:border-primary/40 hover:shadow-[var(--card-shadow-hover)] transition-all">
+                    <div className="w-9 h-9 rounded-full bg-yellow-500/10 flex items-center justify-center mx-auto mb-2">
+                      <Star className="h-4 w-4 text-yellow-500" />
+                    </div>
+                    <p className="font-display text-xl font-semibold text-foreground">{avgRating}</p>
                     <p className="text-xs text-muted-foreground">{reviewCount} review{reviewCount !== 1 ? "s" : ""}</p>
                   </button>
-                  <button onClick={() => setActiveTab("bids")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/40 hover:shadow-sm transition-all">
-                    <Briefcase className="mx-auto h-5 w-5 text-primary mb-1" />
-                    <p className="text-xl font-bold text-foreground">{pendingBids}</p>
+                  <button onClick={() => setActiveTab("bids")} className="rounded-xl border border-border bg-card p-4 text-center shadow-[var(--card-shadow)] hover:border-primary/40 hover:shadow-[var(--card-shadow-hover)] transition-all">
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                      <Briefcase className="h-4 w-4 text-primary" />
+                    </div>
+                    <p className="font-display text-xl font-semibold text-foreground">{pendingBids}</p>
                     <p className="text-xs text-muted-foreground">Pending bids</p>
                   </button>
-                  <button onClick={() => setActiveTab("bids")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/40 hover:shadow-sm transition-all">
-                    <CheckCircle className="mx-auto h-5 w-5 text-green-500 mb-1" />
-                    <p className="text-xl font-bold text-foreground">{acceptedBids}</p>
+                  <button onClick={() => setActiveTab("bids")} className="rounded-xl border border-border bg-card p-4 text-center shadow-[var(--card-shadow)] hover:border-primary/40 hover:shadow-[var(--card-shadow-hover)] transition-all">
+                    <div className="w-9 h-9 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    </div>
+                    <p className="font-display text-xl font-semibold text-foreground">{acceptedBids}</p>
                     <p className="text-xs text-muted-foreground">Accepted</p>
                   </button>
-                  <button onClick={() => setActiveTab("messages")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/40 hover:shadow-sm transition-all">
-                    <MessageSquare className="mx-auto h-5 w-5 text-blue-500 mb-1" />
-                    <p className="text-xl font-bold text-foreground">{unreadMessages}</p>
+                  <button onClick={() => setActiveTab("messages")} className="rounded-xl border border-border bg-card p-4 text-center shadow-[var(--card-shadow)] hover:border-primary/40 hover:shadow-[var(--card-shadow-hover)] transition-all">
+                    <div className="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-2">
+                      <MessageSquare className="h-4 w-4 text-blue-500" />
+                    </div>
+                    <p className="font-display text-xl font-semibold text-foreground">{unreadMessages}</p>
                     <p className="text-xs text-muted-foreground">Unread</p>
                   </button>
                 </div>
@@ -536,10 +551,10 @@ const ProDashboard = () => {
                       <button
                         key={a.label}
                         onClick={a.onClick}
-                        className="group rounded-lg border border-border bg-card p-4 text-left hover:border-primary/40 hover:shadow-sm transition-all"
+                        className="group rounded-xl border border-border bg-card p-4 text-left shadow-[var(--card-shadow)] hover:border-primary/40 hover:shadow-[var(--card-shadow-hover)] transition-all"
                       >
                         <div className="flex items-start gap-3">
-                          <div className={`w-9 h-9 rounded-md flex items-center justify-center shrink-0 ${a.accent}`}>
+                          <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${a.accent}`}>
                             <a.icon size={18} />
                           </div>
                           <div className="flex-1 min-w-0">
