@@ -897,6 +897,11 @@ const ProDashboard = () => {
                 </CardContent>
               </Card>
 
+              <BusinessHoursPanel
+                providerId={provider.id}
+                initial={(provider as any).business_hours}
+              />
+
               {/* Pro upgrade banner for free providers */}
               {provider.subscription_tier === "free" && (
                 <Card className="mt-6 border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
