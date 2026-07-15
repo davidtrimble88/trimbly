@@ -169,8 +169,6 @@ const PublicProviderProfile = () => {
         setAvgReplyMinutes(Number(rtRow.avg_reply_minutes));
       }
       setStats({
-        completed: completed ?? 0,
-        bids: bids ?? 0,
         reviews: reviewList.length,
         avgRating: Math.round(avg * 10) / 10,
       });
