@@ -127,11 +127,11 @@ const PublicProviderProfile = () => {
       if (prov.slug) canonical.setAttribute("href", `${window.location.origin}/pros/${prov.slug}`);
 
       // Track profile view (fire-and-forget; ignore failures)
-      const { data: authData } = await supabase.auth.getUser();
       supabase.from("profile_views").insert({
         provider_id: prov.id,
-        viewer_id: authData.user?.id ?? null,
+        viewer_id: authUser?.id ?? null,
       }).then(() => {}, () => {});
+
 
       const [{ data: prof }, { count: completed }, { count: bids }, { data: revs }, { data: rt }] = await Promise.all([
         supabase.from("profiles").select("avatar_url").eq("id", prov.user_id).maybeSingle(),
