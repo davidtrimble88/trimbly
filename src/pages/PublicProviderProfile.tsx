@@ -293,6 +293,8 @@ const PublicProviderProfile = () => {
                 stats={[
                   { label: "Reviews", value: stats.reviews, icon: Star },
                   { label: "Avg Rating", value: stats.avgRating || "—", icon: Star },
+                  { label: "Yrs Experience", value: provider.years_experience ?? "—", icon: Award },
+                  { label: "Service Radius", value: provider.service_radius_miles > 0 ? `${provider.service_radius_miles} mi` : "—", icon: MapPin },
                 ]}
               />
 
