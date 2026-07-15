@@ -64,15 +64,27 @@ const PublicProviderProfile = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [avgReplyMinutes, setAvgReplyMinutes] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       const lookup = supabase
         .from("providers")
         .select("id, user_id, business_name, category, description, bio, city, state, country, slug, years_experience, licensed, insured, verified, subscription_tier, gallery_urls, emergency_available, emergency_rate_multiplier, service_radius_miles, business_hours, phone, show_phone_publicly");
-      const { data: prov } = slug
+      const { data: prov, error: provErr } = slug
         ? await lookup.eq("slug", slug).maybeSingle()
         : await lookup.eq("id", providerId).maybeSingle();
+
+      if (provErr) {
+        // A real query failure (e.g. a column referenced here doesn't exist
+        // yet because a migration hasn't been applied) looks identical to a
+        // missing profile unless we log it — surface it loudly so this never
+        // gets mistaken for "this pro doesn't exist" again.
+        console.error("PublicProviderProfile: failed to load provider", provErr);
+        setLoadError(provErr.message);
+        setLoading(false);
+        return;
+      }
 
       if (!prov) {
         setLoading(false);
@@ -162,8 +174,19 @@ const PublicProviderProfile = () => {
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
         <main className="flex-1 pt-24 pb-16 container mx-auto px-4 max-w-md text-center py-16">
-          <h1 className="text-2xl font-bold mb-2">Pro not found</h1>
-          <p className="text-muted-foreground mb-6">This profile doesn't exist or has been removed.</p>
+          {loadError ? (
+            <>
+              <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
+              <p className="text-muted-foreground mb-6">
+                We couldn't load this profile right now — this usually means a temporary issue, not that the profile doesn't exist. Please try again in a moment.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold mb-2">Pro not found</h1>
+              <p className="text-muted-foreground mb-6">This profile doesn't exist or has been removed.</p>
+            </>
+          )}
           <Button asChild><Link to="/search">Browse pros</Link></Button>
         </main>
         <Footer />
