@@ -9,8 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import BusinessHoursPanel, { type BusinessHours } from "@/components/pro/BusinessHoursPanel";
 import {
-  MapPin, Briefcase, CheckCircle, Star, Loader2, ShieldCheck, Award,
-  MessageSquare, Inbox, Zap, Clock, Phone, Pencil,
+  MapPin, Briefcase, Star, Loader2, ShieldCheck, Award,
+  MessageSquare, Zap, Clock, Phone, Pencil,
+
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -60,7 +61,7 @@ const PublicProviderProfile = () => {
   const [hoursDialogOpen, setHoursDialogOpen] = useState(false);
   const [provider, setProvider] = useState<ProviderRow | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [stats, setStats] = useState({ completed: 0, bids: 0, reviews: 0, avgRating: 0 });
+  const [stats, setStats] = useState({ reviews: 0, avgRating: 0 });
   const [reviews, setReviews] = useState<Review[]>([]);
   const [avgReplyMinutes, setAvgReplyMinutes] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -133,14 +134,8 @@ const PublicProviderProfile = () => {
       }).then(() => {}, () => {});
 
 
-      const [{ data: prof }, { count: completed }, { count: bids }, { data: revs }, { data: rt }] = await Promise.all([
+      const [{ data: prof }, { data: revs }, { data: rt }] = await Promise.all([
         supabase.from("profiles").select("avatar_url").eq("id", prov.user_id).maybeSingle(),
-        supabase
-          .from("jobs")
-          .select("id", { count: "exact", head: true })
-          .eq("provider_id", prov.id)
-          .eq("status", "completed"),
-        supabase.from("job_bids").select("id", { count: "exact", head: true }).eq("provider_id", prov.id),
         supabase
           .from("reviews")
           .select("id, rating, comment, created_at")
@@ -168,8 +163,6 @@ const PublicProviderProfile = () => {
         setAvgReplyMinutes(Number(rtRow.avg_reply_minutes));
       }
       setStats({
-        completed: completed ?? 0,
-        bids: bids ?? 0,
         reviews: reviewList.length,
         avgRating: Math.round(avg * 10) / 10,
       });
@@ -298,8 +291,6 @@ const PublicProviderProfile = () => {
             <div className="space-y-6 min-w-0">
               <StatsGrid
                 stats={[
-                  { label: "Jobs Completed", value: stats.completed, icon: CheckCircle },
-                  { label: "Bids Submitted", value: stats.bids, icon: Inbox },
                   { label: "Reviews", value: stats.reviews, icon: Star },
                   { label: "Avg Rating", value: stats.avgRating || "—", icon: Star },
                 ]}
