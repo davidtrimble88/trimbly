@@ -134,14 +134,8 @@ const PublicProviderProfile = () => {
       }).then(() => {}, () => {});
 
 
-      const [{ data: prof }, { count: completed }, { count: bids }, { data: revs }, { data: rt }] = await Promise.all([
+      const [{ data: prof }, { data: revs }, { data: rt }] = await Promise.all([
         supabase.from("profiles").select("avatar_url").eq("id", prov.user_id).maybeSingle(),
-        supabase
-          .from("jobs")
-          .select("id", { count: "exact", head: true })
-          .eq("provider_id", prov.id)
-          .eq("status", "completed"),
-        supabase.from("job_bids").select("id", { count: "exact", head: true }).eq("provider_id", prov.id),
         supabase
           .from("reviews")
           .select("id, rating, comment, created_at")
