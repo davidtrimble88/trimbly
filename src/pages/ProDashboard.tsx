@@ -20,6 +20,7 @@ import {
   Briefcase, MessageSquare, Clock, CheckCircle,
   Eye, Zap, Crown, Pencil, Award, PhoneOff, MapPinned, Sparkles,
   LayoutDashboard, MoreVertical, ArrowRight, ExternalLink, QrCode,
+  TrendingUp,
 } from "lucide-react";
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -392,10 +393,10 @@ const ProDashboard = () => {
         steps={[
           { title: "Overview", body: "Your at-a-glance stats: profile views, pending bids, unread messages, and reviews. Watch the credential alert banner — keep your license and insurance dates current to stay visible in search." },
           { title: "Bids Tab", body: "Browse open job posts from homeowners in your service area and submit bids. Accepted bids move into an active chat thread." },
-          { title: "Tools Tab", body: "Pro-only growth tools: service area, service plans, mileage log, yard sign QR code, AI follow-ups, competitor pricing intel, and more." },
+          { title: "Tools Tab", body: "Grow My Business (marketing, referrals, AI leads) and Day-to-Day Work (quotes, plans, mileage) — with quick-jump buttons at the top. Your business info, service area, and app settings now live on the Profile tab." },
           { title: "Reviews Tab", body: "Monitor your ratings and respond to homeowner reviews. Auto-review requests can be enabled in Tools." },
           { title: "Messages Tab", body: "Chat with homeowners in-app. Phone numbers stay private until the homeowner explicitly shares them — keep first contact in messaging." },
-          { title: "Profile Tab", body: "Edit your business details, services, gallery, business hours, license & insurance info. A complete, up-to-date profile gets significantly more leads." },
+          { title: "Profile Tab", body: "Edit your business details, services, gallery, business hours, service area, license & insurance info, plus notification and app settings. A complete, up-to-date profile gets significantly more leads." },
           { title: "Go Pro for More", body: "Upgrade to Pro Provider for unlimited bids, priority placement, AI tools, and advanced analytics. Find pricing on the Pro Pricing page." },
         ]}
       />
@@ -607,53 +608,79 @@ const ProDashboard = () => {
             </TabsContent>
 
             <TabsContent value="tools">
-              <div className="space-y-6">
-                <ProFeaturesPanel
-                  provider={provider}
-                  userId={user!.id}
-                  onUpdated={(patch) => setProvider((p) => p ? { ...p, ...patch } : p)}
-                />
-                <ServiceAreaPanel
-                  providerId={provider.id}
-                  city={provider.city}
-                  state={provider.state}
-                  initialRadius={provider.service_radius_miles}
-                  onUpdated={(r) => setProvider((p) => p ? { ...p, service_radius_miles: r } : p)}
-                />
-                <QuotesPanel
-                  providerId={provider.id}
-                  providerUserId={user!.id}
-                  businessName={provider.business_name}
-                />
-                <UpsellPanel
-                  providerId={provider.id}
-                  providerCategory={provider.category}
-                  businessName={provider.business_name}
-                  userId={user!.id}
-                />
-                <SkillBadgesPanel providerId={provider.id} userId={user!.id} />
-                <CompetitorPricingPanel
-                  category={provider.category}
-                  city={provider.city}
-                  state={provider.state}
-                  hourlyMin={provider.hourly_rate_min}
-                  hourlyMax={provider.hourly_rate_max}
-                />
-                <AIFollowUpPanel providerId={provider.id} userId={user!.id} businessName={provider.business_name} />
-                <AutoReviewPanel providerId={provider.id} userId={user!.id} />
-                <ReferralPanel providerId={provider.id} userId={user!.id} />
-                <YardSignQRPanel
-                  providerSlug={(provider as any).slug || null}
-                  providerId={provider.id}
-                  businessName={provider.business_name}
-                  category={provider.category}
-                  city={provider.city}
-                  state={provider.state}
-                />
-                <MileageLogPanel providerId={provider.id} userId={user!.id} />
-                <NotificationPrefsPanel userId={user!.id} />
-                <InstallAppPanel />
-                <ServicePlansPanel providerId={provider.id} />
+              {/* Quick jump so tools don't require blind scrolling to find one */}
+              <div className="flex flex-wrap gap-2 mb-6 sticky top-16 z-10 bg-background/95 backdrop-blur py-2 -mx-1 px-1">
+                {[
+                  { id: "tools-grow", label: "Grow My Business", icon: TrendingUp },
+                  { id: "tools-operations", label: "Day-to-Day Work", icon: Briefcase },
+                ].map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border border-border bg-card hover:border-primary/40 hover:text-primary transition-colors"
+                  >
+                    <s.icon size={13} /> {s.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mb-6 -mt-3">
+                Looking for your business info, service area, or app settings? Those moved to the <button onClick={() => setActiveTab("profile")} className="text-primary hover:underline font-medium">Profile</button> tab.
+              </p>
+
+              <div className="space-y-10">
+                {/* ── Grow My Business ── */}
+                <div id="tools-grow" className="scroll-mt-32">
+                  <div className="flex items-center gap-2 mb-1">
+                    <TrendingUp size={18} className="text-primary" />
+                    <h2 className="font-display text-lg font-semibold text-foreground">Grow My Business</h2>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4">Marketing, leads, and AI tools that bring in more work.</p>
+                  <div className="space-y-6">
+                    <UpsellPanel
+                      providerId={provider.id}
+                      providerCategory={provider.category}
+                      businessName={provider.business_name}
+                      userId={user!.id}
+                    />
+                    <CompetitorPricingPanel
+                      category={provider.category}
+                      city={provider.city}
+                      state={provider.state}
+                      hourlyMin={provider.hourly_rate_min}
+                      hourlyMax={provider.hourly_rate_max}
+                    />
+                    <AIFollowUpPanel providerId={provider.id} userId={user!.id} businessName={provider.business_name} />
+                    <AutoReviewPanel providerId={provider.id} userId={user!.id} />
+                    <SkillBadgesPanel providerId={provider.id} userId={user!.id} />
+                    <ReferralPanel providerId={provider.id} userId={user!.id} />
+                    <YardSignQRPanel
+                      providerSlug={(provider as any).slug || null}
+                      providerId={provider.id}
+                      businessName={provider.business_name}
+                      category={provider.category}
+                      city={provider.city}
+                      state={provider.state}
+                    />
+                  </div>
+                </div>
+
+                {/* ── Day-to-Day Work ── */}
+                <div id="tools-operations" className="scroll-mt-32">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Briefcase size={18} className="text-primary" />
+                    <h2 className="font-display text-lg font-semibold text-foreground">Day-to-Day Work</h2>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4">Send quotes, manage recurring plans, and track mileage.</p>
+                  <div className="space-y-6">
+                    <QuotesPanel
+                      providerId={provider.id}
+                      providerUserId={user!.id}
+                      businessName={provider.business_name}
+                    />
+                    <ServicePlansPanel providerId={provider.id} />
+                    <MileageLogPanel providerId={provider.id} userId={user!.id} />
+                  </div>
+                </div>
               </div>
             </TabsContent>
 
@@ -907,6 +934,20 @@ const ProDashboard = () => {
                 initial={(provider as any).business_hours}
               />
 
+              <ServiceAreaPanel
+                providerId={provider.id}
+                city={provider.city}
+                state={provider.state}
+                initialRadius={provider.service_radius_miles}
+                onUpdated={(r) => setProvider((p) => p ? { ...p, service_radius_miles: r } : p)}
+              />
+
+              <ProFeaturesPanel
+                provider={provider}
+                userId={user!.id}
+                onUpdated={(patch) => setProvider((p) => p ? { ...p, ...patch } : p)}
+              />
+
               {/* Pro upgrade banner for free providers */}
               {provider.subscription_tier === "free" && (
                 <Card className="mt-6 border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
@@ -933,6 +974,15 @@ const ProDashboard = () => {
                   </CardContent>
                 </Card>
               )}
+
+              {/* ── Account & App ── */}
+              <div className="pt-2">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Account & App</h2>
+                <div className="space-y-6">
+                  <NotificationPrefsPanel userId={user!.id} />
+                  <InstallAppPanel />
+                </div>
+              </div>
             </TabsContent>
 
             {/* Verification Tab */}
