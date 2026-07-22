@@ -32,6 +32,7 @@ import QuotesPanel from "@/components/pro/QuotesPanel";
 import ServicePlansPanel from "@/components/pro/ServicePlansPanel";
 import CredentialAlertBanner from "@/components/pro/CredentialAlertBanner";
 import BusinessHoursPanel from "@/components/pro/BusinessHoursPanel";
+import PaymentMethodsPanel from "@/components/pro/PaymentMethodsPanel";
 import UpsellPanel from "@/components/pro/UpsellPanel";
 import MileageLogPanel from "@/components/pro/MileageLogPanel";
 import SkillBadgesPanel from "@/components/pro/SkillBadgesPanel";
@@ -56,6 +57,8 @@ type ProviderProfile = {
   postal_code: string | null;
   phone: string | null;
   show_phone_publicly: boolean;
+  payment_methods: string[];
+  payment_handles: Record<string, string>;
   website: string | null;
   description: string | null;
   hourly_rate_min: number;
@@ -932,6 +935,13 @@ const ProDashboard = () => {
               <BusinessHoursPanel
                 providerId={provider.id}
                 initial={(provider as any).business_hours}
+              />
+
+              <PaymentMethodsPanel
+                providerId={provider.id}
+                initialMethods={provider.payment_methods}
+                initialHandles={provider.payment_handles}
+                onSaved={(methods, handles) => setProvider((p) => p ? { ...p, payment_methods: methods, payment_handles: handles } : p)}
               />
 
               <ServiceAreaPanel

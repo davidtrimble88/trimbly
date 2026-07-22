@@ -10,10 +10,11 @@ import { Button } from "@/components/ui/button";
 import BusinessHoursPanel, { type BusinessHours } from "@/components/pro/BusinessHoursPanel";
 import {
   MapPin, Briefcase, Star, Loader2, ShieldCheck, Award,
-  MessageSquare, Zap, Clock, Phone, Pencil,
+  MessageSquare, Zap, Clock, Phone, Pencil, Wallet, ExternalLink,
 
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { PAYMENT_METHOD_MAP } from "@/lib/paymentMethods";
 import { useAuth } from "@/hooks/useAuth";
 import AuthGateDialog from "@/components/AuthGateDialog";
 import StatsGrid from "@/components/profile/StatsGrid";
@@ -44,6 +45,8 @@ interface ProviderRow {
   business_hours: Record<string, { open: string; close: string; closed: boolean }> | null;
   phone: string | null;
   show_phone_publicly: boolean;
+  payment_methods: string[];
+  payment_handles: Record<string, string>;
 }
 
 interface Review {
@@ -76,7 +79,7 @@ const PublicProviderProfile = () => {
       // second query only when the viewer is authenticated.
       const lookup = supabase
         .from("providers")
-        .select("id, user_id, business_name, category, description, bio, city, state, country, slug, years_experience, licensed, insured, verified, subscription_tier, gallery_urls, emergency_available, emergency_rate_multiplier, service_radius_miles, business_hours");
+        .select("id, user_id, business_name, category, description, bio, city, state, country, slug, years_experience, licensed, insured, verified, subscription_tier, gallery_urls, emergency_available, emergency_rate_multiplier, service_radius_miles, business_hours, payment_methods, payment_handles");
       const { data: provBase, error: provErr } = slug
         ? await lookup.eq("slug", slug).maybeSingle()
         : await lookup.eq("id", providerId).maybeSingle();
@@ -439,6 +442,53 @@ const PublicProviderProfile = () => {
                         You haven't set your hours yet — homeowners can't see when you're open. Click Edit to add them.
                       </p>
                     )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Payment Methods — purely informational, Trimbly never processes these */}
+              {provider.payment_methods?.length > 0 && (
+                <Card className="shadow-[var(--card-shadow)]">
+                  <CardContent className="p-6">
+                    <h2 className="font-display font-semibold text-lg text-foreground mb-3 flex items-center gap-2">
+                      <Wallet size={18} className="text-primary" /> Payment Methods
+                    </h2>
+                    <div className="flex flex-wrap gap-2">
+                      {provider.payment_methods.map((key) => {
+                        const def = PAYMENT_METHOD_MAP[key];
+                        if (!def) return null;
+                        const handle = provider.payment_handles?.[key];
+                        const link = def.hasHandle && def.buildLink && handle ? def.buildLink(handle) : null;
+                        if (link) {
+                          return (
+                            <a
+                              key={key}
+                              href={link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/15 px-3 py-1.5 rounded-full transition-colors"
+                            >
+                              Pay via {def.label} <ExternalLink size={12} />
+                            </a>
+                          );
+                        }
+                        if (def.key === "zelle" && handle) {
+                          return (
+                            <span key={key} className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground bg-secondary px-3 py-1.5 rounded-full">
+                              {def.label}: {handle}
+                            </span>
+                          );
+                        }
+                        return (
+                          <span key={key} className="inline-flex items-center text-sm font-medium text-foreground bg-secondary px-3 py-1.5 rounded-full">
+                            {def.label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-3">
+                      Payment is handled directly between you and {provider.business_name} — Trimbly isn't involved.
+                    </p>
                   </CardContent>
                 </Card>
               )}

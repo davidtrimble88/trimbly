@@ -19,10 +19,12 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import InspectionReportDialog from "@/components/mechanic/InspectionReportDialog";
+import PaymentMethodsPanel from "@/components/pro/PaymentMethodsPanel";
 
 type Provider = {
   id: string; user_id: string; business_name: string; category: string;
   city: string; state: string; phone: string | null; show_phone_publicly: boolean; website: string | null;
+  payment_methods: string[]; payment_handles: Record<string, string>;
   description: string | null; hourly_rate_min: number; hourly_rate_max: number;
   available: boolean; subscription_tier: string; licensed: boolean;
   license_number: string | null; insured: boolean; insurance_details: string | null;
@@ -205,6 +207,12 @@ export default function MechanicDashboard() {
                   <Button onClick={() => navigate("/vehicle-jobs")} className="gap-2"><Wrench size={14} /> Open Vehicle Jobs Board <ExternalLink size={12} /></Button>
                 </CardContent>
               </Card>
+              <PaymentMethodsPanel
+                providerId={provider.id}
+                initialMethods={provider.payment_methods}
+                initialHandles={provider.payment_handles}
+                onSaved={(methods, handles) => setProvider((p) => p ? { ...p, payment_methods: methods, payment_handles: handles } : p)}
+              />
               {provider.subscription_tier !== "pro" && (
                 <Card className="border-primary/40 bg-primary/5">
                   <CardContent className="py-5 flex items-start gap-4">

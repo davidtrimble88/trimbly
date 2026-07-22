@@ -1450,6 +1450,8 @@ export type Database = {
           provider_type: string
           service_radius_miles: number
           show_phone_publicly: boolean
+          payment_methods: string[]
+          payment_handles: Json
           slug: string | null
           state: string
           stripe_connect_account_id: string | null
@@ -1499,6 +1501,8 @@ export type Database = {
           provider_type?: string
           service_radius_miles?: number
           show_phone_publicly?: boolean
+          payment_methods?: string[]
+          payment_handles?: Json
           slug?: string | null
           state: string
           stripe_connect_account_id?: string | null
@@ -1548,6 +1552,8 @@ export type Database = {
           provider_type?: string
           service_radius_miles?: number
           show_phone_publicly?: boolean
+          payment_methods?: string[]
+          payment_handles?: Json
           slug?: string | null
           state?: string
           stripe_connect_account_id?: string | null
