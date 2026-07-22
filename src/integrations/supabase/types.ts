@@ -1445,6 +1445,8 @@ export type Database = {
           license_expiry: string | null
           license_number: string | null
           licensed: boolean
+          payment_handles: Json
+          payment_methods: string[]
           phone: string | null
           postal_code: string | null
           provider_type: string
@@ -1494,6 +1496,8 @@ export type Database = {
           license_expiry?: string | null
           license_number?: string | null
           licensed?: boolean
+          payment_handles?: Json
+          payment_methods?: string[]
           phone?: string | null
           postal_code?: string | null
           provider_type?: string
@@ -1543,6 +1547,8 @@ export type Database = {
           license_expiry?: string | null
           license_number?: string | null
           licensed?: boolean
+          payment_handles?: Json
+          payment_methods?: string[]
           phone?: string | null
           postal_code?: string | null
           provider_type?: string
