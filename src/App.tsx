@@ -1,4 +1,5 @@
 import { useEffect, lazy, Suspense } from "react";
+import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -123,6 +124,7 @@ const RouteLoader = () => (
 );
 
 const App = () => (
+  <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
   <QueryClientProvider client={queryClient}>
     <ErrorBoundary>
       <AuthProvider>
@@ -218,6 +220,7 @@ const App = () => (
     </AuthProvider>
     </ErrorBoundary>
   </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

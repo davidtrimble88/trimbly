@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import ThemeToggle from "./ThemeToggle";
 
 interface DashboardHeaderProps {
   avatarIcon: LucideIcon;
@@ -53,6 +54,7 @@ const DashboardHeader = ({
         <Button variant="outline" size="sm" className="hidden md:inline-flex rounded-lg" onClick={onViewPublicProfile}>
           <ExternalLink size={14} className="mr-1.5" /> View Public Profile
         </Button>
+        <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon" className="rounded-lg">
