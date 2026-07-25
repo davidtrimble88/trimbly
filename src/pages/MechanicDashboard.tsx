@@ -2,34 +2,22 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Wrench, Car, Bike, MapPin, DollarSign, Star, MessageSquare,
-  Briefcase, Zap, ExternalLink, Pencil,
+  Briefcase, Zap, ExternalLink, LayoutDashboard,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import InspectionReportDialog from "@/components/mechanic/InspectionReportDialog";
 import PaymentMethodsPanel from "@/components/pro/PaymentMethodsPanel";
-
-type Provider = {
-  id: string; user_id: string; business_name: string; category: string;
-  city: string; state: string; phone: string | null; show_phone_publicly: boolean; website: string | null;
-  payment_methods: string[]; payment_handles: Record<string, string>;
-  description: string | null; hourly_rate_min: number; hourly_rate_max: number;
-  available: boolean; subscription_tier: string; licensed: boolean;
-  license_number: string | null; insured: boolean; insurance_details: string | null;
-  provider_type?: string; slug?: string | null;
-};
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import { DashboardNavItem } from "@/components/dashboard/types";
+import StatCard from "@/components/dashboard/StatCard";
+import EditProfileDialog from "@/components/dashboard/pro/EditProfileDialog";
+import type { ProviderProfile } from "@/components/dashboard/pro/types";
 
 type VBid = {
   id: string; vehicle_job_id: string; message: string;
@@ -41,15 +29,24 @@ type VBid = {
 export default function MechanicDashboard() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [provider, setProvider] = useState<Provider | null>(null);
+  const [provider, setProvider] = useState<ProviderProfile | null>(null);
   const [bids, setBids] = useState<VBid[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("overview");
+  const activeTab = searchParams.get("tab") || "overview";
+  const setActiveTab = (tab: string) => {
+    if (tab === "overview") {
+      searchParams.delete("tab");
+    } else {
+      searchParams.set("tab", tab);
+    }
+    setSearchParams(searchParams, { replace: true });
+  };
   const [editOpen, setEditOpen] = useState(false);
-  const [editForm, setEditForm] = useState<Partial<Provider>>({});
+  const [editForm, setEditForm] = useState<Partial<ProviderProfile>>({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -60,9 +57,9 @@ export default function MechanicDashboard() {
     const result = searchParams.get("subscription");
     if (!result) return;
     if (result === "success") {
-      toast.success("Welcome to Pro Mechanic! Your subscription is active.");
+      toast({ title: "Welcome to Pro Mechanic!", description: "Your subscription is active." });
     } else if (result === "cancelled") {
-      toast.info("Checkout cancelled. No charge was made.");
+      toast({ title: "Checkout cancelled", description: "No charge was made." });
     }
     searchParams.delete("subscription");
     setSearchParams(searchParams, { replace: true });
@@ -74,7 +71,7 @@ export default function MechanicDashboard() {
     setLoading(true);
     const { data: prov } = await supabase.from("providers").select("*").eq("user_id", user.id).maybeSingle();
     if (!prov) { setLoading(false); return; }
-    setProvider(prov as Provider);
+    setProvider(prov as ProviderProfile);
 
     const [bidsRes, reviewsRes, msgsRes] = await Promise.all([
       supabase.from("vehicle_job_bids")
@@ -97,7 +94,7 @@ export default function MechanicDashboard() {
     const v = !provider.available;
     await supabase.from("providers").update({ available: v }).eq("id", provider.id);
     setProvider({ ...provider, available: v });
-    toast.success(v ? "You're now available" : "You're now unavailable");
+    toast({ title: v ? "You're now available" : "You're now unavailable" });
   };
 
   const openEdit = () => { if (provider) { setEditForm(provider); setEditOpen(true); } };
@@ -114,35 +111,34 @@ export default function MechanicDashboard() {
       hourly_rate_max: editForm.hourly_rate_max,
     }).eq("id", provider.id);
     setSaving(false);
-    if (error) toast.error(error.message);
-    else { setProvider({ ...provider, ...editForm } as Provider); setEditOpen(false); toast.success("Profile updated"); }
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setProvider({ ...provider, ...editForm } as ProviderProfile);
+      setEditOpen(false);
+      toast({ title: "Profile updated" });
+    }
   };
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-4 pt-24 pb-16 max-w-5xl space-y-6">
-          <Skeleton className="h-10 w-64" />
-          <div className="grid md:grid-cols-4 gap-4">{[1,2,3,4].map(i => <Skeleton key={i} className="h-24" />)}</div>
-          <Skeleton className="h-64" />
-        </div>
-        <Footer />
+      <div className="min-h-screen bg-background container mx-auto px-4 pt-16 pb-16 max-w-5xl space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <div className="grid md:grid-cols-4 gap-4">{[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}</div>
+        <Skeleton className="h-64" />
       </div>
     );
   }
 
   if (!provider) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-4 pt-24 pb-16 text-center">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
           <Wrench className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
           <h1 className="text-3xl font-bold mb-2">No Mechanic Profile</h1>
           <p className="text-muted-foreground mb-6">Create your shop profile to start receiving vehicle jobs.</p>
           <Button size="lg" onClick={() => navigate("/mechanic-pricing")}>Register as a Mechanic</Button>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -152,198 +148,157 @@ export default function MechanicDashboard() {
   const accepted = bids.filter(b => b.status === "accepted").length;
   const unread = messages.filter(m => !m.read).length;
 
+  const navItems: DashboardNavItem[] = [
+    { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "bids", label: "Bids", icon: Wrench, badge: pending },
+    { id: "reviews", label: "Reviews", icon: Star },
+    { id: "messages", label: "Messages", icon: MessageSquare, badge: unread },
+  ];
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Navbar />
-      <main className="flex-1 pt-24 pb-16">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <div className="flex items-start justify-between gap-3 mb-6">
-            <div className="min-w-0 flex-1 flex items-center gap-3.5">
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <Wrench className="h-6 w-6 md:h-7 md:w-7 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="font-display text-2xl md:text-3xl font-semibold text-foreground truncate">
-                  {provider.business_name}
-                </h1>
-                <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                  <Badge variant="secondary" className="text-xs">{provider.category}</Badge>
-                  <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                    <MapPin size={12} /> {provider.city}, {provider.state}
-                  </span>
-                  {provider.subscription_tier === "pro" && (
-                    <Badge className="bg-primary text-primary-foreground text-xs gap-1"><Zap size={10} /> Verified Pro</Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-xs text-muted-foreground hidden sm:inline">Available</span>
-              <Switch checked={provider.available} onCheckedChange={toggleAvailable} />
-              <Button variant="outline" size="sm" className="rounded-lg" onClick={openEdit}><Pencil size={14} className="mr-1.5" />Edit</Button>
-            </div>
-          </div>
+    <>
+      <DashboardShell
+        brandLabel="Mechanic Dashboard"
+        navItems={navItems}
+        activeItemId={activeTab}
+        onNavigate={(item) => setActiveTab(item.id)}
+        header={{
+          avatarIcon: Wrench,
+          displayName: provider.business_name,
+          subtitle: (
+            <>
+              <Badge variant="secondary" className="text-xs">{provider.category}</Badge>
+              <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                <MapPin size={12} /> {provider.city}, {provider.state}
+              </span>
+              {provider.subscription_tier === "pro" && (
+                <Badge className="bg-primary text-primary-foreground text-xs gap-1"><Zap size={10} /> Verified Pro</Badge>
+              )}
+            </>
+          ),
+          available: provider.available,
+          onToggleAvailable: toggleAvailable,
+          onEditProfile: openEdit,
+          onViewPublicProfile: () => navigate(`/pro/${provider.id}`),
+        }}
+      >
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <StatCard icon={Briefcase} value={pending} label="Pending Bids" onClick={() => setActiveTab("bids")} />
+          <StatCard icon={Star} value={avgRating} label="Avg Rating" isEmpty={reviews.length === 0} emptyLabel="No reviews yet" onClick={() => setActiveTab("reviews")} />
+          <StatCard icon={MessageSquare} value={unread} label="Unread" onClick={() => setActiveTab("messages")} />
+          <StatCard icon={DollarSign} value={accepted} label="Accepted" onClick={() => setActiveTab("bids")} />
+        </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <StatCard icon={Briefcase} label="Pending Bids" value={pending} />
-            <StatCard icon={Star} label="Avg Rating" value={avgRating} />
-            <StatCard icon={MessageSquare} label="Unread" value={unread} />
-            <StatCard icon={DollarSign} label="Accepted" value={accepted} />
-          </div>
-
-          <Tabs value={tab} onValueChange={setTab} className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="bids">Bids</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews</TabsTrigger>
-              <TabsTrigger value="messages">Messages</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="overview" className="space-y-4">
-              <Card>
-                <CardHeader><CardTitle className="text-base">Find New Vehicle Work</CardTitle></CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-sm text-muted-foreground">Browse open jobs from My Garage subscribers and place bids.</p>
-                  <Button onClick={() => navigate("/vehicle-jobs")} className="gap-2"><Wrench size={14} /> Open Vehicle Jobs Board <ExternalLink size={12} /></Button>
+        {activeTab === "overview" && (
+          <div className="space-y-4">
+            <Card>
+              <CardHeader><CardTitle className="text-base">Find New Vehicle Work</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">Browse open jobs from My Garage subscribers and place bids.</p>
+                <Button onClick={() => navigate("/vehicle-jobs")} className="gap-2"><Wrench size={14} /> Open Vehicle Jobs Board <ExternalLink size={12} /></Button>
+              </CardContent>
+            </Card>
+            <PaymentMethodsPanel
+              providerId={provider.id}
+              initialMethods={provider.payment_methods}
+              initialHandles={provider.payment_handles}
+              onSaved={(methods, handles) => setProvider((p) => p ? { ...p, payment_methods: methods, payment_handles: handles } : p)}
+            />
+            {provider.subscription_tier !== "pro" && (
+              <Card className="border-primary/40 bg-primary/5">
+                <CardContent className="py-5 flex items-start gap-4">
+                  <Zap className="text-primary mt-1" />
+                  <div className="flex-1">
+                    <div className="font-semibold">Upgrade to Pro Mechanic</div>
+                    <p className="text-sm text-muted-foreground mb-3">Priority placement, verified badge, bid analytics & more leads.</p>
+                    <Button size="sm" onClick={() => navigate("/mechanic-pricing")}>See Pro plan</Button>
+                  </div>
                 </CardContent>
               </Card>
-              <PaymentMethodsPanel
-                providerId={provider.id}
-                initialMethods={provider.payment_methods}
-                initialHandles={provider.payment_handles}
-                onSaved={(methods, handles) => setProvider((p) => p ? { ...p, payment_methods: methods, payment_handles: handles } : p)}
-              />
-              {provider.subscription_tier !== "pro" && (
-                <Card className="border-primary/40 bg-primary/5">
-                  <CardContent className="py-5 flex items-start gap-4">
-                    <Zap className="text-primary mt-1" />
-                    <div className="flex-1">
-                      <div className="font-semibold">Upgrade to Pro Mechanic</div>
-                      <p className="text-sm text-muted-foreground mb-3">Priority placement, verified badge, bid analytics & more leads.</p>
-                      <Button size="sm" onClick={() => navigate("/mechanic-pricing")}>See Pro plan</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="bids" className="space-y-3">
-              {bids.length === 0 ? (
-                <Card><CardContent className="py-12 text-center text-muted-foreground">
-                  No bids yet. <Button variant="link" onClick={() => navigate("/vehicle-jobs")}>Browse open vehicle jobs →</Button>
-                </CardContent></Card>
-              ) : bids.map(b => (
-                <Card key={b.id}>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {b.vehicle_job?.service_type === "motorcycle" ? <Bike className="w-4 h-4" /> : <Car className="w-4 h-4" />}
-                        <CardTitle className="text-base">{b.vehicle_job?.title || "Vehicle job"}</CardTitle>
-                        <Badge variant={b.status === "accepted" ? "default" : b.status === "rejected" ? "destructive" : "secondary"}>{b.status}</Badge>
-                      </div>
-                      {b.bid_amount && <span className="text-sm font-semibold">${b.bid_amount}</span>}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="text-sm text-muted-foreground space-y-2">
-                    <p>{b.message}</p>
-                    {b.vehicle_job && <p className="text-xs">{b.vehicle_job.city}, {b.vehicle_job.state} · {new Date(b.created_at).toLocaleDateString()}</p>}
-                    {b.status === "accepted" && b.vehicle_job?.vehicle_id && b.vehicle_job?.owner_user_id && provider && (
-                      <InspectionReportDialog
-                        vehicleId={b.vehicle_job.vehicle_id}
-                        providerId={provider.id}
-                        ownerUserId={b.vehicle_job.owner_user_id}
-                        vehicleJobId={b.vehicle_job_id}
-                      />
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </TabsContent>
-
-            <TabsContent value="reviews" className="space-y-3">
-              {reviews.length === 0 ? (
-                <Card><CardContent className="py-12 text-center text-muted-foreground">No reviews yet.</CardContent></Card>
-              ) : reviews.map(r => (
-                <Card key={r.id}><CardContent className="py-4">
-                  <div className="flex items-center gap-1 text-amber-500 mb-1">
-                    {Array.from({ length: r.rating || 0 }).map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
-                  </div>
-                  <p className="text-sm">{r.comment}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{new Date(r.created_at).toLocaleDateString()}</p>
-                </CardContent></Card>
-              ))}
-            </TabsContent>
-
-            <TabsContent value="messages" className="space-y-3">
-              {messages.length === 0 ? (
-                <Card><CardContent className="py-12 text-center text-muted-foreground">No messages.</CardContent></Card>
-              ) : messages.map(m => (
-                <Card key={m.id} className={!m.read ? "border-primary/40" : ""}>
-                  <CardContent className="py-3">
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="font-medium text-sm">{m.subject || "Message"}</div>
-                      <span className="text-xs text-muted-foreground">{new Date(m.created_at).toLocaleDateString()}</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{m.body}</p>
-                  </CardContent>
-                </Card>
-              ))}
-              <Button variant="outline" onClick={() => navigate("/messages")} className="w-full">Open Messages</Button>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </main>
-
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Edit Shop Profile</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <div><Label>Shop Name</Label><Input value={editForm.business_name || ""} onChange={e => setEditForm(f => ({ ...f, business_name: e.target.value }))} /></div>
-            <div><Label>Specialty</Label><Input value={editForm.category || ""} onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))} /></div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label>City</Label><Input value={editForm.city || ""} onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))} /></div>
-              <div><Label>State</Label><Input value={editForm.state || ""} onChange={e => setEditForm(f => ({ ...f, state: e.target.value }))} /></div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label>Min $/hr</Label><Input type="number" value={editForm.hourly_rate_min || 0} onChange={e => setEditForm(f => ({ ...f, hourly_rate_min: Number(e.target.value) }))} /></div>
-              <div><Label>Max $/hr</Label><Input type="number" value={editForm.hourly_rate_max || 0} onChange={e => setEditForm(f => ({ ...f, hourly_rate_max: Number(e.target.value) }))} /></div>
-            </div>
-            <div>
-              <Label>Phone</Label>
-              <Input value={editForm.phone || ""} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} />
-              <label className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                <Switch
-                  checked={!!editForm.show_phone_publicly}
-                  onCheckedChange={(v) => setEditForm(f => ({ ...f, show_phone_publicly: v }))}
-                />
-                Show this number on my public profile
-              </label>
-            </div>
-            <div><Label>Website</Label><Input value={editForm.website || ""} onChange={e => setEditForm(f => ({ ...f, website: e.target.value }))} /></div>
-            <div><Label>About</Label>
-              <textarea className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm min-h-[80px]" value={editForm.description || ""} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} />
-            </div>
+            )}
           </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditOpen(false)}>Cancel</Button>
-            <Button onClick={saveEdit} disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        )}
 
-      <Footer />
-    </div>
-  );
-}
+        {activeTab === "bids" && (
+          <div className="space-y-3">
+            {bids.length === 0 ? (
+              <Card><CardContent className="py-12 text-center text-muted-foreground">
+                No bids yet. <Button variant="link" onClick={() => navigate("/vehicle-jobs")}>Browse open vehicle jobs →</Button>
+              </CardContent></Card>
+            ) : bids.map(b => (
+              <Card key={b.id}>
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {b.vehicle_job?.service_type === "motorcycle" ? <Bike className="w-4 h-4" /> : <Car className="w-4 h-4" />}
+                      <CardTitle className="text-base">{b.vehicle_job?.title || "Vehicle job"}</CardTitle>
+                      <Badge variant={b.status === "accepted" ? "default" : b.status === "rejected" ? "destructive" : "secondary"}>{b.status}</Badge>
+                    </div>
+                    {b.bid_amount && <span className="text-sm font-semibold">${b.bid_amount}</span>}
+                  </div>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground space-y-2">
+                  <p>{b.message}</p>
+                  {b.vehicle_job && <p className="text-xs">{b.vehicle_job.city}, {b.vehicle_job.state} · {new Date(b.created_at).toLocaleDateString()}</p>}
+                  {b.status === "accepted" && b.vehicle_job?.vehicle_id && b.vehicle_job?.owner_user_id && provider && (
+                    <InspectionReportDialog
+                      vehicleId={b.vehicle_job.vehicle_id}
+                      providerId={provider.id}
+                      ownerUserId={b.vehicle_job.owner_user_id}
+                      vehicleJobId={b.vehicle_job_id}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
-function StatCard({ icon: Icon, label, value }: { icon: any; label: string; value: any }) {
-  return (
-    <Card className="shadow-[var(--card-shadow)]"><CardContent className="py-4">
-      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-        <Icon size={15} className="text-primary" />
-      </div>
-      <div className="font-display text-2xl font-semibold">{value}</div>
-      <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
-    </CardContent></Card>
+        {activeTab === "reviews" && (
+          <div className="space-y-3">
+            {reviews.length === 0 ? (
+              <Card><CardContent className="py-12 text-center text-muted-foreground">No reviews yet.</CardContent></Card>
+            ) : reviews.map(r => (
+              <Card key={r.id}><CardContent className="py-4">
+                <div className="flex items-center gap-1 text-accent mb-1">
+                  {Array.from({ length: r.rating || 0 }).map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
+                </div>
+                <p className="text-sm">{r.comment}</p>
+                <p className="text-xs text-muted-foreground mt-1">{new Date(r.created_at).toLocaleDateString()}</p>
+              </CardContent></Card>
+            ))}
+          </div>
+        )}
+
+        {activeTab === "messages" && (
+          <div className="space-y-3">
+            {messages.length === 0 ? (
+              <Card><CardContent className="py-12 text-center text-muted-foreground">No messages.</CardContent></Card>
+            ) : messages.map(m => (
+              <Card key={m.id} className={!m.read ? "border-primary/40" : ""}>
+                <CardContent className="py-3">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="font-medium text-sm">{m.subject || "Message"}</div>
+                    <span className="text-xs text-muted-foreground">{new Date(m.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{m.body}</p>
+                </CardContent>
+              </Card>
+            ))}
+            <Button variant="outline" onClick={() => navigate("/messages")} className="w-full">Open Messages</Button>
+          </div>
+        )}
+      </DashboardShell>
+
+      <EditProfileDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        form={editForm}
+        onChange={setEditForm}
+        onSave={saveEdit}
+        saving={saving}
+        variant="mechanic"
+      />
+    </>
   );
 }

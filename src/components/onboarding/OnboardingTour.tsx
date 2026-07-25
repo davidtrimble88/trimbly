@@ -12,9 +12,11 @@ interface Props {
   storageKey: string;
   steps: TourStep[];
   intro?: { title: string; body: string };
+  /** When provided, the default floating "Replay tour" button is suppressed and this is called once on mount with the replay function, so the caller can wire its own trigger (e.g. a sidebar menu item) elsewhere in the tree. */
+  onReplayReady?: (replay: () => void) => void;
 }
 
-export function OnboardingTour({ storageKey, steps, intro }: Props) {
+export function OnboardingTour({ storageKey, steps, intro, onReplayReady }: Props) {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(-1); // -1 = intro
 
@@ -32,6 +34,11 @@ export function OnboardingTour({ storageKey, steps, intro }: Props) {
     setOpen(true);
   };
 
+  useEffect(() => {
+    onReplayReady?.(replay);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const finish = () => {
     try { localStorage.setItem(storageKey, "1"); } catch {}
     setOpen(false);
@@ -44,7 +51,7 @@ export function OnboardingTour({ storageKey, steps, intro }: Props) {
 
   return (
     <>
-      {!open && (
+      {!open && !onReplayReady && (
         <button
           onClick={replay}
           className="fixed bottom-6 right-6 z-[100] inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-4 py-2.5 text-sm font-medium shadow-xl hover:opacity-90 transition border-2 border-primary-foreground/20"

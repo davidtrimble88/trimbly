@@ -3,127 +3,31 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Zap } from "lucide-react";
 import {
-  Building2, MapPin, Phone, Globe, DollarSign, Shield, Star,
-  Briefcase, MessageSquare, Clock, CheckCircle,
-  Eye, Zap, Crown, Pencil, Award, PhoneOff, MapPinned, Sparkles,
-  LayoutDashboard, MoreVertical, ArrowRight, ExternalLink, QrCode,
-  TrendingUp,
+  Building2, Shield, Star, Briefcase, MessageSquare,
+  LayoutDashboard, Sparkles, QrCode, MapPinned, HelpCircle,
 } from "lucide-react";
-
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import ProGalleryEditor from "@/components/profile/ProGalleryEditor";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
-import ProFeaturesPanel from "@/components/pro/ProFeaturesPanel";
-import ServiceAreaPanel from "@/components/pro/ServiceAreaPanel";
-import QuotesPanel from "@/components/pro/QuotesPanel";
-import ServicePlansPanel from "@/components/pro/ServicePlansPanel";
 import CredentialAlertBanner from "@/components/pro/CredentialAlertBanner";
-import BusinessHoursPanel from "@/components/pro/BusinessHoursPanel";
-import PaymentMethodsPanel from "@/components/pro/PaymentMethodsPanel";
-import UpsellPanel from "@/components/pro/UpsellPanel";
-import MileageLogPanel from "@/components/pro/MileageLogPanel";
-import SkillBadgesPanel from "@/components/pro/SkillBadgesPanel";
-import NotificationPrefsPanel from "@/components/pro/NotificationPrefsPanel";
-import InstallAppPanel from "@/components/pro/InstallAppPanel";
-import YardSignQRPanel from "@/components/pro/YardSignQRPanel";
-import ReferralPanel from "@/components/pro/ReferralPanel";
-import AutoReviewPanel from "@/components/pro/AutoReviewPanel";
-import AIFollowUpPanel from "@/components/pro/AIFollowUpPanel";
-import CompetitorPricingPanel from "@/components/pro/CompetitorPricingPanel";
-import VerificationPanel from "@/components/pro/VerificationPanel";
-import PayoutSetupPanel from "@/components/pro/PayoutSetupPanel";
 import { useProNotifications } from "@/hooks/useProNotifications";
-
-type ProviderProfile = {
-  id: string;
-  business_name: string;
-  category: string;
-  city: string;
-  state: string;
-  country: string;
-  postal_code: string | null;
-  phone: string | null;
-  show_phone_publicly: boolean;
-  payment_methods: string[];
-  payment_handles: Record<string, string>;
-  website: string | null;
-  description: string | null;
-  hourly_rate_min: number;
-  hourly_rate_max: number;
-  years_experience: number | null;
-  licensed: boolean;
-  license_number: string | null;
-  insured: boolean;
-  insurance_details: string | null;
-  available: boolean;
-  subscription_tier: string;
-  emergency_available: boolean;
-  emergency_rate_multiplier: number;
-  emergency_start_time: string;
-  emergency_end_time: string;
-  emergency_weekends: boolean;
-  license_expiry: string | null;
-  insurance_expiry: string | null;
-  service_radius_miles: number;
-  user_id: string;
-  slug?: string | null;
-};
-
-type BidWithJob = {
-  id: string;
-  job_id: string;
-  message: string;
-  bid_amount: number | null;
-  estimated_hours: number | null;
-  status: string;
-  call_approved: boolean;
-  phone_number: string | null;
-  created_at: string;
-  job?: {
-    title: string;
-    category: string;
-    city: string;
-    state: string;
-    status: string;
-    description: string | null;
-    homeowner_id: string;
-  };
-};
-
-type ReviewRow = {
-  id: string;
-  rating: number;
-  comment: string | null;
-  created_at: string;
-  reviewer_id: string;
-};
-
-type MessageRow = {
-  id: string;
-  subject: string;
-  body: string;
-  sender_id: string;
-  read: boolean;
-  created_at: string;
-};
-
-type ProviderStats = {
-  avg_rating: number | null;
-  review_count: number | null;
-};
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import { DashboardNavItem } from "@/components/dashboard/types";
+import ProOverviewTab from "@/components/dashboard/pro/ProOverviewTab";
+import ProBidsTab from "@/components/dashboard/pro/ProBidsTab";
+import ProToolsTab from "@/components/dashboard/pro/ProToolsTab";
+import ProReviewsTab from "@/components/dashboard/pro/ProReviewsTab";
+import ProMessagesTab from "@/components/dashboard/pro/ProMessagesTab";
+import ProProfileTab from "@/components/dashboard/pro/ProProfileTab";
+import VerificationTab from "@/components/dashboard/pro/VerificationTab";
+import EditProfileDialog from "@/components/dashboard/pro/EditProfileDialog";
+import ChangeLocationDialog from "@/components/dashboard/pro/ChangeLocationDialog";
+import type { ProviderProfile, BidWithJob, ReviewRow, MessageRow, ProviderStats } from "@/components/dashboard/pro/types";
 
 const ProDashboard = () => {
   const { user, loading: authLoading, profileName } = useAuth();
@@ -157,33 +61,39 @@ const ProDashboard = () => {
   const [locPostal, setLocPostal] = useState("");
   const [locCountry, setLocCountry] = useState("US");
   const [savingLoc, setSavingLoc] = useState(false);
+  const [replayTour, setReplayTour] = useState<(() => void) | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
   }, [authLoading, user]);
 
+  // Toasts driven by Stripe checkout redirects (?verification=..., ?subscription=...)
   useEffect(() => {
-    const result = searchParams.get("verification");
-    if (!result) return;
-    if (result === "success") {
-      toast({ title: "Payment received", description: "We're setting up your verification now. It may take a moment to appear below." });
-    } else if (result === "cancelled") {
-      toast({ title: "Checkout cancelled", description: "No charge was made. You can start verification again anytime." });
+    const checkoutParams: { param: string; messages: Record<string, { title: string; description?: string }> }[] = [
+      {
+        param: "verification",
+        messages: {
+          success: { title: "Payment received", description: "We're setting up your verification now. It may take a moment to appear below." },
+          cancelled: { title: "Checkout cancelled", description: "No charge was made. You can start verification again anytime." },
+        },
+      },
+      {
+        param: "subscription",
+        messages: {
+          success: { title: "Welcome to Pro!", description: "Your subscription is active. It may take a moment to reflect below." },
+          cancelled: { title: "Checkout cancelled", description: "No charge was made. You're still on the Free plan." },
+        },
+      },
+    ];
+    for (const { param, messages: msgs } of checkoutParams) {
+      const result = searchParams.get(param);
+      if (!result) continue;
+      const msg = msgs[result];
+      if (msg) toast(msg);
+      searchParams.delete(param);
+      setSearchParams(searchParams, { replace: true });
     }
-    searchParams.delete("verification");
-    setSearchParams(searchParams, { replace: true });
-  }, []);
-
-  useEffect(() => {
-    const result = searchParams.get("subscription");
-    if (!result) return;
-    if (result === "success") {
-      toast({ title: "Welcome to Pro!", description: "Your subscription is active. It may take a moment to reflect below." });
-    } else if (result === "cancelled") {
-      toast({ title: "Checkout cancelled", description: "No charge was made. You're still on the Free plan." });
-    }
-    searchParams.delete("subscription");
-    setSearchParams(searchParams, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -202,7 +112,6 @@ const ProDashboard = () => {
     if (!user) return;
     setLoading(true);
 
-    // Get provider profile
     const { data: provData } = await supabase
       .from("providers")
       .select("*")
@@ -216,7 +125,6 @@ const ProDashboard = () => {
 
     setProvider(provData as ProviderProfile);
 
-    // Load stats, bids, reviews, messages in parallel
     const [statsRes, bidsRes, reviewsRes, msgsRes] = await Promise.all([
       supabase.from("provider_stats").select("*").eq("provider_id", provData.id).maybeSingle(),
       supabase.from("job_bids")
@@ -241,7 +149,6 @@ const ProDashboard = () => {
     setReviews((reviewsRes.data as ReviewRow[]) || []);
     setMessages((msgsRes.data as MessageRow[]) || []);
 
-    // Per-bid unread counts from homeowner senders
     const homeownerIds = Array.from(new Set(bidsData.map(b => b.job?.homeowner_id).filter(Boolean) as string[]));
     if (homeownerIds.length > 0) {
       const { data: unread } = await supabase
@@ -342,31 +249,25 @@ const ProDashboard = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-4 pt-24 pb-16 max-w-5xl space-y-6">
-          <Skeleton className="h-10 w-64" />
-          <div className="grid md:grid-cols-4 gap-4">
-            {[1,2,3,4].map(i => <Skeleton key={i} className="h-24" />)}
-          </div>
-          <Skeleton className="h-64" />
+      <div className="min-h-screen bg-background container mx-auto px-4 pt-16 pb-16 max-w-5xl space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <div className="grid md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}
         </div>
-        <Footer />
+        <Skeleton className="h-64" />
       </div>
     );
   }
 
   if (!provider) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-4 pt-24 pb-16 text-center">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
           <Building2 className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
           <h1 className="text-3xl font-bold mb-2">No Provider Profile</h1>
           <p className="text-muted-foreground mb-6">Create your business profile to start receiving jobs and bids.</p>
           <Button size="lg" onClick={() => navigate("/pro-register")}>Register as a Pro</Button>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -374,19 +275,23 @@ const ProDashboard = () => {
   const displayName = profileName || provider.business_name;
   const avgRating = stats?.avg_rating ? Number(stats.avg_rating).toFixed(1) : "—";
   const reviewCount = stats?.review_count || 0;
-  const totalBids = bids.length;
-  const acceptedBids = bids.filter(b => b.status === "accepted").length;
   const pendingBids = bids.filter(b => b.status === "pending").length;
+  const acceptedBids = bids.filter(b => b.status === "accepted").length;
   const unreadMessages = messages.filter(m => !m.read).length;
 
-  const bidStatusColor = (s: string) => {
-    if (s === "accepted") return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
-    if (s === "rejected") return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
-    return "bg-secondary text-secondary-foreground";
-  };
+  const navItems: DashboardNavItem[] = [
+    { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "bids", label: "Bids", icon: Briefcase, badge: pendingBids },
+    { id: "tools", label: "Tools", icon: Sparkles },
+    { id: "reviews", label: "Reviews", icon: Star },
+    { id: "messages", label: "Messages", icon: MessageSquare, badge: unreadMessages },
+    { id: "profile", label: "Profile", icon: Building2 },
+    { id: "verification", label: "Verification", icon: Shield },
+    { id: "equipment", label: "Equipment", icon: Sparkles, href: "/equipment" },
+  ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <>
       <OnboardingTour
         storageKey={`hh-tour-pro-${user?.id ?? "anon"}`}
         intro={{
@@ -396,764 +301,119 @@ const ProDashboard = () => {
         steps={[
           { title: "Overview", body: "Your at-a-glance stats: profile views, pending bids, unread messages, and reviews. Watch the credential alert banner — keep your license and insurance dates current to stay visible in search." },
           { title: "Bids Tab", body: "Browse open job posts from homeowners in your service area and submit bids. Accepted bids move into an active chat thread." },
-          { title: "Tools Tab", body: "Grow My Business (marketing, referrals, AI leads) and Day-to-Day Work (quotes, plans, mileage) — with quick-jump buttons at the top. Your business info, service area, and app settings now live on the Profile tab." },
+          { title: "Tools Tab", body: "Grow My Business (marketing, referrals, AI leads) and Day-to-Day Work (quotes, plans, mileage). Your business info, service area, and app settings live on the Profile tab." },
           { title: "Reviews Tab", body: "Monitor your ratings and respond to homeowner reviews. Auto-review requests can be enabled in Tools." },
           { title: "Messages Tab", body: "Chat with homeowners in-app. Phone numbers stay private until the homeowner explicitly shares them — keep first contact in messaging." },
           { title: "Profile Tab", body: "Edit your business details, services, gallery, business hours, service area, license & insurance info, plus notification and app settings. A complete, up-to-date profile gets significantly more leads." },
           { title: "Go Pro for More", body: "Upgrade to Pro Provider for unlimited bids, priority placement, AI tools, and advanced analytics. Find pricing on the Pro Pricing page." },
         ]}
+        onReplayReady={(replay) => setReplayTour(() => replay)}
       />
-      <Navbar />
-      <main className="flex-1 pt-24 pb-16">
-        <div className="container mx-auto px-4 max-w-5xl">
-          {/* Header */}
-          <div className="flex items-start justify-between mb-6 gap-3">
-            <div className="min-w-0 flex-1 flex items-center gap-3.5">
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <Building2 className="h-6 w-6 md:h-7 md:w-7 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="font-display text-2xl md:text-3xl font-semibold text-foreground truncate">
-                  {displayName}
-                </h1>
-                <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                  <Badge variant="secondary" className="text-xs">{provider.category}</Badge>
-                  <button
-                    onClick={openLocation}
-                    className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 underline-offset-2 hover:underline"
-                  >
-                    <MapPin size={12} /> {provider.city}, {provider.state}
-                  </button>
-                  {provider.subscription_tier === "pro" && (
-                    <Badge className="bg-primary text-primary-foreground text-xs gap-1">
-                      <Zap size={10} /> Verified Pro
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <div className="hidden sm:flex items-center gap-2 mr-1">
-                <span className="text-xs text-muted-foreground">Available</span>
-                <Switch checked={provider.available} onCheckedChange={toggleAvailability} />
-              </div>
-              <Button variant="outline" size="sm" className="hidden md:inline-flex rounded-lg" onClick={() => navigate(`/pro/${provider.id}`)}>
-                <ExternalLink size={14} className="mr-1.5" /> View Public Profile
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="rounded-lg">
-                    <MoreVertical size={16} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={toggleAvailability} className="sm:hidden">
-                    <Zap size={14} className="mr-2" />
-                    {provider.available ? "Set Unavailable" : "Set Available"}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={openEdit}>
-                    <Pencil size={14} className="mr-2" /> Edit Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={openLocation}>
-                    <MapPinned size={14} className="mr-2" /> Change Location
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/my-qr")}>
-                    <QrCode size={14} className="mr-2" /> My QR Code
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate(`/pro/${provider.id}`)} className="md:hidden">
-                    <ExternalLink size={14} className="mr-2" /> View Public Profile
-                  </DropdownMenuItem>
-
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-
-          {/* Credential expiry alert — always visible */}
-          <CredentialAlertBanner
-            licenseExpiry={provider.license_expiry}
-            insuranceExpiry={provider.insurance_expiry}
-            onGoToTools={() => setActiveTab("tools")}
-          />
-
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-              <TabsList className="inline-flex w-auto h-auto">
-                <TabsTrigger value="overview" className="gap-1.5">
-                  <LayoutDashboard size={14} /> Overview
-                </TabsTrigger>
-                <TabsTrigger value="bids" className="gap-1.5">
-                  <Briefcase size={14} /> Bids {pendingBids > 0 && <Badge variant="secondary" className="text-xs ml-1">{pendingBids}</Badge>}
-                </TabsTrigger>
-                <TabsTrigger value="tools" className="gap-1.5">
-                  <Sparkles size={14} /> Tools
-                </TabsTrigger>
-                <TabsTrigger value="reviews" className="gap-1.5">
-                  <Star size={14} /> Reviews
-                </TabsTrigger>
-                <TabsTrigger value="messages" className="gap-1.5">
-                  <MessageSquare size={14} /> Messages {unreadMessages > 0 && <Badge variant="secondary" className="text-xs ml-1">{unreadMessages}</Badge>}
-              </TabsTrigger>
-                <TabsTrigger value="profile" className="gap-1.5">
-                  <Building2 size={14} /> Profile
-                </TabsTrigger>
-                <TabsTrigger value="verification" className="gap-1.5">
-                  <Shield size={14} /> Verification
-                </TabsTrigger>
-                <button
-                  type="button"
-                  onClick={() => navigate("/equipment")}
-                  className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Sparkles size={14} /> Equipment
-                </button>
-              </TabsList>
-            </div>
-
-            {/* Overview Tab */}
-            <TabsContent value="overview">
-              <div className="space-y-6">
-                {/* Quick stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <button onClick={() => setActiveTab("reviews")} className="rounded-xl border border-border bg-card p-4 text-center shadow-[var(--card-shadow)] hover:border-primary/40 hover:shadow-[var(--card-shadow-hover)] transition-all">
-                    <div className="w-9 h-9 rounded-full bg-yellow-500/10 flex items-center justify-center mx-auto mb-2">
-                      <Star className="h-4 w-4 text-yellow-500" />
-                    </div>
-                    <p className="font-display text-xl font-semibold text-foreground">{avgRating}</p>
-                    <p className="text-xs text-muted-foreground">{reviewCount} review{reviewCount !== 1 ? "s" : ""}</p>
-                  </button>
-                  <button onClick={() => setActiveTab("bids")} className="rounded-xl border border-border bg-card p-4 text-center shadow-[var(--card-shadow)] hover:border-primary/40 hover:shadow-[var(--card-shadow-hover)] transition-all">
-                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-                      <Briefcase className="h-4 w-4 text-primary" />
-                    </div>
-                    <p className="font-display text-xl font-semibold text-foreground">{pendingBids}</p>
-                    <p className="text-xs text-muted-foreground">Pending bids</p>
-                  </button>
-                  <button onClick={() => setActiveTab("bids")} className="rounded-xl border border-border bg-card p-4 text-center shadow-[var(--card-shadow)] hover:border-primary/40 hover:shadow-[var(--card-shadow-hover)] transition-all">
-                    <div className="w-9 h-9 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                    </div>
-                    <p className="font-display text-xl font-semibold text-foreground">{acceptedBids}</p>
-                    <p className="text-xs text-muted-foreground">Accepted</p>
-                  </button>
-                  <button onClick={() => setActiveTab("messages")} className="rounded-xl border border-border bg-card p-4 text-center shadow-[var(--card-shadow)] hover:border-primary/40 hover:shadow-[var(--card-shadow-hover)] transition-all">
-                    <div className="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-2">
-                      <MessageSquare className="h-4 w-4 text-blue-500" />
-                    </div>
-                    <p className="font-display text-xl font-semibold text-foreground">{unreadMessages}</p>
-                    <p className="text-xs text-muted-foreground">Unread</p>
-                  </button>
-                </div>
-
-                {/* Quick actions */}
-                <div>
-                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Quick Actions</h2>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {[
-                      { icon: Eye, label: "Browse Job Board", desc: "Find new jobs and send bids", onClick: () => navigate("/job-board"), accent: "text-primary bg-primary/10" },
-                      { icon: Briefcase, label: "My Bids", desc: "Track bids and their status", onClick: () => setActiveTab("bids"), accent: "text-primary bg-primary/10" },
-                      { icon: Sparkles, label: "Pro Tools", desc: "Quotes, plans, service area, analytics", onClick: () => setActiveTab("tools"), accent: "text-orange-600 bg-orange-500/10 dark:text-orange-400" },
-                      { icon: MessageSquare, label: "Messages", desc: "Reply to homeowner inquiries", onClick: () => navigate("/messages"), accent: "text-blue-600 bg-blue-500/10 dark:text-blue-400" },
-                      { icon: Star, label: "Reviews", desc: "See what homeowners are saying", onClick: () => setActiveTab("reviews"), accent: "text-yellow-600 bg-yellow-500/10 dark:text-yellow-400" },
-                      { icon: ExternalLink, label: "Public Profile", desc: "How homeowners see your business", onClick: () => navigate(`/pro/${provider.id}`), accent: "text-foreground bg-muted" },
-                      { icon: Sparkles, label: "Equipment Marketplace", desc: "Rent gear to / from other pros", onClick: () => navigate("/equipment"), accent: "text-emerald-600 bg-emerald-500/10 dark:text-emerald-400" },
-                    ].map((a) => (
-                      <button
-                        key={a.label}
-                        onClick={a.onClick}
-                        className="group rounded-xl border border-border bg-card p-4 text-left shadow-[var(--card-shadow)] hover:border-primary/40 hover:shadow-[var(--card-shadow-hover)] transition-all"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${a.accent}`}>
-                            <a.icon size={18} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-sm text-foreground flex items-center justify-between">
-                              {a.label}
-                              <ArrowRight size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-0.5">{a.desc}</div>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Recent activity */}
-                {bids.length > 0 && (
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Recent Bids</h2>
-                      <button onClick={() => setActiveTab("bids")} className="text-xs text-primary hover:underline">View all</button>
-                    </div>
-                    <div className="space-y-2">
-                      {bids.slice(0, 3).map((b) => (
-                        <button
-                          key={b.id}
-                          onClick={() => setActiveTab("bids")}
-                          className="w-full rounded-lg border border-border bg-card p-3 text-left hover:border-primary/40 transition-colors flex items-center justify-between gap-3"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <div className="font-medium text-sm text-foreground truncate">{b.job?.title || "Job"}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {b.job?.city}, {b.job?.state} · {new Date(b.created_at).toLocaleDateString()}
-                            </div>
-                          </div>
-                          <Badge className={`text-xs ${bidStatusColor(b.status)}`}>{b.status}</Badge>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="tools">
-              {/* Quick jump so tools don't require blind scrolling to find one */}
-              <div className="flex flex-wrap gap-2 mb-6 sticky top-16 z-10 bg-background/95 backdrop-blur py-2 -mx-1 px-1">
-                {[
-                  { id: "tools-grow", label: "Grow My Business", icon: TrendingUp },
-                  { id: "tools-operations", label: "Day-to-Day Work", icon: Briefcase },
-                ].map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border border-border bg-card hover:border-primary/40 hover:text-primary transition-colors"
-                  >
-                    <s.icon size={13} /> {s.label}
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground mb-6 -mt-3">
-                Looking for your business info, service area, or app settings? Those moved to the <button onClick={() => setActiveTab("profile")} className="text-primary hover:underline font-medium">Profile</button> tab.
-              </p>
-
-              <div className="space-y-10">
-                {/* ── Grow My Business ── */}
-                <div id="tools-grow" className="scroll-mt-32">
-                  <div className="flex items-center gap-2 mb-1">
-                    <TrendingUp size={18} className="text-primary" />
-                    <h2 className="font-display text-lg font-semibold text-foreground">Grow My Business</h2>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">Marketing, leads, and AI tools that bring in more work.</p>
-                  <div className="space-y-6">
-                    <UpsellPanel
-                      providerId={provider.id}
-                      providerCategory={provider.category}
-                      businessName={provider.business_name}
-                      userId={user!.id}
-                    />
-                    <CompetitorPricingPanel
-                      category={provider.category}
-                      city={provider.city}
-                      state={provider.state}
-                      hourlyMin={provider.hourly_rate_min}
-                      hourlyMax={provider.hourly_rate_max}
-                    />
-                    <AIFollowUpPanel providerId={provider.id} userId={user!.id} businessName={provider.business_name} />
-                    <AutoReviewPanel providerId={provider.id} userId={user!.id} />
-                    <SkillBadgesPanel providerId={provider.id} userId={user!.id} />
-                    <ReferralPanel providerId={provider.id} userId={user!.id} />
-                    <YardSignQRPanel
-                      providerSlug={(provider as any).slug || null}
-                      providerId={provider.id}
-                      businessName={provider.business_name}
-                      category={provider.category}
-                      city={provider.city}
-                      state={provider.state}
-                    />
-                  </div>
-                </div>
-
-                {/* ── Day-to-Day Work ── */}
-                <div id="tools-operations" className="scroll-mt-32">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Briefcase size={18} className="text-primary" />
-                    <h2 className="font-display text-lg font-semibold text-foreground">Day-to-Day Work</h2>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">Send quotes, manage recurring plans, and track mileage.</p>
-                  <div className="space-y-6">
-                    <QuotesPanel
-                      providerId={provider.id}
-                      providerUserId={user!.id}
-                      businessName={provider.business_name}
-                    />
-                    <ServicePlansPanel providerId={provider.id} />
-                    <MileageLogPanel providerId={provider.id} userId={user!.id} />
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-
-            {/* Bids Tab */}
-            <TabsContent value="bids">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-foreground">My Bids</h2>
-                <Button size="sm" onClick={() => navigate("/job-board")} className="gap-1.5">
-                  <Eye size={14} /> Browse Jobs
-                </Button>
-              </div>
-              {bids.length === 0 ? (
-                <Card className="text-center py-12">
-                  <CardContent>
-                    <Briefcase className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-                    <h3 className="font-semibold text-lg mb-1">No bids yet</h3>
-                    <p className="text-sm text-muted-foreground mb-4">Browse the job board to find work and send bids to homeowners.</p>
-                    <Button onClick={() => navigate("/job-board")}>Browse Job Board</Button>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-3">
-                  {bids.map((bid) => (
-                    <Card key={bid.id} className="hover:border-primary/20 transition-colors">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-foreground">{bid.job?.title || "Job"}</h3>
-                            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mt-1 mb-2">
-                              <span className="flex items-center gap-1"><Briefcase size={12} /> {bid.job?.category}</span>
-                              <span className="flex items-center gap-1"><MapPin size={12} /> {bid.job?.city}, {bid.job?.state}</span>
-                              <span className="flex items-center gap-1"><Clock size={12} /> {new Date(bid.created_at).toLocaleDateString()}</span>
-                            </div>
-                            <div className="bg-muted/50 rounded-lg p-2.5 mb-2">
-                              <p className="text-sm text-muted-foreground">{bid.message}</p>
-                            </div>
-                            <div className="flex flex-wrap gap-4 text-sm">
-                              {bid.bid_amount && (
-                                <span className="flex items-center gap-1 text-foreground">
-                                  <DollarSign size={14} className="text-primary" /> ${Number(bid.bid_amount).toLocaleString()}
-                                </span>
-                              )}
-                              {bid.estimated_hours && (
-                                <span className="flex items-center gap-1 text-muted-foreground">
-                                  <Clock size={14} /> ~{bid.estimated_hours}hr
-                                </span>
-                              )}
-                            </div>
-                            {bid.job?.homeowner_id && (
-                              <div className="mt-2">
-                                <Button
-                                  size="sm"
-                                  variant={bidUnreadCounts[bid.job!.homeowner_id!] > 0 ? "default" : "outline"}
-                                  className="gap-1"
-                                  onClick={() => navigate(`/messages?partner=${bid.job!.homeowner_id}`)}
-                                >
-                                  <MessageSquare size={14} />
-                                  {bidUnreadCounts[bid.job!.homeowner_id!] > 0
-                                    ? `${bidUnreadCounts[bid.job!.homeowner_id!]} new`
-                                    : "Message"}
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                          <div className="ml-4 text-center shrink-0">
-                            <div className="flex items-center gap-1.5 justify-end">
-                              <Badge className={`text-xs ${bidStatusColor(bid.status)}`}>
-                                {bid.status === "accepted" ? "Accepted" : bid.status === "rejected" ? "Rejected" : "Pending"}
-                              </Badge>
-                              {bid.job?.homeowner_id && bidUnreadCounts[bid.job.homeowner_id] > 0 && (
-                                <Badge className="text-xs bg-primary text-primary-foreground gap-1">
-                                  <MessageSquare size={10} /> {bidUnreadCounts[bid.job.homeowner_id]} new
-                                </Badge>
-                              )}
-                            </div>
-                            {bid.call_approved && (
-                              <div className="mt-2 text-xs text-green-600 dark:text-green-400">
-                                <div className="flex items-center gap-1 justify-center">
-                                  <Phone size={12} /> Call OK
-                                </div>
-                                {bid.phone_number ? (
-                                  <a href={`tel:${bid.phone_number}`} className="block mt-1 font-medium hover:underline">
-                                    {bid.phone_number}
-                                  </a>
-                                ) : (
-                                  <div className="mt-1 text-muted-foreground">No number shared</div>
-                                )}
-                              </div>
-                            )}
-                            {bid.status === "accepted" && !bid.call_approved && (
-                              <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-                                <PhoneOff size={12} /> Msg only
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-
-            {/* Reviews Tab */}
-            <TabsContent value="reviews">
-              <h2 className="text-lg font-bold text-foreground mb-4">Reviews ({reviewCount})</h2>
-              {reviews.length === 0 ? (
-                <Card className="text-center py-12">
-                  <CardContent>
-                    <Star className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-                    <h3 className="font-semibold text-lg mb-1">No reviews yet</h3>
-                    <p className="text-sm text-muted-foreground">Complete jobs to start receiving reviews from homeowners.</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-3">
-                  {reviews.map((review) => (
-                    <Card key={review.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-1">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <Star
-                                key={i}
-                                size={16}
-                                className={i < review.rating ? "text-yellow-500 fill-yellow-500" : "text-muted-foreground/30"}
-                              />
-                            ))}
-                          </div>
-                          <span className="text-xs text-muted-foreground">{new Date(review.created_at).toLocaleDateString()}</span>
-                        </div>
-                        {review.comment && <p className="text-sm text-foreground">{review.comment}</p>}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-
-            {/* Messages Tab */}
-            <TabsContent value="messages">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-foreground">Messages</h2>
-                <Button size="sm" variant="outline" onClick={() => navigate("/messages")} className="gap-1.5">
-                  <MessageSquare size={14} /> Open Inbox
-                </Button>
-              </div>
-              {messages.length === 0 ? (
-                <Card className="text-center py-12">
-                  <CardContent>
-                    <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-                    <h3 className="font-semibold text-lg mb-1">No messages yet</h3>
-                    <p className="text-sm text-muted-foreground">Homeowners will message you when they're interested in your services.</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-3">
-                  {messages.slice(0, 10).map((msg) => (
-                    <Card
-                      key={msg.id}
-                      className={`cursor-pointer hover:border-primary/20 transition-colors ${!msg.read ? "border-primary/30 bg-primary/5" : ""}`}
-                      onClick={() => navigate("/messages")}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className={`text-sm ${!msg.read ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
-                                {msg.subject || "No subject"}
-                              </h3>
-                              {!msg.read && <Badge className="text-xs bg-primary text-primary-foreground">New</Badge>}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{msg.body}</p>
-                          </div>
-                          <span className="text-xs text-muted-foreground shrink-0 ml-4">
-                            {new Date(msg.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                  {messages.length > 10 && (
-                    <Button variant="ghost" className="w-full" onClick={() => navigate("/messages")}>
-                      View all messages →
-                    </Button>
-                  )}
-                </div>
-              )}
-            </TabsContent>
-
-            {/* Profile Tab */}
-            <TabsContent value="profile" className="space-y-6">
-              <ProGalleryEditor userId={user!.id} providerId={provider.id} businessName={provider.business_name} />
-              <h2 className="text-lg font-bold text-foreground">Business Profile</h2>
-              <Card>
-                <CardContent className="p-6 space-y-6">
-                  {/* Business info */}
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Business</h3>
-                    <div className="grid sm:grid-cols-2 gap-4 text-sm">
-                      <div><span className="text-muted-foreground">Business Name:</span> <span className="font-medium text-foreground ml-1">{provider.business_name}</span></div>
-                      <div><span className="text-muted-foreground">Category:</span> <span className="font-medium text-foreground ml-1">{provider.category}</span></div>
-                      <div className="flex items-center gap-1"><MapPin size={13} className="text-muted-foreground" /> <span className="text-foreground">{provider.city}, {provider.state}</span></div>
-                      {provider.phone && <div className="flex items-center gap-1"><Phone size={13} className="text-muted-foreground" /> <span className="text-foreground">{provider.phone}</span></div>}
-                      {provider.website && <div className="flex items-center gap-1"><Globe size={13} className="text-muted-foreground" /> <a href={provider.website} target="_blank" className="text-primary hover:underline">{provider.website}</a></div>}
-                    </div>
-                    {provider.description && (
-                      <p className="text-sm text-muted-foreground mt-3 bg-muted/50 rounded-lg p-3">{provider.description}</p>
-                    )}
-                  </div>
-
-                  {/* Rates */}
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Rates & Experience</h3>
-                    <div className="grid sm:grid-cols-3 gap-4 text-sm">
-                      <div className="flex items-center gap-1"><DollarSign size={13} className="text-primary" /> ${provider.hourly_rate_min}–${provider.hourly_rate_max}/hr</div>
-                      {provider.years_experience && <div className="flex items-center gap-1"><Award size={13} className="text-primary" /> {provider.years_experience} years experience</div>}
-                      <div className="flex items-center gap-1">
-                        <span className={`w-2 h-2 rounded-full ${provider.available ? "bg-green-500" : "bg-muted-foreground"}`} />
-                        {provider.available ? "Available" : "Unavailable"}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Credentials */}
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Credentials</h3>
-                    <div className="flex flex-wrap gap-3">
-                      {provider.licensed ? (
-                        <Badge variant="outline" className="gap-1"><Shield size={12} /> Licensed {provider.license_number && `· ${provider.license_number}`}</Badge>
-                      ) : (
-                        <Badge variant="secondary" className="text-muted-foreground">Not Licensed</Badge>
-                      )}
-                      {provider.insured ? (
-                        <Badge variant="outline" className="gap-1"><Shield size={12} /> Insured</Badge>
-                      ) : (
-                        <Badge variant="secondary" className="text-muted-foreground">Not Insured</Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  <Button onClick={openEdit} variant="outline" className="gap-1.5">
-                    <Pencil size={14} /> Edit Profile
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <BusinessHoursPanel
-                providerId={provider.id}
-                initial={(provider as any).business_hours}
-              />
-
-              <PaymentMethodsPanel
-                providerId={provider.id}
-                initialMethods={provider.payment_methods}
-                initialHandles={provider.payment_handles}
-                onSaved={(methods, handles) => setProvider((p) => p ? { ...p, payment_methods: methods, payment_handles: handles } : p)}
-              />
-
-              <ServiceAreaPanel
-                providerId={provider.id}
-                city={provider.city}
-                state={provider.state}
-                initialRadius={provider.service_radius_miles}
-                onUpdated={(r) => setProvider((p) => p ? { ...p, service_radius_miles: r } : p)}
-              />
-
-              <ProFeaturesPanel
-                provider={provider}
-                userId={user!.id}
-                onUpdated={(patch) => setProvider((p) => p ? { ...p, ...patch } : p)}
-              />
-
-              {/* Pro upgrade banner for free providers */}
-              {provider.subscription_tier === "free" && (
-                <Card className="mt-6 border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Crown size={20} className="text-primary" />
-                          <h3 className="text-lg font-bold text-foreground">Upgrade to Pro</h3>
-                          <Badge className="bg-primary text-primary-foreground text-xs">$29/mo</Badge>
-                        </div>
-                        <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-foreground">
-                          {["Direct messaging with homeowners", "Priority search placement", "Verified Pro badge", "Job management tools"].map(f => (
-                            <li key={f} className="flex items-center gap-2">
-                              <CheckCircle size={14} className="text-primary shrink-0" /> {f}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <Button size="lg" onClick={() => navigate("/pro-pricing")} className="shrink-0 gap-1.5">
-                        <Crown size={16} /> Upgrade
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* ── Account & App ── */}
-              <div className="pt-2">
-                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Account & App</h2>
-                <div className="space-y-6">
-                  <NotificationPrefsPanel userId={user!.id} />
-                  <InstallAppPanel />
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* Verification Tab */}
-            <TabsContent value="verification" className="space-y-4">
-              <PayoutSetupPanel providerId={provider.id} />
-              <VerificationPanel providerId={provider.id} />
-            </TabsContent>
-          </Tabs>
-
-          {/* Quick Actions */}
-          <div className="mt-10">
-            <h2 className="text-lg font-bold text-foreground mb-4">Quick Actions</h2>
-            <div className="grid sm:grid-cols-3 gap-4">
-              <Card className="hover:border-primary/30 hover:shadow-lg transition-all cursor-pointer" onClick={() => navigate("/job-board")}>
-                <CardContent className="p-5 text-center">
-                  <Briefcase className="mx-auto h-8 w-8 text-primary mb-2" />
-                  <h3 className="font-semibold text-foreground">Browse Jobs</h3>
-                  <p className="text-xs text-muted-foreground mt-1">Find and bid on homeowner job requests</p>
-                </CardContent>
-              </Card>
-              <Card className="hover:border-primary/30 hover:shadow-lg transition-all cursor-pointer" onClick={() => navigate("/messages")}>
-                <CardContent className="p-5 text-center">
-                  <MessageSquare className="mx-auto h-8 w-8 text-primary mb-2" />
-                  <h3 className="font-semibold text-foreground">Messages</h3>
-                  <p className="text-xs text-muted-foreground mt-1">Chat with homeowners about projects</p>
-                </CardContent>
-              </Card>
-              <Card className="hover:border-primary/30 hover:shadow-lg transition-all cursor-pointer" onClick={() => navigate("/search")}>
-                <CardContent className="p-5 text-center">
-                  <Eye className="mx-auto h-8 w-8 text-primary mb-2" />
-                  <h3 className="font-semibold text-foreground">My Listing</h3>
-                  <p className="text-xs text-muted-foreground mt-1">See how your profile appears to homeowners</p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* Change Location Dialog */}
-      <Dialog open={locationOpen} onOpenChange={setLocationOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><MapPinned size={18} /> Change Service Location</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Set where homeowners find you. Use city + state, a ZIP/postal code, or both.
-          </p>
-          <div className="space-y-3 mt-2">
-            <div>
-              <Label>Country</Label>
-              <select
-                value={locCountry}
-                onChange={e => setLocCountry(e.target.value)}
-                className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+      <DashboardShell
+        brandLabel="Pro Dashboard"
+        navItems={navItems}
+        activeItemId={activeTab}
+        onNavigate={(item) => setActiveTab(item.id)}
+        sidebarFooter={
+          <SidebarMenuButton onClick={() => replayTour?.()}>
+            <HelpCircle /> <span>Replay tour</span>
+          </SidebarMenuButton>
+        }
+        header={{
+          avatarIcon: Building2,
+          displayName,
+          subtitle: (
+            <>
+              <Badge variant="secondary" className="text-xs">{provider.category}</Badge>
+              <button
+                onClick={openLocation}
+                className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 underline-offset-2 hover:underline"
               >
-                <option value="US">United States</option>
-                <option value="CA">Canada</option>
-              </select>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>City</Label>
-                <Input value={locCity} onChange={e => setLocCity(e.target.value)} className="mt-1" placeholder={locCountry === "CA" ? "e.g. Toronto" : "e.g. Austin"} />
-              </div>
-              <div>
-                <Label>{locCountry === "CA" ? "Province" : "State"}</Label>
-                <Input value={locState} onChange={e => setLocState(e.target.value)} className="mt-1" placeholder={locCountry === "CA" ? "e.g. ON" : "e.g. TX"} />
-              </div>
-            </div>
-            <div>
-              <Label>{locCountry === "CA" ? "Postal Code" : "ZIP Code"} <span className="text-muted-foreground font-normal">(optional)</span></Label>
-              <Input
-                value={locPostal}
-                onChange={e => setLocPostal(e.target.value)}
-                className="mt-1"
-                placeholder={locCountry === "CA" ? "e.g. M5V 2T6" : "e.g. 78701"}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setLocationOpen(false)}>Cancel</Button>
-            <Button onClick={saveLocation} disabled={savingLoc}>{savingLoc ? "Saving…" : "Save Location"}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+                <MapPin size={12} /> {provider.city}, {provider.state}
+              </button>
+              {provider.subscription_tier === "pro" && (
+                <Badge className="bg-primary text-primary-foreground text-xs gap-1">
+                  <Zap size={10} /> Verified Pro
+                </Badge>
+              )}
+            </>
+          ),
+          available: provider.available,
+          onToggleAvailable: toggleAvailability,
+          onEditProfile: openEdit,
+          onViewPublicProfile: () => navigate(`/pro/${provider.id}`),
+          extraMenuItems: (
+            <>
+              <DropdownMenuItem onClick={openLocation}>
+                <MapPinned size={14} className="mr-2" /> Change Location
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/my-qr")}>
+                <QrCode size={14} className="mr-2" /> My QR Code
+              </DropdownMenuItem>
+            </>
+          ),
+        }}
+      >
+        <CredentialAlertBanner
+          licenseExpiry={provider.license_expiry}
+          insuranceExpiry={provider.insurance_expiry}
+          onGoToTools={() => setActiveTab("tools")}
+        />
+        <div className="mt-6">
+          {activeTab === "overview" && (
+            <ProOverviewTab
+              providerId={provider.id}
+              avgRating={avgRating}
+              reviewCount={reviewCount}
+              pendingBids={pendingBids}
+              acceptedBids={acceptedBids}
+              unreadMessages={unreadMessages}
+              recentBids={bids}
+              onGoToTab={setActiveTab}
+            />
+          )}
+          {activeTab === "bids" && <ProBidsTab bids={bids} bidUnreadCounts={bidUnreadCounts} />}
+          {activeTab === "tools" && (
+            <ProToolsTab provider={provider} userId={user!.id} onGoToProfile={() => setActiveTab("profile")} />
+          )}
+          {activeTab === "reviews" && <ProReviewsTab reviews={reviews} reviewCount={reviewCount} />}
+          {activeTab === "messages" && <ProMessagesTab messages={messages} />}
+          {activeTab === "profile" && (
+            <ProProfileTab
+              provider={provider}
+              userId={user!.id}
+              onEditProfile={openEdit}
+              onUpdated={(patch) => setProvider((p) => p ? { ...p, ...patch } : p)}
+            />
+          )}
+          {activeTab === "verification" && <VerificationTab providerId={provider.id} />}
+        </div>
+      </DashboardShell>
 
-      {/* Edit Profile Dialog */}
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Business Profile</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Business Name</Label>
-              <Input value={editForm.business_name || ""} onChange={e => setEditForm(f => ({ ...f, business_name: e.target.value }))} className="mt-1" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>City</Label>
-                <Input value={editForm.city || ""} onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))} className="mt-1" />
-              </div>
-              <div>
-                <Label>State</Label>
-                <Input value={editForm.state || ""} onChange={e => setEditForm(f => ({ ...f, state: e.target.value }))} className="mt-1" />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Phone</Label>
-                <Input value={editForm.phone || ""} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} className="mt-1" />
-                <label className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                  <Switch
-                    checked={!!editForm.show_phone_publicly}
-                    onCheckedChange={(v) => setEditForm(f => ({ ...f, show_phone_publicly: v }))}
-                  />
-                  Show this number on my public profile
-                </label>
-              </div>
-              <div>
-                <Label>Website</Label>
-                <Input value={editForm.website || ""} onChange={e => setEditForm(f => ({ ...f, website: e.target.value }))} className="mt-1" />
-              </div>
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea value={editForm.description || ""} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} className="mt-1" />
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <Label>Min Rate ($/hr)</Label>
-                <Input type="number" value={editForm.hourly_rate_min || 0} onChange={e => setEditForm(f => ({ ...f, hourly_rate_min: Number(e.target.value) }))} className="mt-1" />
-              </div>
-              <div>
-                <Label>Max Rate ($/hr)</Label>
-                <Input type="number" value={editForm.hourly_rate_max || 0} onChange={e => setEditForm(f => ({ ...f, hourly_rate_max: Number(e.target.value) }))} className="mt-1" />
-              </div>
-              <div>
-                <Label>Years Exp.</Label>
-                <Input type="number" value={editForm.years_experience || 0} onChange={e => setEditForm(f => ({ ...f, years_experience: Number(e.target.value) }))} className="mt-1" />
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-4 text-sm">
-              <label className="flex items-center gap-2">
-                <input type="checkbox" checked={editForm.licensed || false} onChange={e => setEditForm(f => ({ ...f, licensed: e.target.checked }))} className="rounded" /> Licensed
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" checked={editForm.insured || false} onChange={e => setEditForm(f => ({ ...f, insured: e.target.checked }))} className="rounded" /> Insured
-              </label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
-            <Button onClick={saveProfile} disabled={saving}>{saving ? "Saving…" : "Save Changes"}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ChangeLocationDialog
+        open={locationOpen}
+        onOpenChange={setLocationOpen}
+        city={locCity}
+        state={locState}
+        postal={locPostal}
+        country={locCountry}
+        onCityChange={setLocCity}
+        onStateChange={setLocState}
+        onPostalChange={setLocPostal}
+        onCountryChange={setLocCountry}
+        onSave={saveLocation}
+        saving={savingLoc}
+      />
 
-      <Footer />
-    </div>
+      <EditProfileDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        form={editForm}
+        onChange={setEditForm}
+        onSave={saveProfile}
+        saving={saving}
+      />
+    </>
   );
 };
 

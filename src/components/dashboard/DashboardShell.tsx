@@ -1,0 +1,44 @@
+import { LucideIcon } from "lucide-react";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import DashboardSidebar from "./DashboardSidebar";
+import DashboardHeader from "./DashboardHeader";
+import { DashboardNavItem } from "./types";
+
+interface DashboardShellProps {
+  brandLabel: string;
+  navItems: DashboardNavItem[];
+  activeItemId: string;
+  onNavigate: (item: DashboardNavItem) => void;
+  sidebarFooter?: React.ReactNode;
+  header: {
+    avatarIcon: LucideIcon;
+    displayName: string;
+    subtitle: React.ReactNode;
+    available: boolean;
+    onToggleAvailable: () => void;
+    onEditProfile: () => void;
+    onViewPublicProfile: () => void;
+    extraMenuItems?: React.ReactNode;
+  };
+  children: React.ReactNode;
+}
+
+const DashboardShell = ({ brandLabel, navItems, activeItemId, onNavigate, sidebarFooter, header, children }: DashboardShellProps) => {
+  return (
+    <SidebarProvider>
+      <DashboardSidebar
+        brandLabel={brandLabel}
+        navItems={navItems}
+        activeItemId={activeItemId}
+        onNavigate={onNavigate}
+        footer={sidebarFooter}
+      />
+      <SidebarInset>
+        <DashboardHeader {...header} />
+        <div className="flex-1 p-4 md:p-6">{children}</div>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+};
+
+export default DashboardShell;
