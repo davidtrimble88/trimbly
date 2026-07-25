@@ -13,29 +13,110 @@ import { useToast } from "@/hooks/use-toast";
 
 const homeownerTabs = [
   {
-    id: "pros",
-    label: "Find a Pro",
-    icon: Search,
+    id: "estimator",
+    label: "AI Estimator",
+    icon: Brain,
     steps: [
       {
-        icon: Search, step: "01", title: "Describe Your Job",
-        description: "Tell us what you need — or let our AI analyze a photo and suggest the right service.",
-        route: "/search",
-      },
-      {
-        icon: FileText, step: "02", title: "Get Instant Quotes",
-        description: "Receive AI-powered estimates and compare quotes from verified local pros.",
+        icon: Camera, step: "01", title: "Snap or Describe",
+        description: "Upload a photo of the issue or just describe it — our AI figures out what's going on.",
         route: "/estimator",
       },
       {
-        icon: MessageSquare, step: "03", title: "Chat & Schedule",
-        description: "Message pros directly, agree on timing and price, and book your appointment.",
-        route: "/messages",
+        icon: Sparkles, step: "02", title: "AI Analyzes the Job",
+        description: "We identify the problem, list materials, and estimate the labor and time needed.",
+        route: "/estimator",
       },
       {
-        icon: CheckCircle, step: "04", title: "Job Done, Review Left",
-        description: "Get the work done by a trusted pro, then leave a review to help others.",
-        route: "/search",
+        icon: DollarSign, step: "03", title: "Get a Cost Range",
+        description: "Receive a realistic price range plus a DIY-vs-Pro recommendation tailored to the job.",
+        route: "/estimator",
+      },
+      {
+        icon: UserCheck, step: "04", title: "DIY or Hire a Pro",
+        description: "Tackle it yourself with our guidance, or send the estimate to local pros for bids.",
+        route: "/estimator",
+      },
+    ],
+  },
+  {
+    id: "triage",
+    label: "Symptom Triage",
+    icon: Stethoscope,
+    steps: [
+      {
+        icon: Stethoscope, step: "01", title: "Describe the Symptom",
+        description: "Type what you're seeing, hearing, or smelling — a strange noise, leak, smell, or odd behavior from any home system.",
+        route: "/symptom-triage",
+      },
+      {
+        icon: Sparkles, step: "02", title: "AI Diagnoses Instantly",
+        description: "Our AI analyzes the symptom, identifies the likely cause, and flags any urgent safety warnings.",
+        route: "/symptom-triage",
+      },
+      {
+        icon: AlertTriangle, step: "03", title: "Get an Urgency Level",
+        description: "From Emergency to Monitor — know if you need to act now, schedule a pro, or just keep an eye on it.",
+        route: "/symptom-triage",
+      },
+      {
+        icon: Hammer, step: "04", title: "DIY or Hire a Pro",
+        description: "Follow the AI's step-by-step DIY guidance, or jump straight to finding the right local pro.",
+        route: "/symptom-triage",
+      },
+    ],
+  },
+  {
+    id: "coverage",
+    label: "Coverage Advisor",
+    icon: Shield,
+    steps: [
+      {
+        icon: Upload, step: "01", title: "Upload Your Documents",
+        description: "Upload your home warranty and insurance policy documents — PDFs, images, or text files.",
+        route: "/coverage",
+      },
+      {
+        icon: Shield, step: "02", title: "AI Reads Your Policy",
+        description: "Our AI analyzes your coverage documents to understand your limits, deductibles, and exclusions.",
+        route: "/coverage",
+      },
+      {
+        icon: Bot, step: "03", title: "Ask Anything",
+        description: "Chat with the AI about what's covered, how to file a claim, or whether a repair falls under warranty.",
+        route: "/coverage",
+      },
+      {
+        icon: CheckCircle, step: "04", title: "Know Before You Pay",
+        description: "Get clear answers about your coverage so you never pay out-of-pocket for something that's covered.",
+        route: "/coverage",
+      },
+    ],
+  },
+  {
+    id: "garage",
+    label: "My Garage",
+    icon: Car,
+    steps: [
+      {
+        icon: Car, step: "01", title: "Add Your Vehicles",
+        description: "Register cars, trucks, and motorcycles with make, model, mileage, and VIN for a complete garage dashboard.",
+        route: "/garage",
+      },
+      {
+        icon: Wrench, step: "02", title: "Log Service History",
+        description: "Record oil changes, tire rotations, repairs, and upgrades. Everything stays organized with receipts and notes.",
+        route: "/garage",
+      },
+      {
+        icon: Bell, step: "03", title: "Get Maintenance Reminders",
+        description: "Receive timely alerts for scheduled maintenance based on mileage and time — never miss an oil change or inspection.",
+        route: "/garage",
+      },
+      {
+        icon: CheckCircle, step: "04", title: "Find Trusted Mechanics",
+        description: "Search vetted auto and motorcycle pros near you, compare reviews, and message them directly through Trimbly.",
+        route: "/garage",
       },
     ],
   },
@@ -94,29 +175,56 @@ const homeownerTabs = [
     ],
   },
   {
-    id: "coverage",
-    label: "Coverage Advisor",
-    icon: Shield,
+    id: "manuals",
+    label: "Manual Finder",
+    icon: BookOpen,
     steps: [
       {
-        icon: Upload, step: "01", title: "Upload Your Documents",
-        description: "Upload your home warranty and insurance policy documents — PDFs, images, or text files.",
-        route: "/coverage",
+        icon: FileSearch, step: "01", title: "Enter Brand & Model",
+        description: "Type the brand and model number of any appliance, tool, or home system.",
+        route: "/manual-search",
       },
       {
-        icon: Shield, step: "02", title: "AI Reads Your Policy",
-        description: "Our AI analyzes your coverage documents to understand your limits, deductibles, and exclusions.",
-        route: "/coverage",
+        icon: Bot, step: "02", title: "AI Locates the Manual",
+        description: "Our AI scours the web to find the official PDF user manual for your exact product.",
+        route: "/manual-search",
       },
       {
-        icon: Bot, step: "03", title: "Ask Anything",
-        description: "Chat with the AI about what's covered, how to file a claim, or whether a repair falls under warranty.",
-        route: "/coverage",
+        icon: BookOpen, step: "03", title: "View On-Site",
+        description: "Read the manual right inside Trimbly — no shady redirects, no ads, no signup walls.",
+        route: "/manual-search",
       },
       {
-        icon: CheckCircle, step: "04", title: "Know Before You Pay",
-        description: "Get clear answers about your coverage so you never pay out-of-pocket for something that's covered.",
-        route: "/coverage",
+        icon: Download, step: "04", title: "Download & Save",
+        description: "Download the PDF or attach it to an item in your Digital Home Binder for later.",
+        route: "/manual-search",
+      },
+    ],
+  },
+  {
+    id: "pros",
+    label: "Find a Pro",
+    icon: Search,
+    steps: [
+      {
+        icon: Search, step: "01", title: "Describe Your Job",
+        description: "Tell us what you need — or let our AI analyze a photo and suggest the right service.",
+        route: "/search",
+      },
+      {
+        icon: FileText, step: "02", title: "Get Instant Quotes",
+        description: "Receive AI-powered estimates and compare quotes from verified local pros.",
+        route: "/estimator",
+      },
+      {
+        icon: MessageSquare, step: "03", title: "Chat & Schedule",
+        description: "Message pros directly, agree on timing and price, and book your appointment.",
+        route: "/messages",
+      },
+      {
+        icon: CheckCircle, step: "04", title: "Job Done, Review Left",
+        description: "Get the work done by a trusted pro, then leave a review to help others.",
+        route: "/search",
       },
     ],
   },
@@ -148,60 +256,6 @@ const homeownerTabs = [
     ],
   },
   {
-    id: "estimator",
-    label: "AI Estimator",
-    icon: Brain,
-    steps: [
-      {
-        icon: Camera, step: "01", title: "Snap or Describe",
-        description: "Upload a photo of the issue or just describe it — our AI figures out what's going on.",
-        route: "/estimator",
-      },
-      {
-        icon: Sparkles, step: "02", title: "AI Analyzes the Job",
-        description: "We identify the problem, list materials, and estimate the labor and time needed.",
-        route: "/estimator",
-      },
-      {
-        icon: DollarSign, step: "03", title: "Get a Cost Range",
-        description: "Receive a realistic price range plus a DIY-vs-Pro recommendation tailored to the job.",
-        route: "/estimator",
-      },
-      {
-        icon: UserCheck, step: "04", title: "DIY or Hire a Pro",
-        description: "Tackle it yourself with our guidance, or send the estimate to local pros for bids.",
-        route: "/estimator",
-      },
-    ],
-  },
-  {
-    id: "manuals",
-    label: "Manual Finder",
-    icon: BookOpen,
-    steps: [
-      {
-        icon: FileSearch, step: "01", title: "Enter Brand & Model",
-        description: "Type the brand and model number of any appliance, tool, or home system.",
-        route: "/manual-search",
-      },
-      {
-        icon: Bot, step: "02", title: "AI Locates the Manual",
-        description: "Our AI scours the web to find the official PDF user manual for your exact product.",
-        route: "/manual-search",
-      },
-      {
-        icon: BookOpen, step: "03", title: "View On-Site",
-        description: "Read the manual right inside Trimbly — no shady redirects, no ads, no signup walls.",
-        route: "/manual-search",
-      },
-      {
-        icon: Download, step: "04", title: "Download & Save",
-        description: "Download the PDF or attach it to an item in your Digital Home Binder for later.",
-        route: "/manual-search",
-      },
-    ],
-  },
-  {
     id: "messages",
     label: "Messaging",
     icon: MessageSquare,
@@ -225,60 +279,6 @@ const homeownerTabs = [
         icon: CheckCircle, step: "04", title: "Track Job Status",
         description: "Keep the full conversation, photos, and quotes in one thread from request to completion.",
         route: "/messages",
-      },
-    ],
-  },
-  {
-    id: "triage",
-    label: "Symptom Triage",
-    icon: Stethoscope,
-    steps: [
-      {
-        icon: Stethoscope, step: "01", title: "Describe the Symptom",
-        description: "Type what you're seeing, hearing, or smelling — a strange noise, leak, smell, or odd behavior from any home system.",
-        route: "/symptom-triage",
-      },
-      {
-        icon: Sparkles, step: "02", title: "AI Diagnoses Instantly",
-        description: "Our AI analyzes the symptom, identifies the likely cause, and flags any urgent safety warnings.",
-        route: "/symptom-triage",
-      },
-      {
-        icon: AlertTriangle, step: "03", title: "Get an Urgency Level",
-        description: "From Emergency to Monitor — know if you need to act now, schedule a pro, or just keep an eye on it.",
-        route: "/symptom-triage",
-      },
-      {
-        icon: Hammer, step: "04", title: "DIY or Hire a Pro",
-        description: "Follow the AI's step-by-step DIY guidance, or jump straight to finding the right local pro.",
-        route: "/symptom-triage",
-      },
-    ],
-  },
-  {
-    id: "garage",
-    label: "My Garage",
-    icon: Car,
-    steps: [
-      {
-        icon: Car, step: "01", title: "Add Your Vehicles",
-        description: "Register cars, trucks, and motorcycles with make, model, mileage, and VIN for a complete garage dashboard.",
-        route: "/garage",
-      },
-      {
-        icon: Wrench, step: "02", title: "Log Service History",
-        description: "Record oil changes, tire rotations, repairs, and upgrades. Everything stays organized with receipts and notes.",
-        route: "/garage",
-      },
-      {
-        icon: Bell, step: "03", title: "Get Maintenance Reminders",
-        description: "Receive timely alerts for scheduled maintenance based on mileage and time — never miss an oil change or inspection.",
-        route: "/garage",
-      },
-      {
-        icon: CheckCircle, step: "04", title: "Find Trusted Mechanics",
-        description: "Search vetted auto and motorcycle pros near you, compare reviews, and message them directly through Trimbly.",
-        route: "/garage",
       },
     ],
   },

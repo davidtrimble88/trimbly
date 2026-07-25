@@ -3,18 +3,12 @@ import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield,
   Briefcase, BookOpen, Stethoscope, Home, Hammer, Car,
   Inbox, BadgeCheck, Users, QrCode, TrendingUp, Sparkles, FileText, Gauge,
-  ShoppingCart
+  ShoppingCart, CloudSun, Building2, DollarSign, Repeat, Wallet
 } from "lucide-react";
 
 type Audience = "homeowner" | "pro" | "mechanic";
 
 const homeownerFeatures = [
-  {
-    icon: Wrench,
-    title: "Find Local Pros",
-    description: "Search by service, distance, rating, and availability. Get matched with vetted professionals near you.",
-    tab: "pros",
-  },
   {
     icon: Brain,
     title: "AI Job Estimator",
@@ -22,9 +16,44 @@ const homeownerFeatures = [
     tab: "estimator",
   },
   {
+    icon: Stethoscope,
+    title: "AI Symptom Triage",
+    description: "Describe a noise, smell, or odd behavior — get an instant AI diagnosis, urgency level, safety warnings, and DIY-vs-Pro guidance.",
+    tab: "triage",
+  },
+  {
+    icon: Shield,
+    title: "Coverage Advisor",
+    description: "Upload your home warranty and insurance docs, then ask AI questions about what's covered and how to file claims.",
+    tab: "coverage",
+  },
+  {
+    icon: Car,
+    title: "My Garage",
+    description: "The same AI diagnosis, coverage checks, and cost breakdowns — for your cars and motorcycles. Log service history, manage insurance & warranty docs, shop parts through Amazon, and find trusted mechanics. Add-on for +$2/month on any paid plan.",
+    tab: "garage",
+  },
+  {
+    icon: Building2,
+    title: "Multi-Home Management",
+    description: "Own more than one property? Manage up to 10 homes from a single account, viewed individually or all together on one dashboard.",
+  },
+  {
+    icon: ShoppingCart,
+    title: "Smart Product Shopping",
+    description: "AI-powered product recommendations for every maintenance task. Find the right supplies on Amazon in one click, tailored to your home or vehicle.",
+    tab: "maintenance",
+  },
+  {
     icon: CalendarCheck,
     title: "Maintenance Autopilot",
     description: "Automated schedules based on your home profile. Never forget an HVAC filter, gutter clean, or seasonal checkup.",
+    tab: "maintenance",
+  },
+  {
+    icon: CloudSun,
+    title: "Weather Alerts",
+    description: "Freeze warnings, heavy rain, high wind, extreme heat — get proactive maintenance alerts tied to your home's location before weather causes damage.",
     tab: "maintenance",
   },
   {
@@ -34,16 +63,16 @@ const homeownerFeatures = [
     tab: "binder",
   },
   {
-    icon: Shield,
-    title: "Coverage Advisor",
-    description: "Upload your home warranty and insurance docs, then ask AI questions about what's covered and how to file claims.",
-    tab: "coverage",
+    icon: BookOpen,
+    title: "User Manual Finder",
+    description: "Enter any brand and model number and we'll find the official user manual — viewable and downloadable right on Trimbly.",
+    tab: "manuals",
   },
   {
-    icon: MessageSquare,
-    title: "In-App Messaging",
-    description: "Chat directly with pros, share photos, negotiate quotes, and track job status from request to completion.",
-    tab: "messages",
+    icon: Wrench,
+    title: "Find Local Pros",
+    description: "Search by service, distance, rating, and availability. Get matched with vetted professionals near you.",
+    tab: "pros",
   },
   {
     icon: Briefcase,
@@ -52,16 +81,10 @@ const homeownerFeatures = [
     tab: "jobs",
   },
   {
-    icon: BookOpen,
-    title: "User Manual Finder",
-    description: "Enter any brand and model number and we'll find the official user manual — viewable and downloadable right on Trimbly.",
-    tab: "manuals",
-  },
-  {
-    icon: Stethoscope,
-    title: "AI Symptom Triage",
-    description: "Describe a noise, smell, or odd behavior — get an instant AI diagnosis, urgency level, safety warnings, and DIY-vs-Pro guidance.",
-    tab: "triage",
+    icon: MessageSquare,
+    title: "In-App Messaging",
+    description: "Chat directly with pros, share photos, negotiate quotes, and track job status from request to completion.",
+    tab: "messages",
   },
   {
     icon: Hammer,
@@ -70,26 +93,19 @@ const homeownerFeatures = [
     tab: "rentals",
   },
   {
-    icon: ShoppingCart,
-    title: "Smart Product Shopping",
-    description: "AI-powered product recommendations for every maintenance task. Find the right supplies on Amazon in one click, tailored to your home or vehicle.",
-    tab: "maintenance",
-  },
-  {
     icon: Star,
     title: "Verified Reviews",
     description: "Read honest reviews from real homeowners. Rate your experience and help the community find the best pros.",
     tab: "pros",
   },
-  {
-    icon: Car,
-    title: "My Garage",
-    description: "Track vehicles and motorcycles, log service history, get maintenance reminders, manage insurance & warranty docs with AI claim help, shop parts through Amazon, and find trusted mechanics — an optional add-on for complete ownership peace of mind.",
-    tab: "garage",
-  },
 ];
 
 const proFeatures = [
+  {
+    icon: DollarSign,
+    title: "0% Commission, Ever",
+    description: "Trimbly charges a flat subscription — never a cut of your job earnings. Keep 100% of what you make.",
+  },
   {
     icon: Inbox,
     title: "Local Job Leads",
@@ -151,6 +167,16 @@ const proFeatures = [
     description: "List tools and equipment for other pros (and subscribed homeowners) to rent. ESIGN/UETA-compliant digital agreements, audit trail, and signed-contract archive included.",
   },
   {
+    icon: Repeat,
+    title: "Service Plans",
+    description: "Set up recurring maintenance service agreements with homeowners — build repeat revenue instead of chasing one-off jobs.",
+  },
+  {
+    icon: Wallet,
+    title: "Payment Methods on Profile",
+    description: "List the payment methods you accept — cash, Venmo, Zelle, and more — right on your public profile. Trimbly never touches the transaction.",
+  },
+  {
     icon: Hammer,
     title: "Pro Dashboard",
     description: "Manage leads, quotes, service area, business hours, mileage, gallery, and credentials all in one place.",
@@ -158,6 +184,11 @@ const proFeatures = [
 ];
 
 const mechanicFeatures = [
+  {
+    icon: DollarSign,
+    title: "0% Commission, Ever",
+    description: "Trimbly charges a flat subscription — never a cut of your job earnings. Keep 100% of what you make.",
+  },
   {
     icon: Inbox,
     title: "Vehicle Job Leads",
@@ -220,6 +251,11 @@ const mechanicFeatures = [
     description: "List specialty tools and lifts for other mechanics (and subscribed owners) to rent. ESIGN/UETA-compliant digital agreements included.",
   },
   {
+    icon: Wallet,
+    title: "Payment Methods on Profile",
+    description: "List the payment methods you accept — cash, Venmo, Zelle, and more — right on your public profile. Trimbly never touches the transaction.",
+  },
+  {
     icon: Car,
     title: "Mechanic Dashboard",
     description: "Manage vehicle leads, quotes, service area, business hours, certifications, gallery, and credentials all in one place.",
@@ -248,10 +284,10 @@ const FeaturesSection = () => {
         <div className="text-center max-w-2xl mx-auto mb-10">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Features</p>
           <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
-            Everything you need
+            Way more than a pro finder
           </h2>
           <p className="text-muted-foreground text-lg">
-            Choose your view — we built Trimbly for every side of the job.
+            Diagnosis, coverage checks, and cost breakdowns — for your home and your car. Choose your view below.
           </p>
         </div>
 
