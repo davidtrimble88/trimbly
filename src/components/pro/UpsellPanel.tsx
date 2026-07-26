@@ -51,7 +51,7 @@ const UpsellPanel = ({ providerId, providerCategory, businessName, userId, jobsT
     (async () => {
       const { data } = await supabase
         .from(jobsTable)
-        .select(`id, title, category, description, ${ownerIdField}`)
+        .select("*")
         .eq("provider_id", providerId)
         .eq("status", "completed")
         .order("updated_at", { ascending: false })

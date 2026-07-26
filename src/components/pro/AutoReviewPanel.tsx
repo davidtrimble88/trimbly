@@ -34,7 +34,7 @@ const AutoReviewPanel = ({ providerId, userId, jobsTable = "jobs", ownerIdField 
     setLoading(true);
     const [{ data: completed }, { data: reqs }, { data: revs }] = await Promise.all([
       supabase.from(jobsTable)
-        .select(`id, title, ${ownerIdField}, status, updated_at`)
+        .select("*")
         .eq("provider_id", providerId)
         .eq("status", "completed")
         .order("updated_at", { ascending: false })
