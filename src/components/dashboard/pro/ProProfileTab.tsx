@@ -10,6 +10,7 @@ import ServiceAreaPanel from "@/components/pro/ServiceAreaPanel";
 import ProFeaturesPanel from "@/components/pro/ProFeaturesPanel";
 import NotificationPrefsPanel from "@/components/pro/NotificationPrefsPanel";
 import InstallAppPanel from "@/components/pro/InstallAppPanel";
+import UpgradeGate from "@/components/dashboard/UpgradeGate";
 import BusinessInfoCard from "./BusinessInfoCard";
 import type { ProviderProfile } from "./types";
 
@@ -22,6 +23,7 @@ interface ProProfileTabProps {
 
 const ProProfileTab = ({ provider, userId, onEditProfile, onUpdated }: ProProfileTabProps) => {
   const navigate = useNavigate();
+  const hasAccess = provider.subscription_tier !== "free";
   return (
     <div className="space-y-6">
       <ProGalleryEditor userId={userId} providerId={provider.id} businessName={provider.business_name} />
@@ -29,7 +31,9 @@ const ProProfileTab = ({ provider, userId, onEditProfile, onUpdated }: ProProfil
       <h2 className="text-lg font-bold text-foreground">Business Profile</h2>
       <BusinessInfoCard provider={provider} onEdit={onEditProfile} />
 
-      <BusinessHoursPanel providerId={provider.id} initial={(provider as any).business_hours} />
+      <UpgradeGate hasAccess={hasAccess} featureName="Business Hours" pricingRoute="/pro-pricing" description="Set your weekly hours so homeowners know when you're open.">
+        <BusinessHoursPanel providerId={provider.id} initial={(provider as any).business_hours} />
+      </UpgradeGate>
 
       <PaymentMethodsPanel
         providerId={provider.id}
@@ -38,13 +42,15 @@ const ProProfileTab = ({ provider, userId, onEditProfile, onUpdated }: ProProfil
         onSaved={(methods, handles) => onUpdated({ payment_methods: methods, payment_handles: handles })}
       />
 
-      <ServiceAreaPanel
-        providerId={provider.id}
-        city={provider.city}
-        state={provider.state}
-        initialRadius={provider.service_radius_miles}
-        onUpdated={(r) => onUpdated({ service_radius_miles: r })}
-      />
+      <UpgradeGate hasAccess={hasAccess} featureName="Service Area" pricingRoute="/pro-pricing" description="Set your service radius so the right homeowners find you.">
+        <ServiceAreaPanel
+          providerId={provider.id}
+          city={provider.city}
+          state={provider.state}
+          initialRadius={provider.service_radius_miles}
+          onUpdated={(r) => onUpdated({ service_radius_miles: r })}
+        />
+      </UpgradeGate>
 
       <ProFeaturesPanel
         provider={provider}

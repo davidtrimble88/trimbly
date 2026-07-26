@@ -24,6 +24,7 @@ import {
 import { AIFeedback } from "@/components/messages/AIFeedback";
 import MessageCopilot from "@/components/messages/MessageCopilot";
 import { EmptyState } from "@/components/EmptyState";
+import UpgradeGate from "@/components/dashboard/UpgradeGate";
 
 interface Message {
   id: string;
@@ -97,6 +98,8 @@ const Messages = () => {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<{ user_type: string; subscription_tier: string } | null>(null);
+  const [ownProviderTier, setOwnProviderTier] = useState<string | null>(null);
+  const [ownProviderType, setOwnProviderType] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ConversationPartner | null>(null);
   const [blockTarget, setBlockTarget] = useState<ConversationPartner | null>(null);
   const [filter, setFilter] = useState<ConversationFilter>("all");
@@ -120,14 +123,17 @@ const Messages = () => {
     if (!user) return;
     setLoading(true);
 
-    const [{ data: msgs }, { data: profile }, { data: pending }, { data: blocks }] = await Promise.all([
+    const [{ data: msgs }, { data: profile }, { data: pending }, { data: blocks }, { data: ownProvider }] = await Promise.all([
       supabase.from("messages").select("*").order("created_at", { ascending: true }),
       supabase.from("profiles").select("user_type, subscription_tier").eq("id", user.id).maybeSingle(),
       supabase.from("pending_messages").select("*").eq("sender_id", user.id).order("created_at", { ascending: true }),
       supabase.from("blocked_providers").select("*").eq("user_id", user.id),
+      supabase.from("providers").select("subscription_tier, provider_type").eq("user_id", user.id).maybeSingle(),
     ]);
 
     setUserProfile(profile);
+    setOwnProviderTier(ownProvider?.subscription_tier ?? null);
+    setOwnProviderType((ownProvider as any)?.provider_type ?? null);
     setMessages((msgs || []) as Message[]);
     setPendingMessages((pending || []) as PendingMessage[]);
 
@@ -251,7 +257,7 @@ const Messages = () => {
   }, [messages, pendingMessages, selectedPartnerId, user]);
 
   const selectedPartner = conversations.find((c) => c.id === selectedPartnerId);
-  const isFreePro = userProfile?.user_type === "provider" && userProfile?.subscription_tier === "free";
+  const isFreePro = userProfile?.user_type === "provider" && ownProviderTier === "free";
   const isPendingConversation = selectedPartnerId?.startsWith("pending-");
 
   useEffect(() => {
@@ -654,12 +660,20 @@ const Messages = () => {
 
                   {/* AI Co-pilot */}
                   {!isPendingConversation && selectedPartner?.chatStatus !== "blocked" && activeConversation.length > 0 && user && (
-                    <MessageCopilot
-                      thread={activeConversation.map(m => ({ sender_id: m.sender_id, body: m.body, created_at: m.created_at }))}
-                      currentUserId={user.id}
-                      partnerName={selectedPartner?.name || "homeowner"}
-                      onUseDraft={(text) => setNewMessage(text)}
-                    />
+                    <UpgradeGate
+                      hasAccess={!isFreePro}
+                      variant="inline"
+                      featureName="AI Message Copilot"
+                      pricingRoute={ownProviderType === "mechanic" ? "/mechanic-pricing" : "/pro-pricing"}
+                      description="AI-drafted replies for this conversation"
+                    >
+                      <MessageCopilot
+                        thread={activeConversation.map(m => ({ sender_id: m.sender_id, body: m.body, created_at: m.created_at }))}
+                        currentUserId={user.id}
+                        partnerName={selectedPartner?.name || "homeowner"}
+                        onUseDraft={(text) => setNewMessage(text)}
+                      />
+                    </UpgradeGate>
                   )}
                   {/* Composer */}
                   <div className="p-3 border-t border-border">

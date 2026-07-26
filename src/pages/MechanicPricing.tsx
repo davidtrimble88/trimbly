@@ -36,11 +36,9 @@ const tiers = [
     description: "More vehicle leads, more bay throughput",
     features: [
       "Everything in Free",
-      "Priority placement on Vehicle Jobs board",
+      "Unlimited bids on vehicle jobs",
       "Verified Mechanic badge",
-      "Bid analytics & win-rate insights",
       "Direct messaging with vehicle owners",
-      "Shop photo portfolio (up to 20 images)",
     ],
     cta: "Start 14-Day Free Trial",
     highlighted: true,

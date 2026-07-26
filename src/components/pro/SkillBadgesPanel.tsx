@@ -14,16 +14,23 @@ type BadgeDef = {
   progress?: string;
 };
 
-export default function SkillBadgesPanel({ providerId, userId }: { providerId: string; userId: string }) {
+interface SkillBadgesPanelProps {
+  providerId: string;
+  userId: string;
+  jobsTable?: "jobs" | "vehicle_jobs";
+  bidsTable?: "job_bids" | "vehicle_job_bids";
+}
+
+export default function SkillBadgesPanel({ providerId, userId, jobsTable = "jobs", bidsTable = "job_bids" }: SkillBadgesPanelProps) {
   const [badges, setBadges] = useState<BadgeDef[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       const [{ data: jobs }, { data: reviews }, { data: bids }, { data: provider }] = await Promise.all([
-        supabase.from("jobs").select("id, status").eq("provider_id", providerId),
+        supabase.from(jobsTable).select("id, status").eq("provider_id", providerId),
         supabase.from("reviews").select("rating").eq("provider_id", providerId),
-        supabase.from("job_bids").select("id, status, created_at").eq("provider_id", providerId),
+        supabase.from(bidsTable).select("id, status, created_at").eq("provider_id", providerId),
         supabase.from("providers").select("verified, licensed, insured, years_experience, emergency_available").eq("id", providerId).maybeSingle(),
       ]);
 

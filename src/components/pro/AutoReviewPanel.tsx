@@ -9,6 +9,8 @@ import { Star, Send } from "lucide-react";
 interface Props {
   providerId: string;
   userId: string;
+  jobsTable?: "jobs" | "vehicle_jobs";
+  ownerIdField?: "homeowner_id" | "owner_user_id";
 }
 
 type CompletedJob = {
@@ -21,7 +23,7 @@ type CompletedJob = {
   hasReview?: boolean;
 };
 
-const AutoReviewPanel = ({ providerId, userId }: Props) => {
+const AutoReviewPanel = ({ providerId, userId, jobsTable = "jobs", ownerIdField = "homeowner_id" }: Props) => {
   const { toast } = useToast();
   const [jobs, setJobs] = useState<CompletedJob[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,8 +33,8 @@ const AutoReviewPanel = ({ providerId, userId }: Props) => {
   const load = async () => {
     setLoading(true);
     const [{ data: completed }, { data: reqs }, { data: revs }] = await Promise.all([
-      supabase.from("jobs")
-        .select("id, title, homeowner_id, status, updated_at")
+      supabase.from(jobsTable)
+        .select(`id, title, ${ownerIdField}, status, updated_at`)
         .eq("provider_id", providerId)
         .eq("status", "completed")
         .order("updated_at", { ascending: false })
@@ -49,8 +51,9 @@ const AutoReviewPanel = ({ providerId, userId }: Props) => {
     const reviewerSet = new Set((revs || []).map((r: any) => r.reviewer_id));
     const list = (completed || []).map((j: any) => ({
       ...j,
+      homeowner_id: j[ownerIdField],
       hasRequest: reqJobs.has(j.id),
-      hasReview: reviewerSet.has(j.homeowner_id),
+      hasReview: reviewerSet.has(j[ownerIdField]),
     }));
     setJobs(list);
     setStats({ sent: reqs?.length || 0, received: revs?.length || 0 });

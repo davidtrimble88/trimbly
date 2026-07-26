@@ -9,10 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Wrench, Car, Bike, MapPin, DollarSign, Star, MessageSquare,
-  Briefcase, Zap, ExternalLink, LayoutDashboard,
+  Briefcase, Zap, ExternalLink, LayoutDashboard, QrCode, CheckCircle, Sparkles,
 } from "lucide-react";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import InspectionReportDialog from "@/components/mechanic/InspectionReportDialog";
 import PaymentMethodsPanel from "@/components/pro/PaymentMethodsPanel";
+import MechanicToolsTab from "@/components/dashboard/mechanic/MechanicToolsTab";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { DashboardNavItem } from "@/components/dashboard/types";
 import StatCard from "@/components/dashboard/StatCard";
@@ -97,6 +99,38 @@ export default function MechanicDashboard() {
     toast({ title: v ? "You're now available" : "You're now unavailable" });
   };
 
+  const [markingCompleteId, setMarkingCompleteId] = useState<string | null>(null);
+  const markJobComplete = async (bid: VBid) => {
+    if (!user || !bid.vehicle_job) return;
+    if (!confirm(`Mark "${bid.vehicle_job.title}" as complete? The vehicle owner will be notified and asked to leave a review.`)) return;
+    setMarkingCompleteId(bid.id);
+    try {
+      const { error: jErr } = await supabase
+        .from("vehicle_jobs")
+        .update({ status: "completed" })
+        .eq("id", bid.vehicle_job_id);
+      if (jErr) throw jErr;
+
+      if (bid.vehicle_job.owner_user_id) {
+        await supabase.from("messages").insert({
+          sender_id: user.id,
+          recipient_id: bid.vehicle_job.owner_user_id,
+          subject: `Job complete: ${bid.vehicle_job.title}`,
+          body: `${provider?.business_name || "Your mechanic"} marked "${bid.vehicle_job.title}" as complete. If everything looks good, please take a moment to leave a quick review.`,
+        });
+      }
+
+      setBids((prev) => prev.map((b) => (
+        b.id === bid.id && b.vehicle_job ? { ...b, vehicle_job: { ...b.vehicle_job, status: "completed" } } : b
+      )));
+      toast({ title: "Marked complete", description: "The vehicle owner has been notified and asked to review." });
+    } catch (e: any) {
+      toast({ title: "Couldn't mark complete", description: e.message || "Try again.", variant: "destructive" });
+    } finally {
+      setMarkingCompleteId(null);
+    }
+  };
+
   const openEdit = () => { if (provider) { setEditForm(provider); setEditOpen(true); } };
   const saveEdit = async () => {
     if (!provider) return;
@@ -151,6 +185,7 @@ export default function MechanicDashboard() {
   const navItems: DashboardNavItem[] = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "bids", label: "Bids", icon: Wrench, badge: pending },
+    { id: "tools", label: "Tools", icon: Sparkles },
     { id: "reviews", label: "Reviews", icon: Star },
     { id: "messages", label: "Messages", icon: MessageSquare, badge: unread },
   ];
@@ -180,6 +215,11 @@ export default function MechanicDashboard() {
           onToggleAvailable: toggleAvailable,
           onEditProfile: openEdit,
           onViewPublicProfile: () => navigate(`/pro/${provider.id}`),
+          extraMenuItems: (
+            <DropdownMenuItem onClick={() => navigate("/my-qr")}>
+              <QrCode size={14} className="mr-2" /> My QR Code
+            </DropdownMenuItem>
+          ),
         }}
       >
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
@@ -248,10 +288,34 @@ export default function MechanicDashboard() {
                       vehicleJobId={b.vehicle_job_id}
                     />
                   )}
+                  {b.status === "accepted" && b.vehicle_job?.status !== "completed" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5"
+                      onClick={() => markJobComplete(b)}
+                      disabled={markingCompleteId === b.id}
+                    >
+                      <CheckCircle size={14} /> {markingCompleteId === b.id ? "Marking..." : "Mark job complete"}
+                    </Button>
+                  )}
+                  {b.vehicle_job?.status === "completed" && (
+                    <Badge variant="outline" className="gap-1 text-xs">
+                      <CheckCircle size={10} /> Completed
+                    </Badge>
+                  )}
                 </CardContent>
               </Card>
             ))}
           </div>
+        )}
+
+        {activeTab === "tools" && (
+          <MechanicToolsTab
+            provider={provider}
+            userId={user!.id}
+            onUpdated={(patch) => setProvider((p) => p ? { ...p, ...patch } : p)}
+          />
         )}
 
         {activeTab === "reviews" && (

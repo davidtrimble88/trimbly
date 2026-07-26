@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { getJobEstimate, type JobEstimate } from "@/lib/api/jobEstimator";
+import UpgradeGate from "@/components/dashboard/UpgradeGate";
 
 const categories = [
   "All", "General Contractor", "Plumbing", "Electrical", "HVAC", "Roofing", "Painting", "Carpentry",
@@ -75,6 +76,7 @@ const JobBoard = () => {
   const [providerId, setProviderId] = useState<string | null>(null);
   const [providerBusinessName, setProviderBusinessName] = useState<string>("");
   const [providerTier, setProviderTier] = useState<string>("free");
+  const [providerType, setProviderType] = useState<string>("home");
   const [activeBidsThisMonth, setActiveBidsThisMonth] = useState(0);
   const [loading, setLoading] = useState(true);
   const [filterCategory, setFilterCategory] = useState("All");
@@ -193,7 +195,7 @@ const JobBoard = () => {
       // Get provider profile
       const { data: providerData } = await supabase
         .from("providers")
-        .select("id, subscription_tier, business_name")
+        .select("id, subscription_tier, business_name, provider_type")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -201,6 +203,7 @@ const JobBoard = () => {
         setProviderId(providerData.id);
         setProviderTier(providerData.subscription_tier || "free");
         setProviderBusinessName(providerData.business_name || "");
+        setProviderType((providerData as any).provider_type || "home");
         // Load my bids
         const { data: bidsData } = await supabase
           .from("job_bids")
@@ -595,6 +598,21 @@ const JobBoard = () => {
           <h1 className="text-3xl font-bold mb-2">Job Board</h1>
           <p className="text-muted-foreground mb-6">You need a provider profile to browse and bid on jobs.</p>
           <Button onClick={() => navigate("/pro-register")}>Register as a Pro</Button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (providerType === "mechanic") {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-20 text-center">
+          <Briefcase className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+          <h1 className="text-3xl font-bold mb-2">Job Board</h1>
+          <p className="text-muted-foreground mb-6">This board is for home-service jobs. Vehicle repair jobs are over on the Vehicle Jobs board.</p>
+          <Button onClick={() => navigate("/vehicle-jobs")}>Go to Vehicle Jobs</Button>
         </div>
         <Footer />
       </div>
@@ -1043,17 +1061,19 @@ const JobBoard = () => {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <Label>Message to Homeowner *</Label>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={suggestBidMessage}
-                    disabled={suggestingMessage}
-                    className="h-7 text-xs gap-1"
-                  >
-                    {suggestingMessage ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} className="text-accent" />}
-                    {bidForm.message.trim() ? "Regenerate" : "Suggest message"}
-                  </Button>
+                  <UpgradeGate hasAccess={isPaid} variant="inline" featureName="AI Message Copilot" pricingRoute="/pro-pricing" description="AI-drafted bid messages">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={suggestBidMessage}
+                      disabled={suggestingMessage}
+                      className="h-7 text-xs gap-1"
+                    >
+                      {suggestingMessage ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} className="text-accent" />}
+                      {bidForm.message.trim() ? "Regenerate" : "Suggest message"}
+                    </Button>
+                  </UpgradeGate>
                 </div>
                 <Textarea
                   placeholder="Introduce yourself, describe your experience with this type of job, and explain your approach..."

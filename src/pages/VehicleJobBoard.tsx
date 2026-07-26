@@ -101,6 +101,20 @@ export default function VehicleJobBoard() {
 
   const visible = jobs.filter((j) => filter === "all" || j.service_type === filter);
 
+  if (providerType === "home") {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto max-w-4xl px-4 pt-24 pb-10 text-center">
+          <Wrench className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+          <h1 className="text-3xl font-display font-bold mb-2">Vehicle Jobs</h1>
+          <p className="text-muted-foreground mb-6">This board is for auto/motorcycle repair jobs. Home-service jobs are over on the Job Board.</p>
+          <Button onClick={() => navigate("/job-board")}>Go to Job Board</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />

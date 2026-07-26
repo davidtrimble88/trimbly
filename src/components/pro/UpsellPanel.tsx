@@ -27,6 +27,8 @@ interface Props {
   providerCategory: string;
   businessName: string;
   userId: string;
+  jobsTable?: "jobs" | "vehicle_jobs";
+  ownerIdField?: "homeowner_id" | "owner_user_id";
 }
 
 const urgencyStyle: Record<string, string> = {
@@ -35,7 +37,7 @@ const urgencyStyle: Record<string, string> = {
   low: "bg-muted text-muted-foreground border-border",
 };
 
-const UpsellPanel = ({ providerId, providerCategory, businessName, userId }: Props) => {
+const UpsellPanel = ({ providerId, providerCategory, businessName, userId, jobsTable = "jobs", ownerIdField = "homeowner_id" }: Props) => {
   const { toast } = useToast();
   const [jobs, setJobs] = useState<CompletedJob[]>([]);
   const [openJobId, setOpenJobId] = useState<string | null>(null);
@@ -48,13 +50,14 @@ const UpsellPanel = ({ providerId, providerCategory, businessName, userId }: Pro
   useEffect(() => {
     (async () => {
       const { data } = await supabase
-        .from("jobs")
-        .select("id, title, category, description, homeowner_id")
+        .from(jobsTable)
+        .select(`id, title, category, description, ${ownerIdField}`)
         .eq("provider_id", providerId)
         .eq("status", "completed")
         .order("updated_at", { ascending: false })
         .limit(10);
-      setJobs(data || []);
+      const normalized = (data || []).map((j: any) => ({ ...j, homeowner_id: j[ownerIdField] }));
+      setJobs(normalized);
     })();
   }, [providerId]);
 

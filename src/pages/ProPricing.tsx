@@ -40,7 +40,7 @@ const tiers = [
       "Verified Pro badge",
       "Detailed performance analytics",
       "Direct messaging with homeowners",
-      "Photo portfolio (up to 50 images)",
+      "Photo portfolio (up to 10 images)",
     ],
     cta: "Start 14-Day Free Trial",
     highlighted: true,

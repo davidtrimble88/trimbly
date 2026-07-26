@@ -118,8 +118,8 @@ const proFeatures = [
   },
   {
     icon: BadgeCheck,
-    title: "Verified Badge & Faster Approvals",
-    description: "Show a trust badge on your profile and get faster homeowner phone-call approvals to close jobs quickly.",
+    title: "Verified Pro Badge",
+    description: "Show a trust badge on your profile so homeowners know you've been vetted before they ever message you.",
   },
   {
     icon: Gauge,
@@ -129,12 +129,12 @@ const proFeatures = [
   {
     icon: Star,
     title: "Auto-Request Reviews",
-    description: "After a completed job, an automated text and email goes out asking the homeowner for a review.",
+    description: "After a completed job, send a one-click in-app request asking the homeowner for a review.",
   },
   {
     icon: Users,
     title: "Referral Program",
-    description: "Share your unique link with other pros and earn credit toward your subscription for every signup.",
+    description: "Share your unique link with other pros — track signups from your dashboard.",
   },
   {
     icon: Home,
@@ -148,8 +148,8 @@ const proFeatures = [
   },
   {
     icon: Sparkles,
-    title: "AI Follow-Up Sequences",
-    description: "Automatic nudges to homeowners who went quiet — recover lost leads while you're out on the job.",
+    title: "AI Follow-Up Drafts",
+    description: "AI spots homeowners who went quiet and drafts a nudge for you to review and send in one tap.",
   },
   {
     icon: TrendingUp,
@@ -198,12 +198,12 @@ const mechanicFeatures = [
   {
     icon: FileText,
     title: "Unlimited Bids",
-    description: "Free mechanics get 5 active bids per month. Paid mechanics bid as much as they want and never miss an opportunity.",
+    description: "Free mechanics get 3 active bids per month. Paid mechanics bid as much as they want and never miss an opportunity.",
   },
   {
     icon: BadgeCheck,
     title: "Verified Mechanic Badge",
-    description: "Show ASE certifications and a trust badge on your profile. Get faster phone-call approvals from vehicle owners.",
+    description: "Show a trust badge on your profile so vehicle owners know you've been vetted before they ever message you.",
   },
   {
     icon: Gauge,
@@ -211,34 +211,9 @@ const mechanicFeatures = [
     description: "Auto-calculated 'Replies in under 1 hr' badge on your listing — proven speed wins more vehicle jobs.",
   },
   {
-    icon: Star,
-    title: "Auto-Request Reviews",
-    description: "After a completed job, an automated text and email goes out asking the vehicle owner for a review.",
-  },
-  {
-    icon: Users,
-    title: "Referral Program",
-    description: "Share your unique link with other mechanics and earn credit toward your subscription for every signup.",
-  },
-  {
-    icon: Home,
-    title: "Local SEO Microsite",
-    description: "Your own page at trimbly.com/mechanics/your-shop — designed to rank in Google for your service area.",
-  },
-  {
     icon: QrCode,
     title: "Shop QR Codes",
     description: "Printable QR that scans straight to your Trimbly mechanic profile — turn every repair into a marketing channel.",
-  },
-  {
-    icon: Sparkles,
-    title: "AI Follow-Up Sequences",
-    description: "Automatic nudges to vehicle owners who went quiet — recover lost leads while you're under the hood.",
-  },
-  {
-    icon: TrendingUp,
-    title: "AI Competitor Pricing Intel",
-    description: "See what other mechanics in your zip charge per hour and per job so you can price competitively and confidently.",
   },
   {
     icon: MessageSquare,
@@ -258,7 +233,7 @@ const mechanicFeatures = [
   {
     icon: Car,
     title: "Mechanic Dashboard",
-    description: "Manage vehicle leads, quotes, service area, business hours, certifications, gallery, and credentials all in one place.",
+    description: "Manage vehicle leads, bids, reviews, messages, and payment methods all in one place.",
   },
 ];
 

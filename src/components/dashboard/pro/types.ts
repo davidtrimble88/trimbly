@@ -2,6 +2,7 @@ export type ProviderProfile = {
   id: string;
   business_name: string;
   category: string;
+  provider_type?: string;
   city: string;
   state: string;
   country: string;

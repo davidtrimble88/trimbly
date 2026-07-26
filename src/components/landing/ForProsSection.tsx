@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const providerFeatures = [
   { icon: DollarSign, title: "0% Commission, Ever", desc: "Keep 100% of every job. Trimbly charges a flat subscription — never a cut of your earnings.", route: "/pro-pricing" },
-  { icon: Sparkles, title: "AI Runs Your Follow-Ups", desc: "Message Copilot drafts your replies, and AI automatically nudges leads who've gone quiet.", route: "/pro-pricing" },
+  { icon: Sparkles, title: "AI Handles Your Busywork", desc: "Message Copilot drafts your replies, and AI flags leads who've gone quiet with a nudge ready to send.", route: "/pro-pricing" },
   { icon: Home, title: "Free SEO Microsite", desc: "Your own page at trimbly.com/pros/you, built to rank in Google for your service area — plus yard sign QR codes.", route: "/pro-pricing" },
   { icon: Hammer, title: "Rent Out Your Equipment", desc: "List tools between jobs and earn extra with e-signed rental agreements, fully archived.", route: "/pro-pricing" },
 ];

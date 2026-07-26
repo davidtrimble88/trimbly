@@ -1,4 +1,5 @@
-import { LucideIcon, TrendingUp, Briefcase } from "lucide-react";
+import { TrendingUp, Briefcase } from "lucide-react";
+import { ToolSectionHeader } from "@/components/dashboard/ToolSectionHeader";
 import UpsellPanel from "@/components/pro/UpsellPanel";
 import CompetitorPricingPanel from "@/components/pro/CompetitorPricingPanel";
 import AIFollowUpPanel from "@/components/pro/AIFollowUpPanel";
@@ -9,6 +10,7 @@ import YardSignQRPanel from "@/components/pro/YardSignQRPanel";
 import QuotesPanel from "@/components/pro/QuotesPanel";
 import ServicePlansPanel from "@/components/pro/ServicePlansPanel";
 import MileageLogPanel from "@/components/pro/MileageLogPanel";
+import UpgradeGate from "@/components/dashboard/UpgradeGate";
 import type { ProviderProfile } from "./types";
 
 interface ProToolsTabProps {
@@ -17,19 +19,8 @@ interface ProToolsTabProps {
   onGoToProfile: () => void;
 }
 
-const ToolSectionHeader = ({ icon: Icon, title, description }: { icon: LucideIcon; title: string; description: string }) => (
-  <div className="flex items-center gap-2 mb-1">
-    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-      <Icon size={16} className="text-primary" />
-    </div>
-    <div>
-      <h2 className="font-display text-lg font-semibold text-foreground leading-tight">{title}</h2>
-      <p className="text-sm text-muted-foreground">{description}</p>
-    </div>
-  </div>
-);
-
 const ProToolsTab = ({ provider, userId, onGoToProfile }: ProToolsTabProps) => {
+  const hasAccess = provider.subscription_tier !== "free";
   return (
     <div className="space-y-10">
       <p className="text-xs text-muted-foreground -mt-1">
@@ -46,26 +37,36 @@ const ProToolsTab = ({ provider, userId, onGoToProfile }: ProToolsTabProps) => {
             businessName={provider.business_name}
             userId={userId}
           />
-          <CompetitorPricingPanel
-            category={provider.category}
-            city={provider.city}
-            state={provider.state}
-            hourlyMin={provider.hourly_rate_min}
-            hourlyMax={provider.hourly_rate_max}
-          />
-          <AIFollowUpPanel providerId={provider.id} userId={userId} businessName={provider.business_name} />
-          <AutoReviewPanel providerId={provider.id} userId={userId} />
-          <SkillBadgesPanel providerId={provider.id} userId={userId} />
-          <ReferralPanel providerId={provider.id} userId={userId} />
-          <div className="lg:col-span-2">
-            <YardSignQRPanel
-              providerSlug={provider.slug || null}
-              providerId={provider.id}
-              businessName={provider.business_name}
+          <UpgradeGate hasAccess={hasAccess} featureName="AI Competitor Pricing Intel" pricingRoute="/pro-pricing" description="See what other pros in your area charge before you quote." benefits={["Live low/median/high rates for your category", "Localized to your city & state"]}>
+            <CompetitorPricingPanel
               category={provider.category}
               city={provider.city}
               state={provider.state}
+              hourlyMin={provider.hourly_rate_min}
+              hourlyMax={provider.hourly_rate_max}
             />
+          </UpgradeGate>
+          <UpgradeGate hasAccess={hasAccess} featureName="AI Follow-Up Drafts" pricingRoute="/pro-pricing" description="AI drafts a nudge for homeowners who went quiet — review and send in one tap.">
+            <AIFollowUpPanel providerId={provider.id} userId={userId} businessName={provider.business_name} />
+          </UpgradeGate>
+          <UpgradeGate hasAccess={hasAccess} featureName="Auto-Request Reviews" pricingRoute="/pro-pricing" description="Automatically prompt happy customers for a review after every completed job.">
+            <AutoReviewPanel providerId={provider.id} userId={userId} />
+          </UpgradeGate>
+          <SkillBadgesPanel providerId={provider.id} userId={userId} />
+          <UpgradeGate hasAccess={hasAccess} featureName="Referral Program" pricingRoute="/pro-pricing" description="Get a shareable referral link and track signups from other pros.">
+            <ReferralPanel providerId={provider.id} userId={userId} />
+          </UpgradeGate>
+          <div className="lg:col-span-2">
+            <UpgradeGate hasAccess={hasAccess} featureName="Yard Sign QR Codes" pricingRoute="/pro-pricing" description="Generate a printable QR code linking straight to your profile.">
+              <YardSignQRPanel
+                providerSlug={provider.slug || null}
+                providerId={provider.id}
+                businessName={provider.business_name}
+                category={provider.category}
+                city={provider.city}
+                state={provider.state}
+              />
+            </UpgradeGate>
           </div>
         </div>
       </div>
@@ -79,7 +80,9 @@ const ProToolsTab = ({ provider, userId, onGoToProfile }: ProToolsTabProps) => {
             businessName={provider.business_name}
           />
           <ServicePlansPanel providerId={provider.id} />
-          <MileageLogPanel providerId={provider.id} userId={userId} />
+          <UpgradeGate hasAccess={hasAccess} featureName="Mileage Tracking" pricingRoute="/pro-pricing" description="Log trips and get a mileage/tax-deduction summary, with CSV export.">
+            <MileageLogPanel providerId={provider.id} userId={userId} />
+          </UpgradeGate>
         </div>
       </div>
     </div>
