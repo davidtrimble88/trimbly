@@ -49,8 +49,8 @@ const UpsellPanel = ({ providerId, providerCategory, businessName, userId, jobsT
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from(jobsTable)
+      const { data } = await (supabase
+        .from(jobsTable as any) as any)
         .select("*")
         .eq("provider_id", providerId)
         .eq("status", "completed")
