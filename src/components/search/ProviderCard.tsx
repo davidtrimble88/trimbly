@@ -111,6 +111,9 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
         )}
         <span className="flex items-center gap-1">
           <MapPin size={14} /> {provider.city}, {provider.state}
+          {typeof provider.distanceMiles === "number" && (
+            <span className="text-primary font-medium">· {provider.distanceMiles < 1 ? "<1" : Math.round(provider.distanceMiles)} mi</span>
+          )}
         </span>
       </div>
 

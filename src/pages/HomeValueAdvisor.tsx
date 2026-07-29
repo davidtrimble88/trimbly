@@ -172,6 +172,10 @@ const HomeValueAdvisor = () => {
               <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display">Home Value Advisor</h1>
             </div>
             <p className="text-muted-foreground">Describe an upgrade you're considering and find out if it's likely to pay off at resale.</p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Just need a repair cost, not a resale opinion? Try the{" "}
+              <Link to="/estimator" className="text-primary hover:underline font-medium">AI Job Estimator</Link> instead.
+            </p>
           </div>
 
           {/* Input Form */}

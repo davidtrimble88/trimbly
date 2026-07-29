@@ -108,6 +108,11 @@ const EstimatorPage = () => {
             <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display">AI Job Estimator</h1>
           </div>
           <p className="text-muted-foreground">Describe your home repair or project and get an instant AI-powered cost estimate.</p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Planning a bigger renovation instead? Try the{" "}
+            <Link to="/value-advisor" className="text-primary hover:underline font-medium">Home Value Advisor</Link>{" "}
+            to see if it pays off at resale.
+          </p>
         </div>
 
         {limitLoading ? (

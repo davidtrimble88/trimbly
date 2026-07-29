@@ -25,13 +25,21 @@ export interface ProviderWithStats {
   review_count: number;
   rating_source?: string | null;
   source?: "db" | "web";
+  service_radius_miles?: number | null;
+  distanceMiles?: number;
 }
 
 export async function fetchProviders(filters?: {
   category?: string;
   country?: string;
   searchQuery?: string;
-  locationQuery?: string;
+  /**
+   * Fuzzy text fallback for location (city/state substring match). Only meant to be used
+   * when real geocoded distance search isn't available (e.g. geocoding failed) — when a
+   * search center is known, prefer filtering/sorting the returned list by real distance
+   * (see ProviderWithStats.distanceMiles + service_radius_miles) instead of this.
+   */
+  locationTextFallback?: string;
 }): Promise<ProviderWithStats[]> {
   // Fetch registered providers from DB
   // Note: sensitive columns (phone, license_number, license_expiry, insurance_details, insurance_expiry)
@@ -50,8 +58,8 @@ export async function fetchProviders(filters?: {
     const q = filters.searchQuery;
     query = query.or(`business_name.ilike.%${q}%,category.ilike.%${q}%,city.ilike.%${q}%,state.ilike.%${q}%`);
   }
-  if (filters?.locationQuery) {
-    const q = filters.locationQuery;
+  if (filters?.locationTextFallback) {
+    const q = filters.locationTextFallback;
     query = query.or(`city.ilike.%${q}%,state.ilike.%${q}%`);
   }
 

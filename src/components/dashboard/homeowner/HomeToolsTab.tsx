@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Lock, CalendarCheck, FolderOpen, Shield, Stethoscope, Zap,
   Wrench, Briefcase, Star, Hammer, Brain, BookOpen, MessageSquare, TrendingUp,
+  Activity, AlertTriangle, FileWarning,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { tierOrder } from "./types";
@@ -16,14 +17,17 @@ const allServices: Array<{
   { icon: Shield, title: "Coverage Advisor", description: "Upload warranty & insurance docs and ask AI about your coverage.", route: "/coverage", minTier: "homeowner_pro", group: "home_care" },
   { icon: Stethoscope, title: "AI Symptom Triage", description: "Describe a noise, smell, or issue — get instant diagnosis, urgency, and DIY vs. pro guidance.", route: "/symptom-triage", minTier: "homeowner_pro", group: "home_care" },
   { icon: Zap, title: "Energy & Utility Advisor", description: "AI-prioritized upgrades with real cost, savings, and payback numbers.", route: "/energy-advisor", minTier: "homeowner_pro", group: "home_care" },
-  { icon: TrendingUp, title: "Home Value Advisor", description: "See if an upgrade would increase your home's value, plus a full DIY vs. pro cost breakdown.", route: "/value-advisor", minTier: "homeowner_pro", group: "home_care" },
+  { icon: TrendingUp, title: "Home Value Advisor", description: "Planning a bigger upgrade or renovation? See if it pays off at resale, with a full cost and DIY vs. pro breakdown.", route: "/value-advisor", minTier: "homeowner_pro", group: "home_care" },
+  { icon: Activity, title: "System Lifespan Tracker", description: "See what's aging out before it breaks, based on purchase dates already in your Home Binder.", route: "/systems", minTier: "homeowner_pro", group: "home_care" },
+  { icon: AlertTriangle, title: "Emergency Home Info Card", description: "Water, gas, and electrical shutoff locations plus emergency contacts — one printable card per home.", route: "/emergency-info", minTier: "homeowner_pro", group: "home_care" },
 
   { icon: Wrench, title: "Find Local Pros", description: "Search by service, distance, rating, and availability.", route: "/search", minTier: "free", group: "get_help" },
   { icon: Briefcase, title: "Post a Job", description: "Post job requests for pros to bid on.", route: "/post-job", minTier: "free", group: "get_help" },
   { icon: Star, title: "Verified Reviews", description: "Read honest reviews from real homeowners.", route: "/search", minTier: "free", group: "get_help" },
   { icon: Hammer, title: "Equipment Rentals", description: "Browse tools & equipment from local pros. Sign waivers and message owners in-app.", route: "/equipment", minTier: "free", group: "get_help" },
+  { icon: FileWarning, title: "Quote & Contract Reviewer", description: "Paste a contractor's quote or contract and get an instant red-flag check before you sign.", route: "/quote-reviewer", minTier: "homeowner_pro", group: "get_help" },
 
-  { icon: Brain, title: "AI Job Estimator", description: "Instant cost estimates, material lists, DIY vs. pro recommendations.", route: "/estimator", minTier: "homeowner_pro", group: "tools" },
+  { icon: Brain, title: "AI Job Estimator", description: "Instant cost estimate for a specific repair or small project — materials, time, and DIY vs. pro guidance.", route: "/estimator", minTier: "homeowner_pro", group: "tools" },
   { icon: BookOpen, title: "User Manual Finder", description: "Enter brand & model — instantly find and download the user manual.", route: "/manual-search", minTier: "free", group: "tools" },
 
   { icon: MessageSquare, title: "In-App Messaging", description: "Chat directly with pros, share photos, and track jobs.", route: "/messages", minTier: "free", group: "communication" },

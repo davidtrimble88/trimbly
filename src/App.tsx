@@ -23,6 +23,9 @@ import NotFound from "./pages/NotFound";
 const SearchPros = lazy(() => import("./pages/SearchPros"));
 const EstimatorPage = lazy(() => import("./pages/EstimatorPage"));
 const HomeValueAdvisor = lazy(() => import("./pages/HomeValueAdvisor"));
+const SystemLifespanTracker = lazy(() => import("./pages/SystemLifespanTracker"));
+const EmergencyInfoCard = lazy(() => import("./pages/EmergencyInfoCard"));
+const QuoteReviewer = lazy(() => import("./pages/QuoteReviewer"));
 const SymptomTriage = lazy(() => import("./pages/SymptomTriage"));
 const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
 const HomeBinder = lazy(() => import("./pages/HomeBinder"));
@@ -143,6 +146,9 @@ const App = () => (
             <Route path="/search" element={<SearchPros />} />
             <Route path="/estimator" element={<EstimatorPage />} />
             <Route path="/value-advisor" element={<HomeValueAdvisor />} />
+            <Route path="/systems" element={<SystemLifespanTracker />} />
+            <Route path="/emergency-info" element={<EmergencyInfoCard />} />
+            <Route path="/quote-reviewer" element={<QuoteReviewer />} />
             <Route path="/symptom-triage" element={<SymptomTriage />} />
             <Route path="/maintenance" element={<MaintenancePage />} />
             <Route path="/binder" element={<HomeBinder />} />
