@@ -544,6 +544,11 @@ export type Database = {
           city: string
           country: string
           created_at: string
+          electrical_panel_location: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_notes: string | null
+          gas_shutoff_location: string | null
           has_pool: boolean
           has_septic: boolean
           has_well_water: boolean
@@ -559,12 +564,18 @@ export type Database = {
           state: string
           updated_at: string
           user_id: string
+          water_shutoff_location: string | null
           year_built: number | null
         }
         Insert: {
           city?: string
           country?: string
           created_at?: string
+          electrical_panel_location?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_notes?: string | null
+          gas_shutoff_location?: string | null
           has_pool?: boolean
           has_septic?: boolean
           has_well_water?: boolean
@@ -580,12 +591,18 @@ export type Database = {
           state?: string
           updated_at?: string
           user_id: string
+          water_shutoff_location?: string | null
           year_built?: number | null
         }
         Update: {
           city?: string
           country?: string
           created_at?: string
+          electrical_panel_location?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_notes?: string | null
+          gas_shutoff_location?: string | null
           has_pool?: boolean
           has_septic?: boolean
           has_well_water?: boolean
@@ -601,6 +618,7 @@ export type Database = {
           state?: string
           updated_at?: string
           user_id?: string
+          water_shutoff_location?: string | null
           year_built?: number | null
         }
         Relationships: []
