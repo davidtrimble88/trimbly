@@ -33,7 +33,7 @@ const AutoReviewPanel = ({ providerId, userId, jobsTable = "jobs", ownerIdField 
   const load = async () => {
     setLoading(true);
     const [{ data: completed }, { data: reqs }, { data: revs }] = await Promise.all([
-      supabase.from(jobsTable)
+      (supabase.from(jobsTable as any) as any)
         .select("*")
         .eq("provider_id", providerId)
         .eq("status", "completed")
