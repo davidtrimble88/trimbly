@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 // Lazy-load secondary routes for smaller initial bundle
 const SearchPros = lazy(() => import("./pages/SearchPros"));
 const EstimatorPage = lazy(() => import("./pages/EstimatorPage"));
+const HomeValueAdvisor = lazy(() => import("./pages/HomeValueAdvisor"));
 const SymptomTriage = lazy(() => import("./pages/SymptomTriage"));
 const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
 const HomeBinder = lazy(() => import("./pages/HomeBinder"));
@@ -141,6 +142,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/search" element={<SearchPros />} />
             <Route path="/estimator" element={<EstimatorPage />} />
+            <Route path="/value-advisor" element={<HomeValueAdvisor />} />
             <Route path="/symptom-triage" element={<SymptomTriage />} />
             <Route path="/maintenance" element={<MaintenancePage />} />
             <Route path="/binder" element={<HomeBinder />} />

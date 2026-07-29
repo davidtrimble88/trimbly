@@ -1,26 +1,33 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft, Brain, Loader2, DollarSign, Clock, Wrench, Lightbulb, ShieldCheck, AlertTriangle, ChevronRight, Crown, PlayCircle, ShoppingCart, ExternalLink } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Brain, Loader2, DollarSign, Clock, Wrench, Lightbulb, ShieldCheck, AlertTriangle, ChevronRight, Crown, PlayCircle, ShoppingCart, ExternalLink, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
+import { tierLabels } from "@/components/dashboard/homeowner/types";
 import { getJobEstimate, type JobEstimate } from "@/lib/api/jobEstimator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
+import { useGarageSubscription } from "@/hooks/useGarageSubscription";
 
 const categories = ["Plumbing", "Electrical", "Handyman", "General Contractor", "HVAC", "Landscaping", "Painting", "Roofing", "Cleaning", "Other"];
-
 
 const difficultyLabels = ["", "Easy — DIY Friendly", "Moderate", "Intermediate", "Advanced", "Expert Only"];
 const difficultyColors = ["", "text-primary", "text-primary", "text-accent", "text-destructive", "text-destructive"];
 
 const EstimatorPage = () => {
-  const { user } = useAuth();
-  const { hasEstimator, loading: limitLoading } = useHomeLimit();
+  const { user, profileName } = useAuth();
+  const navigate = useNavigate();
+  const { hasEstimator, subscriptionTier, loading: limitLoading } = useHomeLimit();
+  const { active: hasGarage } = useGarageSubscription();
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [city, setCity] = useState("");
@@ -39,29 +46,6 @@ const EstimatorPage = () => {
             <h2 className="text-2xl font-bold text-foreground mb-2">Sign in to use AI Job Estimator</h2>
             <p className="text-muted-foreground mb-6">Get instant cost estimates, material lists, and DIY vs. pro recommendations.</p>
             <Button asChild><Link to="/auth">Sign In / Sign Up</Link></Button>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (!limitLoading && !hasEstimator) {
-    return (
-      <div className="min-h-screen">
-        <Navbar />
-        <main className="pt-24 pb-16">
-          <div className="container mx-auto px-4 max-w-2xl text-center py-20">
-            <Crown size={48} className="mx-auto text-primary mb-4" />
-            <h2 className="text-2xl font-bold text-foreground mb-2">Upgrade to Use AI Job Estimator</h2>
-            <p className="text-muted-foreground mb-6">
-              The AI Job Estimator is available on Home Hero and Home Super Hero plans.
-              Get unlimited instant cost estimates, material breakdowns, and DIY vs. pro recommendations.
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Button asChild variant="outline"><Link to="/#pricing">View Plans</Link></Button>
-              <Button asChild><Link to="/dashboard">Back to Dashboard</Link></Button>
-            </div>
           </div>
         </main>
         <Footer />
@@ -93,26 +77,50 @@ const EstimatorPage = () => {
   };
 
   const materialTotal = estimate?.materials.reduce((sum, m) => sum + m.estimated_cost, 0) || 0;
+  const displayName = profileName || user.user_metadata?.full_name || user.email;
+  const navItems = buildHomeownerSatelliteNavItems(hasGarage);
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <main className="pt-24 pb-16">
-        <div className="container mx-auto px-4 max-w-4xl">
-          {/* Header */}
-          <div className="mb-8">
-            <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
-              <ArrowLeft size={16} /> Back to home
-            </Link>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Brain size={22} className="text-primary" />
-              </div>
-              <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display">AI Job Estimator</h1>
+    <DashboardShell
+      brandLabel="My Home"
+      navItems={navItems}
+      groups={homeownerNavGroups}
+      activeItemId="estimator"
+      onNavigate={() => {}}
+      header={{
+        avatarIcon: Home,
+        displayName,
+        subtitle: (
+          <Badge variant="secondary" className="text-xs gap-1">
+            <Crown size={12} className="text-primary" /> {tierLabels[subscriptionTier] ?? "Free"}
+          </Badge>
+        ),
+        onEditProfile: () => navigate("/dashboard?tab=profile"),
+      }}
+    >
+      <div className="max-w-4xl">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Brain size={22} className="text-primary" />
             </div>
-            <p className="text-muted-foreground">Describe your home repair or project and get an instant AI-powered cost estimate.</p>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display">AI Job Estimator</h1>
           </div>
+          <p className="text-muted-foreground">Describe your home repair or project and get an instant AI-powered cost estimate.</p>
+        </div>
 
+        {limitLoading ? (
+          <div className="rounded-xl border border-border bg-card p-6 h-48 animate-pulse" />
+        ) : (
+        <UpgradeGate
+          hasAccess={hasEstimator}
+          featureName="AI Job Estimator"
+          description="Get unlimited instant cost estimates, material breakdowns, and DIY vs. pro recommendations."
+          benefits={["Unlimited AI cost estimates", "Material breakdowns with shopping links", "DIY vs. pro recommendations"]}
+          pricingRoute="/#pricing"
+          icon={Crown}
+        >
           {/* Input Form */}
           <div className="rounded-xl border border-border bg-card p-6 mb-8">
             <div className="space-y-4">
@@ -298,10 +306,10 @@ const EstimatorPage = () => {
               </p>
             </div>
           )}
-        </div>
-      </main>
-      <Footer />
-    </div>
+        </UpgradeGate>
+        )}
+      </div>
+    </DashboardShell>
   );
 };
 

@@ -1,16 +1,23 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, SlidersHorizontal, ArrowLeft, Globe, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Search, MapPin, SlidersHorizontal, ArrowLeft, Globe, Loader2, Home, Crown } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
+import { tierLabels } from "@/components/dashboard/homeowner/types";
 import ProviderCard from "@/components/search/ProviderCard";
 import ProviderDetailDialog from "@/components/search/ProviderDetailDialog";
 
 import { fetchProviders, discoverWebProviders, type ProviderWithStats } from "@/lib/api/providers";
 import { logSearch } from "@/lib/analytics/searchLog";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useGarageSubscription } from "@/hooks/useGarageSubscription";
+import { supabase } from "@/integrations/supabase/client";
 
 const categories = [
   "All", "General Contractor", "Plumbing", "Electrical", "Handyman", "HVAC", "Landscaping", "Painting", "Roofing", "Cleaning",
@@ -21,6 +28,25 @@ type SearchMode = "provider" | "location";
 type CountryFilter = "all" | "US" | "CA";
 
 const SearchPros = () => {
+  const { user, profileName } = useAuth();
+  const navigate = useNavigate();
+  const { active: hasGarage } = useGarageSubscription();
+  const [userType, setUserType] = useState<string | null>(null);
+  const [subscriptionTier, setSubscriptionTier] = useState<string>("free");
+
+  useEffect(() => {
+    if (!user) { setUserType(null); return; }
+    supabase.from("profiles").select("user_type, subscription_tier").eq("id", user.id).maybeSingle().then(({ data }) => {
+      setUserType(data?.user_type ?? "homeowner");
+      setSubscriptionTier(data?.subscription_tier ?? "free");
+    });
+  }, [user]);
+
+  // Only swap to the homeowner dashboard shell once we positively know the user is a
+  // logged-in homeowner — logged-out visitors and providers keep the public Navbar/Footer,
+  // since this page is also reachable from marketing pages, SEO landing pages, and provider profiles.
+  const isHomeownerCtx = !!user && userType !== null && userType !== "provider";
+
   const [searchQuery, setSearchQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
   const [searchMode, setSearchMode] = useState<SearchMode>("location");
@@ -147,15 +173,14 @@ const SearchPros = () => {
 
   const loading = loadingDb || loadingWeb;
 
-  return (
-    <div className="min-h-screen">
-      <Navbar />
-      <main className="pt-24 pb-16">
-        <div className="container mx-auto px-4">
+  const mainContent = (
+    <>
           <div className="mb-8">
-            <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
-              <ArrowLeft size={16} /> Back to home
-            </Link>
+            {!isHomeownerCtx && (
+              <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
+                <ArrowLeft size={16} /> Back to home
+              </Link>
+            )}
             <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display mb-2">Find a Pro Near You</h1>
             <p className="text-muted-foreground">Discover trusted service providers across the United States and Canada</p>
           </div>
@@ -320,10 +345,46 @@ const SearchPros = () => {
             open={!!selectedProvider}
             onOpenChange={(open) => !open && setSelectedProvider(null)}
           />
-        </div>
-      </main>
-      <Footer />
-    </div>
+    </>
+  );
+
+  if (!isHomeownerCtx) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <main className="pt-24 pb-16">
+          <div className="container mx-auto px-4">
+            {mainContent}
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const displayName = profileName || user!.user_metadata?.full_name || user!.email;
+  const navItems = buildHomeownerSatelliteNavItems(hasGarage);
+
+  return (
+    <DashboardShell
+      brandLabel="My Home"
+      navItems={navItems}
+      groups={homeownerNavGroups}
+      activeItemId="find-pro"
+      onNavigate={() => {}}
+      header={{
+        avatarIcon: Home,
+        displayName,
+        subtitle: (
+          <Badge variant="secondary" className="text-xs gap-1">
+            <Crown size={12} className="text-primary" /> {tierLabels[subscriptionTier] ?? "Free"}
+          </Badge>
+        ),
+        onEditProfile: () => navigate("/dashboard?tab=profile"),
+      }}
+    >
+      {mainContent}
+    </DashboardShell>
   );
 };
 

@@ -6,4 +6,5 @@ export interface DashboardNavItem {
   icon: LucideIcon;
   href?: string; // set for items that navigate to a separate route instead of switching tabs
   badge?: number;
+  group?: string; // optional sidebar section label; items with no group render ungrouped
 }

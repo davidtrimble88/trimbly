@@ -7,6 +7,7 @@ import { DashboardNavItem } from "./types";
 interface DashboardShellProps {
   brandLabel: string;
   navItems: DashboardNavItem[];
+  groups?: string[];
   activeItemId: string;
   onNavigate: (item: DashboardNavItem) => void;
   sidebarFooter?: React.ReactNode;
@@ -14,21 +15,22 @@ interface DashboardShellProps {
     avatarIcon: LucideIcon;
     displayName: string;
     subtitle: React.ReactNode;
-    available: boolean;
-    onToggleAvailable: () => void;
+    available?: boolean;
+    onToggleAvailable?: () => void;
     onEditProfile: () => void;
-    onViewPublicProfile: () => void;
+    onViewPublicProfile?: () => void;
     extraMenuItems?: React.ReactNode;
   };
   children: React.ReactNode;
 }
 
-const DashboardShell = ({ brandLabel, navItems, activeItemId, onNavigate, sidebarFooter, header, children }: DashboardShellProps) => {
+const DashboardShell = ({ brandLabel, navItems, groups, activeItemId, onNavigate, sidebarFooter, header, children }: DashboardShellProps) => {
   return (
     <SidebarProvider>
       <DashboardSidebar
         brandLabel={brandLabel}
         navItems={navItems}
+        groups={groups}
         activeItemId={activeItemId}
         onNavigate={onNavigate}
         footer={sidebarFooter}

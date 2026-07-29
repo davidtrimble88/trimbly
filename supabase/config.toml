@@ -12,6 +12,9 @@ verify_jwt = false
 [functions.job-estimator]
 verify_jwt = false
 
+[functions.home-value-advisor]
+verify_jwt = false
+
 [functions.generate-maintenance]
 verify_jwt = false
 

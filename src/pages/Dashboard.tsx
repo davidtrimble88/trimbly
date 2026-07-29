@@ -1,132 +1,54 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
-import { Check } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { useGarageSubscription } from "@/hooks/useGarageSubscription";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import ProfileEditor from "@/components/profile/ProfileEditor";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { NotificationPermissionPrompt } from "@/components/NotificationPermissionPrompt";
 import { ReviewPromptDialog } from "@/components/ReviewPromptDialog";
-import { ShareTrimblyCard } from "@/components/ShareTrimblyCard";
-import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
-import SavedProvidersCard from "@/components/SavedProvidersCard";
-import WeatherAlertsBanner from "@/components/home/WeatherAlertsBanner";
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import { DashboardNavItem } from "@/components/dashboard/types";
+import HomeownerOverviewTab from "@/components/dashboard/homeowner/HomeownerOverviewTab";
+import MyHomesTab from "@/components/dashboard/homeowner/MyHomesTab";
+import HomeToolsTab from "@/components/dashboard/homeowner/HomeToolsTab";
+import HomeownerProfileTab from "@/components/dashboard/homeowner/HomeownerProfileTab";
+import { tierOrder, tierLabels, homeTypeLabels, type HomeData, type TaskRow, type BinderRow, type HomeStats, type DrilldownInfo, type JobStats } from "@/components/dashboard/homeowner/types";
+import { taskUrgencyIconClasses } from "@/components/dashboard/homeowner/status";
 import {
-  Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star,
-  Lock, Crown, Home, AlertTriangle, CheckCircle2, Clock, Shield,
-  MapPin, Ruler, Calendar, Thermometer, Plus, MoreVertical, Pencil, Trash2,
-  Briefcase, BookOpen, Stethoscope, Hammer, FileText, Zap
+  Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare,
+  Crown, Home, CheckCircle2, Shield, HelpCircle,
+  Briefcase,
+  LayoutDashboard, Sparkles, UserCircle, Car,
 } from "lucide-react";
-
-// ─── Service definitions ───
-type ServiceCategory = "home_care" | "get_help" | "tools" | "communication";
-const allServices: Array<{
-  icon: any; title: string; description: string; route: string; minTier: string; group: ServiceCategory;
-}> = [
-  { icon: CalendarCheck, title: "Maintenance Autopilot", description: "Automated, personalized maintenance schedules for your home.", route: "/maintenance", minTier: "free", group: "home_care" },
-  { icon: FolderOpen, title: "Digital Home Binder", description: "Store appliance info, warranties, and documents.", route: "/binder", minTier: "homeowner_pro", group: "home_care" },
-  { icon: Shield, title: "Coverage Advisor", description: "Upload warranty & insurance docs and ask AI about your coverage.", route: "/coverage", minTier: "homeowner_pro", group: "home_care" },
-  { icon: Stethoscope, title: "AI Symptom Triage", description: "Describe a noise, smell, or issue — get instant diagnosis, urgency, and DIY vs. pro guidance.", route: "/symptom-triage", minTier: "homeowner_pro", group: "home_care" },
-  { icon: Zap, title: "Energy & Utility Advisor", description: "AI-prioritized upgrades with real cost, savings, and payback numbers.", route: "/energy-advisor", minTier: "homeowner_pro", group: "home_care" },
-
-  { icon: Wrench, title: "Find Local Pros", description: "Search by service, distance, rating, and availability.", route: "/search", minTier: "free", group: "get_help" },
-  { icon: Briefcase, title: "Post a Job", description: "Post job requests for pros to bid on.", route: "/post-job", minTier: "free", group: "get_help" },
-  { icon: Star, title: "Verified Reviews", description: "Read honest reviews from real homeowners.", route: "/search", minTier: "free", group: "get_help" },
-  { icon: Hammer, title: "Equipment Rentals", description: "Browse tools & equipment from local pros. Sign waivers and message owners in-app.", route: "/equipment", minTier: "free", group: "get_help" },
-
-  { icon: Brain, title: "AI Job Estimator", description: "Instant cost estimates, material lists, DIY vs. pro recommendations.", route: "/estimator", minTier: "homeowner_pro", group: "tools" },
-  { icon: BookOpen, title: "User Manual Finder", description: "Enter brand & model — instantly find and download the user manual.", route: "/manual-search", minTier: "free", group: "tools" },
-
-  { icon: MessageSquare, title: "In-App Messaging", description: "Chat directly with pros, share photos, and track jobs.", route: "/messages", minTier: "free", group: "communication" },
-];
-
-const groupTitles: Record<ServiceCategory, string> = {
-  home_care: "Home Care",
-  get_help: "Get Help",
-  tools: "Tools",
-  communication: "Communication",
-};
-
-const tierOrder: Record<string, number> = { free: 0, homeowner_pro: 1, multi_pro: 2 };
-const tierLabels: Record<string, string> = { free: "Free", homeowner_pro: "Home Hero", multi_pro: "Home Super Hero" };
-
-const homeTypeLabels: Record<string, string> = {
-  single_family: "Single Family",
-  townhouse: "Townhouse",
-  condo: "Condo",
-  multi_family: "Multi-Family",
-  mobile: "Mobile Home",
-};
-
-// ─── Types ───
-type HomeData = {
-  id: string;
-  name: string;
-  home_type: string;
-  year_built: number | null;
-  square_feet: number | null;
-  city: string;
-  state: string;
-  hvac_type: string | null;
-  roof_type: string | null;
-  has_pool: boolean;
-  has_septic: boolean;
-  has_well_water: boolean;
-};
-
-type TaskRow = {
-  home_id: string;
-  title: string;
-  status: string;
-  priority: string;
-  due_date: string | null;
-  category: string;
-};
-
-type BinderRow = {
-  home_id: string;
-  name: string;
-  warranty_expiry: string | null;
-  item_type: string;
-};
-
-type HomeStats = {
-  homeId: string;
-  totalTasks: number;
-  overdueTasks: number;
-  upcomingTasks: number;
-  completedTasks: number;
-  highPriorityTasks: number;
-  binderItemCount: number;
-  expiringWarranties: number;
-};
-
-type DrilldownInfo = {
-  title: string;
-  homeId: string;
-  filter: "overdue" | "high_priority" | "upcoming" | "completed" | "binder" | "expiring_warranties";
-};
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, loading: authLoading, profileName } = useAuth();
   const { subscriptionTier, maxHomes, maxBinderItems, loading: limitLoading, homeCount } = useHomeLimit();
+  const { active: hasGarage } = useGarageSubscription();
   const { toast } = useToast();
+  const activeTab = searchParams.get("tab") || "overview";
+  const setActiveTab = (tab: string) => {
+    if (tab === "overview") {
+      searchParams.delete("tab");
+    } else {
+      searchParams.set("tab", tab);
+    }
+    setSearchParams(searchParams, { replace: true });
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const [homes, setHomes] = useState<HomeData[]>([]);
   const [homeStats, setHomeStats] = useState<Record<string, HomeStats>>({});
   const [loadingHomes, setLoadingHomes] = useState(true);
@@ -137,8 +59,9 @@ const Dashboard = () => {
   const [allTasks, setAllTasks] = useState<TaskRow[]>([]);
   const [allBinderItems, setAllBinderItems] = useState<BinderRow[]>([]);
   const [drilldown, setDrilldown] = useState<DrilldownInfo | null>(null);
-  const [jobStats, setJobStats] = useState({ total: 0, pending: 0, withBids: 0, accepted: 0, completed: 0 });
+  const [jobStats, setJobStats] = useState<JobStats>({ total: 0, pending: 0, withBids: 0, accepted: 0, completed: 0 });
   const [showWizard, setShowWizard] = useState(false);
+  const [replayTour, setReplayTour] = useState<(() => void) | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -297,14 +220,11 @@ const Dashboard = () => {
 
   if (authLoading || limitLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 pt-24">
-          <Skeleton className="h-10 w-64 mb-6" />
-          <Skeleton className="h-24 w-full mb-4" />
-          <div className="grid md:grid-cols-2 gap-6">
-            <Skeleton className="h-48 w-full" />
-            <Skeleton className="h-48 w-full" />
-          </div>
+      <div className="min-h-screen bg-background container mx-auto px-4 pt-16 pb-16 max-w-5xl space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <div className="grid md:grid-cols-2 gap-4">
+          <Skeleton className="h-48" />
+          <Skeleton className="h-48" />
         </div>
       </div>
     );
@@ -314,11 +234,25 @@ const Dashboard = () => {
 
   const userTierLevel = tierOrder[subscriptionTier] ?? 0;
   const displayName = profileName || user.user_metadata?.full_name || user.email;
-  const isUnlocked = (minTier: string) => userTierLevel >= (tierOrder[minTier] ?? 0);
   const isPro = userTierLevel >= 1;
 
+  const navItems: DashboardNavItem[] = [
+    { id: "overview", label: "Home Base", icon: LayoutDashboard, group: "Dashboard" },
+    { id: "homes", label: "My Homes", icon: Home, badge: homes.length, group: "Dashboard" },
+    { id: "tools", label: "Home Tools", icon: Sparkles, group: "Dashboard" },
+    { id: "profile", label: "Profile", icon: UserCircle, group: "Dashboard" },
+    { id: "maintenance", label: "Maintenance Autopilot", icon: CalendarCheck, href: "/maintenance", group: "Quick Links" },
+    { id: "binder-link", label: "Home Binder", icon: FolderOpen, href: "/binder", group: "Quick Links" },
+    { id: "find-pro", label: "Find a Pro", icon: Wrench, href: "/search", group: "Quick Links" },
+    { id: "estimator-link", label: "AI Estimator", icon: Brain, href: "/estimator", group: "Quick Links" },
+    { id: "messages-link", label: "Messages", icon: MessageSquare, href: "/messages", group: "Quick Links" },
+    { id: "coverage", label: "Coverage Advisor", icon: Shield, href: "/coverage", group: "Quick Links" },
+    { id: "post-job-link", label: "Post a Job", icon: Briefcase, href: "/post-job", group: "Quick Links" },
+    { id: "garage", label: hasGarage ? "Garage" : "Add Garage", icon: Car, href: hasGarage ? "/garage" : "/garage/upsell", group: "Quick Links" },
+  ];
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <>
       <OnboardingTour
         storageKey={`hh-tour-homeowner-${user.id}`}
         intro={{
@@ -334,8 +268,8 @@ const Dashboard = () => {
           { title: "Messages & Reviews", body: "Chat with pros directly in-app — your phone number stays private until you approve sharing it. Leave reviews after a job is complete." },
           { title: "Upgrade Anytime", body: "Free covers the basics. Upgrade to Home Hero for unlimited estimates, AI tools, and binder items, or Home Super Hero to manage up to 10 properties." },
         ]}
+        onReplayReady={(replay) => setReplayTour(() => replay)}
       />
-      <Navbar />
       {user && (
         <OnboardingWizard
           open={showWizard}
@@ -344,459 +278,79 @@ const Dashboard = () => {
           onSkip={() => { setShowWizard(false); localStorage.setItem("hh_wizard_skipped", "1"); }}
         />
       )}
-      <main className="flex-1 pt-24 pb-16">
-        <div className="container mx-auto px-4">
-          <NotificationPermissionPrompt />
-          <ReviewPromptDialog />
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
-              Welcome back, {displayName}
-            </h1>
-            <div className="flex items-center gap-3">
-              <Badge variant="secondary" className="text-sm px-3 py-1">
-                <Crown size={14} className="mr-1.5 text-primary" />
-                {tierLabels[subscriptionTier] ?? "Free"}
+      <DashboardShell
+        brandLabel="My Home"
+        navItems={navItems}
+        groups={["Dashboard", "Quick Links"]}
+        activeItemId={activeTab}
+        onNavigate={(item) => setActiveTab(item.id)}
+        sidebarFooter={
+          <SidebarMenuButton onClick={() => replayTour?.()}>
+            <HelpCircle /> <span>Replay tour</span>
+          </SidebarMenuButton>
+        }
+        header={{
+          avatarIcon: Home,
+          displayName,
+          subtitle: (
+            <>
+              <Badge variant="secondary" className="text-xs gap-1">
+                <Crown size={12} className="text-primary" /> {tierLabels[subscriptionTier] ?? "Free"}
               </Badge>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {maxHomes} home{maxHomes !== 1 ? "s" : ""} · {maxBinderItems === Infinity ? "Unlimited" : maxBinderItems} binder items
               </span>
-            </div>
+            </>
+          ),
+          onEditProfile: () => setActiveTab("profile"),
+        }}
+      >
+        <NotificationPermissionPrompt />
+        <ReviewPromptDialog />
+
+        {activeTab === "overview" && (
+          <div className="mt-2">
+            <HomeownerOverviewTab
+              jobStats={jobStats}
+              subscriptionTier={subscriptionTier}
+              homes={homes}
+              homeStats={homeStats}
+              allTasks={allTasks}
+              isPro={isPro}
+              onGoToHomes={() => setActiveTab("homes")}
+            />
           </div>
+        )}
 
-          <Tabs defaultValue="overview" className="space-y-8">
-            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-              <TabsList className="inline-flex w-auto h-auto">
-                <TabsTrigger value="overview" className="gap-1.5">This Week</TabsTrigger>
-                <TabsTrigger value="homes" className="gap-1.5">
-                  <Home size={14} /> My Homes {homes.length > 0 && <Badge variant="secondary" className="text-xs ml-1">{homes.length}</Badge>}
-                </TabsTrigger>
-                <TabsTrigger value="tools" className="gap-1.5">Home Care & Tools</TabsTrigger>
-                <TabsTrigger value="profile" className="gap-1.5">Profile</TabsTrigger>
-              </TabsList>
-            </div>
-
-            <TabsContent value="overview" className="space-y-8 mt-0">
-          {/* ─── My Job Posts Section ─── */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-                <Briefcase size={20} className="text-primary" />
-                My Job Posts
-                <span className="text-sm font-normal text-muted-foreground">({jobStats.total})</span>
-              </h2>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => navigate("/job-board")}>View Board</Button>
-                <Button size="sm" onClick={() => navigate("/post-job")}>
-                  <Plus size={14} className="mr-1.5" /> Post Job
-                </Button>
-              </div>
-            </div>
-            {jobStats.total === 0 ? (
-              <Card className="text-center py-10">
-                <CardContent>
-                  <Briefcase size={36} className="mx-auto text-primary mb-3" />
-                  <h3 className="font-display font-bold text-lg mb-1">No job posts yet</h3>
-                  <p className="text-muted-foreground text-sm mb-4 max-w-sm mx-auto">
-                    Post a repair or project and local pros will bid on it — usually within a day.
-                  </p>
-                  <Button onClick={() => navigate("/post-job")}><Plus size={14} className="mr-1.5" /> Post your first job</Button>
-                </CardContent>
-              </Card>
-            ) : (
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-card p-4 text-left hover:border-primary/40 hover:shadow-sm transition-all">
-                <div className="text-2xl font-bold text-foreground">{jobStats.total}</div>
-                <div className="text-xs text-muted-foreground mt-1">Total Posts</div>
-              </button>
-              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-orange-50 dark:bg-orange-900/10 p-4 text-left hover:ring-2 hover:ring-orange-300 dark:hover:ring-orange-700 transition-all">
-                <div className="text-2xl font-bold text-orange-700 dark:text-orange-400">{jobStats.pending}</div>
-                <div className="text-xs text-orange-700/80 dark:text-orange-400/80 mt-1">Pending</div>
-              </button>
-              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-primary/10 p-4 text-left hover:ring-2 hover:ring-primary/30 transition-all">
-                <div className="text-2xl font-bold text-primary">{jobStats.withBids}</div>
-                <div className="text-xs text-primary/80 mt-1">With Bids</div>
-              </button>
-              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-blue-50 dark:bg-blue-900/10 p-4 text-left hover:ring-2 hover:ring-blue-300 dark:hover:ring-blue-700 transition-all">
-                <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">{jobStats.accepted}</div>
-                <div className="text-xs text-blue-700/80 dark:text-blue-400/80 mt-1">Accepted</div>
-              </button>
-              <button onClick={() => navigate("/post-job")} className="rounded-lg border border-border bg-green-50 dark:bg-green-900/10 p-4 text-left hover:ring-2 hover:ring-green-300 dark:hover:ring-green-700 transition-all">
-                <div className="text-2xl font-bold text-green-700 dark:text-green-400">{jobStats.completed}</div>
-                <div className="text-xs text-green-700/80 dark:text-green-400/80 mt-1">Completed</div>
-              </button>
-            </div>
-            )}
+        {activeTab === "homes" && (
+          <div className="mt-2">
+            <MyHomesTab
+              homes={homes}
+              homeStats={homeStats}
+              allTasks={allTasks}
+              loadingHomes={loadingHomes}
+              maxHomes={maxHomes}
+              isPro={isPro}
+              onAddHome={() => setShowWizard(true)}
+              onEditHome={startEdit}
+              onDeleteHome={setDeletingHome}
+              onDrilldown={setDrilldown}
+            />
           </div>
+        )}
 
-          {subscriptionTier !== "multi_pro" && (() => {
-            const nextTier = subscriptionTier === "free" ? "homeowner_pro" : "multi_pro";
-            const upgradeConfig: Record<string, { name: string; price: string; period: string; cta: string; newFeatures: string[]; }> = {
-              homeowner_pro: {
-                name: "Home Hero",
-                price: "$5",
-                period: "/month",
-                cta: "Start Free Trial",
-                newFeatures: [
-                  "Unlimited job requests",
-                  "AI job estimator (unlimited)",
-                  "Advanced maintenance schedules",
-                  "Priority pro matching",
-                  "Emergency support channel",
-                  "Digital Home Binder (5 items) + export",
-                  "Coverage Advisor (AI-powered)",
-                  "Seasonal checklists",
-                ],
-              },
-              multi_pro: {
-                name: "Home Super Hero",
-                price: "$20",
-                period: "/month",
-                cta: "Upgrade Now",
-                newFeatures: [
-                  "Up to 10 home profiles",
-                  "View homes individually or all together",
-                  "Unlimited Digital Home Binder entries",
-                ],
-              },
-            };
-            const cfg = upgradeConfig[nextTier];
-            return (
-              <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 overflow-hidden">
-                <CardContent className="p-6 md:p-8">
-                  <div className="flex flex-col md:flex-row md:items-center gap-6">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Crown size={20} className="text-primary" />
-                        <h3 className="text-lg font-bold text-foreground">Unlock {cfg.name}</h3>
-                        <Badge className="bg-primary text-primary-foreground text-xs">{cfg.price}{cfg.period}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-4">Here's what you'll get by upgrading:</p>
-                      <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
-                        {cfg.newFeatures.map(f => (
-                          <li key={f} className="flex items-start gap-2 text-sm text-foreground">
-                            <Check size={15} className="text-primary mt-0.5 shrink-0" />
-                            {f}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="shrink-0">
-                      <Button size="lg" onClick={() => navigate("/#pricing")} className="w-full md:w-auto">
-                        <Crown size={16} className="mr-2" /> {cfg.cta}
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })()}
-            </TabsContent>
-
-            <TabsContent value="homes" className="mt-0">
-
-          {/* ─── Home Analysis Section ─── */}
-          <div className="mb-12">
-            <WeatherAlertsBanner homeIds={homes.map((h) => h.id)} />
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-                <Home size={20} className="text-primary" />
-                Your Homes
-                <span className="text-sm font-normal text-muted-foreground">({homes.length}/{maxHomes})</span>
-              </h2>
-              {homes.length < maxHomes && (
-                <Button size="sm" onClick={() => setShowWizard(true)}>
-                  <Plus size={14} className="mr-1.5" /> Add Home
-                </Button>
-              )}
-            </div>
-
-            {loadingHomes ? (
-              <div className="grid md:grid-cols-2 gap-6">
-                <Skeleton className="h-64 w-full" />
-                <Skeleton className="h-64 w-full" />
-              </div>
-            ) : homes.length === 0 ? (
-              <Card className="text-center py-10">
-                <CardContent>
-                  <Home size={40} className="mx-auto text-primary mb-3" />
-                  <h3 className="font-display font-bold text-lg mb-1">Add your first home</h3>
-                  <p className="text-muted-foreground text-sm mb-4 max-w-sm mx-auto">
-                    Trimbly tailors every recommendation to your home's age, size, and systems. Takes under a minute.
-                  </p>
-                  <Button onClick={() => setShowWizard(true)}>
-                    <Plus size={14} className="mr-1.5" /> Set up my home
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-              {homes.length > 1 && (
-                <Card className="mb-6">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-1.5">
-                      <Home size={16} className="text-primary" /> Portfolio overview — {homes.length} properties
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                      <div className="rounded-lg border border-border p-3">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Total tasks</p>
-                        <p className="font-display text-xl font-bold">{Object.values(homeStats).reduce((s, h) => s + h.totalTasks, 0)}</p>
-                      </div>
-                      <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Overdue</p>
-                        <p className="font-display text-xl font-bold text-destructive">{Object.values(homeStats).reduce((s, h) => s + h.overdueTasks, 0)}</p>
-                      </div>
-                      <div className="rounded-lg border border-border p-3">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Upcoming</p>
-                        <p className="font-display text-xl font-bold">{Object.values(homeStats).reduce((s, h) => s + h.upcomingTasks, 0)}</p>
-                      </div>
-                      <div className="rounded-lg border border-border p-3">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Warranties expiring</p>
-                        <p className="font-display text-xl font-bold">{Object.values(homeStats).reduce((s, h) => s + h.expiringWarranties, 0)}</p>
-                      </div>
-                    </div>
-                    {allTasks.filter(t => t.status !== "completed" && t.due_date).length > 0 && (
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Across all properties, soonest due</p>
-                        <ul className="divide-y divide-border">
-                          {allTasks
-                            .filter(t => t.status !== "completed" && t.due_date)
-                            .sort((a, b) => new Date(a.due_date!).getTime() - new Date(b.due_date!).getTime())
-                            .slice(0, 6)
-                            .map((t, i) => {
-                              const home = homes.find(h => h.id === t.home_id);
-                              return (
-                                <li key={i} className="py-2 flex items-center justify-between gap-2 text-sm">
-                                  <span className="truncate">{t.title} <span className="text-muted-foreground">· {home?.name || "Property"}</span></span>
-                                  <Badge variant={t.status === "overdue" ? "destructive" : "outline"} className="shrink-0">{t.due_date}</Badge>
-                                </li>
-                              );
-                            })}
-                        </ul>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-              <div className="grid md:grid-cols-2 gap-6">
-                {homes.map((home) => {
-                  const stats = homeStats[home.id];
-                  const homeAge = home.year_built ? new Date().getFullYear() - home.year_built : null;
-
-                  return (
-                    <Card key={home.id} className="overflow-hidden shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] transition-shadow">
-                      {/* Home header */}
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                              <Home size={18} className="text-primary" />
-                            </div>
-                            <div>
-                              <CardTitle className="font-display text-lg">
-                                {home.name}
-                              </CardTitle>
-                              <CardDescription className="flex items-center gap-1 mt-1">
-                                <MapPin size={13} />
-                                {home.city}, {home.state?.toUpperCase()}
-                              </CardDescription>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <Badge variant="outline" className="text-xs shrink-0">
-                              {homeTypeLabels[home.home_type] || home.home_type}
-                            </Badge>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreVertical size={14} />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => startEdit(home)}>
-                                  <Pencil size={14} className="mr-2" /> Edit Home
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => navigate(`/dashboard/homes/${home.id}/report`)}>
-                                  <FileText size={14} className="mr-2" /> Printable Report
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setDeletingHome(home)} className="text-destructive focus:text-destructive">
-                                  <Trash2 size={14} className="mr-2" /> Remove Home
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </div>
-                      </CardHeader>
-
-                      <CardContent className="space-y-4">
-                        {/* Home details row */}
-                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                          {home.year_built && (
-                            <span className="flex items-center gap-1">
-                              <Calendar size={12} /> Built {home.year_built} {homeAge ? `(${homeAge} yrs)` : ""}
-                            </span>
-                          )}
-                          {home.square_feet && (
-                            <span className="flex items-center gap-1">
-                              <Ruler size={12} /> {home.square_feet.toLocaleString()} sq ft
-                            </span>
-                          )}
-                          {home.hvac_type && (
-                            <span className="flex items-center gap-1">
-                              <Thermometer size={12} /> {home.hvac_type}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Feature badges */}
-                        <div className="flex flex-wrap gap-1.5">
-                          {home.roof_type && <Badge variant="secondary" className="text-xs">{home.roof_type} roof</Badge>}
-                          {home.has_pool && <Badge variant="secondary" className="text-xs">Pool</Badge>}
-                          {home.has_septic && <Badge variant="secondary" className="text-xs">Septic</Badge>}
-                          {home.has_well_water && <Badge variant="secondary" className="text-xs">Well Water</Badge>}
-                        </div>
-
-                        {/* Maintenance stats - clickable */}
-                        {stats && (
-                          <div className="grid grid-cols-2 gap-2">
-                            {stats.overdueTasks > 0 && (
-                              <button onClick={() => setDrilldown({ title: `${home.name} — Overdue`, homeId: home.id, filter: "overdue" })} className="flex items-center gap-2 rounded-lg bg-destructive/10 px-3 py-2 hover:ring-2 hover:ring-destructive/30 transition-all text-left">
-                                <AlertTriangle size={14} className="text-destructive" />
-                                <span className="text-sm font-medium text-destructive">{stats.overdueTasks} overdue</span>
-                              </button>
-                            )}
-                            {stats.highPriorityTasks > 0 && (
-                              <button onClick={() => setDrilldown({ title: `${home.name} — High Priority`, homeId: home.id, filter: "high_priority" })} className="flex items-center gap-2 rounded-lg bg-orange-100 dark:bg-orange-900/20 px-3 py-2 hover:ring-2 hover:ring-orange-300 dark:hover:ring-orange-700 transition-all text-left">
-                                <Clock size={14} className="text-orange-600 dark:text-orange-400" />
-                                <span className="text-sm font-medium text-orange-700 dark:text-orange-400">{stats.highPriorityTasks} high priority</span>
-                              </button>
-                            )}
-                            <button onClick={() => setDrilldown({ title: `${home.name} — Upcoming`, homeId: home.id, filter: "upcoming" })} className="flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 hover:ring-2 hover:ring-primary/30 transition-all text-left">
-                              <CalendarCheck size={14} className="text-primary" />
-                              <span className="text-sm font-medium text-primary">{stats.upcomingTasks} upcoming</span>
-                            </button>
-                            <button onClick={() => setDrilldown({ title: `${home.name} — Completed`, homeId: home.id, filter: "completed" })} className="flex items-center gap-2 rounded-lg bg-green-100 dark:bg-green-900/20 px-3 py-2 hover:ring-2 hover:ring-green-300 dark:hover:ring-green-700 transition-all text-left">
-                              <CheckCircle2 size={14} className="text-green-600 dark:text-green-400" />
-                              <span className="text-sm font-medium text-green-700 dark:text-green-400">{stats.completedTasks} completed</span>
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Pro-only: Binder & warranty stats - clickable */}
-                        {isPro && stats && (
-                          <div className="border-t border-border pt-3 space-y-2">
-                            <button onClick={() => setDrilldown({ title: `${home.name} — Binder Items`, homeId: home.id, filter: "binder" })} className="flex items-center justify-between text-sm w-full hover:bg-muted/50 rounded-lg px-2 py-1 transition-colors">
-                              <span className="text-muted-foreground flex items-center gap-1.5">
-                                <FolderOpen size={14} /> Binder items
-                              </span>
-                              <span className="font-medium text-foreground">{stats.binderItemCount}</span>
-                            </button>
-                            {stats.expiringWarranties > 0 && (
-                              <button onClick={() => setDrilldown({ title: `${home.name} — Expiring Warranties`, homeId: home.id, filter: "expiring_warranties" })} className="flex items-center justify-between text-sm w-full hover:bg-muted/50 rounded-lg px-2 py-1 transition-colors">
-                                <span className="text-orange-600 dark:text-orange-400 flex items-center gap-1.5">
-                                  <Shield size={14} /> Warranties expiring soon
-                                </span>
-                                <span className="font-medium text-orange-600 dark:text-orange-400">{stats.expiringWarranties}</span>
-                              </button>
-                            )}
-                          </div>
-                        )}
-
-                        {!isPro && (
-                          <div className="border-t border-border pt-3 flex items-center gap-2 text-xs text-muted-foreground">
-                            <Lock size={12} />
-                            Upgrade to Pro to see binder & warranty insights
-                          </div>
-                        )}
-                      </CardContent>
-
-                      <CardFooter className="gap-2">
-                        <Button variant="default" size="sm" className="flex-1" onClick={() => navigate("/maintenance")}>
-                          <CalendarCheck size={14} className="mr-1.5" /> Maintenance
-                        </Button>
-                        {isPro && (
-                          <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate("/binder")}>
-                            <FolderOpen size={14} className="mr-1.5" /> Binder
-                          </Button>
-                        )}
-                        <Button variant="ghost" size="sm" onClick={() => navigate("/estimator")}>
-                          <Brain size={14} />
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  );
-                })}
-              </div>
-              </>
-            )}
+        {activeTab === "tools" && (
+          <div className="mt-2">
+            <HomeToolsTab subscriptionTier={subscriptionTier} />
           </div>
-            </TabsContent>
+        )}
 
-            <TabsContent value="tools" className="mt-0">
-
-          {/* ─── Services Section (grouped) ─── */}
-          <div className="space-y-8">
-            {(Object.keys(groupTitles) as ServiceCategory[]).map((group) => {
-              const items = allServices.filter((s) => s.group === group);
-              if (items.length === 0) return null;
-              return (
-                <div key={group}>
-                  <h2 className="text-lg font-bold text-foreground mb-3">{groupTitles[group]}</h2>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {items.map((service) => {
-                      const unlocked = isUnlocked(service.minTier);
-                      const comingSoon = !service.route;
-                      return (
-                        <button
-                          key={service.title}
-                          onClick={() => unlocked && !comingSoon ? navigate(service.route!) : navigate("/#pricing")}
-                          className={`group relative text-left rounded-lg border border-border bg-card p-4 transition-all ${
-                            unlocked && !comingSoon
-                              ? "hover:border-primary/40 hover:shadow-sm"
-                              : "opacity-70 hover:opacity-100"
-                          }`}
-                        >
-                          {!unlocked && (
-                            <Lock size={14} className="absolute top-3 right-3 text-muted-foreground" />
-                          )}
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
-                              <service.icon size={20} className="text-primary" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="font-semibold text-sm text-foreground">{service.title}</div>
-                              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{service.description}</div>
-                              {!unlocked && (
-                                <div className="text-xs text-primary mt-2 font-medium">Upgrade to unlock →</div>
-                              )}
-                              {comingSoon && (
-                                <Badge variant="outline" className="text-xs mt-2">Coming Soon</Badge>
-                              )}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+        {activeTab === "profile" && (
+          <div className="mt-2">
+            <HomeownerProfileTab userId={user.id} displayName={displayName} />
           </div>
-            </TabsContent>
-
-            <TabsContent value="profile" className="space-y-6 mt-0">
-          <ProfileEditor userId={user.id} displayName={displayName} />
-          <div className="grid md:grid-cols-2 gap-4">
-            <ProfileCompletenessCard />
-            <SavedProvidersCard />
-          </div>
-          <ShareTrimblyCard />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </main>
+        )}
+      </DashboardShell>
 
       {/* Edit Home Dialog */}
       <Dialog open={!!editingHome} onOpenChange={open => !open && setEditingHome(null)}>
@@ -945,7 +499,7 @@ const Dashboard = () => {
                       <p className="text-sm font-medium text-foreground">{t.title}</p>
                       <p className="text-xs text-muted-foreground">{t.category}</p>
                     </div>
-                    <CheckCircle2 size={14} className="text-green-600 dark:text-green-400" />
+                    <CheckCircle2 size={14} className={taskUrgencyIconClasses.completed} />
                   </div>
                 ));
               }
@@ -972,7 +526,7 @@ const Dashboard = () => {
                       <p className="text-sm font-medium text-foreground">{item.name}</p>
                       <p className="text-xs text-muted-foreground">{item.item_type} · Expires {item.warranty_expiry}</p>
                     </div>
-                    <Shield size={14} className="text-orange-600 dark:text-orange-400" />
+                    <Shield size={14} className={taskUrgencyIconClasses.high_priority} />
                   </div>
                 ));
               }
@@ -981,9 +535,7 @@ const Dashboard = () => {
           </div>
         </DialogContent>
       </Dialog>
-
-      <Footer />
-    </div>
+    </>
   );
 };
 

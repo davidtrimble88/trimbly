@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  ArrowLeft, FolderOpen, Plus, Loader2, Pencil, Trash2, FileText, Upload,
-  X, Search, Package, Wrench, Shield, Receipt, Home as HomeIcon, Download, BookOpen
+  FolderOpen, Plus, Loader2, Pencil, Trash2, FileText, Upload,
+  X, Search, Package, Wrench, Shield, Receipt, Home as HomeIcon, Download, BookOpen, Crown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,9 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
+import { tierLabels } from "@/components/dashboard/homeowner/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
+import { useGarageSubscription } from "@/hooks/useGarageSubscription";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
 
@@ -84,9 +89,11 @@ const emptyItem = {
 };
 
 const HomeBinder = () => {
-  const { user } = useAuth();
+  const { user, profileName } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
-  const { canAddHome, isPro, maxBinderItems, subscriptionTier } = useHomeLimit();
+  const { canAddHome, isPro, maxBinderItems, subscriptionTier, loading: limitLoading } = useHomeLimit();
+  const { active: hasGarage } = useGarageSubscription();
   const isMultiPro = subscriptionTier === "multi_pro";
 
   const [items, setItems] = useState<BinderItem[]>([]);
@@ -354,39 +361,41 @@ const HomeBinder = () => {
     );
   }
 
-  if (!isPro) {
-    return (
-      <div className="min-h-screen">
-        <Navbar />
-        <main className="pt-24 pb-16">
-          <div className="container mx-auto px-4 max-w-2xl text-center py-20">
-            <FolderOpen size={48} className="mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-2xl font-bold text-foreground mb-2">Upgrade to Access Digital Home Binder</h2>
-            <p className="text-muted-foreground mb-6">
-              The Digital Home Binder is available on Home Hero and Home Super Hero plans.
-              Track appliances, warranties, receipts, and documents all in one place.
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Button asChild variant="outline"><Link to="/#pricing">View Plans</Link></Button>
-              <Button asChild><Link to="/dashboard">Back to Dashboard</Link></Button>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  const displayName = profileName || user.user_metadata?.full_name || user.email;
+  const navItems = buildHomeownerSatelliteNavItems(hasGarage);
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <main className="pt-24 pb-16">
-        <div className="container mx-auto px-4 max-w-4xl">
+    <DashboardShell
+      brandLabel="My Home"
+      navItems={navItems}
+      groups={homeownerNavGroups}
+      activeItemId="binder"
+      onNavigate={() => {}}
+      header={{
+        avatarIcon: HomeIcon,
+        displayName,
+        subtitle: (
+          <Badge variant="secondary" className="text-xs gap-1">
+            <Crown size={12} className="text-primary" /> {tierLabels[subscriptionTier] ?? "Free"}
+          </Badge>
+        ),
+        onEditProfile: () => navigate("/dashboard?tab=profile"),
+      }}
+    >
+      {limitLoading ? (
+        <div className="max-w-4xl rounded-xl border border-border bg-card p-6 h-48 animate-pulse" />
+      ) : (
+      <UpgradeGate
+        hasAccess={isPro}
+        featureName="Digital Home Binder"
+        description="Track appliances, warranties, receipts, and documents all in one place."
+        benefits={["Store appliance manuals & warranties", "Track receipts and documents", "Warranty expiration alerts"]}
+        pricingRoute="/#pricing"
+        icon={Crown}
+      >
+        <div className="max-w-4xl">
           {/* Header */}
           <div className="mb-8">
-            <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
-              <ArrowLeft size={16} /> Back to home
-            </Link>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -727,9 +736,9 @@ const HomeBinder = () => {
             </DialogContent>
           </Dialog>
         </div>
-      </main>
-      <Footer />
-    </div>
+      </UpgradeGate>
+      )}
+    </DashboardShell>
   );
 };
 

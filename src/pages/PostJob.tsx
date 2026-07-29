@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useHomeLimit } from "@/hooks/useHomeLimit";
+import { useGarageSubscription } from "@/hooks/useGarageSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
+import { tierLabels } from "@/components/dashboard/homeowner/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,7 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Plus, Briefcase, MapPin, Clock, DollarSign, MessageSquare, Phone,
   PhoneOff, CheckCircle, XCircle, Trash2, Eye, ChevronDown, ChevronUp, Pencil,
-  User, Star, Shield, Sparkles, Lightbulb, Wand2,
+  User, Star, Shield, Sparkles, Lightbulb, Wand2, Crown, Home as HomeIcon,
 } from "lucide-react";
 import JobPhotoUploader from "@/components/JobPhotoUploader";
 import JobVideoUploader from "@/components/JobVideoUploader";
@@ -107,7 +112,9 @@ type Bid = {
 };
 
 const PostJob = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, profileName, loading: authLoading } = useAuth();
+  const { subscriptionTier } = useHomeLimit();
+  const { active: hasGarage } = useGarageSubscription();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -120,6 +127,9 @@ const PostJob = () => {
   const [submitting, setSubmitting] = useState(false);
   const [bidCounts, setBidCounts] = useState<Record<string, number>>({});
   const [bidUnreadCounts, setBidUnreadCounts] = useState<Record<string, number>>({}); // provider_user_id -> unread count
+  const [jobHasAcceptedBid, setJobHasAcceptedBid] = useState<Record<string, boolean>>({});
+  const [jobUnreadCounts, setJobUnreadCounts] = useState<Record<string, number>>({}); // job_id -> unread count across all its bids
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "completed">("all");
 
   // Message-a-pro dialog (without accepting the bid)
   const [messageBid, setMessageBid] = useState<Bid | null>(null);
@@ -213,17 +223,54 @@ const PostJob = () => {
     setJobs(jobsList);
     setLoadingJobs(false);
 
-    // Load bid counts for each job
+    // Load bid counts + accepted status + unread messages for each job, up front
+    // (not lazily on expand) so the job cards can show accurate badges right away.
     if (jobsList.length > 0) {
       const { data: bidsData } = await supabase
         .from("job_bids")
-        .select("job_id")
+        .select("job_id, status, provider:providers(user_id)")
         .in("job_id", jobsList.map((j) => j.id));
+
       const counts: Record<string, number> = {};
+      const accepted: Record<string, boolean> = {};
+      const jobProviderUserIds: Record<string, string[]> = {};
+      const allProviderUserIds = new Set<string>();
+
       (bidsData || []).forEach((b: any) => {
         counts[b.job_id] = (counts[b.job_id] || 0) + 1;
+        if (b.status === "accepted") accepted[b.job_id] = true;
+        const uid = b.provider?.user_id;
+        if (uid) {
+          (jobProviderUserIds[b.job_id] ||= []).push(uid);
+          allProviderUserIds.add(uid);
+        }
       });
       setBidCounts(counts);
+      setJobHasAcceptedBid(accepted);
+
+      if (allProviderUserIds.size > 0) {
+        // Unread flag is per-message-row, so this naturally covers unread replies
+        // in an ongoing thread, not just the pro's first contact.
+        const { data: unreadMsgs } = await supabase
+          .from("messages")
+          .select("sender_id")
+          .eq("recipient_id", user.id)
+          .in("sender_id", [...allProviderUserIds])
+          .eq("read", false);
+        const unreadBySender: Record<string, number> = {};
+        (unreadMsgs || []).forEach((m: any) => {
+          unreadBySender[m.sender_id] = (unreadBySender[m.sender_id] || 0) + 1;
+        });
+        setBidUnreadCounts(unreadBySender);
+
+        const jobUnread: Record<string, number> = {};
+        Object.entries(jobProviderUserIds).forEach(([jobId, uids]) => {
+          jobUnread[jobId] = uids.reduce((sum, uid) => sum + (unreadBySender[uid] || 0), 0);
+        });
+        setJobUnreadCounts(jobUnread);
+      } else {
+        setJobUnreadCounts({});
+      }
     }
   };
 
@@ -459,27 +506,53 @@ const PostJob = () => {
     toast({ title: "Job deleted" });
   };
 
-  const statusColor = (s: string) => {
-    if (s === "pending" || s === "open") return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
-    if (s === "in_progress") return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
-    if (s === "completed") return "bg-muted text-muted-foreground";
-    return "bg-secondary text-secondary-foreground";
+  // A job is "approved" once a pro's bid has been accepted (work is underway),
+  // regardless of the underlying jobs.status value, which only ever flips to "completed".
+  const jobBucket = (job: Job): "pending" | "approved" | "completed" => {
+    if (job.status === "completed") return "completed";
+    if (jobHasAcceptedBid[job.id]) return "approved";
+    return "pending";
   };
+
+  const bucketCounts = jobs.reduce(
+    (acc, j) => { acc[jobBucket(j)]++; return acc; },
+    { pending: 0, approved: 0, completed: 0 } as Record<"pending" | "approved" | "completed", number>
+  );
+
+  const filteredJobs = statusFilter === "all" ? jobs : jobs.filter((j) => jobBucket(j) === statusFilter);
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-4 py-20"><Skeleton className="h-64 w-full" /></div>
-        <Footer />
+      <div className="min-h-screen flex items-center justify-center">
+        <Skeleton className="h-64 w-full max-w-4xl mx-4" />
       </div>
     );
   }
 
+  if (!user) return null;
+
+  const displayName = profileName || user.user_metadata?.full_name || user.email;
+  const navItems = buildHomeownerSatelliteNavItems(hasGarage);
+
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <div className="container mx-auto max-w-4xl px-4 pb-10 pt-24">
+    <DashboardShell
+      brandLabel="My Home"
+      navItems={navItems}
+      groups={homeownerNavGroups}
+      activeItemId="post-job"
+      onNavigate={() => {}}
+      header={{
+        avatarIcon: HomeIcon,
+        displayName,
+        subtitle: (
+          <Badge variant="secondary" className="text-xs gap-1">
+            <Crown size={12} className="text-primary" /> {tierLabels[subscriptionTier] ?? "Free"}
+          </Badge>
+        ),
+        onEditProfile: () => navigate("/dashboard?tab=profile"),
+      }}
+    >
+      <div className="max-w-4xl">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -494,6 +567,30 @@ const PostJob = () => {
             <Plus size={16} /> Post a Job
           </Button>
         </div>
+
+        {/* Status sections */}
+        {!loadingJobs && jobs.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-5">
+            {([
+              { key: "all", label: "All", count: jobs.length },
+              { key: "pending", label: "Pending", count: bucketCounts.pending },
+              { key: "approved", label: "Approved", count: bucketCounts.approved },
+              { key: "completed", label: "Completed", count: bucketCounts.completed },
+            ] as { key: typeof statusFilter; label: string; count: number }[]).map((opt) => (
+              <button
+                key={opt.key}
+                onClick={() => setStatusFilter(opt.key)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
+                  statusFilter === opt.key
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "text-muted-foreground border-border hover:border-primary/30"
+                }`}
+              >
+                {opt.label} ({opt.count})
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Job List */}
         {loadingJobs ? (
@@ -514,19 +611,38 @@ const PostJob = () => {
               </Button>
             </CardContent>
           </Card>
+        ) : filteredJobs.length === 0 ? (
+          <Card className="text-center py-12">
+            <CardContent>
+              <Briefcase className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
+              <h3 className="font-semibold text-lg mb-1">No {statusFilter} jobs</h3>
+              <p className="text-sm text-muted-foreground">Switch filters above to see your other job requests.</p>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-4">
-            {jobs.map((job) => (
+            {filteredJobs.map((job) => (
               <Card key={job.id} className="shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-foreground">{job.title}</h3>
-                        <Badge className={`text-xs ${statusColor(job.status)}`}>{job.status.replace("_", " ")}</Badge>
+                        <Badge className={`text-xs ${
+                          jobBucket(job) === "completed" ? "bg-muted text-muted-foreground" :
+                          jobBucket(job) === "approved" ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" :
+                          "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                        }`}>
+                          {jobBucket(job) === "approved" ? "Approved" : jobBucket(job) === "completed" ? "Completed" : "Pending"}
+                        </Badge>
                         {(bidCounts[job.id] ?? 0) > 0 && (
                           <Badge className="text-xs bg-primary/15 text-primary hover:bg-primary/20 gap-1">
                             <MessageSquare size={10} /> {bidCounts[job.id]} {bidCounts[job.id] === 1 ? "bid" : "bids"}
+                          </Badge>
+                        )}
+                        {(jobUnreadCounts[job.id] ?? 0) > 0 && (
+                          <Badge className="text-xs bg-destructive text-destructive-foreground gap-1">
+                            <MessageSquare size={10} /> {jobUnreadCounts[job.id]} unread
                           </Badge>
                         )}
                       </div>
@@ -1004,9 +1120,7 @@ const PostJob = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <Footer />
-    </div>
+    </DashboardShell>
   );
 };
 

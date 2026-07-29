@@ -1,14 +1,16 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useGarageSubscription } from "@/hooks/useGarageSubscription";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft, MessageSquare, Send, Crown, Clock, CheckCheck, User, Search, Globe,
-  Trash2, ShieldBan, MoreVertical, MessageCircle, AlertCircle, Bot, Flag
+  Trash2, ShieldBan, MoreVertical, MessageCircle, AlertCircle, Bot, Flag, Home,
 } from "lucide-react";
 import ReportDialog from "@/components/ReportDialog";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +27,9 @@ import { AIFeedback } from "@/components/messages/AIFeedback";
 import MessageCopilot from "@/components/messages/MessageCopilot";
 import { EmptyState } from "@/components/EmptyState";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
+import { tierLabels } from "@/components/dashboard/homeowner/types";
 
 interface Message {
   id: string;
@@ -84,7 +89,9 @@ const statusConfig: Record<ChatStatus, { label: string; color: string; icon: typ
 };
 
 const Messages = () => {
-  const { user } = useAuth();
+  const { user, profileName } = useAuth();
+  const navigate = useNavigate();
+  const { active: hasGarage } = useGarageSubscription();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -379,27 +386,30 @@ const Messages = () => {
     );
   };
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="pt-24 pb-16 flex-1">
-        <div className="container mx-auto px-4">
-          <div className="mb-6">
-            <Link to="/dashboard" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
-              <ArrowLeft size={16} /> Back to Dashboard
-            </Link>
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-extrabold text-foreground font-display">Messages</h1>
-                <p className="text-muted-foreground text-sm mt-1">Communicate with service providers directly</p>
-              </div>
-              <Button asChild className="gap-2">
-                <Link to="/search"><Search size={14} /> Find Local Pros</Link>
-              </Button>
-            </div>
-          </div>
+  // Only swap to the homeowner dashboard shell once we positively know the user is a homeowner
+  // (not a provider/mechanic) — providers/mechanics keep their existing Navbar/Footer chrome untouched.
+  const isHomeownerCtx = !!userProfile && userProfile.user_type !== "provider";
 
-          {isFreePro && (
+  const mainContent = (
+    <>
+      <div className="mb-6">
+        {!isHomeownerCtx && (
+          <Link to="/dashboard" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
+            <ArrowLeft size={16} /> Back to Dashboard
+          </Link>
+        )}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-extrabold text-foreground font-display">Messages</h1>
+            <p className="text-muted-foreground text-sm mt-1">Communicate with service providers directly</p>
+          </div>
+          <Button asChild className="gap-2">
+            <Link to="/search"><Search size={14} /> Find Local Pros</Link>
+          </Button>
+        </div>
+      </div>
+
+      {isFreePro && (
             <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 mb-6 flex items-start gap-3">
               <Crown size={20} className="text-primary mt-0.5 shrink-0" />
               <div>
@@ -714,10 +724,11 @@ const Messages = () => {
               )}
             </div>
           </div>
-        </div>
-      </main>
-      <Footer />
+    </>
+  );
 
+  const dialogs = (
+    <>
       {/* Delete confirmation dialog */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
@@ -759,7 +770,48 @@ const Messages = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
+  );
+
+  if (!isHomeownerCtx) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="pt-24 pb-16 flex-1">
+          <div className="container mx-auto px-4">
+            {mainContent}
+          </div>
+        </main>
+        <Footer />
+        {dialogs}
+      </div>
+    );
+  }
+
+  const displayName = profileName || user.user_metadata?.full_name || user.email;
+  const navItems = buildHomeownerSatelliteNavItems(hasGarage);
+
+  return (
+    <DashboardShell
+      brandLabel="My Home"
+      navItems={navItems}
+      groups={homeownerNavGroups}
+      activeItemId="messages"
+      onNavigate={() => {}}
+      header={{
+        avatarIcon: Home,
+        displayName,
+        subtitle: (
+          <Badge variant="secondary" className="text-xs gap-1">
+            <Crown size={12} className="text-primary" /> {tierLabels[userProfile?.subscription_tier || "free"] ?? "Free"}
+          </Badge>
+        ),
+        onEditProfile: () => navigate("/dashboard?tab=profile"),
+      }}
+    >
+      {mainContent}
+      {dialogs}
+    </DashboardShell>
   );
 };
 

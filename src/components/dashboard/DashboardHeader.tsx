@@ -11,10 +11,10 @@ interface DashboardHeaderProps {
   avatarIcon: LucideIcon;
   displayName: string;
   subtitle: React.ReactNode;
-  available: boolean;
-  onToggleAvailable: () => void;
+  available?: boolean;
+  onToggleAvailable?: () => void;
   onEditProfile: () => void;
-  onViewPublicProfile: () => void;
+  onViewPublicProfile?: () => void;
   extraMenuItems?: React.ReactNode;
 }
 
@@ -47,13 +47,17 @@ const DashboardHeader = ({
         <div className="flex flex-wrap items-center gap-2 mt-0.5">{subtitle}</div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <div className="hidden sm:flex items-center gap-2 mr-1">
-          <span className="text-xs text-muted-foreground">Available</span>
-          <Switch checked={available} onCheckedChange={onToggleAvailable} />
-        </div>
-        <Button variant="outline" size="sm" className="hidden md:inline-flex rounded-lg" onClick={onViewPublicProfile}>
-          <ExternalLink size={14} className="mr-1.5" /> View Public Profile
-        </Button>
+        {onToggleAvailable && (
+          <div className="hidden sm:flex items-center gap-2 mr-1">
+            <span className="text-xs text-muted-foreground">Available</span>
+            <Switch checked={available} onCheckedChange={onToggleAvailable} />
+          </div>
+        )}
+        {onViewPublicProfile && (
+          <Button variant="outline" size="sm" className="hidden md:inline-flex rounded-lg" onClick={onViewPublicProfile}>
+            <ExternalLink size={14} className="mr-1.5" /> View Public Profile
+          </Button>
+        )}
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -62,16 +66,20 @@ const DashboardHeader = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onToggleAvailable} className="sm:hidden">
-              <Zap size={14} className="mr-2" />
-              {available ? "Set Unavailable" : "Set Available"}
-            </DropdownMenuItem>
+            {onToggleAvailable && (
+              <DropdownMenuItem onClick={onToggleAvailable} className="sm:hidden">
+                <Zap size={14} className="mr-2" />
+                {available ? "Set Unavailable" : "Set Available"}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={onEditProfile}>
               <Pencil size={14} className="mr-2" /> Edit Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={onViewPublicProfile} className="md:hidden">
-              <ExternalLink size={14} className="mr-2" /> View Public Profile
-            </DropdownMenuItem>
+            {onViewPublicProfile && (
+              <DropdownMenuItem onClick={onViewPublicProfile} className="md:hidden">
+                <ExternalLink size={14} className="mr-2" /> View Public Profile
+              </DropdownMenuItem>
+            )}
             {extraMenuItems}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut}>

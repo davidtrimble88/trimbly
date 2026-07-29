@@ -24,6 +24,7 @@ const Navbar = () => {
     return localStorage.getItem(USER_TYPE_CACHE_KEY);
   });
   const [isAdmin, setIsAdmin] = useState(false);
+  const [providerInfo, setProviderInfo] = useState<{ subscription_tier: string; provider_type: string } | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -42,6 +43,13 @@ const Navbar = () => {
     });
   }, [user]);
 
+  useEffect(() => {
+    if (!user || userType !== "provider") { setProviderInfo(null); return; }
+    supabase.from("providers").select("subscription_tier, provider_type").eq("user_id", user.id).maybeSingle().then(({ data }) => {
+      setProviderInfo(data as { subscription_tier: string; provider_type: string } | null);
+    });
+  }, [user, userType]);
+
 
   const inStaffPortal = location.pathname.startsWith("/staff");
 
@@ -51,6 +59,18 @@ const Navbar = () => {
   };
 
   const isProvider = userType === "provider";
+
+  const tierBadgeLabel = (() => {
+    if (isProvider) {
+      if (!providerInfo) return null;
+      const isMechanic = providerInfo.provider_type === "mechanic";
+      const isPaid = !!providerInfo.subscription_tier && providerInfo.subscription_tier !== "free";
+      if (isMechanic) return isPaid ? "Mechanic" : "Free Mechanic";
+      return isPaid ? "Pro" : "Free Pro";
+    }
+    const base = subscriptionTier === "multi_pro" ? "Super Hero" : subscriptionTier === "homeowner_pro" ? "Hero" : "Free";
+    return hasGarage ? `${base}+` : base;
+  })();
 
   const guestLinks = (
     <>
@@ -230,8 +250,7 @@ const Navbar = () => {
               {profileName && (
                 <span className="text-xs text-muted-foreground mr-1">
                   {profileName}
-                  {isProvider && <span className="ml-1.5 text-primary font-medium">PRO</span>}
-                  {!isProvider && isPro && <span className="ml-1.5 text-primary font-medium">PRO</span>}
+                  {tierBadgeLabel && <span className="ml-1.5 text-primary font-medium">{tierBadgeLabel}</span>}
                 </span>
               )}
               <NotificationPreferencesDialog

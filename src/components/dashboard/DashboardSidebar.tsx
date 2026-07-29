@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Shield } from "lucide-react";
 import {
-  Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
+  Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarHeader, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { DashboardNavItem } from "./types";
@@ -9,12 +9,47 @@ import { DashboardNavItem } from "./types";
 interface DashboardSidebarProps {
   brandLabel: string;
   navItems: DashboardNavItem[];
+  groups?: string[];
   activeItemId: string;
   onNavigate: (item: DashboardNavItem) => void;
   footer?: React.ReactNode;
 }
 
-const DashboardSidebar = ({ brandLabel, navItems, activeItemId, onNavigate, footer }: DashboardSidebarProps) => {
+const DashboardSidebar = ({ brandLabel, navItems, groups, activeItemId, onNavigate, footer }: DashboardSidebarProps) => {
+  const renderMenu = (items: DashboardNavItem[]) => (
+    <SidebarMenu>
+      {items.map((item) => {
+        const isActive = item.id === activeItemId;
+        const button = (
+          <SidebarMenuButton
+            isActive={isActive}
+            tooltip={item.label}
+            asChild={!!item.href}
+            onClick={item.href ? undefined : () => onNavigate(item)}
+          >
+            {item.href ? (
+              <Link to={item.href}>
+                <item.icon />
+                <span>{item.label}</span>
+              </Link>
+            ) : (
+              <>
+                <item.icon />
+                <span>{item.label}</span>
+              </>
+            )}
+          </SidebarMenuButton>
+        );
+        return (
+          <SidebarMenuItem key={item.id}>
+            {button}
+            {!!item.badge && item.badge > 0 && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
+          </SidebarMenuItem>
+        );
+      })}
+    </SidebarMenu>
+  );
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -28,41 +63,20 @@ const DashboardSidebar = ({ brandLabel, navItems, activeItemId, onNavigate, foot
         </Link>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => {
-                const isActive = item.id === activeItemId;
-                const button = (
-                  <SidebarMenuButton
-                    isActive={isActive}
-                    tooltip={item.label}
-                    asChild={!!item.href}
-                    onClick={item.href ? undefined : () => onNavigate(item)}
-                  >
-                    {item.href ? (
-                      <Link to={item.href}>
-                        <item.icon />
-                        <span>{item.label}</span>
-                      </Link>
-                    ) : (
-                      <>
-                        <item.icon />
-                        <span>{item.label}</span>
-                      </>
-                    )}
-                  </SidebarMenuButton>
-                );
-                return (
-                  <SidebarMenuItem key={item.id}>
-                    {button}
-                    {!!item.badge && item.badge > 0 && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {groups ? (
+          groups.map((groupName) => (
+            <SidebarGroup key={groupName}>
+              <SidebarGroupLabel>{groupName}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                {renderMenu(navItems.filter((item) => item.group === groupName))}
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))
+        ) : (
+          <SidebarGroup>
+            <SidebarGroupContent>{renderMenu(navItems)}</SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       {footer && <SidebarFooter>{footer}</SidebarFooter>}
     </Sidebar>

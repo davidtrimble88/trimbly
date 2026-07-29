@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
-  ArrowLeft, CalendarCheck, Loader2, Home, Check, Clock,
-  AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus, CalendarPlus, Download, ShoppingCart, ExternalLink, Search, ArrowUpDown
+  CalendarCheck, Loader2, Home, Check, Clock,
+  AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus, CalendarPlus, Download, ShoppingCart, ExternalLink, Search, ArrowUpDown, Crown
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,13 @@ import { Badge } from "@/components/ui/badge";
 import { ProductQuestionnaireDialog } from "@/components/maintenance/ProductQuestionnaireDialog";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
+import { tierLabels } from "@/components/dashboard/homeowner/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
+import { useGarageSubscription } from "@/hooks/useGarageSubscription";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
 
@@ -136,9 +140,11 @@ const baseWizardSteps = [
 ];
 
 const MaintenancePage = () => {
-  const { user } = useAuth();
+  const { user, profileName } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { canAddHome, isPro, homeCount, loading: limitLoading, subscriptionTier } = useHomeLimit();
+  const { active: hasGarage } = useGarageSubscription();
   const isMultiPro = subscriptionTier === "multi_pro";
   // For multi-home users, include the name step; for single-home, skip it
   const wizardSteps = isMultiPro ? baseWizardSteps : baseWizardSteps.filter(s => s.key !== "home_name");
@@ -535,16 +541,30 @@ const MaintenancePage = () => {
     );
   }
 
+  const displayName = profileName || user.user_metadata?.full_name || user.email;
+  const navItems = buildHomeownerSatelliteNavItems(hasGarage);
+
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <main className="pt-24 pb-16">
-        <div className="container mx-auto px-4 max-w-4xl">
+    <DashboardShell
+      brandLabel="My Home"
+      navItems={navItems}
+      groups={homeownerNavGroups}
+      activeItemId="maintenance"
+      onNavigate={() => {}}
+      header={{
+        avatarIcon: Home,
+        displayName,
+        subtitle: (
+          <Badge variant="secondary" className="text-xs gap-1">
+            <Crown size={12} className="text-primary" /> {tierLabels[subscriptionTier] ?? "Free"}
+          </Badge>
+        ),
+        onEditProfile: () => navigate("/dashboard?tab=profile"),
+      }}
+    >
+        <div className="max-w-4xl">
           {/* Header */}
           <div className="mb-8">
-            <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
-              <ArrowLeft size={16} /> Back to home
-            </Link>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -956,8 +976,6 @@ const MaintenancePage = () => {
             </>
           )}
         </div>
-      </main>
-      <Footer />
 
       {productTask && productTask.products_search_term && (
         <ProductQuestionnaireDialog
@@ -971,7 +989,7 @@ const MaintenancePage = () => {
           }}
         />
       )}
-    </div>
+    </DashboardShell>
   );
 };
 

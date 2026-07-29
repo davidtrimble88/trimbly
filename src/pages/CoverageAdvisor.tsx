@@ -2,10 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
+import { useGarageSubscription } from "@/hooks/useGarageSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
+import { tierLabels } from "@/components/dashboard/homeowner/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Shield, Upload, FileText, Trash2, Send, Bot, User, Lock, Crown, MessageSquare, Loader2,
+  Shield, Upload, FileText, Trash2, Send, Bot, User, Crown, MessageSquare, Loader2, Home,
 } from "lucide-react";
 
 type CoverageDoc = {
@@ -73,8 +76,9 @@ async function streamChat(
 }
 
 const CoverageAdvisor = () => {
-  const { user, loading: authLoading } = useAuth();
-  const { isPro, loading: tierLoading } = useHomeLimit();
+  const { user, profileName, loading: authLoading } = useAuth();
+  const { isPro, subscriptionTier, loading: tierLoading } = useHomeLimit();
+  const { active: hasGarage } = useGarageSubscription();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -191,47 +195,38 @@ const CoverageAdvisor = () => {
     }
   };
 
-  if (authLoading || tierLoading) {
+  if (authLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-4 py-20">
-          <Skeleton className="h-8 w-64 mb-4" />
-          <Skeleton className="h-64 w-full" />
-        </div>
-        <Footer />
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  if (!isPro) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-4 py-20 text-center">
-          <Lock className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-          <h1 className="text-3xl font-bold mb-2">Coverage Advisor</h1>
-          <p className="text-muted-foreground mb-6">
-            Upload your home warranty & insurance docs and ask AI about your coverage.
-          </p>
-          <div className="bg-muted/50 rounded-xl p-6 max-w-md mx-auto mb-6">
-            <Crown className="mx-auto h-8 w-8 text-primary mb-2" />
-            <h3 className="font-semibold mb-1">Pro Feature</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Upgrade to Home Hero to unlock the Coverage Advisor with AI-powered document analysis.
-            </p>
-            <Button onClick={() => navigate("/#pricing")}>View Plans</Button>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+  if (!user) return null;
+
+  const displayName = profileName || user.user_metadata?.full_name || user.email;
+  const navItems = buildHomeownerSatelliteNavItems(hasGarage);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <div className="container mx-auto px-4 py-10 max-w-6xl">
+    <DashboardShell
+      brandLabel="My Home"
+      navItems={navItems}
+      groups={homeownerNavGroups}
+      activeItemId="coverage"
+      onNavigate={() => {}}
+      header={{
+        avatarIcon: Home,
+        displayName,
+        subtitle: (
+          <Badge variant="secondary" className="text-xs gap-1">
+            <Crown size={12} className="text-primary" /> {tierLabels[subscriptionTier] ?? "Free"}
+          </Badge>
+        ),
+        onEditProfile: () => navigate("/dashboard?tab=profile"),
+      }}
+    >
+      <div className="max-w-6xl">
         <div className="flex items-center gap-3 mb-6">
           <Shield className="h-8 w-8 text-primary" />
           <div>
@@ -240,6 +235,20 @@ const CoverageAdvisor = () => {
           </div>
         </div>
 
+        {tierLoading ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Skeleton className="h-64 lg:col-span-1" />
+            <Skeleton className="h-[600px] lg:col-span-2" />
+          </div>
+        ) : (
+        <UpgradeGate
+          hasAccess={isPro}
+          featureName="Coverage Advisor"
+          description="Upload your home warranty & insurance docs and ask AI about your coverage."
+          benefits={["Upload warranty & insurance documents", "AI-powered coverage Q&A", "Instant answers on deductibles & exclusions"]}
+          pricingRoute="/#pricing"
+          icon={Crown}
+        >
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left: Documents */}
           <div className="lg:col-span-1 space-y-4">
@@ -397,9 +406,10 @@ const CoverageAdvisor = () => {
             </Card>
           </div>
         </div>
+        </UpgradeGate>
+        )}
       </div>
-      <Footer />
-    </div>
+    </DashboardShell>
   );
 };
 
