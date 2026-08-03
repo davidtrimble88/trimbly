@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { canAccess, isStaff, type StaffRole } from "./roles";
 
-const navItems = [
+export const navItems = [
   { key: "dashboard", to: "/staff", label: "Dashboard", icon: LayoutDashboard, end: true },
   { key: "analytics", to: "/staff/analytics", label: "Analytics", icon: BarChart3 },
   { key: "business", to: "/staff/business", label: "Business Analytics", icon: DollarSign },

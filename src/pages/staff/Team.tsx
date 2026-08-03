@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UserPlus, Trash2, ShieldCheck, AlertCircle } from "lucide-react";
-import { STAFF_ROLES, type StaffRole } from "./roles";
+import { UserPlus, Trash2, ShieldCheck, AlertCircle, Check } from "lucide-react";
+import { STAFF_ROLES, NAV_PERMISSIONS, type StaffRole } from "./roles";
+import { navItems } from "./StaffLayout";
 import { logActivity } from "./activityLog";
 
 type StaffRow = {
@@ -77,21 +78,17 @@ export default function StaffTeam() {
     }
     setAdding(true);
     try {
-      // Look up user by email via auth admin is not available; use profiles + match via RPC fallback.
-      // We attempt to find an existing profile by email through a server function — fallback to manual user_id entry.
-      // Simplest path: query auth.users via a security definer function would be needed, so we ask user to look up via /staff/users.
-      // For now, try profiles table directly (won't have email), and instead query via the admin RPC if available.
-
-      // Try Supabase auth admin lookup is not available client-side. So we use the email by checking profiles via a join is not possible.
-      // Practical solution: ask admin to provide the user's UUID OR find them in /staff/users.
-      // To keep this UX simple, attempt to find via a request to a server function (none exists), so fall back to UUID input.
-
-      // Treat the input as a UUID if it looks like one, otherwise show guidance.
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed);
-      if (!isUuid) {
+      const { data: found, error: lookupErr } = await (supabase.rpc("find_user_by_email" as any, { _email: trimmed }) as any);
+      if (lookupErr) {
+        toast({ title: "Lookup failed", description: lookupErr.message, variant: "destructive" });
+        setAdding(false);
+        return;
+      }
+      const match = Array.isArray(found) ? found[0] : found;
+      if (!match?.user_id) {
         toast({
-          title: "User ID required",
-          description: "Please paste the user's ID (UUID). Find it in the Users tab.",
+          title: "No account found",
+          description: `No Trimbly account is registered with ${trimmed}. They need to sign up first.`,
           variant: "destructive",
         });
         setAdding(false);
@@ -99,7 +96,7 @@ export default function StaffTeam() {
       }
 
       const { error } = await supabase.from("user_roles").insert({
-        user_id: trimmed,
+        user_id: match.user_id,
         role: role as any,
       });
       if (error) {
@@ -107,8 +104,8 @@ export default function StaffTeam() {
         setAdding(false);
         return;
       }
-      await logActivity(user.id, "staff_added", "user", trimmed, { role });
-      toast({ title: "Staff member added", description: `Role: ${role}` });
+      await logActivity(user.id, "staff_added", "user", match.user_id, { role, email: trimmed });
+      toast({ title: "Staff member added", description: `${match.full_name || trimmed} — ${role}` });
       setEmail("");
       setRole("support");
       load();
@@ -179,18 +176,20 @@ export default function StaffTeam() {
             <UserPlus className="w-5 h-5 text-primary" /> Add staff member
           </CardTitle>
           <CardDescription>
-            Find the user's ID in the <strong>Users</strong> tab, then paste it here to grant staff access.
+            Enter the email they used to sign up for Trimbly, pick an access level, and they'll have staff access immediately.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-[1fr_220px_auto] gap-3 items-end">
             <div>
-              <Label className="text-xs">User ID (UUID)</Label>
+              <Label className="text-xs">Email</Label>
               <Input
-                placeholder="e.g. 5614c909-d6e3-452b-921e-3b20ac74af7e"
+                type="email"
+                placeholder="e.g. jane@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 font-mono text-xs"
+                onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+                className="mt-1 text-sm"
               />
             </div>
             <div>
@@ -233,6 +232,44 @@ export default function StaffTeam() {
               <span className="text-muted-foreground">{r.description}</span>
             </div>
           ))}
+        </CardContent>
+      </Card>
+
+      {/* Permissions matrix — exactly what each role can see */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">What each role can see</CardTitle>
+          <CardDescription>The Owner/Admin role always has every section checked.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0 overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/40 text-xs text-muted-foreground">
+              <tr>
+                <th className="text-left py-2.5 px-4 font-medium">Section</th>
+                {STAFF_ROLES.map((r) => (
+                  <th key={r.value} className="text-center py-2.5 px-3 font-medium whitespace-nowrap">{r.label}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {navItems.map((n) => (
+                <tr key={n.key} className="border-t border-border">
+                  <td className="py-2 px-4 inline-flex items-center gap-2">
+                    <n.icon className="w-3.5 h-3.5 text-muted-foreground shrink-0" /> {n.label}
+                  </td>
+                  {STAFF_ROLES.map((r) => (
+                    <td key={r.value} className="text-center py-2 px-3">
+                      {NAV_PERMISSIONS[n.key]?.includes(r.value) ? (
+                        <Check className="w-4 h-4 text-primary inline" />
+                      ) : (
+                        <span className="text-muted-foreground/30">—</span>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </CardContent>
       </Card>
 

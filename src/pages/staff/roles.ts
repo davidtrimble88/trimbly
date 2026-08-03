@@ -2,10 +2,10 @@
 export type StaffRole = "admin" | "moderator" | "support" | "analyst";
 
 export const STAFF_ROLES: { value: StaffRole; label: string; description: string }[] = [
-  { value: "admin", label: "Admin", description: "Full access to everything, including managing staff." },
-  { value: "moderator", label: "Moderator", description: "Moderation queue, providers, jobs, and broadcasts." },
-  { value: "support", label: "Support", description: "Contact inbox, user accounts, and outreach." },
-  { value: "analyst", label: "Analyst", description: "Read-only access to dashboard, searches, and error logs." },
+  { value: "admin", label: "Owner / Admin", description: "Full access to every section, including managing staff and their access levels." },
+  { value: "moderator", label: "Moderator", description: "Provider verification, job disputes, review moderation, and broadcasts." },
+  { value: "support", label: "Support", description: "Contact inbox, user accounts, pro outreach, and broadcasts." },
+  { value: "analyst", label: "Analyst", description: "Read-only access to dashboard, analytics, business metrics, search trends, SEO health, and error logs." },
 ];
 
 // Each nav key maps to the set of roles allowed to see and visit it.
