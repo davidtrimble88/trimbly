@@ -28,9 +28,9 @@ export default function SkillBadgesPanel({ providerId, userId, jobsTable = "jobs
   useEffect(() => {
     (async () => {
       const [{ data: jobs }, { data: reviews }, { data: bids }, { data: provider }] = await Promise.all([
-        supabase.from(jobsTable).select("id, status").eq("provider_id", providerId),
+        (supabase.from(jobsTable as any) as any).select("id, status").eq("provider_id", providerId),
         supabase.from("reviews").select("rating").eq("provider_id", providerId),
-        supabase.from(bidsTable).select("id, status, created_at").eq("provider_id", providerId),
+        (supabase.from(bidsTable as any) as any).select("id, status, created_at").eq("provider_id", providerId),
         supabase.from("providers").select("verified, licensed, insured, years_experience, emergency_available").eq("id", providerId).maybeSingle(),
       ]);
 

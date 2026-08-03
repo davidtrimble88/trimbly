@@ -3,7 +3,8 @@ import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare, Star, Shield,
   Briefcase, BookOpen, Stethoscope, Home, Hammer, Car,
   Inbox, BadgeCheck, Users, QrCode, TrendingUp, Sparkles, FileText, Gauge,
-  ShoppingCart, CloudSun, Building2, DollarSign, Repeat, Wallet
+  ShoppingCart, CloudSun, Building2, DollarSign, Repeat, Wallet,
+  Zap, Activity, AlertTriangle, FileWarning,
 } from "lucide-react";
 
 type Audience = "homeowner" | "pro" | "mechanic";
@@ -26,6 +27,36 @@ const homeownerFeatures = [
     title: "Coverage Advisor",
     description: "Upload your home warranty and insurance docs, then ask AI questions about what's covered and how to file claims.",
     tab: "coverage",
+  },
+  {
+    icon: Zap,
+    title: "Energy & Utility Advisor",
+    description: "Chat with AI about your utility bills and get prioritized upgrades with real cost, savings, and payback numbers — not generic tips.",
+    tab: "energy-advisor",
+  },
+  {
+    icon: TrendingUp,
+    title: "Home Value Advisor",
+    description: "Planning a renovation? See if it pays off at resale before you spend a dime, with a full cost and DIY vs. pro breakdown.",
+    tab: "value-advisor",
+  },
+  {
+    icon: Activity,
+    title: "System Lifespan Tracker",
+    description: "See what's aging out before it breaks — automatically matched against your Home Binder's purchase dates.",
+    tab: "systems",
+  },
+  {
+    icon: AlertTriangle,
+    title: "Emergency Home Info Card",
+    description: "Water, gas, and electrical shutoff locations plus emergency contacts — one printable card per home for when seconds count.",
+    tab: "emergency-info",
+  },
+  {
+    icon: FileWarning,
+    title: "Quote & Contract Reviewer",
+    description: "Paste a contractor's quote or contract and get an instant AI red-flag check before you sign anything.",
+    tab: "quote-reviewer",
   },
   {
     icon: Car,

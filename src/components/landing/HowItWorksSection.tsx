@@ -7,7 +7,8 @@ import {
   Upload, Bot, Shield, Briefcase, Send, Phone, UserCheck,
   Brain, Camera, DollarSign, BookOpen, Download, FileSearch,
   Image as ImageIcon, Sparkles, Inbox, Stethoscope, AlertTriangle, Hammer,
-  UserPlus, ListChecks, Send as SendIcon, Star, TrendingUp, BadgeCheck, QrCode, Users, Car
+  UserPlus, ListChecks, Send as SendIcon, Star, TrendingUp, BadgeCheck, QrCode, Users, Car,
+  Zap, MessageCircle, Activity, Clock, Printer, Phone as PhoneIcon, FileWarning, ClipboardCheck, FolderOpen,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -90,6 +91,141 @@ const homeownerTabs = [
         icon: CheckCircle, step: "04", title: "Know Before You Pay",
         description: "Get clear answers about your coverage so you never pay out-of-pocket for something that's covered.",
         route: "/coverage",
+      },
+    ],
+  },
+  {
+    id: "energy-advisor",
+    label: "Energy Advisor",
+    icon: Zap,
+    steps: [
+      {
+        icon: Home, step: "01", title: "Select Your Home",
+        description: "Pick which home you want advice for — the AI uses its type, size, and HVAC system for context.",
+        route: "/energy-advisor",
+      },
+      {
+        icon: MessageCircle, step: "02", title: "Tell It What You're Paying",
+        description: "Chat about your utility bills or just ask where to start — no forms to fill out.",
+        route: "/energy-advisor",
+      },
+      {
+        icon: Sparkles, step: "03", title: "Get Prioritized Upgrades",
+        description: "Receive specific upgrades ranked by impact, each with real cost, savings, and payback numbers.",
+        route: "/energy-advisor",
+      },
+      {
+        icon: DollarSign, step: "04", title: "Act With Confidence",
+        description: "Know exactly which upgrade pays for itself first — no generic tips, just numbers for your home.",
+        route: "/energy-advisor",
+      },
+    ],
+  },
+  {
+    id: "value-advisor",
+    label: "Home Value Advisor",
+    icon: TrendingUp,
+    steps: [
+      {
+        icon: FileText, step: "01", title: "Describe the Project",
+        description: "Tell us what renovation or upgrade you're considering — a kitchen remodel, a deck, a pool, anything.",
+        route: "/value-advisor",
+      },
+      {
+        icon: Sparkles, step: "02", title: "Get an Instant Verdict",
+        description: "AI tells you whether it's likely to increase, decrease, or have a neutral effect on resale value.",
+        route: "/value-advisor",
+      },
+      {
+        icon: ClipboardCheck, step: "03", title: "Go Deeper (Optional)",
+        description: "Answer a few follow-up questions for a detailed breakdown tailored to your home and market.",
+        route: "/value-advisor",
+      },
+      {
+        icon: Hammer, step: "04", title: "Cost & DIY-vs-Pro Breakdown",
+        description: "See a full cost range and whether this is a DIY job or one to hand off to a pro.",
+        route: "/value-advisor",
+      },
+    ],
+  },
+  {
+    id: "systems",
+    label: "System Lifespan Tracker",
+    icon: Activity,
+    steps: [
+      {
+        icon: FolderOpen, step: "01", title: "Log Items in Your Binder",
+        description: "Add appliances and systems to your Digital Home Binder with their purchase dates.",
+        route: "/systems",
+      },
+      {
+        icon: Bot, step: "02", title: "Auto-Matched to Lifespans",
+        description: "We match each item against typical replacement windows for its category automatically.",
+        route: "/systems",
+      },
+      {
+        icon: Clock, step: "03", title: "See What's Aging Out",
+        description: "Everything is sorted into Due Now, Plan Ahead, or Good Condition at a glance.",
+        route: "/systems",
+      },
+      {
+        icon: DollarSign, step: "04", title: "Budget Before It Breaks",
+        description: "Plan and save for replacements on your schedule, not in the middle of an emergency.",
+        route: "/systems",
+      },
+    ],
+  },
+  {
+    id: "emergency-info",
+    label: "Emergency Info Card",
+    icon: AlertTriangle,
+    steps: [
+      {
+        icon: Home, step: "01", title: "Pick a Home",
+        description: "Emergency info is saved per property, so multi-home owners get a card for each one.",
+        route: "/emergency-info",
+      },
+      {
+        icon: AlertTriangle, step: "02", title: "Add Shutoff Locations",
+        description: "Record where the water, gas, and electrical panel shutoffs are — in plain language anyone can follow.",
+        route: "/emergency-info",
+      },
+      {
+        icon: PhoneIcon, step: "03", title: "Add Emergency Contacts",
+        description: "Save a contact name and phone number so anyone in the home knows who to call.",
+        route: "/emergency-info",
+      },
+      {
+        icon: Printer, step: "04", title: "Print & Post It",
+        description: "Print the finished card and post it somewhere visible — ready before you ever need it.",
+        route: "/emergency-info",
+      },
+    ],
+  },
+  {
+    id: "quote-reviewer",
+    label: "Quote Reviewer",
+    icon: FileWarning,
+    steps: [
+      {
+        icon: FileText, step: "01", title: "Paste the Quote or Contract",
+        description: "Copy in the text from a contractor's quote, estimate, or contract — no file uploads needed.",
+        route: "/quote-reviewer",
+      },
+      {
+        icon: Sparkles, step: "02", title: "AI Reviews It Instantly",
+        description: "Add optional project context, then let AI scan the language for unusual terms and red flags.",
+        route: "/quote-reviewer",
+      },
+      {
+        icon: AlertTriangle, step: "03", title: "Get a Risk Level",
+        description: "See a clear verdict — Looks Reasonable, Some Concerns, or Multiple Red Flags — with each issue explained.",
+        route: "/quote-reviewer",
+      },
+      {
+        icon: CheckCircle, step: "04", title: "Sign With Confidence",
+        description: "Know exactly what to question or negotiate before you put your signature on anything.",
+        route: "/quote-reviewer",
       },
     ],
   },
