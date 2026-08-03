@@ -2788,6 +2788,13 @@ export type Database = {
       }
     }
     Functions: {
+      find_user_by_email: {
+        Args: { _email: string }
+        Returns: {
+          full_name: string
+          user_id: string
+        }[]
+      }
       has_garage_addon: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
