@@ -50,6 +50,7 @@ const StaffOutreach = lazy(() => import("./pages/staff/Outreach"));
 const StaffModeration = lazy(() => import("./pages/staff/Moderation"));
 const StaffBroadcasts = lazy(() => import("./pages/staff/Broadcasts"));
 const StaffSearches = lazy(() => import("./pages/staff/Searches"));
+const StaffSeo = lazy(() => import("./pages/staff/Seo"));
 const StaffErrors = lazy(() => import("./pages/staff/Errors"));
 const StaffTeam = lazy(() => import("./pages/staff/Team"));
 const StaffAnalytics = lazy(() => import("./pages/staff/Analytics"));
@@ -192,6 +193,7 @@ const App = () => (
               <Route path="moderation" element={<StaffModeration />} />
               <Route path="broadcasts" element={<StaffBroadcasts />} />
               <Route path="searches" element={<StaffSearches />} />
+              <Route path="seo" element={<StaffSeo />} />
               <Route path="errors" element={<StaffErrors />} />
               <Route path="team" element={<StaffTeam />} />
               <Route path="analytics" element={<StaffAnalytics />} />

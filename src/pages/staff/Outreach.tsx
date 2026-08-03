@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Send, Globe, Phone, Ban } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Send, Globe, Phone, Ban, CheckCircle2, X } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
+import { logActivity } from "./activityLog";
 
 interface PendingMsg {
   id: string;
@@ -27,14 +31,35 @@ interface OptOut {
 }
 
 const Outreach = () => {
+  const { user } = useAuth();
   const [pending, setPending] = useState<PendingMsg[]>([]);
   const [optOuts, setOptOuts] = useState<OptOut[]>([]);
   const [tab, setTab] = useState<"pending" | "optouts">("pending");
 
-  useEffect(() => {
+  const loadPending = () => {
     supabase.from("pending_messages").select("*").order("created_at", { ascending: false }).then(({ data }) => setPending((data as PendingMsg[]) || []));
+  };
+
+  useEffect(() => {
+    loadPending();
     supabase.from("email_optouts").select("*").order("opted_out_at", { ascending: false }).then(({ data }) => setOptOuts((data as OptOut[]) || []));
   }, []);
+
+  const markContacted = async (m: PendingMsg) => {
+    const { error } = await supabase.from("pending_messages").update({ status: "contacted" }).eq("id", m.id);
+    if (error) { toast.error(error.message); return; }
+    if (user) await logActivity(user.id, "outreach_marked_contacted", "pending_message", m.id, { provider_name: m.provider_name });
+    toast.success(`Marked ${m.provider_name} as contacted`);
+    setPending((prev) => prev.map((p) => (p.id === m.id ? { ...p, status: "contacted" } : p)));
+  };
+
+  const dismiss = async (m: PendingMsg) => {
+    const { error } = await supabase.from("pending_messages").delete().eq("id", m.id);
+    if (error) { toast.error(error.message); return; }
+    if (user) await logActivity(user.id, "outreach_dismissed", "pending_message", m.id, { provider_name: m.provider_name });
+    toast.success(`Dismissed ${m.provider_name}`);
+    setPending((prev) => prev.filter((p) => p.id !== m.id));
+  };
 
   return (
     <div className="space-y-4">
@@ -67,7 +92,17 @@ const Outreach = () => {
                   <span>{format(new Date(m.created_at), "MMM d, yyyy p")}</span>
                 </div>
                 <p className="text-sm font-medium mb-1">{m.subject}</p>
-                <p className="text-sm text-muted-foreground bg-muted/40 rounded p-3 whitespace-pre-wrap">{m.body}</p>
+                <p className="text-sm text-muted-foreground bg-muted/40 rounded p-3 whitespace-pre-wrap mb-3">{m.body}</p>
+                {m.status === "pending" && (
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" className="gap-1.5" onClick={() => markContacted(m)}>
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Mark Contacted
+                    </Button>
+                    <Button size="sm" variant="ghost" className="gap-1.5 text-muted-foreground" onClick={() => dismiss(m)}>
+                      <X className="w-3.5 h-3.5" /> Dismiss
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

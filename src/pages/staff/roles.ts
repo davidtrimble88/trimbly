@@ -19,6 +19,7 @@ export const NAV_PERMISSIONS: Record<string, StaffRole[]> = {
   providers: ["admin", "moderator"],
   jobs: ["admin", "moderator"],
   searches: ["admin", "analyst"],
+  seo: ["admin", "analyst"],
   errors: ["admin", "analyst"],
   outreach: ["admin", "support"],
   moderation: ["admin", "moderator"],

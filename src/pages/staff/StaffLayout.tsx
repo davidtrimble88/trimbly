@@ -10,6 +10,7 @@ import {
 import {
   LayoutDashboard, Inbox, Users, Briefcase, ShieldCheck, Megaphone, Send,
   MessageSquareWarning, ShieldAlert, LogOut, Home, Search, Bug, UsersRound, BarChart3, DollarSign, Calculator,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +26,7 @@ const navItems = [
   { key: "providers", to: "/staff/providers", label: "Providers", icon: ShieldCheck },
   { key: "jobs", to: "/staff/jobs", label: "Jobs", icon: Briefcase },
   { key: "searches", to: "/staff/searches", label: "Search Analytics", icon: Search },
+  { key: "seo", to: "/staff/seo", label: "SEO Health", icon: Globe },
   { key: "errors", to: "/staff/errors", label: "Error Logs", icon: Bug },
   { key: "outreach", to: "/staff/outreach", label: "Pro Outreach", icon: Send },
   { key: "moderation", to: "/staff/moderation", label: "Moderation", icon: MessageSquareWarning },
