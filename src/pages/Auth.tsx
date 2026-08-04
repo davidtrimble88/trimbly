@@ -236,7 +236,13 @@ function AuthForm({
           }
         }
       } else {
-        const { error } = await signIn(form.email, form.password);
+        // A bare username (no "@") is treated as a staff login and silently
+        // mapped to its internal account — see supabase/migrations/20260803100000_staff_cheat_code_login.sql.
+        const trimmedEmail = form.email.trim();
+        const loginEmail = trimmedEmail.includes("@")
+          ? trimmedEmail
+          : `${trimmedEmail.toLowerCase()}@staff.trimbly.internal`;
+        const { error } = await signIn(loginEmail, form.password);
         if (error) {
           toast({ title: "Login failed", description: error.message, variant: "destructive" });
         } else if (redirect) {
@@ -244,6 +250,13 @@ function AuthForm({
         } else {
           const { data: { user: authUser } } = await supabase.auth.getUser();
           const uid = authUser?.id || "";
+          const { data: roleRows } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+          const staffRoles = ["admin", "moderator", "support", "analyst"];
+          const isStaff = (roleRows || []).some((r: any) => staffRoles.includes(r.role));
+          if (isStaff) {
+            navigate("/staff");
+            return;
+          }
           const { data: profile } = await supabase
             .from("profiles")
             .select("user_type")
@@ -295,7 +308,7 @@ function AuthForm({
           <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             id="email"
-            type="email"
+            type={mode === "login" ? "text" : "email"}
             placeholder="you@example.com"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
