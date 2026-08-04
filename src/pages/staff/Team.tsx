@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UserPlus, Trash2, ShieldCheck, AlertCircle, Check } from "lucide-react";
+import { UserPlus, Trash2, ShieldCheck, AlertCircle, Check, Dices, Copy, Eye, EyeOff } from "lucide-react";
 import { STAFF_ROLES, NAV_PERMISSIONS, type StaffRole } from "./roles";
 import { navItems } from "./StaffLayout";
 import { logActivity } from "./activityLog";
@@ -29,8 +29,20 @@ export default function StaffTeam() {
   const [adding, setAdding] = useState(false);
 
   // Add form
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<StaffRole>("support");
+  const [justCreated, setJustCreated] = useState<{ username: string; password: string; role: StaffRole } | null>(null);
+
+  const generatePassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+    let pw = "";
+    for (let i = 0; i < 14; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+    setPassword(pw);
+    setShowPassword(true);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -71,42 +83,33 @@ export default function StaffTeam() {
 
   const handleAdd = async () => {
     if (!user) return;
-    const trimmed = email.trim().toLowerCase();
-    if (!trimmed) {
-      toast({ title: "Email required", description: "Enter the staff member's email.", variant: "destructive" });
+    const trimmedUsername = username.trim().toLowerCase();
+    if (!trimmedUsername) {
+      toast({ title: "Username required", description: "Pick a login username for this employee.", variant: "destructive" });
+      return;
+    }
+    if (password.length < 8) {
+      toast({ title: "Password too short", description: "Use at least 8 characters, or hit Generate.", variant: "destructive" });
       return;
     }
     setAdding(true);
+    setJustCreated(null);
     try {
-      const { data: found, error: lookupErr } = await (supabase.rpc("find_user_by_email" as any, { _email: trimmed }) as any);
-      if (lookupErr) {
-        toast({ title: "Lookup failed", description: lookupErr.message, variant: "destructive" });
-        setAdding(false);
-        return;
-      }
-      const match = Array.isArray(found) ? found[0] : found;
-      if (!match?.user_id) {
-        toast({
-          title: "No account found",
-          description: `No Trimbly account is registered with ${trimmed}. They need to sign up first.`,
-          variant: "destructive",
-        });
-        setAdding(false);
-        return;
-      }
-
-      const { error } = await supabase.from("user_roles").insert({
-        user_id: match.user_id,
-        role: role as any,
+      const { data, error } = await supabase.functions.invoke("create-staff-account", {
+        body: { username: trimmedUsername, password, role, fullName: fullName.trim() },
       });
-      if (error) {
-        toast({ title: "Could not add staff", description: error.message, variant: "destructive" });
+      if (error || data?.error) {
+        toast({ title: "Could not add staff", description: data?.error || error?.message, variant: "destructive" });
         setAdding(false);
         return;
       }
-      await logActivity(user.id, "staff_added", "user", match.user_id, { role, email: trimmed });
-      toast({ title: "Staff member added", description: `${match.full_name || trimmed} — ${role}` });
-      setEmail("");
+      await logActivity(user.id, "staff_added", "user", trimmedUsername, { role, username: trimmedUsername });
+      toast({ title: "Staff member added", description: `${fullName.trim() || trimmedUsername} can now log in — ${role}` });
+      setJustCreated({ username: trimmedUsername, password, role });
+      setUsername("");
+      setFullName("");
+      setPassword("");
+      setShowPassword(false);
       setRole("support");
       load();
     } finally {
@@ -176,21 +179,61 @@ export default function StaffTeam() {
             <UserPlus className="w-5 h-5 text-primary" /> Add staff member
           </CardTitle>
           <CardDescription>
-            Enter the email they used to sign up for Trimbly, pick an access level, and they'll have staff access immediately.
+            Give them a login username and password (not an email) and pick their access level — same as the owner's own login.
+            They can sign in right on the normal login page.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-[1fr_220px_auto] gap-3 items-end">
+          <div className="grid md:grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs">Email</Label>
+              <Label className="text-xs">Username</Label>
               <Input
-                type="email"
-                placeholder="e.g. jane@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+                placeholder="e.g. jsmith"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="mt-1 text-sm"
               />
+            </div>
+            <div>
+              <Label className="text-xs">Full name (optional)</Label>
+              <Input
+                placeholder="e.g. Jane Smith"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="mt-1 text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-[1fr_220px_auto] gap-3 items-end">
+            <div>
+              <Label className="text-xs">Password</Label>
+              <div className="relative mt-1">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="At least 8 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+                  className="text-sm pr-16"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-9 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  title={showPassword ? "Hide" : "Show"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={generatePassword}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  title="Generate a random password"
+                >
+                  <Dices className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             <div>
               <Label className="text-xs">Access level</Label>
@@ -215,6 +258,27 @@ export default function StaffTeam() {
               {STAFF_ROLES.find((r) => r.value === role)?.description}
             </div>
           </div>
+
+          {justCreated && (
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm space-y-2">
+              <p className="font-medium text-foreground">Share these with {justCreated.username} — shown once, not saved anywhere:</p>
+              <div className="flex items-center gap-2 font-mono text-xs">
+                <span className="bg-background border border-border rounded px-2 py-1">Username: {justCreated.username}</span>
+                <span className="bg-background border border-border rounded px-2 py-1">Password: {justCreated.password}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`Username: ${justCreated.username}\nPassword: ${justCreated.password}`);
+                    toast({ title: "Copied" });
+                  }}
+                  className="text-muted-foreground hover:text-foreground"
+                  title="Copy"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
