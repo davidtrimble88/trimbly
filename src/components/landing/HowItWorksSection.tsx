@@ -19,8 +19,8 @@ const homeownerTabs = [
     icon: Brain,
     steps: [
       {
-        icon: Camera, step: "01", title: "Snap or Describe",
-        description: "Upload a photo of the issue or just describe it — our AI figures out what's going on.",
+        icon: Camera, step: "01", title: "Describe the Job",
+        description: "Tell us what's going on in your own words — our AI figures out what's happening and what it'll take to fix.",
         route: "/estimator",
       },
       {
@@ -344,7 +344,7 @@ const homeownerTabs = [
     steps: [
       {
         icon: Search, step: "01", title: "Describe Your Job",
-        description: "Tell us what you need — or let our AI analyze a photo and suggest the right service.",
+        description: "Tell us what you need and we'll suggest the right service category.",
         route: "/search",
       },
       {
@@ -402,8 +402,8 @@ const homeownerTabs = [
         route: "/messages",
       },
       {
-        icon: ImageIcon, step: "02", title: "Share Photos & Details",
-        description: "Send pictures of the job, ask questions, and get tailored quotes without a phone call.",
+        icon: ImageIcon, step: "02", title: "Share Details",
+        description: "Describe the job, ask questions, and get tailored quotes without a phone call.",
         route: "/messages",
       },
       {
@@ -413,7 +413,7 @@ const homeownerTabs = [
       },
       {
         icon: CheckCircle, step: "04", title: "Track Job Status",
-        description: "Keep the full conversation, photos, and quotes in one thread from request to completion.",
+        description: "Keep the full conversation and quotes in one thread from request to completion.",
         route: "/messages",
       },
     ],

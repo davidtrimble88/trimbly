@@ -66,6 +66,8 @@ Always include this disclaimer at the end: "Estimates are general — confirm ex
 
 ${vehicleContext ? `\n--- VEHICLE CONTEXT ---\n${vehicleContext}\n--- END VEHICLE CONTEXT ---` : ""}
 
+Some documents below may be marked "content not available" — this means you were only given that file's name and metadata, not its actual text. Never cite a specific coverage limit, deductible, or clause as if you read it in a document marked this way; say you can't read that file format yet and ask the user to paste the relevant terms as text instead. General industry-typical estimates (premium surcharge ranges, etc.) are fine to use as clearly-labeled estimates, just don't attribute invented numbers to a specific unread document.
+
 ${documentContents ? `\n--- UPLOADED COVERAGE DOCUMENTS ---\n${documentContents}\n--- END DOCUMENTS ---` : "\nNo documents have been uploaded yet. Tell the user to upload their auto insurance policy or vehicle warranty first so you can analyze coverage."}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

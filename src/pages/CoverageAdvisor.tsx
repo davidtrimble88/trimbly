@@ -110,13 +110,35 @@ const CoverageAdvisor = () => {
     })();
   }, [user]);
 
-  // Parse document text content (simple text extraction for uploaded text/pdf name context)
+  // Build document context for the AI: real extracted text for plain-text files,
+  // an honest "content not available" note for anything we can't parse client-side
+  // (PDF/image/doc) so the model doesn't invent coverage figures for files it never read.
   useEffect(() => {
     if (docs.length === 0) { setDocContents(""); return; }
-    const summary = docs.map((d) =>
-      `[${d.document_type.toUpperCase()}] ${d.file_name} (uploaded ${new Date(d.created_at).toLocaleDateString()})`
-    ).join("\n");
-    setDocContents(summary);
+    let cancelled = false;
+    (async () => {
+      const parts = await Promise.all(docs.map(async (d) => {
+        const header = `[${d.document_type.toUpperCase()}] ${d.file_name} (uploaded ${new Date(d.created_at).toLocaleDateString()})`;
+        const isPlainText = /\.(txt|md)$/i.test(d.file_name);
+        if (!isPlainText) {
+          return `${header}\nContent not available — this file type can't be read yet. Only the file name and upload date are known; do not guess or invent coverage figures from it.`;
+        }
+        try {
+          const pathParts = d.file_url.split("/coverage-docs/");
+          const storagePath = pathParts.length > 1 ? pathParts[1] : d.file_url;
+          const { data: signed } = await supabase.storage.from("coverage-docs").createSignedUrl(storagePath, 60);
+          if (!signed?.signedUrl) throw new Error("no signed url");
+          const res = await fetch(signed.signedUrl);
+          if (!res.ok) throw new Error("fetch failed");
+          const text = (await res.text()).slice(0, 20_000);
+          return `${header}\n${text}`;
+        } catch {
+          return `${header}\nContent not available — could not load this file's text. Do not guess or invent coverage figures from it.`;
+        }
+      }));
+      if (!cancelled) setDocContents(parts.join("\n\n"));
+    })();
+    return () => { cancelled = true; };
   }, [docs]);
 
   // Auto-scroll chat

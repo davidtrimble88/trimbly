@@ -28,14 +28,14 @@ const sections: { title: string; faqs: { q: string; a: string }[] }[] = [
     title: "Service Pro Subscriptions",
     faqs: [
       { q: "How much is the Pro subscription?", a: "Service pros pay a flat monthly subscription for unlimited bids, lead access, profile placement, and dashboard tools. See the Pro Pricing page for current rates." },
-      { q: "What's included for service pros?", a: "Unlimited job bids, in-app messaging with homeowners, a verified public profile, photo portfolio (up to 20 images), and access to the local job board." },
+      { q: "What's included for service pros?", a: "Unlimited job bids, in-app messaging with homeowners, a verified public profile, photo portfolio (up to 10 images), and access to the local job board." },
       { q: "Do leads cost extra?", a: "No. Leads are included in your subscription — no pay-per-lead, no per-bid charges." },
     ],
   },
   {
     title: "Mechanic Subscriptions",
     faqs: [
-      { q: "How much is the Pro Mechanic subscription?", a: "$15/month for unlimited bids, full job board access, photo portfolio (up to 20 images), and your verified mechanic profile." },
+      { q: "How much is the Pro Mechanic subscription?", a: "$15/month for unlimited bids, full job board access, photo portfolio (up to 10 images), and your verified mechanic profile." },
       { q: "What can I do on the free mechanic account?", a: "Free mechanic accounts get a public profile and can submit up to 3 bids per month on the vehicle job board. Upgrade to Pro Mechanic for unlimited bidding." },
       { q: "Does Trimbly take a percentage of my repair jobs?", a: "No. You keep 100% of what you earn. We only charge the $15/month subscription." },
     ],

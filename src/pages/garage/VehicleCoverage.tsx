@@ -100,6 +100,7 @@ export default function VehicleCoverage() {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<string>("none");
+  const [docContents, setDocContents] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -127,13 +128,36 @@ export default function VehicleCoverage() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  const docContents = docs.length
-    ? docs.map((d) => {
+  // Build document context for the AI: provider/policy metadata always, plus real
+  // extracted text for plain-text uploads. Everything else (PDF/image/doc) is marked
+  // as unread so the model doesn't invent coverage figures for a file it never saw.
+  useEffect(() => {
+    if (docs.length === 0) { setDocContents(""); return; }
+    let cancelled = false;
+    (async () => {
+      const parts = await Promise.all(docs.map(async (d) => {
         const v = d.vehicle_id ? vehicles.find((x) => x.id === d.vehicle_id) : null;
         const vTag = v ? ` for ${v.year ?? ""} ${v.make} ${v.model}`.trim() : "";
-        return `[${DOC_LABELS[d.document_type] || d.document_type.toUpperCase()}${vTag}] Provider: ${d.provider_name || "n/a"} | Policy #: ${d.policy_number || "n/a"} | File: ${d.file_name}${d.notes ? ` | Notes: ${d.notes}` : ""}`;
-      }).join("\n")
-    : "";
+        const header = `[${DOC_LABELS[d.document_type] || d.document_type.toUpperCase()}${vTag}] Provider: ${d.provider_name || "n/a"} | Policy #: ${d.policy_number || "n/a"} | File: ${d.file_name}${d.notes ? ` | Notes: ${d.notes}` : ""}`;
+        const isPlainText = /\.(txt|md)$/i.test(d.file_name);
+        if (!isPlainText) {
+          return `${header}\nDocument content not available — this file type can't be read yet. Only the metadata above is known; do not guess or invent coverage figures from it.`;
+        }
+        try {
+          const { data: signed } = await supabase.storage.from("vehicle-docs").createSignedUrl(d.file_url, 60);
+          if (!signed?.signedUrl) throw new Error("no signed url");
+          const res = await fetch(signed.signedUrl);
+          if (!res.ok) throw new Error("fetch failed");
+          const text = (await res.text()).slice(0, 20_000);
+          return `${header}\n${text}`;
+        } catch {
+          return `${header}\nDocument content not available — could not load this file's text. Do not guess or invent coverage figures from it.`;
+        }
+      }));
+      if (!cancelled) setDocContents(parts.join("\n\n"));
+    })();
+    return () => { cancelled = true; };
+  }, [docs, vehicles]);
 
   const vehicleContext = selectedVehicle !== "none"
     ? (() => {

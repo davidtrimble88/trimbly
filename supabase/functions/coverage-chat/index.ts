@@ -43,6 +43,8 @@ If the user asks about something not covered in their documents, clearly state t
 
 Be specific when referencing coverage limits, deductibles, exclusions, and claim procedures. Always cite which document the information comes from.
 
+Some documents may be marked "content not available" below — this means you were NOT given that file's actual text, only its name. Never invent, estimate, or guess specific figures (dollar limits, deductibles, percentages) for a document marked this way. Instead, tell the user you can't read that file format yet and ask them to paste the relevant terms as text or upload a .txt file.
+
 ${documentContents ? `\n--- UPLOADED DOCUMENT CONTENTS ---\n${documentContents}\n--- END DOCUMENTS ---` : "\nNo documents have been uploaded yet. Let the user know they should upload their warranty or insurance documents first."}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

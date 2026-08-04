@@ -13,7 +13,7 @@ const homeownerFeatures = [
   {
     icon: Brain,
     title: "AI Job Estimator",
-    description: "Snap a photo, describe the issue, and get instant cost estimates, material lists, and DIY vs. pro recommendations.",
+    description: "Describe the issue and get instant cost estimates, material lists, and DIY vs. pro recommendations.",
     tab: "estimator",
   },
   {
@@ -114,7 +114,7 @@ const homeownerFeatures = [
   {
     icon: MessageSquare,
     title: "In-App Messaging",
-    description: "Chat directly with pros, share photos, negotiate quotes, and track job status from request to completion.",
+    description: "Chat directly with pros, negotiate quotes, and track job status from request to completion.",
     tab: "messages",
   },
   {
