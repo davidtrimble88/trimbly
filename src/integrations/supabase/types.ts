@@ -1996,6 +1996,45 @@ export type Database = {
         }
         Relationships: []
       }
+      security_questions: {
+        Row: {
+          answer_1_hash: string
+          answer_2_hash: string
+          answer_3_hash: string
+          created_at: string
+          id: string
+          question_1: string
+          question_2: string
+          question_3: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answer_1_hash: string
+          answer_2_hash: string
+          answer_3_hash: string
+          created_at?: string
+          id?: string
+          question_1: string
+          question_2: string
+          question_3: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answer_1_hash?: string
+          answer_2_hash?: string
+          answer_3_hash?: string
+          created_at?: string
+          id?: string
+          question_1?: string
+          question_2?: string
+          question_3?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       service_plans: {
         Row: {
           active: boolean
@@ -2795,6 +2834,14 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_recovery_questions: {
+        Args: { p_identifier: string }
+        Returns: {
+          question_1: string
+          question_2: string
+          question_3: string
+        }[]
+      }
       has_garage_addon: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
@@ -2810,6 +2857,27 @@ export type Database = {
       pro_active_bids_this_month: {
         Args: { _provider_id: string }
         Returns: number
+      }
+      recover_account_via_security_questions: {
+        Args: {
+          p_answer_1: string
+          p_answer_2: string
+          p_answer_3: string
+          p_identifier: string
+          p_new_password: string
+        }
+        Returns: boolean
+      }
+      set_security_questions: {
+        Args: {
+          p_answer_1: string
+          p_answer_2: string
+          p_answer_3: string
+          p_question_1: string
+          p_question_2: string
+          p_question_3: string
+        }
+        Returns: undefined
       }
       update_provider_trusted: {
         Args: {
