@@ -565,7 +565,7 @@ const MaintenancePage = () => {
         <div className="max-w-4xl">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <CalendarCheck size={22} className="text-primary" />
@@ -793,7 +793,7 @@ const MaintenancePage = () => {
                         <span className="text-muted-foreground">overdue</span>
                       </div>
                     )}
-                    <div className="ml-auto flex gap-2">
+                    <div className="ml-auto flex flex-wrap gap-2">
                       {tasks.length > 0 && (
                         <>
                           <Button variant="outline" size="sm" onClick={exportAllToCalendar} className="gap-1">
@@ -833,8 +833,8 @@ const MaintenancePage = () => {
                   {tasks.length > 0 && (
                     <>
                       {/* Filter tabs + Sort */}
-                      <div className="flex items-center justify-between gap-4 mb-4">
-                        <div className="flex gap-2">
+                      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                        <div className="flex flex-wrap gap-2">
                           {(["all", "upcoming", "completed"] as const).map(f => (
                             <button
                               key={f}

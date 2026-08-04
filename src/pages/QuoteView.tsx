@@ -144,7 +144,7 @@ const QuoteView = () => {
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                   Line Items
                 </h3>
-                <div className="border border-border rounded-lg overflow-hidden">
+                <div className="border border-border rounded-lg overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-muted/40">
                       <tr>

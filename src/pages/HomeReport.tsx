@@ -71,7 +71,8 @@ export default function HomeReport() {
         {jobs.length === 0 ? (
           <p className="text-sm text-muted-foreground mb-8">No completed jobs recorded through Trimbly for this property yet.</p>
         ) : (
-          <table className="w-full text-sm mb-8 border-collapse">
+          <div className="overflow-x-auto mb-8">
+          <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="border-b border-border text-left text-muted-foreground">
                 <th className="py-1.5 pr-3">Date</th>
@@ -93,6 +94,7 @@ export default function HomeReport() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
 
         <h2 className="font-display text-lg font-bold mb-3">Appliances & Systems ({binderItems.length})</h2>
