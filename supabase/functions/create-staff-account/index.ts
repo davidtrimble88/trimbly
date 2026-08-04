@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { validateStaffPassword } from "../_shared/staffPasswordPolicy.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -47,8 +48,9 @@ serve(async (req) => {
     if (!/^[a-z0-9._-]{3,32}$/.test(username)) {
       return json({ error: "Username must be 3-32 characters: letters, numbers, dots, underscores, or hyphens only." }, 400);
     }
-    if (password.length < 8) {
-      return json({ error: "Password must be at least 8 characters." }, 400);
+    const pwError = validateStaffPassword(password, username);
+    if (pwError) {
+      return json({ error: pwError }, 400);
     }
     if (!STAFF_ROLES.includes(role)) {
       return json({ error: "Invalid access level." }, 400);

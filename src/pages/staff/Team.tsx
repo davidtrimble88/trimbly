@@ -13,6 +13,7 @@ import { UserPlus, Trash2, ShieldCheck, AlertCircle, Check, Dices, Copy, Eye, Ey
 import { STAFF_ROLES, NAV_PERMISSIONS, type StaffRole } from "./roles";
 import { navItems } from "./StaffLayout";
 import { logActivity } from "./activityLog";
+import { validateStaffPassword, PASSWORD_MIN, PASSWORD_MAX } from "@/lib/staffPasswordPolicy";
 
 type StaffRow = {
   user_id: string;
@@ -37,9 +38,31 @@ export default function StaffTeam() {
   const [justCreated, setJustCreated] = useState<{ username: string; password: string; role: StaffRole } | null>(null);
 
   const generatePassword = () => {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+    const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+    const lower = "abcdefghijkmnpqrstuvwxyz";
+    const digits = "23456789";
+    const special = "!@#$%^&*?";
+    const all = upper + lower + digits + special;
+    const length = 12;
     let pw = "";
-    for (let i = 0; i < 14; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+    // Regenerate until it clears the shared policy (guarantees one of each
+    // required class and dodges the repeat/sequence checks) rather than
+    // duplicating those rules here.
+    do {
+      const required = [
+        upper[Math.floor(Math.random() * upper.length)],
+        lower[Math.floor(Math.random() * lower.length)],
+        digits[Math.floor(Math.random() * digits.length)],
+        special[Math.floor(Math.random() * special.length)],
+      ];
+      const rest = Array.from({ length: length - required.length }, () => all[Math.floor(Math.random() * all.length)]);
+      const chars = [...required, ...rest];
+      for (let i = chars.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [chars[i], chars[j]] = [chars[j], chars[i]];
+      }
+      pw = chars.join("");
+    } while (validateStaffPassword(pw, username));
     setPassword(pw);
     setShowPassword(true);
   };
@@ -88,8 +111,9 @@ export default function StaffTeam() {
       toast({ title: "Username required", description: "Pick a login username for this employee.", variant: "destructive" });
       return;
     }
-    if (password.length < 8) {
-      toast({ title: "Password too short", description: "Use at least 8 characters, or hit Generate.", variant: "destructive" });
+    const pwError = validateStaffPassword(password, trimmedUsername);
+    if (pwError) {
+      toast({ title: "Password doesn't meet requirements", description: pwError, variant: "destructive" });
       return;
     }
     setAdding(true);
@@ -211,7 +235,7 @@ export default function StaffTeam() {
               <div className="relative mt-1">
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="At least 8 characters"
+                  placeholder={`${PASSWORD_MIN}-${PASSWORD_MAX} characters`}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
@@ -250,6 +274,10 @@ export default function StaffTeam() {
               <UserPlus className="w-4 h-4" /> {adding ? "Adding..." : "Add"}
             </Button>
           </div>
+          <p className="text-xs text-muted-foreground -mt-2">
+            {PASSWORD_MIN}-{PASSWORD_MAX} characters, with at least one capital letter, one number, and one special character.
+            No repeated or sequential characters (e.g. "aaa", "1234"). Hit the dice icon to generate one that qualifies.
+          </p>
 
           <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground flex gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
