@@ -9,6 +9,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { installGlobalErrorReporting } from "@/lib/errorReporting";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { SecurityQuestionsGate } from "@/components/SecurityQuestionsGate";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import CookieConsent from "@/components/CookieConsent";
 
@@ -35,6 +36,8 @@ const About = lazy(() => import("./pages/About"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const SecurityQuestionsSetup = lazy(() => import("./pages/SecurityQuestionsSetup"));
+const AccountRecovery = lazy(() => import("./pages/AccountRecovery"));
 const Messages = lazy(() => import("./pages/Messages"));
 const CoverageAdvisor = lazy(() => import("./pages/CoverageAdvisor"));
 const PostJob = lazy(() => import("./pages/PostJob"));
@@ -139,6 +142,7 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <GlobalListeners />
+          <SecurityQuestionsGate />
           <div className="pb-16 md:pb-0">
           <Suspense fallback={<RouteLoader />}>
           <Routes>
@@ -160,6 +164,8 @@ const App = () => (
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/security-questions-setup" element={<SecurityQuestionsSetup />} />
+            <Route path="/account-recovery" element={<AccountRecovery />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/coverage" element={<CoverageAdvisor />} />

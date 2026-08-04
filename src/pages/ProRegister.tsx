@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { startProviderSubscriptionCheckout } from "@/lib/billing";
+import { validatePassword, PASSWORD_MIN } from "@/lib/passwordPolicy";
 
 const categories = [
   "General Contractor", "Plumbing", "Electrical", "HVAC", "Roofing", "Painting",
@@ -65,6 +66,11 @@ const ProRegister = () => {
     e.preventDefault();
     if (!acceptedTos) {
       toast({ title: "Please accept the Terms", description: "You must agree to the Terms of Service and Privacy Policy to create an account.", variant: "destructive" });
+      return;
+    }
+    const pwError = validatePassword(authForm.password);
+    if (pwError) {
+      toast({ title: "Password doesn't meet requirements", description: pwError, variant: "destructive" });
       return;
     }
     setLoading(true);
@@ -197,7 +203,8 @@ const ProRegister = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" placeholder="Min 6 characters" value={authForm.password} onChange={e => setAuthForm(f => ({ ...f, password: e.target.value }))} required minLength={6} />
+                <Input id="password" type="password" placeholder={`Min ${PASSWORD_MIN} characters`} value={authForm.password} onChange={e => setAuthForm(f => ({ ...f, password: e.target.value }))} required minLength={PASSWORD_MIN} />
+                <p className="text-xs text-muted-foreground">At least {PASSWORD_MIN} characters, with a letter and a number.</p>
               </div>
               <label className="flex items-start gap-2.5 text-sm text-muted-foreground cursor-pointer">
                 <input

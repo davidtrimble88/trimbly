@@ -9,6 +9,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import BrandMark from "@/components/BrandMark";
+import { validatePassword, PASSWORD_MIN } from "@/lib/passwordPolicy";
 
 type AuthMode = "login" | "signup" | "forgot";
 type UserType = "homeowner" | "provider";
@@ -213,6 +214,13 @@ function AuthForm({
       toast({ title: "Please accept the Terms", description: "You must agree to the Terms of Service and Privacy Policy to create an account.", variant: "destructive" });
       return;
     }
+    if (mode === "signup") {
+      const pwError = validatePassword(form.password);
+      if (pwError) {
+        toast({ title: "Password doesn't meet requirements", description: pwError, variant: "destructive" });
+        return;
+      }
+    }
     setLoading(true);
 
     try {
@@ -330,7 +338,7 @@ function AuthForm({
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             className="pl-10 pr-10"
             required
-            minLength={6}
+            minLength={mode === "signup" ? PASSWORD_MIN : 6}
           />
           <button
             type="button"
@@ -340,6 +348,11 @@ function AuthForm({
             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         </div>
+        {mode === "signup" && (
+          <p className="text-xs text-muted-foreground">
+            At least {PASSWORD_MIN} characters, with a letter and a number.
+          </p>
+        )}
       </div>
 
       {mode === "login" && (
@@ -430,6 +443,10 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
       <Button type="submit" className="w-full h-11" size="lg" disabled={loading}>
         {loading ? "Sending..." : "Send Reset Link"}
       </Button>
+      <p className="text-center text-xs text-muted-foreground">
+        Can't access that email?{" "}
+        <Link to="/account-recovery" className="text-primary hover:underline">Recover with security questions</Link>
+      </p>
     </form>
   );
 }

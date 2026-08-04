@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Lock, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { validatePassword, PASSWORD_MIN } from "@/lib/passwordPolicy";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -32,8 +33,9 @@ const ResetPassword = () => {
       toast({ title: "Passwords don't match", description: "Please make sure both passwords are the same.", variant: "destructive" });
       return;
     }
-    if (password.length < 6) {
-      toast({ title: "Password too short", description: "Password must be at least 6 characters.", variant: "destructive" });
+    const pwError = validatePassword(password);
+    if (pwError) {
+      toast({ title: "Password doesn't meet requirements", description: pwError, variant: "destructive" });
       return;
     }
 
@@ -99,7 +101,7 @@ const ResetPassword = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="pl-10 pr-10"
                 required
-                minLength={6}
+                minLength={PASSWORD_MIN}
               />
               <button
                 type="button"
@@ -109,6 +111,7 @@ const ResetPassword = () => {
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
+            <p className="text-xs text-muted-foreground">At least {PASSWORD_MIN} characters, with a letter and a number.</p>
           </div>
 
           <div className="space-y-2">
@@ -123,7 +126,7 @@ const ResetPassword = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="pl-10 pr-10"
                 required
-                minLength={6}
+                minLength={PASSWORD_MIN}
               />
             </div>
           </div>

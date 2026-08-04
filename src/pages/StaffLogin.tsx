@@ -151,6 +151,12 @@ const StaffLogin = () => {
                 Use the regular login
               </Link>
             </p>
+            <p className="text-center text-xs text-muted-foreground mt-2">
+              Forgot your password?{" "}
+              <Link to="/account-recovery" className="text-primary hover:underline">
+                Recover with security questions
+              </Link>
+            </p>
           </CardContent>
         </Card>
       </div>
