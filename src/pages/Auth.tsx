@@ -258,13 +258,18 @@ function AuthForm({
         } else {
           const { data: { user: authUser } } = await supabase.auth.getUser();
           const uid = authUser?.id || "";
-          const { data: roleRows } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-          const staffRoles = ["admin", "moderator", "support", "analyst"];
-          const isStaff = (roleRows || []).some((r: any) => staffRoles.includes(r.role));
-          if (isStaff) {
-            navigate("/staff");
-            return;
+          // Only internal staff logins land in the Staff Portal. A regular
+          // email account always goes to its normal dashboard, even if the
+          // person also holds a staff role.
+          if (loginEmail.endsWith("@staff.trimbly.internal")) {
+            const { data: roleRows } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+            const staffRoles = ["admin", "moderator", "support", "analyst"];
+            if ((roleRows || []).some((r: any) => staffRoles.includes(r.role))) {
+              navigate("/staff");
+              return;
+            }
           }
+
           const { data: profile } = await supabase
             .from("profiles")
             .select("user_type")
