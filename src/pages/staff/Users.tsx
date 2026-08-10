@@ -296,8 +296,61 @@ const Users = () => {
           )}
         </DialogContent>
       </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteOpen} onOpenChange={(o) => { if (!deleting) setDeleteOpen(o); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete {selected?.full_name || "user"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              This permanently removes the account. A snapshot and your reason are saved to the archive first. A reason of at least 10 characters is required.
+            </p>
+            <Textarea
+              placeholder="Why is this account being deleted? (required)"
+              value={deleteReason}
+              onChange={(e) => setDeleteReason(e.target.value)}
+              rows={3}
+            />
+            <p className="text-[11px] text-muted-foreground">{deleteReason.trim().length}/10 characters minimum</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={deleting}>Cancel</Button>
+            <Button variant="destructive" onClick={deleteUser} disabled={deleting || deleteReason.trim().length < 10}>
+              {deleting ? "Deleting..." : "Delete & Archive"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Deleted User Archive</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {archived.map((a) => (
+              <div key={a.id} className="border border-border rounded-md p-3 text-sm">
+                <div className="flex justify-between gap-2">
+                  <span className="font-medium">{a.full_name || "(no name)"}</span>
+                  <span className="text-xs text-muted-foreground">{format(new Date(a.created_at), "PPp")}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{a.email || a.user_id} · {a.user_type}</p>
+                <p className="mt-2 whitespace-pre-wrap">{a.reason}</p>
+              </div>
+            ))}
+            {archived.length === 0 && <p className="text-sm text-muted-foreground italic">No deleted users yet</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setArchiveOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
 export default Users;
+
