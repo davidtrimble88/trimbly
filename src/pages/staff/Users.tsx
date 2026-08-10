@@ -127,6 +127,39 @@ const Users = () => {
     toast.success("Message sent to user inbox");
   };
 
+  const loadArchive = async () => {
+    const { data, error } = await supabase
+      .from("archived_users")
+      .select("id,user_id,full_name,user_type,email,reason,created_at")
+      .order("created_at", { ascending: false });
+    if (error) { toast.error(error.message); return; }
+    setArchived(data || []);
+  };
+
+  const openArchive = () => { setArchiveOpen(true); loadArchive(); };
+
+  const deleteUser = async () => {
+    if (!selected) return;
+    if (deleteReason.trim().length < 10) {
+      toast.error("Please enter a reason of at least 10 characters.");
+      return;
+    }
+    setDeleting(true);
+    const { data, error } = await supabase.functions.invoke("delete-user", {
+      body: { userId: selected.id, reason: deleteReason.trim() },
+    });
+    setDeleting(false);
+    if (error || (data as any)?.error) {
+      toast.error((data as any)?.error || error?.message || "Delete failed");
+      return;
+    }
+    toast.success("User deleted and archived");
+    setDeleteReason("");
+    setDeleteOpen(false);
+    setSelected(null);
+    load();
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
@@ -140,8 +173,12 @@ const Users = () => {
               {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
             </Button>
           ))}
+          <Button size="sm" variant="outline" onClick={openArchive}>
+            <Archive className="w-4 h-4" /> Archive
+          </Button>
         </div>
       </div>
+
 
       <Card>
         <CardContent className="p-0 overflow-x-auto">
