@@ -12,7 +12,15 @@ import { Bell } from "lucide-react";
 
 const USER_TYPE_CACHE_KEY = "trimbly:userType";
 
-const Navbar = () => {
+interface NavbarProps {
+  /** Strips the full nav links, tier badge, and notification bell down to just
+   * the logo + Sign Out — for mid-onboarding pages where a signed-in user
+   * hasn't finished setting up their account yet and the full dashboard nav
+   * would be premature/confusing. */
+  minimal?: boolean;
+}
+
+const Navbar = ({ minimal = false }: NavbarProps) => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -230,14 +238,16 @@ const Navbar = () => {
           <span className="font-display font-bold text-xl text-foreground">Trimbly</span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-6">
-          {user ? userLinks : guestLinks}
-        </div>
+        {!minimal && (
+          <div className="hidden md:flex items-center gap-6">
+            {user ? userLinks : guestLinks}
+          </div>
+        )}
 
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <>
-              {isAdmin && inStaffPortal && (
+              {!minimal && isAdmin && inStaffPortal && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -247,15 +257,17 @@ const Navbar = () => {
                   <HomeIcon size={14} /> User View
                 </Button>
               )}
-              {profileName && (
+              {!minimal && profileName && (
                 <span className="text-xs text-muted-foreground mr-1">
                   {profileName}
                   {tierBadgeLabel && <span className="ml-1.5 text-primary font-medium">{tierBadgeLabel}</span>}
                 </span>
               )}
-              <NotificationPreferencesDialog
-                trigger={<Button variant="ghost" size="icon" aria-label="Notifications"><Bell size={16} /></Button>}
-              />
+              {!minimal && (
+                <NotificationPreferencesDialog
+                  trigger={<Button variant="ghost" size="icon" aria-label="Notifications"><Bell size={16} /></Button>}
+                />
+              )}
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut size={16} className="mr-1" /> Sign Out
               </Button>
@@ -268,12 +280,14 @@ const Navbar = () => {
           )}
         </div>
 
-        <button className="md:hidden text-foreground" onClick={() => setOpen(!open)}>
-          {open ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        {!minimal && (
+          <button className="md:hidden text-foreground" onClick={() => setOpen(!open)}>
+            {open ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        )}
       </div>
 
-      {open && (
+      {!minimal && open && (
         <div className="md:hidden border-t border-border bg-background p-4 space-y-3 animate-fade-in">
           {user ? userMobileLinks?.(() => setOpen(false)) : guestMobileLinks(() => setOpen(false))}
 

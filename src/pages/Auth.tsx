@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Mail, Lock, User, Eye, EyeOff, Home, Building2, Wrench, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,28 +12,36 @@ import BrandMark from "@/components/BrandMark";
 import { validatePassword, PASSWORD_MIN } from "@/lib/passwordPolicy";
 
 type AuthMode = "login" | "signup" | "forgot";
-type UserType = "homeowner" | "provider";
+type SignupStep = "info" | "type";
+type AccountKind = "homeowner" | "provider" | "mechanic";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const initialMode = (searchParams.get("mode") as AuthMode) === "signup" ? "signup" : "login";
-  const initialType: UserType = searchParams.get("type") === "provider" ? "provider" : "homeowner";
 
   const [mode, setMode] = useState<AuthMode>(initialMode);
-  const [userType, setUserType] = useState<UserType>(initialType);
+  const [signupStep, setSignupStep] = useState<SignupStep>("info");
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Sync mode/type if URL changes
+  // Sync mode if URL changes. Note: useSearchParams() returns a new object
+  // reference on every render, so this must depend on the derived string
+  // value, not searchParams itself — depending on searchParams re-fires the
+  // effect on every render (including ones caused by signupStep changing),
+  // which was resetting signupStep back to "info" the instant it advanced.
+  const modeParam = searchParams.get("mode");
   useEffect(() => {
-    const m = searchParams.get("mode");
-    if (m === "signup" || m === "login") setMode(m);
-    const t = searchParams.get("type");
-    if (t === "provider" || t === "homeowner") setUserType(t);
-  }, [searchParams]);
+    if (modeParam === "signup" || modeParam === "login") setMode(modeParam);
+  }, [modeParam]);
+
+  // Reset the signup sub-step when the mode itself changes, so switching
+  // away from signup and back doesn't strand someone on the "which are you" step.
+  useEffect(() => {
+    setSignupStep("info");
+  }, [mode]);
 
   // Redirect if already logged in — someone landing on /auth with an active
   // session shouldn't see a login form, same behavior as the homepage. If they
@@ -84,43 +92,23 @@ const Auth = () => {
           </div>
 
           <h2 className="text-2xl font-bold text-foreground mb-1 font-display">
-            {mode === "login" ? "Log in to your account" : mode === "signup" ? "Create your account" : "Forgot your password?"}
+            {mode === "login" ? "Log in to your account"
+              : mode === "signup" ? (signupStep === "type" ? "One more thing" : "Create your account")
+              : "Forgot your password?"}
           </h2>
           <p className="text-muted-foreground text-sm mb-6">
-            {mode === "login" ? "Enter your credentials to continue" : mode === "signup" ? "Fill in your details to get started" : "Enter your email and we'll send you a reset link"}
+            {mode === "login" ? "Enter your credentials to continue"
+              : mode === "signup" ? (signupStep === "type" ? "Which best describes you?" : "Fill in your details to get started")
+              : "Enter your email and we'll send you a reset link"}
           </p>
-
-          {mode === "signup" && (
-            <div className="flex gap-2 mb-6">
-              <button
-                onClick={() => setUserType("homeowner")}
-                className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium border transition-all ${
-                  userType === "homeowner"
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-card text-muted-foreground border-border hover:border-primary/30"
-                }`}
-              >
-                I'm a Homeowner
-              </button>
-              <button
-                onClick={() => setUserType("provider")}
-                className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium border transition-all ${
-                  userType === "provider"
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-card text-muted-foreground border-border hover:border-primary/30"
-                }`}
-              >
-                I'm a Pro
-              </button>
-            </div>
-          )}
 
           {mode === "forgot" ? (
             <ForgotPasswordForm onBack={() => setMode("login")} />
           ) : (
             <AuthForm
               mode={mode}
-              userType={userType}
+              signupStep={signupStep}
+              setSignupStep={setSignupStep}
               form={form}
               setForm={setForm}
               showPassword={showPassword}
@@ -129,7 +117,7 @@ const Auth = () => {
             />
           )}
 
-          {mode !== "forgot" && (
+          {mode !== "forgot" && signupStep !== "type" && (
             <>
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
@@ -167,15 +155,17 @@ const Auth = () => {
             </>
           )}
 
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            {mode === "login" ? (
-              <>Don't have an account?{" "}<button onClick={() => setMode("signup")} className="text-primary font-medium hover:underline">Sign up</button></>
-            ) : mode === "signup" ? (
-              <>Already have an account?{" "}<button onClick={() => setMode("login")} className="text-primary font-medium hover:underline">Log in</button></>
-            ) : (
-              <>Remember your password?{" "}<button onClick={() => setMode("login")} className="text-primary font-medium hover:underline">Log in</button></>
-            )}
-          </p>
+          {signupStep !== "type" && (
+            <p className="text-center text-sm text-muted-foreground mt-6">
+              {mode === "login" ? (
+                <>Don't have an account?{" "}<button onClick={() => setMode("signup")} className="text-primary font-medium hover:underline">Sign up</button></>
+              ) : mode === "signup" ? (
+                <>Already have an account?{" "}<button onClick={() => setMode("login")} className="text-primary font-medium hover:underline">Log in</button></>
+              ) : (
+                <>Remember your password?{" "}<button onClick={() => setMode("login")} className="text-primary font-medium hover:underline">Log in</button></>
+              )}
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -185,7 +175,8 @@ const Auth = () => {
 // Separate form component to use hooks properly
 function AuthForm({
   mode,
-  userType,
+  signupStep,
+  setSignupStep,
   form,
   setForm,
   showPassword,
@@ -193,7 +184,8 @@ function AuthForm({
   onForgot,
 }: {
   mode: AuthMode;
-  userType: UserType;
+  signupStep: SignupStep;
+  setSignupStep: (s: SignupStep) => void;
   form: { name: string; email: string; password: string };
   setForm: (f: { name: string; email: string; password: string }) => void;
   showPassword: boolean;
@@ -206,85 +198,71 @@ function AuthForm({
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get("redirect");
   const [loading, setLoading] = useState(false);
+  const [creatingKind, setCreatingKind] = useState<AccountKind | null>(null);
   const [acceptedTos, setAcceptedTos] = useState(false);
 
+  // Step 1 of signup (or the only step for login): collect name/email/password.
+  // For signup this just advances to the "which are you" step — the account
+  // isn't created until a kind is picked, so we never have to fix up
+  // user_type after the fact.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (mode === "signup" && !acceptedTos) {
-      toast({ title: "Please accept the Terms", description: "You must agree to the Terms of Service and Privacy Policy to create an account.", variant: "destructive" });
-      return;
-    }
     if (mode === "signup") {
+      if (!acceptedTos) {
+        toast({ title: "Please accept the Terms", description: "You must agree to the Terms of Service and Privacy Policy to create an account.", variant: "destructive" });
+        return;
+      }
       const pwError = validatePassword(form.password);
       if (pwError) {
         toast({ title: "Password doesn't meet requirements", description: pwError, variant: "destructive" });
         return;
       }
+      setSignupStep("type");
+      return;
     }
-    setLoading(true);
 
+    setLoading(true);
     try {
-      if (mode === "signup") {
-        const { error } = await signUp(form.email, form.password, {
-          full_name: form.name,
-          user_type: userType,
-        });
-        if (error) {
-          toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
-        } else {
-          if (userType === "provider") {
-            toast({ title: "Check your email", description: "We sent you a confirmation link to verify your account." });
-          } else if (redirect) {
-            toast({ title: "Welcome!", description: "You're all set." });
-            navigate(redirect);
-          } else {
-            // Upsell homeowners before onboarding
-            toast({ title: "Welcome!", description: "Let's pick the right plan for you." });
-            navigate("/homeowner-upsell?onboarding=1");
+      // A bare username (no "@") is treated as a staff login and silently
+      // mapped to its internal account — see supabase/migrations/20260803100000_staff_cheat_code_login.sql.
+      const trimmedEmail = form.email.trim();
+      const loginEmail = trimmedEmail.includes("@")
+        ? trimmedEmail
+        : `${trimmedEmail.toLowerCase()}@staff.trimbly.internal`;
+      const { error } = await signIn(loginEmail, form.password);
+      if (error) {
+        toast({ title: "Login failed", description: error.message, variant: "destructive" });
+      } else if (redirect) {
+        navigate(redirect);
+      } else {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        const uid = authUser?.id || "";
+        // Only internal staff logins land in the Staff Portal. A regular
+        // email account always goes to its normal dashboard, even if the
+        // person also holds a staff role.
+        if (loginEmail.endsWith("@staff.trimbly.internal")) {
+          const { data: roleRows } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+          const staffRoles = ["admin", "moderator", "support", "analyst"];
+          if ((roleRows || []).some((r: any) => staffRoles.includes(r.role))) {
+            navigate("/staff");
+            return;
           }
         }
-      } else {
-        // A bare username (no "@") is treated as a staff login and silently
-        // mapped to its internal account — see supabase/migrations/20260803100000_staff_cheat_code_login.sql.
-        const trimmedEmail = form.email.trim();
-        const loginEmail = trimmedEmail.includes("@")
-          ? trimmedEmail
-          : `${trimmedEmail.toLowerCase()}@staff.trimbly.internal`;
-        const { error } = await signIn(loginEmail, form.password);
-        if (error) {
-          toast({ title: "Login failed", description: error.message, variant: "destructive" });
-        } else if (redirect) {
-          navigate(redirect);
-        } else {
-          const { data: { user: authUser } } = await supabase.auth.getUser();
-          const uid = authUser?.id || "";
-          // Only internal staff logins land in the Staff Portal. A regular
-          // email account always goes to its normal dashboard, even if the
-          // person also holds a staff role.
-          if (loginEmail.endsWith("@staff.trimbly.internal")) {
-            const { data: roleRows } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-            const staffRoles = ["admin", "moderator", "support", "analyst"];
-            if ((roleRows || []).some((r: any) => staffRoles.includes(r.role))) {
-              navigate("/staff");
-              return;
-            }
-          }
 
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("user_type")
-            .eq("id", uid)
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("user_type")
+          .eq("id", uid)
+          .maybeSingle();
+        if (profile?.user_type === "provider") {
+          const { data: prov } = await supabase
+            .from("providers")
+            .select("provider_type")
+            .eq("user_id", uid)
             .maybeSingle();
-          if (profile?.user_type === "provider") {
-            const { data: prov } = await supabase
-              .from("providers")
-              .select("provider_type")
-              .eq("user_id", uid)
-              .maybeSingle();
-            navigate((prov as any)?.provider_type === "mechanic" ? "/mechanic-dashboard" : "/pro-dashboard");
-          } else {
-            navigate("/dashboard");
-          }
+          navigate((prov as any)?.provider_type === "mechanic" ? "/mechanic-dashboard" : "/pro-dashboard");
+        } else {
+          navigate("/dashboard");
         }
       }
     } catch (err: any) {
@@ -294,18 +272,90 @@ function AuthForm({
     }
   };
 
+  // Step 2 of signup: creates the account with the right user_type and sends
+  // them straight into the flow that matches it — homeowners pick a plan,
+  // providers/mechanics land directly on their business-profile step (already
+  // signed in, so ProRegister/MechanicRegister skip their own auth step).
+  const handleAccountKindSelect = async (kind: AccountKind) => {
+    setCreatingKind(kind);
+    try {
+      const { error } = await signUp(form.email, form.password, {
+        full_name: form.name,
+        user_type: kind === "homeowner" ? "homeowner" : "provider",
+      });
+      if (error) {
+        toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
+        return;
+      }
+      if (kind === "provider") {
+        navigate("/pro-register");
+      } else if (kind === "mechanic") {
+        navigate("/mechanic-register");
+      } else if (redirect) {
+        toast({ title: "Welcome!", description: "You're all set." });
+        navigate(redirect);
+      } else {
+        toast({ title: "Welcome!", description: "Let's pick the right plan for you." });
+        navigate("/homeowner-upsell?onboarding=1");
+      }
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setCreatingKind(null);
+    }
+  };
+
+  if (mode === "signup" && signupStep === "type") {
+    const options: { kind: AccountKind; icon: typeof Home; label: string; description: string }[] = [
+      { kind: "homeowner", icon: Home, label: "Homeowner", description: "Manage maintenance, find pros, track your home" },
+      { kind: "provider", icon: Building2, label: "Provider", description: "A contractor or service business taking jobs" },
+      { kind: "mechanic", icon: Wrench, label: "Mechanic", description: "Auto/motorcycle repair, shop or mobile" },
+    ];
+    return (
+      <div className="space-y-3">
+        {options.map((opt) => (
+          <button
+            key={opt.kind}
+            type="button"
+            disabled={creatingKind !== null}
+            onClick={() => handleAccountKindSelect(opt.kind)}
+            className="w-full flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:border-primary/50 hover:bg-accent/50 transition-all text-left disabled:opacity-60"
+          >
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              {creatingKind === opt.kind ? (
+                <Loader2 size={18} className="text-primary animate-spin" />
+              ) : (
+                <opt.icon size={18} className="text-primary" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="font-medium text-foreground">{opt.label}</p>
+              <p className="text-xs text-muted-foreground">{opt.description}</p>
+            </div>
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => setSignupStep("info")}
+          disabled={creatingKind !== null}
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          ← Back
+        </button>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {mode === "signup" && (
         <div className="space-y-2">
-          <Label htmlFor="name" className="text-sm font-medium">
-            {userType === "provider" ? "Business Name" : "Full Name"}
-          </Label>
+          <Label htmlFor="name" className="text-sm font-medium">Full Name</Label>
           <div className="relative">
             <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="name"
-              placeholder={userType === "provider" ? "Your business name" : "Your full name"}
+              placeholder="Your full name"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               className="pl-10"
@@ -384,7 +434,7 @@ function AuthForm({
       )}
 
       <Button type="submit" className="w-full h-11" size="lg" disabled={loading || (mode === "signup" && !acceptedTos)}>
-        {loading ? "Please wait..." : mode === "login" ? "Log In" : "Create Account"}
+        {loading ? "Please wait..." : mode === "login" ? "Log In" : "Continue"}
       </Button>
     </form>
   );

@@ -138,7 +138,7 @@ export default function HomeownerUpsell() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <Navbar minimal={onboarding} />
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="text-center max-w-2xl mx-auto mb-12">
