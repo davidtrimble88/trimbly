@@ -60,7 +60,7 @@ export default function CancelSubscription() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
+      <Navbar minimal />
       <main className="flex-1 container mx-auto px-4 py-12 max-w-2xl">
         <Card>
           <CardHeader>

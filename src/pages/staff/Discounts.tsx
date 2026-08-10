@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tag, Plus, Trash2, FlaskConical, Copy } from "lucide-react";
+import { Tag, Plus, Trash2, FlaskConical, Copy, Car } from "lucide-react";
 import { logActivity } from "./activityLog";
 
 type DiscountType = "free" | "percent" | "fixed";
@@ -23,6 +23,7 @@ interface DiscountCode {
   discount_type: DiscountType;
   discount_value: number | null;
   grants_tier: string | null;
+  grants_garage: boolean;
   is_testing_code: boolean;
   max_redemptions: number | null;
   redemption_count: number;
@@ -45,6 +46,7 @@ export default function StaffDiscounts() {
   const [discountType, setDiscountType] = useState<DiscountType>("free");
   const [discountValue, setDiscountValue] = useState("");
   const [grantsTier, setGrantsTier] = useState<GrantsTier>("");
+  const [grantsGarage, setGrantsGarage] = useState(false);
   const [isTestingCode, setIsTestingCode] = useState(false);
   const [maxRedemptions, setMaxRedemptions] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
@@ -67,15 +69,16 @@ export default function StaffDiscounts() {
 
   const resetForm = () => {
     setCode(""); setDescription(""); setDiscountType("free"); setDiscountValue("");
-    setGrantsTier(""); setIsTestingCode(false); setMaxRedemptions(""); setExpiresAt("");
+    setGrantsTier(""); setGrantsGarage(false); setIsTestingCode(false); setMaxRedemptions(""); setExpiresAt("");
   };
 
   const fillTestingDefaults = () => {
     setCode(`TESTING${new Date().getFullYear()}`);
-    setDescription("Free-access code for the homeowner testing program — grants full Home Super Hero access and skips payment.");
+    setDescription("Free-access code for the homeowner testing program — grants full Home Super Hero access + My Garage, and skips payment.");
     setDiscountType("free");
     setDiscountValue("");
     setGrantsTier("multi_pro");
+    setGrantsGarage(true);
     setIsTestingCode(true);
     setMaxRedemptions("");
     setExpiresAt(""); // blank = never expires, matching "works until testing is over, undefined amount of time"
@@ -99,6 +102,7 @@ export default function StaffDiscounts() {
       discount_type: discountType,
       discount_value: discountType === "free" ? null : Number(discountValue),
       grants_tier: grantsTier || null,
+      grants_garage: grantsGarage,
       is_testing_code: isTestingCode,
       max_redemptions: maxRedemptions.trim() ? Number(maxRedemptions) : null,
       expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
@@ -109,7 +113,7 @@ export default function StaffDiscounts() {
       toast({ title: "Couldn't create code", description: error.message, variant: "destructive" });
       return;
     }
-    await logActivity(user.id, "discount_code_created", "discount_code", trimmedCode, { discountType, grantsTier, isTestingCode });
+    await logActivity(user.id, "discount_code_created", "discount_code", trimmedCode, { discountType, grantsTier, grantsGarage, isTestingCode });
     toast({ title: "Discount code created", description: trimmedCode });
     resetForm();
     load();
@@ -207,7 +211,7 @@ export default function StaffDiscounts() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-3 items-end">
+          <div className="grid md:grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Max redemptions (blank = unlimited)</Label>
               <Input type="number" min={1} placeholder="Unlimited" value={maxRedemptions} onChange={(e) => setMaxRedemptions(e.target.value)} className="mt-1 text-sm" />
@@ -216,12 +220,22 @@ export default function StaffDiscounts() {
               <Label className="text-xs">Expires (blank = never)</Label>
               <Input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} className="mt-1 text-sm" />
             </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-3">
             <div className="flex items-center justify-between rounded-lg border border-border p-2.5">
               <div>
                 <p className="text-sm font-medium">Testing-program code</p>
                 <p className="text-[11px] text-muted-foreground">Shows the welcome/disclaimer popup + testing badge</p>
               </div>
               <Switch checked={isTestingCode} onCheckedChange={setIsTestingCode} />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border border-border p-2.5">
+              <div>
+                <p className="text-sm font-medium">Grants My Garage</p>
+                <p className="text-[11px] text-muted-foreground">Unlocks vehicle tracking too, not just the home tier</p>
+              </div>
+              <Switch checked={grantsGarage} onCheckedChange={setGrantsGarage} />
             </div>
           </div>
 
@@ -261,6 +275,7 @@ export default function StaffDiscounts() {
                     {row.discount_type === "free" ? "Free" : row.discount_type === "percent" ? `${row.discount_value}% off` : `$${row.discount_value} off`}
                   </Badge>
                   {row.grants_tier && <Badge variant="outline" className="text-xs">→ {tierLabels[row.grants_tier] ?? row.grants_tier}</Badge>}
+                  {row.grants_garage && <Badge variant="outline" className="text-xs gap-1"><Car className="w-3 h-3" /> Garage</Badge>}
                   <span className="text-xs text-muted-foreground whitespace-nowrap">
                     {row.redemption_count}{row.max_redemptions ? ` / ${row.max_redemptions}` : ""} used
                   </span>

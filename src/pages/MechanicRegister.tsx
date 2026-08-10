@@ -146,7 +146,7 @@ const MechanicRegister = () => {
 
   return (
     <div className="min-h-screen">
-      <Navbar />
+      <Navbar minimal />
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-2xl">
           <Link to="/mechanic-pricing" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">

@@ -58,7 +58,7 @@ export default function GarageUpsell() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <Navbar minimal />
       <main className="pt-20">
         <section className="bg-gradient-to-br from-foreground via-foreground to-foreground/90 text-background">
           <div className="container mx-auto px-4 py-16 md:py-24 max-w-5xl">
