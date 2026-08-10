@@ -296,8 +296,6 @@ const Users = () => {
           )}
         </DialogContent>
       </Dialog>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={deleteOpen} onOpenChange={(o) => { if (!deleting) setDeleteOpen(o); }}>
         <DialogContent className="max-w-md">
