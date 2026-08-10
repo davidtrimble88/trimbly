@@ -59,6 +59,48 @@ export type Database = {
         }
         Relationships: []
       }
+      archived_users: {
+        Row: {
+          created_at: string
+          deleted_by: string
+          email: string | null
+          full_name: string
+          id: string
+          joined_at: string | null
+          reason: string
+          snapshot: Json
+          subscription_tier: string
+          user_id: string
+          user_type: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_by: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          joined_at?: string | null
+          reason: string
+          snapshot?: Json
+          subscription_tier?: string
+          user_id: string
+          user_type?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_by?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          joined_at?: string | null
+          reason?: string
+          snapshot?: Json
+          subscription_tier?: string
+          user_id?: string
+          user_type?: string
+        }
+        Relationships: []
+      }
       blocked_providers: {
         Row: {
           created_at: string
