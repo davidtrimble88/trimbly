@@ -40,6 +40,7 @@ const SecurityQuestionsSetup = lazy(() => import("./pages/SecurityQuestionsSetup
 const AccountRecovery = lazy(() => import("./pages/AccountRecovery"));
 const Messages = lazy(() => import("./pages/Messages"));
 const CoverageAdvisor = lazy(() => import("./pages/CoverageAdvisor"));
+const Support = lazy(() => import("./pages/Support"));
 const PostJob = lazy(() => import("./pages/PostJob"));
 const JobBoard = lazy(() => import("./pages/JobBoard"));
 const Contact = lazy(() => import("./pages/Contact"));
@@ -56,6 +57,8 @@ const StaffSearches = lazy(() => import("./pages/staff/Searches"));
 const StaffSeo = lazy(() => import("./pages/staff/Seo"));
 const StaffErrors = lazy(() => import("./pages/staff/Errors"));
 const StaffTeam = lazy(() => import("./pages/staff/Team"));
+const StaffDiscounts = lazy(() => import("./pages/staff/Discounts"));
+const StaffTickets = lazy(() => import("./pages/staff/Tickets"));
 const StaffAnalytics = lazy(() => import("./pages/staff/Analytics"));
 const StaffBusinessAnalytics = lazy(() => import("./pages/staff/BusinessAnalytics"));
 const StaffTax = lazy(() => import("./pages/staff/Tax"));
@@ -169,6 +172,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/coverage" element={<CoverageAdvisor />} />
+            <Route path="/support" element={<Support />} />
             <Route path="/energy-advisor" element={<EnergyAdvisor />} />
             <Route path="/dashboard/homes/:id/report" element={<HomeReport />} />
             <Route path="/post-job" element={<PostJob />} />
@@ -202,6 +206,8 @@ const App = () => (
               <Route path="seo" element={<StaffSeo />} />
               <Route path="errors" element={<StaffErrors />} />
               <Route path="team" element={<StaffTeam />} />
+              <Route path="discounts" element={<StaffDiscounts />} />
+              <Route path="tickets" element={<StaffTickets />} />
               <Route path="analytics" element={<StaffAnalytics />} />
               <Route path="business" element={<StaffBusinessAnalytics />} />
               <Route path="tax" element={<StaffTax />} />

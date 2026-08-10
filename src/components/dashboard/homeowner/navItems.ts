@@ -1,6 +1,6 @@
 import {
   Home, LayoutDashboard, Sparkles, UserCircle, CalendarCheck, FolderOpen,
-  Wrench, Brain, MessageSquare, Shield, Briefcase, Car,
+  Wrench, Brain, MessageSquare, Shield, Briefcase, Car, LifeBuoy,
 } from "lucide-react";
 import { DashboardNavItem } from "@/components/dashboard/types";
 
@@ -26,5 +26,6 @@ export function buildHomeownerSatelliteNavItems(hasGarage: boolean): DashboardNa
     { id: "coverage", label: "Coverage Advisor", icon: Shield, href: "/coverage", group: "Quick Links" },
     { id: "post-job", label: "Post a Job", icon: Briefcase, href: "/post-job", group: "Quick Links" },
     { id: "garage", label: hasGarage ? "Garage" : "Add Garage", icon: Car, href: hasGarage ? "/garage" : "/garage/upsell", group: "Quick Links" },
+    { id: "support", label: "Support & Tickets", icon: LifeBuoy, href: "/support", group: "Quick Links" },
   ];
 }

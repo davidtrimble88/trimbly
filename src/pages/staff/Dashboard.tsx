@@ -25,7 +25,7 @@ interface Stats {
 
 const PRICING: Record<string, number> = {
   homeowner_pro: 10,
-  multi_homeowner_pro: 20,
+  multi_pro: 20,
   pro: 29,
 };
 
@@ -53,7 +53,7 @@ const Dashboard = () => {
       homeowners: profs.filter((p) => p.user_type === "homeowner").length,
       providers: profs.filter((p) => p.user_type === "provider").length,
       homeownerPro: profs.filter((p) => p.subscription_tier === "homeowner_pro").length,
-      multiHomeownerPro: profs.filter((p) => p.subscription_tier === "multi_homeowner_pro").length,
+      multiHomeownerPro: profs.filter((p) => p.subscription_tier === "multi_pro").length,
       providerPro: provs.filter((p) => p.subscription_tier === "pro").length,
       totalJobs: (jobs.data || []).length,
       openJobs: (jobs.data || []).filter((j) => j.status === "pending" || j.status === "open").length,

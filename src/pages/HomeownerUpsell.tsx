@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Check, Zap, Crown, ArrowRight, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Check, Zap, Crown, ArrowRight, Loader2, Tag } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { TestingWelcomeModal } from "@/components/onboarding/TestingWelcomeModal";
 
 const tiers = [
   {
@@ -57,19 +59,34 @@ export default function HomeownerUpsell() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
+  const [discountCode, setDiscountCode] = useState("");
+  const [redeeming, setRedeeming] = useState(false);
+  const [showTestingWelcome, setShowTestingWelcome] = useState(false);
 
   const onboarding = searchParams.get("onboarding") === "1";
+
+  const goNext = () => {
+    if (onboarding) {
+      navigate("/maintenance?onboarding=1");
+    } else {
+      navigate("/dashboard");
+    }
+  };
 
   const handleSelect = async (tierKey: string) => {
     setLoadingTier(tierKey);
 
     try {
-      // If they chose a paid tier, record the intent in their profile
+      // Early-access tier selection — no real checkout exists yet, so this
+      // just records the choice via a scoped RPC (a user may only set their
+      // OWN tier to one of the three real values; see set_own_subscription_tier).
       if (tierKey !== "free" && user) {
-        await supabase
-          .from("profiles")
-          .update({ subscription_tier: tierKey })
-          .eq("id", user.id);
+        const { data, error } = await supabase.rpc("set_own_subscription_tier" as any, { p_tier: tierKey } as any);
+        if (error || !(data as any)?.success) {
+          toast({ title: "Couldn't update your plan", description: (data as any)?.error || error?.message, variant: "destructive" });
+          setLoadingTier(null);
+          return;
+        }
       }
 
       if (tierKey === "free") {
@@ -82,16 +99,40 @@ export default function HomeownerUpsell() {
         });
       }
 
-      // Redirect to onboarding or dashboard
-      if (onboarding) {
-        navigate("/maintenance?onboarding=1");
-      } else {
-        navigate("/dashboard");
-      }
+      goNext();
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
     } finally {
       setLoadingTier(null);
+    }
+  };
+
+  const handleRedeemCode = async () => {
+    if (!discountCode.trim() || !user) return;
+    setRedeeming(true);
+    try {
+      const { data, error } = await supabase.rpc("redeem_discount_code" as any, { p_code: discountCode.trim() } as any);
+      const result = data as any;
+      if (error || !result?.success) {
+        toast({ title: "Code didn't work", description: result?.error || error?.message, variant: "destructive" });
+        return;
+      }
+
+      if (result.is_testing_code) {
+        // Skip payment/tier-selection entirely — the welcome modal handles
+        // the redirect once acknowledged.
+        setShowTestingWelcome(true);
+        return;
+      }
+
+      if (result.grants_tier) {
+        toast({ title: "Code applied!", description: "Your plan has been upgraded — no payment needed." });
+        goNext();
+      } else {
+        toast({ title: "Code applied", description: "Your discount is recorded. Pick a plan below to continue." });
+      }
+    } finally {
+      setRedeeming(false);
     }
   };
 
@@ -111,6 +152,27 @@ export default function HomeownerUpsell() {
               Upgrade to AI-powered maintenance, a Digital Home Binder, and unlimited job estimates.
             </p>
           </div>
+
+          {user && (
+            <div className="max-w-md mx-auto mb-10">
+              <div className="rounded-xl border border-border bg-card p-4 flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Tag size={16} className="text-primary shrink-0" />
+                  <Input
+                    placeholder="Have a discount code?"
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleRedeemCode(); }}
+                    className="text-sm"
+                  />
+                </div>
+                <Button variant="outline" onClick={handleRedeemCode} disabled={redeeming || !discountCode.trim()}>
+                  {redeeming ? <Loader2 size={14} className="animate-spin mr-1.5" /> : null}
+                  Apply
+                </Button>
+              </div>
+            </div>
+          )}
 
           <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {tiers.map((tier) => (
@@ -190,6 +252,14 @@ export default function HomeownerUpsell() {
         </div>
       </main>
       <Footer />
+      <TestingWelcomeModal
+        open={showTestingWelcome}
+        onAcknowledge={() => {
+          setShowTestingWelcome(false);
+          toast({ title: "You're in!", description: "Full access unlocked for testing. Thanks for helping us out." });
+          goNext();
+        }}
+      />
     </div>
   );
 }

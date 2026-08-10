@@ -17,6 +17,7 @@ import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { NotificationPermissionPrompt } from "@/components/NotificationPermissionPrompt";
 import { ReviewPromptDialog } from "@/components/ReviewPromptDialog";
+import { TestingAccountBanner } from "@/components/TestingAccountBanner";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { DashboardNavItem } from "@/components/dashboard/types";
 import HomeownerOverviewTab from "@/components/dashboard/homeowner/HomeownerOverviewTab";
@@ -29,7 +30,7 @@ import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare,
   Crown, Home, CheckCircle2, Shield, HelpCircle,
   Briefcase,
-  LayoutDashboard, Sparkles, UserCircle, Car,
+  LayoutDashboard, Sparkles, UserCircle, Car, LifeBuoy,
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -249,6 +250,7 @@ const Dashboard = () => {
     { id: "coverage", label: "Coverage Advisor", icon: Shield, href: "/coverage", group: "Quick Links" },
     { id: "post-job-link", label: "Post a Job", icon: Briefcase, href: "/post-job", group: "Quick Links" },
     { id: "garage", label: hasGarage ? "Garage" : "Add Garage", icon: Car, href: hasGarage ? "/garage" : "/garage/upsell", group: "Quick Links" },
+    { id: "support-link", label: "Support & Tickets", icon: LifeBuoy, href: "/support", group: "Quick Links" },
   ];
 
   return (
@@ -266,6 +268,7 @@ const Dashboard = () => {
           { title: "Home Care Tools", body: "Generate a maintenance schedule, get AI symptom triage when something breaks, and keep your Digital Home Binder of manuals and warranties up to date." },
           { title: "Get Help", body: "Search trusted pros, post a job, use the AI Job Estimator for cost ranges, and the Coverage Advisor to check what your warranty or insurance covers." },
           { title: "Messages & Reviews", body: "Chat with pros directly in-app — your phone number stays private until you approve sharing it. Leave reviews after a job is complete." },
+          { title: "Report Bugs & Feedback", body: "Hit something broken or confusing, or have a suggestion? Use Support & Tickets in the sidebar — we see every ticket and reply right on the thread." },
           { title: "Upgrade Anytime", body: "Free covers the basics. Upgrade to Home Hero for unlimited estimates, AI tools, and binder items, or Home Super Hero to manage up to 10 properties." },
         ]}
         onReplayReady={(replay) => setReplayTour(() => replay)}
@@ -305,6 +308,7 @@ const Dashboard = () => {
           onEditProfile: () => setActiveTab("profile"),
         }}
       >
+        <TestingAccountBanner />
         <NotificationPermissionPrompt />
         <ReviewPromptDialog />
 

@@ -25,6 +25,8 @@ export const NAV_PERMISSIONS: Record<string, StaffRole[]> = {
   moderation: ["admin", "moderator"],
   broadcasts: ["admin", "moderator", "support"],
   team: ["admin"], // only admins can manage staff
+  discounts: ["admin"], // pricing-sensitive — admins only
+  tickets: ["admin", "support"], // mirrors the contact inbox split
 };
 
 export function canAccess(navKey: string, roles: StaffRole[]): boolean {
