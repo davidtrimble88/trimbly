@@ -264,7 +264,11 @@ const Users = () => {
                     <Button variant="outline" size="sm" onClick={messageUser}>
                       <MessageSquare className="w-4 h-4" /> Message
                     </Button>
+                    <Button variant="destructive" size="sm" onClick={() => { setDeleteReason(""); setDeleteOpen(true); }}>
+                      <Trash2 className="w-4 h-4" /> Delete
+                    </Button>
                   </div>
+
                 </div>
 
                 <div className="space-y-2 border-t border-border pt-4">
