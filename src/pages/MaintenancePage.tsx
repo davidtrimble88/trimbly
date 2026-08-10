@@ -180,19 +180,23 @@ const MaintenancePage = () => {
       if (error) throw error;
       if (data?.success && data.data) {
         const z = data.data;
+        // Zillow's scrape doesn't always come back with city/state (e.g. for
+        // less-common addresses) — fall back to parsing them straight out of
+        // what the user typed rather than leaving fields blank they already answered.
+        const addrMatch = addressInput.match(/,\s*([^,]+?),\s*([A-Za-z]{2})\s*\d{0,5}\s*$/);
         setHome(h => ({
           ...h,
           home_type: z.home_type || h.home_type,
           year_built: z.year_built || h.year_built,
           square_feet: z.square_feet || h.square_feet,
-          city: z.city || h.city,
-          state: z.state || h.state,
+          city: z.city || addrMatch?.[1]?.trim() || h.city,
+          state: z.state || addrMatch?.[2]?.toUpperCase() || h.state,
           hvac_type: z.hvac_type || h.hvac_type,
           roof_type: z.roof_type || h.roof_type,
           has_pool: z.has_pool ?? h.has_pool,
         }));
         setAddressLookedUp(true);
-        toast({ title: "Home details found!", description: "We've pre-filled your home info from Zillow. You can adjust anything in the following steps." });
+        toast({ title: "Home details found!", description: "We've pre-filled your home info from Zillow. You can review and adjust it on the next screen." });
       } else {
         toast({ title: "No results found", description: data?.error || "Couldn't find property details for that address. You can fill in details manually.", variant: "destructive" });
       }
@@ -634,6 +638,126 @@ const MaintenancePage = () => {
               {/* Home Setup Wizard */}
               {(showSetup || !homeLoaded) && (
                 <div className="rounded-xl border border-border bg-card p-6 mb-8 max-w-xl mx-auto">
+                {addressLookedUp && wizardStep >= 1 ? (
+                  <>
+                    {/* Everything Zillow found, on one screen, all editable — instead of
+                        re-asking each field as its own blank-looking question. */}
+                    <p className="text-xs text-muted-foreground mb-1">Review your home details</p>
+                    <h2 className="font-bold text-xl text-foreground mb-1">We found your home on Zillow</h2>
+                    <p className="text-sm text-muted-foreground mb-6">Double-check everything below and fix anything that's off.</p>
+
+                    <div className="space-y-4">
+                      {isMultiPro && (
+                        <div>
+                          <Label className="text-sm">Home name</Label>
+                          <Input value={home.name} onChange={e => setHome({ ...home, name: e.target.value })} placeholder="e.g. Lake House" className="mt-1" />
+                        </div>
+                      )}
+
+                      <div>
+                        <Label className="text-sm">Home type</Label>
+                        <Select value={home.home_type} onValueChange={v => setHome(h => ({ ...h, home_type: v }))}>
+                          <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="single_family">🏠 Single Family</SelectItem>
+                            <SelectItem value="townhouse">🏘️ Townhouse</SelectItem>
+                            <SelectItem value="condo">🏢 Condo</SelectItem>
+                            <SelectItem value="duplex">🏗️ Duplex</SelectItem>
+                            <SelectItem value="mobile">🏕️ Mobile Home</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-sm">City</Label>
+                          <Input value={home.city} onChange={e => setHome({ ...home, city: e.target.value })} placeholder="e.g. Austin" className="mt-1" />
+                        </div>
+                        <div>
+                          <Label className="text-sm">State</Label>
+                          <Input value={home.state} onChange={e => setHome({ ...home, state: e.target.value })} placeholder="e.g. TX" maxLength={2} className="mt-1" />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm">Year built</Label>
+                        <Input
+                          type="number"
+                          value={home.year_built ?? ""}
+                          onChange={e => setHome(h => ({ ...h, year_built: e.target.value ? Number(e.target.value) : null }))}
+                          placeholder="e.g. 1998"
+                          className="mt-1"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-sm">Heating / cooling</Label>
+                        <Select value={home.hvac_type || undefined} onValueChange={v => setHome(h => ({ ...h, hvac_type: v }))}>
+                          <SelectTrigger className="mt-1"><SelectValue placeholder="Select…" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="central">❄️ Central Air</SelectItem>
+                            <SelectItem value="heat_pump">🔄 Heat Pump</SelectItem>
+                            <SelectItem value="furnace">🔥 Furnace</SelectItem>
+                            <SelectItem value="mini_split">💨 Mini Split</SelectItem>
+                            <SelectItem value="window">🪟 Window Units</SelectItem>
+                            <SelectItem value="none">❌ None</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm">Roof type</Label>
+                        <Select value={home.roof_type || undefined} onValueChange={v => setHome(h => ({ ...h, roof_type: v }))}>
+                          <SelectTrigger className="mt-1"><SelectValue placeholder="Select…" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="asphalt">🏠 Asphalt Shingle</SelectItem>
+                            <SelectItem value="metal">🔩 Metal</SelectItem>
+                            <SelectItem value="tile">🧱 Tile</SelectItem>
+                            <SelectItem value="slate">🪨 Slate</SelectItem>
+                            <SelectItem value="flat">📐 Flat / TPO</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm mb-2 block">Does your home have any of these?</Label>
+                        <div className="space-y-2">
+                          {[
+                            { value: "has_pool", label: "🏊 Pool" },
+                            { value: "has_septic", label: "🚽 Septic System" },
+                            { value: "has_well_water", label: "💧 Well Water" },
+                          ].map(opt => {
+                            const isOn = !!(home as any)[opt.value];
+                            return (
+                              <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => handleToggle(opt.value)}
+                                className={`w-full p-3 rounded-lg border text-left text-sm font-medium transition-all flex items-center justify-between ${
+                                  isOn ? "border-primary bg-primary/10 text-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/30"
+                                }`}
+                              >
+                                {opt.label}
+                                {isOn && <Check size={16} className="text-primary" />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between mt-6">
+                      <Button variant="ghost" size="sm" onClick={() => { setWizardStep(0); setAddressLookedUp(false); }}>
+                        ← Edit address
+                      </Button>
+                      <Button size="sm" onClick={finishWizard} disabled={savingHome || generating} className="gap-1">
+                        {(savingHome || generating) ? <Loader2 size={14} className="animate-spin" /> : <CalendarCheck size={14} />}
+                        Confirm & Generate My Schedule
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
                   {/* Progress bar */}
                   <div className="flex gap-1.5 mb-6">
                     {wizardSteps.map((_, i) => (
@@ -691,7 +815,7 @@ const MaintenancePage = () => {
                       {addressLookedUp && (
                         <div className="rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3 text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
                           <Check size={16} />
-                          Home details pre-filled from Zillow! Review and adjust in the next steps.
+                          Home details pre-filled from Zillow! Review and adjust on the next screen.
                         </div>
                       )}
                       {!addressLookedUp && (
@@ -773,6 +897,8 @@ const MaintenancePage = () => {
                       </Button>
                     )}
                   </div>
+                  </>
+                )}
                 </div>
               )}
 
