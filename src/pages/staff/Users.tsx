@@ -30,6 +30,16 @@ interface StaffNote {
   author_id: string;
 }
 
+interface ArchivedUser {
+  id: string;
+  user_id: string;
+  full_name: string;
+  user_type: string;
+  email: string | null;
+  reason: string;
+  created_at: string;
+}
+
 const TIERS = ["free", "homeowner_pro", "multi_homeowner_pro", "pro"];
 
 const Users = () => {
@@ -41,6 +51,12 @@ const Users = () => {
   const [notes, setNotes] = useState<StaffNote[]>([]);
   const [newNote, setNewNote] = useState("");
   const [suspendReason, setSuspendReason] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [archived, setArchived] = useState<ArchivedUser[]>([]);
+
 
   useEffect(() => { load(); }, []);
 
