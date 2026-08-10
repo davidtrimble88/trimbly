@@ -202,6 +202,86 @@ export type Database = {
           },
         ]
       }
+      discount_code_redemptions: {
+        Row: {
+          code_id: string
+          id: string
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          code_id: string
+          id?: string
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          code_id?: string
+          id?: string
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_code_redemptions_code_id_fkey"
+            columns: ["code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discount_codes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          discount_type: string
+          discount_value: number | null
+          expires_at: string | null
+          grants_tier: string | null
+          id: string
+          is_testing_code: boolean
+          max_redemptions: number | null
+          redemption_count: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number | null
+          expires_at?: string | null
+          grants_tier?: string | null
+          id?: string
+          is_testing_code?: boolean
+          max_redemptions?: number | null
+          redemption_count?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number | null
+          expires_at?: string | null
+          grants_tier?: string | null
+          id?: string
+          is_testing_code?: boolean
+          max_redemptions?: number | null
+          redemption_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_optouts: {
         Row: {
           business_name: string | null
@@ -1228,6 +1308,7 @@ export type Database = {
           gallery_urls: string[]
           id: string
           is_public: boolean
+          is_testing_account: boolean
           subscription_tier: string
           suspended: boolean
           suspended_reason: string | null
@@ -1242,6 +1323,7 @@ export type Database = {
           gallery_urls?: string[]
           id: string
           is_public?: boolean
+          is_testing_account?: boolean
           subscription_tier?: string
           suspended?: boolean
           suspended_reason?: string | null
@@ -1256,6 +1338,7 @@ export type Database = {
           gallery_urls?: string[]
           id?: string
           is_public?: boolean
+          is_testing_account?: boolean
           subscription_tier?: string
           suspended?: boolean
           suspended_reason?: string | null
@@ -2868,6 +2951,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      redeem_discount_code: { Args: { p_code: string }; Returns: Json }
+      set_own_subscription_tier: { Args: { p_tier: string }; Returns: Json }
       set_security_questions: {
         Args: {
           p_answer_1: string
