@@ -262,14 +262,14 @@ const Dashboard = () => {
           body: "Let's take a quick tour of your dashboard so you know where everything lives. It'll only take a minute.",
         }}
         steps={[
-          { title: "Your Public Profile", body: "Personalize your name, photo, and bio. Other homeowners and pros can see this when you connect with them." },
-          { title: "Your Homes", body: "Add and manage your home profiles here. Each home gets its own maintenance schedule, binder, and AI insights tailored to its size, age, and systems." },
-          { title: "Job Posts", body: "Post a job to get bids from local pros. Track pending, accepted, and completed jobs at a glance — tap any tile to jump to the job board." },
-          { title: "Home Care Tools", body: "Generate a maintenance schedule, get AI symptom triage when something breaks, and keep your Digital Home Binder of manuals and warranties up to date." },
-          { title: "Get Help", body: "Search trusted pros, post a job, use the AI Job Estimator for cost ranges, and the Coverage Advisor to check what your warranty or insurance covers." },
-          { title: "Messages & Reviews", body: "Chat with pros directly in-app — your phone number stays private until you approve sharing it. Leave reviews after a job is complete." },
-          { title: "Report Bugs & Feedback", body: "Hit something broken or confusing, or have a suggestion? Use Support & Tickets in the sidebar — we see every ticket and reply right on the thread." },
-          { title: "Upgrade Anytime", body: "Free covers the basics. Upgrade to Home Hero for unlimited estimates, AI tools, and binder items, or Home Super Hero to manage up to 10 properties." },
+          { title: "Your Public Profile", body: "Personalize your name, photo, and bio. Other homeowners and pros can see this when you connect with them.", target: '[data-tour="profile"]' },
+          { title: "Your Homes", body: "Add and manage your home profiles here. Each home gets its own maintenance schedule, binder, and AI insights tailored to its size, age, and systems.", target: '[data-tour="homes"]' },
+          { title: "Post a Job", body: "Post a job to get bids from local pros. Track pending, accepted, and completed jobs at a glance.", target: '[data-tour="post-job-link"]' },
+          { title: "Home Care Tools", body: "Generate a maintenance schedule, get AI symptom triage when something breaks, and keep your Digital Home Binder of manuals and warranties up to date.", target: '[data-tour="tools"]' },
+          { title: "Find a Pro", body: "Search trusted pros, use the AI Job Estimator for cost ranges, and the Coverage Advisor to check what your warranty or insurance covers.", target: '[data-tour="find-pro"]' },
+          { title: "Messages & Reviews", body: "Chat with pros directly in-app — your phone number stays private until you approve sharing it. Leave reviews after a job is complete.", target: '[data-tour="messages-link"]' },
+          { title: "Report Bugs & Feedback", body: "Hit something broken or confusing, or have a suggestion? Submit it here — we see every ticket and reply right on the thread.", target: '[data-tour="support-link"]' },
+          { title: "Upgrade Anytime", body: "Free covers the basics. Upgrade to Home Hero for unlimited estimates, AI tools, and binder items, or Home Super Hero to manage up to 10 properties.", target: '[data-tour="header-tier"]' },
         ]}
         onReplayReady={(replay) => setReplayTour(() => replay)}
       />

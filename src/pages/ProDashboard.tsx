@@ -299,13 +299,13 @@ const ProDashboard = () => {
           body: "Here's a quick walkthrough of your Pro Dashboard so you can start landing jobs right away.",
         }}
         steps={[
-          { title: "Overview", body: "Your at-a-glance stats: profile views, pending bids, unread messages, and reviews. Watch the credential alert banner — keep your license and insurance dates current to stay visible in search." },
-          { title: "Bids Tab", body: "Browse open job posts from homeowners in your service area and submit bids. Accepted bids move into an active chat thread." },
-          { title: "Tools Tab", body: "Grow My Business (marketing, referrals, AI leads) and Day-to-Day Work (quotes, plans, mileage). Your business info, service area, and app settings live on the Profile tab." },
-          { title: "Reviews Tab", body: "Monitor your ratings and respond to homeowner reviews. Auto-review requests can be enabled in Tools." },
-          { title: "Messages Tab", body: "Chat with homeowners in-app. Phone numbers stay private until the homeowner explicitly shares them — keep first contact in messaging." },
-          { title: "Profile Tab", body: "Edit your business details, services, gallery, business hours, service area, license & insurance info, plus notification and app settings. A complete, up-to-date profile gets significantly more leads." },
-          { title: "Go Pro for More", body: "Upgrade to Pro Provider for unlimited bids, priority placement, AI tools, and advanced analytics. Find pricing on the Pro Pricing page." },
+          { title: "Overview", body: "Your at-a-glance stats: profile views, pending bids, unread messages, and reviews. Watch the credential alert banner — keep your license and insurance dates current to stay visible in search.", target: '[data-tour="overview"]' },
+          { title: "Bids Tab", body: "Browse open job posts from homeowners in your service area and submit bids. Accepted bids move into an active chat thread.", target: '[data-tour="bids"]' },
+          { title: "Tools Tab", body: "Grow My Business (marketing, referrals, AI leads) and Day-to-Day Work (quotes, plans, mileage). Your business info, service area, and app settings live on the Profile tab.", target: '[data-tour="tools"]' },
+          { title: "Reviews Tab", body: "Monitor your ratings and respond to homeowner reviews. Auto-review requests can be enabled in Tools.", target: '[data-tour="reviews"]' },
+          { title: "Messages Tab", body: "Chat with homeowners in-app. Phone numbers stay private until the homeowner explicitly shares them — keep first contact in messaging.", target: '[data-tour="messages"]' },
+          { title: "Profile Tab", body: "Edit your business details, services, gallery, business hours, service area, license & insurance info, plus notification and app settings. A complete, up-to-date profile gets significantly more leads.", target: '[data-tour="profile"]' },
+          { title: "Go Pro for More", body: "Upgrade to Pro Provider for unlimited bids, priority placement, AI tools, and advanced analytics. Find pricing on the Pro Pricing page.", target: '[data-tour="header-tier"]' },
         ]}
         onReplayReady={(replay) => setReplayTour(() => replay)}
       />

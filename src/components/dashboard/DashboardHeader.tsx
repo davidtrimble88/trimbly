@@ -44,7 +44,7 @@ const DashboardHeader = ({
       </div>
       <div className="min-w-0 flex-1">
         <p className="font-display text-base font-semibold text-foreground truncate">{displayName}</p>
-        <div className="flex flex-wrap items-center gap-2 mt-0.5">{subtitle}</div>
+        <div className="flex flex-wrap items-center gap-2 mt-0.5" data-tour="header-tier">{subtitle}</div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
         {onToggleAvailable && (

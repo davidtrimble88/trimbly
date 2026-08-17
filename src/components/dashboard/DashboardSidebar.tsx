@@ -41,7 +41,7 @@ const DashboardSidebar = ({ brandLabel, navItems, groups, activeItemId, onNaviga
           </SidebarMenuButton>
         );
         return (
-          <SidebarMenuItem key={item.id}>
+          <SidebarMenuItem key={item.id} data-tour={item.id}>
             {button}
             {!!item.badge && item.badge > 0 && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
           </SidebarMenuItem>
