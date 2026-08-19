@@ -3023,6 +3023,13 @@ export type Database = {
       }
     }
     Functions: {
+      admin_list_user_emails: {
+        Args: never
+        Returns: {
+          email: string
+          user_id: string
+        }[]
+      }
       find_user_by_email: {
         Args: { _email: string }
         Returns: {
