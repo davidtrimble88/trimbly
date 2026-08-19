@@ -160,22 +160,57 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="w-4 h-4 text-primary" /> Where is it?
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>City</Label>
-                <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Austin" />
-              </div>
-              <div className="space-y-2">
-                <Label>State</Label>
-                <Input value={state} onChange={(e) => setState(e.target.value)} placeholder="TX" maxLength={2} />
-              </div>
-            </div>
             <div className="space-y-2">
-              <Label>Year built (optional)</Label>
-              <Input type="number" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} placeholder="1998" />
+              <Label>Street address</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); lookupAddress(); } }}
+                  placeholder="123 Main St, Austin, TX 78701"
+                />
+                <Button type="button" variant="secondary" onClick={lookupAddress} disabled={lookingUp} className="shrink-0">
+                  {lookingUp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                  <span className="ml-1.5 hidden sm:inline">{lookingUp ? "Looking up" : "Look up"}</span>
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Wand2 className="w-3 h-3 text-primary" /> We'll pull year built, size, roof, HVAC and more automatically.
+              </p>
             </div>
+
+            {(lookedUp || city || state) && (
+              <div className="space-y-4 rounded-lg border border-border p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Review details</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>City</Label>
+                    <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Austin" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>State</Label>
+                    <Input value={state} onChange={(e) => setState(e.target.value)} placeholder="TX" maxLength={2} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Year built</Label>
+                    <Input type="number" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} placeholder="1998" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Square feet</Label>
+                    <Input type="number" value={squareFeet} onChange={(e) => setSquareFeet(e.target.value)} placeholder="1850" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!lookedUp && !city && (
+              <Button variant="ghost" size="sm" className="w-full" onClick={() => setLookedUp(true)}>
+                Enter details manually instead
+              </Button>
+            )}
           </div>
         )}
+
 
         {step === 3 && (
           <div className="space-y-4 py-2 text-center">
