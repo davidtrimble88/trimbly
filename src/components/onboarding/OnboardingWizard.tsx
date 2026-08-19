@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { Home as HomeIcon, MapPin, Sparkles, CheckCircle2 } from "lucide-react";
+import { Home as HomeIcon, MapPin, Sparkles, CheckCircle2, Search, Loader2, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Props {
@@ -25,7 +25,59 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [yearBuilt, setYearBuilt] = useState<string>("");
+  const [squareFeet, setSquareFeet] = useState<string>("");
+  const [hvacType, setHvacType] = useState<string | null>(null);
+  const [roofType, setRoofType] = useState<string | null>(null);
+  const [hasPool, setHasPool] = useState<boolean | null>(null);
+  const [address, setAddress] = useState("");
+  const [lookingUp, setLookingUp] = useState(false);
+  const [lookedUp, setLookedUp] = useState(false);
   const [homeId, setHomeId] = useState<string | null>(null);
+
+  const lookupAddress = async () => {
+    if (!address.trim()) {
+      toast({ title: "Enter your address first", variant: "destructive" });
+      return;
+    }
+    setLookingUp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("zillow-lookup", {
+        body: { address: address.trim() },
+      });
+      if (error) throw error;
+      const addrMatch = address.match(/,\s*([^,]+?),\s*([A-Za-z]{2})\s*\d{0,5}\s*$/);
+      if (data?.success && data.data) {
+        const z = data.data;
+        setCity(z.city || addrMatch?.[1]?.trim() || city);
+        setState((z.state || addrMatch?.[2] || state || "").toUpperCase());
+        if (z.home_type) setHomeType(z.home_type);
+        if (z.year_built) setYearBuilt(String(z.year_built));
+        if (z.square_feet) setSquareFeet(String(z.square_feet));
+        if (z.hvac_type) setHvacType(z.hvac_type);
+        if (z.roof_type) setRoofType(z.roof_type);
+        if (typeof z.has_pool === "boolean") setHasPool(z.has_pool);
+        setLookedUp(true);
+        toast({ title: "Home details found!", description: "We pre-filled what we could — review below and adjust anything." });
+      } else {
+        if (addrMatch) {
+          setCity(addrMatch[1].trim());
+          setState(addrMatch[2].toUpperCase());
+        }
+        setLookedUp(true);
+        toast({
+          title: "Couldn't find that property",
+          description: data?.error || "Fill in the details below manually and you're good to go.",
+          variant: "destructive",
+        });
+      }
+    } catch (e: any) {
+      console.error("Address lookup error:", e);
+      setLookedUp(true);
+      toast({ title: "Lookup failed", description: "You can still enter the details manually.", variant: "destructive" });
+    } finally {
+      setLookingUp(false);
+    }
+  };
 
   const next = async () => {
     if (step === 1) {
@@ -34,7 +86,7 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
       return;
     }
     if (step === 2) {
-      if (!city.trim() || !state.trim()) return toast({ title: "Add a city and state so we can tailor maintenance", variant: "destructive" });
+      if (!city.trim() || !state.trim()) return toast({ title: "Add your address (or city and state) so we can tailor maintenance", variant: "destructive" });
       setBusy(true);
       try {
         const { data, error } = await supabase.from("homes").insert([{
@@ -44,6 +96,10 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
           city: city.trim(),
           state: state.trim().toUpperCase(),
           year_built: yearBuilt ? parseInt(yearBuilt) : null,
+          square_feet: squareFeet ? parseInt(squareFeet) : null,
+          hvac_type: hvacType,
+          roof_type: roofType,
+          ...(hasPool !== null ? { has_pool: hasPool } : {}),
         }]).select("id").single();
         if (error) throw error;
         setHomeId(data.id);
@@ -59,6 +115,7 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
       onComplete(homeId);
     }
   };
+
 
   const progress = (step / 3) * 100;
 
