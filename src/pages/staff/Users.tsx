@@ -56,6 +56,7 @@ const Users = () => {
   const [deleting, setDeleting] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [archived, setArchived] = useState<ArchivedUser[]>([]);
+  const [emails, setEmails] = useState<Record<string, string>>({});
 
 
   useEffect(() => { load(); }, []);
@@ -63,6 +64,14 @@ const Users = () => {
   const load = async () => {
     const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
     setProfiles(data || []);
+    const { data: emailRows } = await supabase.rpc("admin_list_user_emails");
+    if (emailRows) {
+      const map: Record<string, string> = {};
+      (emailRows as { user_id: string; email: string | null }[]).forEach((r) => {
+        if (r.email) map[r.user_id] = r.email;
+      });
+      setEmails(map);
+    }
   };
 
   const loadNotes = async (profileId: string) => {
@@ -76,7 +85,11 @@ const Users = () => {
     if (filter === "homeowner" && p.user_type !== "homeowner") return false;
     if (filter === "provider" && p.user_type !== "provider") return false;
     if (filter === "suspended" && !p.suspended) return false;
-    if (search && !p.full_name.toLowerCase().includes(search.toLowerCase()) && !p.id.includes(search)) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      const email = (emails[p.id] || "").toLowerCase();
+      if (!p.full_name.toLowerCase().includes(q) && !p.id.includes(search) && !email.includes(q)) return false;
+    }
     return true;
   });
 
@@ -165,7 +178,7 @@ const Users = () => {
       <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Search by name or ID..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input className="pl-9" placeholder="Search by name, email, or ID..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="flex gap-2 flex-wrap">
           {(["all", "homeowner", "provider", "suspended"] as const).map((f) => (
@@ -186,6 +199,7 @@ const Users = () => {
             <thead className="bg-muted/40 text-xs text-muted-foreground">
               <tr>
                 <th className="text-left py-3 px-4 font-medium">Name</th>
+                <th className="text-left py-3 px-4 font-medium">Email</th>
                 <th className="text-left py-3 px-4 font-medium">Type</th>
                 <th className="text-left py-3 px-4 font-medium">Tier</th>
                 <th className="text-left py-3 px-4 font-medium">Joined</th>
@@ -197,6 +211,7 @@ const Users = () => {
               {filtered.map((p) => (
                 <tr key={p.id} className="border-t border-border hover:bg-accent/50">
                   <td className="py-3 px-4 font-medium">{p.full_name || "(no name)"}</td>
+                  <td className="py-3 px-4 text-muted-foreground text-xs">{emails[p.id] || "—"}</td>
                   <td className="py-3 px-4 text-muted-foreground capitalize">{p.user_type}</td>
                   <td className="py-3 px-4">
                     {p.subscription_tier !== "free" ? (
@@ -213,7 +228,7 @@ const Users = () => {
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr><td colSpan={6} className="py-8 text-center text-muted-foreground text-sm">No users match</td></tr>
+                <tr><td colSpan={7} className="py-8 text-center text-muted-foreground text-sm">No users match</td></tr>
               )}
             </tbody>
           </table>
@@ -226,6 +241,7 @@ const Users = () => {
             <>
               <DialogHeader>
                 <DialogTitle>{selected.full_name || "(no name)"}</DialogTitle>
+                {emails[selected.id] && <p className="text-sm text-muted-foreground">{emails[selected.id]}</p>}
                 <p className="text-xs text-muted-foreground font-mono">{selected.id}</p>
               </DialogHeader>
 
