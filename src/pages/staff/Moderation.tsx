@@ -33,11 +33,13 @@ const Moderation = () => {
     let q = supabase.from("reviews").select("*").order("created_at", { ascending: false });
     if (filter === "flagged") q = q.eq("flagged", true);
     if (filter === "hidden") q = q.eq("hidden", true);
-    const { data } = await q;
+    const { data, error } = await q;
+    if (error) { toast.error(error.message); return; }
     const rs = (data as Review[]) || [];
     setReviews(rs);
     if (rs.length > 0) {
-      const { data: provs } = await supabase.from("providers").select("id, business_name").in("id", rs.map((r) => r.provider_id));
+      const { data: provs, error: provsErr } = await supabase.from("providers").select("id, business_name").in("id", rs.map((r) => r.provider_id));
+      if (provsErr) { toast.error(provsErr.message); return; }
       const map: Record<string, string> = {};
       (provs || []).forEach((p: any) => { map[p.id] = p.business_name; });
       setProviders(map);

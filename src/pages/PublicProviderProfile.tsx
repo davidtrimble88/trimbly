@@ -385,7 +385,7 @@ const PublicProviderProfile = () => {
                     <Button
                       className="w-full rounded-lg"
                       size="lg"
-                      onClick={() => user ? navigate(`/search?provider=${provider.id}`) : setGateOpen(true)}
+                      onClick={() => user ? navigate(`/messages?partner=${provider.user_id}`) : setGateOpen(true)}
                     >
                       <MessageSquare size={15} className="mr-1.5" /> Message
                     </Button>

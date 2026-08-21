@@ -51,10 +51,17 @@ const QuoteView = () => {
   const [providerName, setProviderName] = useState("");
   const [loading, setLoading] = useState(true);
   const [actioning, setActioning] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase.from("quotes").select("*").eq("id", quoteId).maybeSingle();
+    setLoadError(null);
+    const { data, error } = await supabase.from("quotes").select("*").eq("id", quoteId).maybeSingle();
+    if (error) {
+      setLoadError(error.message);
+      setLoading(false);
+      return;
+    }
     if (data) {
       setQuote(data as unknown as QuoteRow);
       const { data: prov } = await supabase
@@ -91,6 +98,23 @@ const QuoteView = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <main className="flex-1 pt-24 pb-16 container mx-auto px-4 max-w-md text-center py-16">
+          <h1 className="text-2xl font-bold mb-2">Couldn't load quote</h1>
+          <p className="text-muted-foreground mb-6">{loadError}</p>
+          <div className="flex justify-center gap-2">
+            <Button variant="outline" onClick={() => navigate(-1)}>Back</Button>
+            <Button onClick={load}>Try again</Button>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }

@@ -120,7 +120,8 @@ export default function GarageJobs() {
 
   const deleteJob = async (id: string) => {
     if (!confirm("Delete this job?")) return;
-    await supabase.from("vehicle_jobs").delete().eq("id", id);
+    const { error } = await supabase.from("vehicle_jobs").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
     setJobs((p) => p.filter((j) => j.id !== id));
     toast.success("Job deleted");
   };

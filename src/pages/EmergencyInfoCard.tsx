@@ -50,10 +50,15 @@ const EmergencyInfoCard = () => {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data } = await (supabase.from("homes") as any)
+      const { data, error } = await (supabase.from("homes") as any)
         .select("id, name, water_shutoff_location, gas_shutoff_location, electrical_panel_location, emergency_notes, emergency_contact_name, emergency_contact_phone")
         .eq("user_id", user.id)
         .order("created_at", { ascending: true });
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+        setLoading(false);
+        return;
+      }
       const list = (data as EmergencyHome[]) || [];
       setHomes(list);
       if (list.length > 0) {

@@ -34,11 +34,13 @@ const Jobs = () => {
   useEffect(() => { load(); }, []);
 
   const load = async () => {
-    const { data } = await supabase.from("jobs").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("jobs").select("*").order("created_at", { ascending: false });
+    if (error) { toast.error(error.message); return; }
     const list = (data as Job[]) || [];
     setJobs(list);
     if (list.length > 0) {
-      const { data: bids } = await supabase.from("job_bids").select("job_id").in("job_id", list.map((j) => j.id));
+      const { data: bids, error: bidsErr } = await supabase.from("job_bids").select("job_id").in("job_id", list.map((j) => j.id));
+      if (bidsErr) { toast.error(bidsErr.message); return; }
       const counts: Record<string, number> = {};
       (bids || []).forEach((b: any) => { counts[b.job_id] = (counts[b.job_id] || 0) + 1; });
       setBidsByJob(counts);

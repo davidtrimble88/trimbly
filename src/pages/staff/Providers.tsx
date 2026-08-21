@@ -74,7 +74,8 @@ const Providers = () => {
   useEffect(() => { load(); }, []);
 
   const load = async () => {
-    const { data } = await supabase.from("providers").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("providers").select("*").order("created_at", { ascending: false });
+    if (error) { toast.error(error.message); return; }
     setProviders((data as Provider[]) || []);
   };
 
@@ -82,11 +83,13 @@ const Providers = () => {
     if (expandedId === providerId) { setExpandedId(null); return; }
     setExpandedId(providerId);
     if (!verifications[providerId]) {
-      const { data: v } = await supabase.from("provider_verifications").select("*").eq("provider_id", providerId).maybeSingle();
+      const { data: v, error: vErr } = await supabase.from("provider_verifications").select("*").eq("provider_id", providerId).maybeSingle();
+      if (vErr) { toast.error(vErr.message); return; }
       if (v) setVerifications((prev) => ({ ...prev, [providerId]: v as Verification }));
     }
     if (!docs[providerId]) {
-      const { data: d } = await supabase.from("provider_documents").select("*").eq("provider_id", providerId).order("created_at", { ascending: false });
+      const { data: d, error: dErr } = await supabase.from("provider_documents").select("*").eq("provider_id", providerId).order("created_at", { ascending: false });
+      if (dErr) { toast.error(dErr.message); return; }
       setDocs((prev) => ({ ...prev, [providerId]: (d as ProviderDoc[]) || [] }));
     }
   };

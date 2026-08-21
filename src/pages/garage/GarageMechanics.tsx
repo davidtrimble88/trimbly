@@ -30,7 +30,8 @@ export default function GarageMechanics() {
     setLoading(true);
     let query = supabase.from("providers").select("id, business_name, category, city, state, slug, subscription_tier, verified");
     query = query.or(AUTO_CATEGORIES.map((c) => `category.ilike.%${c}%`).join(",") + ",business_name.ilike.%mechanic%,business_name.ilike.%auto%,business_name.ilike.%motorcycle%");
-    if (q.trim()) query = query.or(`business_name.ilike.%${q}%,city.ilike.%${q}%,state.ilike.%${q}%`);
+    const safeQ = q.replace(/[,.]/g, "");
+    if (safeQ.trim()) query = query.or(`business_name.ilike.%${safeQ}%,city.ilike.%${safeQ}%,state.ilike.%${safeQ}%`);
     if (vehicleType === "motorcycle") query = query.ilike("category", "%motorcycle%");
     if (verifiedOnly) query = query.eq("verified", true);
     const { data } = await query.limit(50);

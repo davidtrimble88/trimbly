@@ -100,11 +100,16 @@ const CoverageAdvisor = () => {
     if (!user) return;
     (async () => {
       setLoadingDocs(true);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("coverage_documents")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+        setLoadingDocs(false);
+        return;
+      }
       setDocs((data as CoverageDoc[]) || []);
       setLoadingDocs(false);
     })();
@@ -174,8 +179,12 @@ const CoverageAdvisor = () => {
     } else {
       toast({ title: "Uploaded", description: `${file.name} added successfully.` });
       // Refresh
-      const { data } = await supabase.from("coverage_documents").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
-      setDocs((data as CoverageDoc[]) || []);
+      const { data, error: refreshErr } = await supabase.from("coverage_documents").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+      if (refreshErr) {
+        toast({ title: "Error", description: refreshErr.message, variant: "destructive" });
+      } else {
+        setDocs((data as CoverageDoc[]) || []);
+      }
     }
     setUploading(false);
     e.target.value = "";

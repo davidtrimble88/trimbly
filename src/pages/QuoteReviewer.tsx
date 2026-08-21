@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FileWarning, Loader2, ShieldAlert, ShieldCheck, AlertTriangle, CheckCircle2,
   HelpCircle, ArrowRight, Crown, Home as HomeIcon,
@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
 import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
@@ -42,7 +44,24 @@ const QuoteReviewer = () => {
   const [loading, setLoading] = useState(false);
   const [review, setReview] = useState<QuoteReview | null>(null);
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <main className="pt-24 pb-16">
+          <div className="container mx-auto px-4 max-w-2xl text-center py-20">
+            <FileWarning size={48} className="mx-auto text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-bold text-foreground mb-2">Sign in to use the Quote & Contract Reviewer</h2>
+            <p className="text-muted-foreground mb-6">
+              Paste a contractor's quote or contract and get an instant red-flag check before you sign.
+            </p>
+            <Button asChild><Link to="/auth">Sign In / Sign Up</Link></Button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   const handleSubmit = async () => {
     if (quoteText.trim().length < 20) {

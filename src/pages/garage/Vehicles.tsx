@@ -73,7 +73,12 @@ export default function GarageVehicles() {
 
   const load = async () => {
     if (!user) return;
-    const { data } = await supabase.from("vehicles").select("*").eq("owner_user_id", user.id).order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("vehicles").select("*").eq("owner_user_id", user.id).order("created_at", { ascending: false });
+    if (error) {
+      toast.error(error.message || "Failed to load vehicles");
+      setLoading(false);
+      return;
+    }
     setVehicles((data as Vehicle[]) || []);
     setLoading(false);
   };

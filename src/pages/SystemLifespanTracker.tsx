@@ -11,6 +11,7 @@ import { tierLabels } from "@/components/dashboard/homeowner/types";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
 import { useGarageSubscription } from "@/hooks/useGarageSubscription";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { matchLifespan, lifespanStatus, type LifespanStatus } from "@/lib/systemLifespans";
 
@@ -39,6 +40,7 @@ const SystemLifespanTracker = () => {
   const navigate = useNavigate();
   const { isPro, subscriptionTier, loading: limitLoading } = useHomeLimit();
   const { active: hasGarage } = useGarageSubscription();
+  const { toast } = useToast();
 
   const [homes, setHomes] = useState<HomeRow[]>([]);
   const [items, setItems] = useState<BinderRow[]>([]);
@@ -47,12 +49,22 @@ const SystemLifespanTracker = () => {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: homesData } = await supabase.from("homes").select("id, name").eq("user_id", user.id);
+      const { data: homesData, error: homesError } = await supabase.from("homes").select("id, name").eq("user_id", user.id);
+      if (homesError) {
+        toast({ title: "Error", description: homesError.message, variant: "destructive" });
+        setLoading(false);
+        return;
+      }
       const homesList = (homesData as HomeRow[]) || [];
       setHomes(homesList);
       const homeIds = homesList.map((h) => h.id);
       if (homeIds.length === 0) { setLoading(false); return; }
-      const { data } = await supabase.from("home_binder_items").select("id, name, home_id, purchase_date").in("home_id", homeIds);
+      const { data, error } = await supabase.from("home_binder_items").select("id, name, home_id, purchase_date").in("home_id", homeIds);
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+        setLoading(false);
+        return;
+      }
       setItems((data as BinderRow[]) || []);
       setLoading(false);
     })();

@@ -19,6 +19,7 @@ export default function GarageDashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [expiring, setExpiring] = useState<Doc[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
@@ -42,6 +43,12 @@ export default function GarageDashboard() {
         supabase.from("vehicle_maintenance_tasks").select("*").eq("owner_user_id", user.id).neq("status", "done").order("next_due_date", { ascending: true, nullsFirst: false }).limit(8),
         supabase.from("vehicle_documents").select("*").eq("owner_user_id", user.id).not("expires_on", "is", null).lte("expires_on", new Date(Date.now() + 60 * 86400000).toISOString().slice(0,10)).order("expires_on", { ascending: true }),
       ]);
+      if (v.error || t.error || d.error) {
+        toast.error(v.error?.message || t.error?.message || d.error?.message || "Failed to load your garage");
+        setError(true);
+        setLoading(false);
+        return;
+      }
       setVehicles((v.data as Vehicle[]) || []);
       setTasks((t.data as Task[]) || []);
       setExpiring((d.data as Doc[]) || []);
@@ -59,6 +66,18 @@ export default function GarageDashboard() {
       </div>
     </div>
   );
+
+  if (error) {
+    return (
+      <Card className="text-center">
+        <CardContent className="p-10">
+          <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-3" />
+          <h2 className="font-display text-xl font-bold mb-1">Couldn't load your garage</h2>
+          <p className="text-sm text-muted-foreground">Something went wrong loading your data. Please try again.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (vehicles.length === 0) {
     return (

@@ -12,6 +12,7 @@ export default function HomeReport() {
   const [binderItems, setBinderItems] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -22,6 +23,12 @@ export default function HomeReport() {
         supabase.from("home_binder_items").select("*").eq("home_id", id),
         supabase.from("maintenance_tasks").select("*").eq("home_id", id).order("title"),
       ]);
+      const queryError = h.error || j.error || b.error || t.error;
+      if (queryError) {
+        setError(queryError.message);
+        setLoading(false);
+        return;
+      }
       setHome(h.data);
       setJobs(j.data || []);
       setBinderItems(b.data || []);
@@ -37,6 +44,7 @@ export default function HomeReport() {
       <Skeleton className="h-48 w-full" />
     </div>
   );
+  if (error) return <p className="p-6 text-sm text-destructive">Couldn't load this report: {error}</p>;
   if (!home) return <p className="p-6 text-sm text-muted-foreground">Home not found.</p>;
 
   return (

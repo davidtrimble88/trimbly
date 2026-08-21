@@ -161,6 +161,12 @@ const Messages = () => {
       partnerIds.add(partnerId);
       if (m.provider_id) providerIds.add(m.provider_id);
     });
+    // A conversation started from a "Message" button elsewhere (e.g. a pro's
+    // public profile) opens with a partner id that has no message history
+    // yet, so it wouldn't otherwise be in this lookup — include it so the
+    // header shows their real name instead of "Unknown".
+    const linkedPartnerId = searchParams.get("partner");
+    if (linkedPartnerId) partnerIds.add(linkedPartnerId);
 
     if (partnerIds.size > 0) {
       const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", [...partnerIds]);
@@ -304,14 +310,22 @@ const Messages = () => {
       const providerName = conv.id.replace("pending-", "");
       const ids = pendingMessages.filter((pm) => pm.provider_name === providerName).map((pm) => pm.id);
       if (ids.length > 0) {
-        await supabase.from("pending_messages").delete().in("id", ids);
+        const { error } = await supabase.from("pending_messages").delete().in("id", ids);
+        if (error) {
+          toast({ title: "Failed to delete conversation", description: error.message, variant: "destructive" });
+          return;
+        }
       }
     } else {
       const ids = messages
         .filter((m) => (m.sender_id === user.id && m.recipient_id === conv.id) || (m.sender_id === conv.id && m.recipient_id === user.id))
         .map((m) => m.id);
       if (ids.length > 0) {
-        await supabase.from("messages").delete().in("id", ids);
+        const { error } = await supabase.from("messages").delete().in("id", ids);
+        if (error) {
+          toast({ title: "Failed to delete conversation", description: error.message, variant: "destructive" });
+          return;
+        }
       }
     }
 
@@ -323,17 +337,19 @@ const Messages = () => {
   const handleBlockProvider = async (conv: ConversationPartner) => {
     if (!user) return;
 
-    if (conv.isPending) {
-      const providerName = conv.id.replace("pending-", "");
-      await supabase.from("blocked_providers").insert({
-        user_id: user.id,
-        provider_name: providerName,
-      });
-    } else {
-      await supabase.from("blocked_providers").insert({
-        user_id: user.id,
-        provider_user_id: conv.id,
-      });
+    const { error } = conv.isPending
+      ? await supabase.from("blocked_providers").insert({
+          user_id: user.id,
+          provider_name: conv.id.replace("pending-", ""),
+        })
+      : await supabase.from("blocked_providers").insert({
+          user_id: user.id,
+          provider_user_id: conv.id,
+        });
+
+    if (error) {
+      toast({ title: "Failed to block provider", description: error.message, variant: "destructive" });
+      return;
     }
 
     toast({ title: "Provider blocked", description: `${conv.name} has been blocked.` });
@@ -343,11 +359,13 @@ const Messages = () => {
   const handleUnblock = async (conv: ConversationPartner) => {
     if (!user) return;
 
-    if (conv.isPending) {
-      const providerName = conv.id.replace("pending-", "");
-      await supabase.from("blocked_providers").delete().eq("user_id", user.id).eq("provider_name", providerName);
-    } else {
-      await supabase.from("blocked_providers").delete().eq("user_id", user.id).eq("provider_user_id", conv.id);
+    const { error } = conv.isPending
+      ? await supabase.from("blocked_providers").delete().eq("user_id", user.id).eq("provider_name", conv.id.replace("pending-", ""))
+      : await supabase.from("blocked_providers").delete().eq("user_id", user.id).eq("provider_user_id", conv.id);
+
+    if (error) {
+      toast({ title: "Failed to unblock provider", description: error.message, variant: "destructive" });
+      return;
     }
 
     toast({ title: "Provider unblocked" });
@@ -573,7 +591,7 @@ const Messages = () => {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-foreground">{selectedPartner?.name || "Unknown"}</p>
+                          <p className="text-sm font-semibold text-foreground">{selectedPartner?.name || (selectedPartnerId && profiles[selectedPartnerId]) || "Unknown"}</p>
                           {selectedPartner && <StatusBadge status={selectedPartner.chatStatus} large />}
                         </div>
                         {isPendingConversation ? (

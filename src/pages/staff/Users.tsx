@@ -64,9 +64,11 @@ const Users = () => {
   useEffect(() => { load(); }, []);
 
   const load = async () => {
-    const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
+    if (error) { toast.error(error.message); return; }
     setProfiles(data || []);
-    const { data: emailRows } = await supabase.rpc("admin_list_user_emails");
+    const { data: emailRows, error: emailErr } = await supabase.rpc("admin_list_user_emails");
+    if (emailErr) { toast.error(emailErr.message); return; }
     if (emailRows) {
       const map: Record<string, string> = {};
       (emailRows as { user_id: string; email: string | null }[]).forEach((r) => {
@@ -74,7 +76,8 @@ const Users = () => {
       });
       setEmails(map);
     }
-    const { data: roleRows } = await supabase.from("user_roles").select("user_id,role");
+    const { data: roleRows, error: roleErr } = await supabase.from("user_roles").select("user_id,role");
+    if (roleErr) { toast.error(roleErr.message); return; }
     if (roleRows) {
       const rmap: Record<string, string[]> = {};
       (roleRows as { user_id: string; role: string }[]).forEach((r) => {
@@ -90,7 +93,8 @@ const Users = () => {
     (roles[p.id] || []).some((r) => STAFF_ROLES.includes(r));
 
   const loadNotes = async (profileId: string) => {
-    const { data } = await supabase.from("staff_notes").select("*").eq("entity_type", "user").eq("entity_id", profileId).order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("staff_notes").select("*").eq("entity_type", "user").eq("entity_id", profileId).order("created_at", { ascending: false });
+    if (error) { toast.error(error.message); return; }
     setNotes(data || []);
   };
 

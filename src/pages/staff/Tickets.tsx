@@ -69,7 +69,8 @@ const StaffTickets = () => {
     const rows = (data || []) as TicketRow[];
     const userIds = [...new Set(rows.map((r) => r.user_id))];
     if (userIds.length) {
-      const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", userIds);
+      const { data: profs, error: profsErr } = await supabase.from("profiles").select("id, full_name").in("id", userIds);
+      if (profsErr) { toast({ title: "Failed to load reporters", description: profsErr.message, variant: "destructive" }); return; }
       const nameMap = new Map((profs || []).map((p: any) => [p.id, p.full_name]));
       rows.forEach((r) => { r.reporter_name = nameMap.get(r.user_id) || "Unknown"; });
     }
@@ -88,7 +89,8 @@ const StaffTickets = () => {
     const rows = (data || []) as CommentRow[];
     const authorIds = [...new Set(rows.map((r) => r.author_id))];
     if (authorIds.length) {
-      const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", authorIds);
+      const { data: profs, error: profsErr } = await supabase.from("profiles").select("id, full_name").in("id", authorIds);
+      if (profsErr) { toast({ title: "Failed to load commenters", description: profsErr.message, variant: "destructive" }); return; }
       const nameMap = new Map((profs || []).map((p: any) => [p.id, p.full_name]));
       rows.forEach((r) => { r.author_name = nameMap.get(r.author_id) || (r.is_staff ? "Staff" : "User"); });
     }

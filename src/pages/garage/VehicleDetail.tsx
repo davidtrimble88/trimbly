@@ -35,6 +35,11 @@ export default function VehicleDetail() {
       supabase.from("vehicle_maintenance_tasks").select("*").eq("vehicle_id", id).order("next_due_date", { ascending: true, nullsFirst: false }),
       supabase.from("vehicle_documents").select("*").eq("vehicle_id", id).order("created_at", { ascending: false }),
     ]);
+    if (v.error || s.error || t.error || d.error) {
+      toast.error(v.error?.message || s.error?.message || t.error?.message || d.error?.message || "Failed to load vehicle");
+      setLoading(false);
+      return;
+    }
     setVehicle(v.data);
     setServices(s.data || []);
     setTasks(t.data || []);

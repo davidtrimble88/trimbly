@@ -265,6 +265,7 @@ const Dashboard = () => {
     <>
       <OnboardingTour
         storageKey={`hh-tour-homeowner-${user.id}`}
+        suppressAutoOpen={loadingHomes || showWizard}
         intro={{
           title: `Welcome to Trimbly, ${displayName?.split(" ")[0] || "friend"}!`,
           body: "Let's take a quick tour of your dashboard so you know where everything lives. It'll only take a minute.",
@@ -309,7 +310,7 @@ const Dashboard = () => {
                 <Crown size={12} className="text-primary" /> {tierLabels[subscriptionTier] ?? "Free"}
               </Badge>
               <span className="text-xs text-muted-foreground">
-                {maxHomes} home{maxHomes !== 1 ? "s" : ""} · {maxBinderItems === Infinity ? "Unlimited" : maxBinderItems} binder items
+                {homeCount}/{maxHomes} home{maxHomes !== 1 ? "s" : ""} · {allBinderItems.length} binder item{allBinderItems.length !== 1 ? "s" : ""}
               </span>
             </>
           ),

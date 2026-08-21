@@ -25,6 +25,7 @@ const MyQR = () => {
     state: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const profileUrl = provider
     ? `${window.location.origin}${provider.slug ? `/pros/${provider.slug}` : `/pro/${provider.id}`}`
@@ -37,11 +38,16 @@ const MyQR = () => {
   useEffect(() => {
     if (!user) return;
     const loadProvider = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("providers")
         .select("id, slug, business_name, category, city, state")
         .eq("user_id", user.id)
         .maybeSingle();
+      if (error) {
+        setLoadError(error.message);
+        setLoading(false);
+        return;
+      }
       setProvider(data);
       setLoading(false);
     };
@@ -124,6 +130,42 @@ const MyQR = () => {
         <Navbar />
         <main className="flex-1 flex items-center justify-center">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center max-w-md px-4">
+            <QrCode className="mx-auto text-muted-foreground mb-4" size={48} />
+            <h2 className="text-xl font-bold text-foreground mb-2">Couldn't load your QR code</h2>
+            <p className="text-muted-foreground mb-6">{loadError}</p>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!provider) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center max-w-md px-4">
+            <QrCode className="mx-auto text-muted-foreground mb-4" size={48} />
+            <h2 className="text-xl font-bold text-foreground mb-2">No provider profile found</h2>
+            <p className="text-muted-foreground mb-6">
+              You'll need a provider profile before you can generate a QR code.
+            </p>
+            <Button onClick={() => navigate("/pro-dashboard")}>Back to Dashboard</Button>
+          </div>
         </main>
         <Footer />
       </div>

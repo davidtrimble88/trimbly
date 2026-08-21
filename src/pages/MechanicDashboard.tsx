@@ -94,7 +94,11 @@ export default function MechanicDashboard() {
   const toggleAvailable = async () => {
     if (!provider) return;
     const v = !provider.available;
-    await supabase.from("providers").update({ available: v }).eq("id", provider.id);
+    const { error } = await supabase.from("providers").update({ available: v }).eq("id", provider.id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
     setProvider({ ...provider, available: v });
     toast({ title: v ? "You're now available" : "You're now unavailable" });
   };

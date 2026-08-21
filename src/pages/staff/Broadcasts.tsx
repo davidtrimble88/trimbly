@@ -41,24 +41,29 @@ const Broadcasts = () => {
   useEffect(() => { computePreview(); }, [audience]);
 
   const load = async () => {
-    const { data } = await supabase.from("broadcasts").select("*").order("sent_at", { ascending: false }).limit(20);
+    const { data, error } = await supabase.from("broadcasts").select("*").order("sent_at", { ascending: false }).limit(20);
+    if (error) { toast.error(error.message); return; }
     setHistory((data as Broadcast[]) || []);
   };
 
   const getRecipientIds = async (): Promise<string[]> => {
     if (audience === "homeowners") {
-      const { data } = await supabase.from("profiles").select("id").eq("user_type", "homeowner").eq("suspended", false);
+      const { data, error } = await supabase.from("profiles").select("id").eq("user_type", "homeowner").eq("suspended", false);
+      if (error) { toast.error(error.message); return []; }
       return (data || []).map((p) => p.id);
     }
     if (audience === "providers") {
-      const { data } = await supabase.from("profiles").select("id").eq("user_type", "provider").eq("suspended", false);
+      const { data, error } = await supabase.from("profiles").select("id").eq("user_type", "provider").eq("suspended", false);
+      if (error) { toast.error(error.message); return []; }
       return (data || []).map((p) => p.id);
     }
     if (audience === "pro_subscribers") {
-      const { data } = await supabase.from("profiles").select("id").neq("subscription_tier", "free").eq("suspended", false);
+      const { data, error } = await supabase.from("profiles").select("id").neq("subscription_tier", "free").eq("suspended", false);
+      if (error) { toast.error(error.message); return []; }
       return (data || []).map((p) => p.id);
     }
-    const { data } = await supabase.from("profiles").select("id").eq("suspended", false);
+    const { data, error } = await supabase.from("profiles").select("id").eq("suspended", false);
+    if (error) { toast.error(error.message); return []; }
     return (data || []).map((p) => p.id);
   };
 

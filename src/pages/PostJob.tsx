@@ -437,7 +437,11 @@ const PostJob = () => {
   };
 
   const updateBidStatus = async (bidId: string, jobId: string, status: string) => {
-    await supabase.from("job_bids").update({ status }).eq("id", bidId);
+    const { error } = await supabase.from("job_bids").update({ status }).eq("id", bidId);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
     loadBids(jobId);
     toast({ title: status === "accepted" ? "Bid accepted!" : "Bid rejected" });
   };
@@ -447,7 +451,11 @@ const PostJob = () => {
     const updates = !current
       ? { call_approved: true }
       : { call_approved: false, phone_number: null };
-    await supabase.from("job_bids").update(updates).eq("id", bidId);
+    const { error } = await supabase.from("job_bids").update(updates).eq("id", bidId);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
     loadBids(jobId);
     toast({ title: !current ? "Call approved" : "Call permission revoked" });
   };
@@ -501,7 +509,11 @@ const PostJob = () => {
   };
 
   const deleteJob = async (jobId: string) => {
-    await supabase.from("jobs").delete().eq("id", jobId);
+    const { error } = await supabase.from("jobs").delete().eq("id", jobId);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
     setJobs((prev) => prev.filter((j) => j.id !== jobId));
     toast({ title: "Job deleted" });
   };

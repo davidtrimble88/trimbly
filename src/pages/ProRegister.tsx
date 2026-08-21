@@ -128,7 +128,7 @@ const ProRegister = () => {
         const { url, error: checkoutErr } = await startProviderSubscriptionCheckout("pro");
         if (checkoutErr) {
           toast({ title: "Couldn't start upgrade", description: `${checkoutErr} You're set up on the Free plan for now — you can upgrade anytime from your dashboard.`, variant: "destructive" });
-          navigate("/search");
+          navigate("/pro-dashboard");
         } else if (url) {
           window.location.href = url;
         }
@@ -137,7 +137,7 @@ const ProRegister = () => {
       }
 
       toast({ title: "Welcome aboard! 🎉", description: "Your pro profile has been created. Homeowners can now find you." });
-      navigate("/search");
+      navigate("/pro-dashboard");
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }

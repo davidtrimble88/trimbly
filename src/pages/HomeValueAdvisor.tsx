@@ -61,7 +61,13 @@ const HomeValueAdvisor = () => {
       .select("id, name, home_type, year_built, square_feet, city, state")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true })
-      .then(({ data }) => setHomes((data as HomeOption[]) || []));
+      .then(({ data, error }) => {
+        if (error) {
+          toast({ title: "Error", description: error.message, variant: "destructive" });
+          return;
+        }
+        setHomes((data as HomeOption[]) || []);
+      });
   }, [user]);
 
   if (!user) {

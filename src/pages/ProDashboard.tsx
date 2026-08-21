@@ -171,7 +171,11 @@ const ProDashboard = () => {
   const toggleAvailability = async () => {
     if (!provider) return;
     const newVal = !provider.available;
-    await supabase.from("providers").update({ available: newVal }).eq("id", provider.id);
+    const { error } = await supabase.from("providers").update({ available: newVal }).eq("id", provider.id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
     setProvider({ ...provider, available: newVal });
     toast({ title: newVal ? "You're now available" : "You're now unavailable" });
   };

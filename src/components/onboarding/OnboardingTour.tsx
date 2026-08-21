@@ -18,6 +18,12 @@ interface Props {
   intro?: { title: string; body: string };
   /** When provided, the default floating "Replay tour" button is suppressed and this is called once on mount with the replay function, so the caller can wire its own trigger (e.g. a sidebar menu item) elsewhere in the tree. */
   onReplayReady?: (replay: () => void) => void;
+  /** While true, the first-visit auto-open is held back (e.g. while another
+   * modal — like a home-setup wizard — is on screen, or its own visibility
+   * is still resolving), so the two never stack. Once this goes false the
+   * tour still only opens if the user hasn't seen it before. Has no effect
+   * on manually triggered replays. */
+  suppressAutoOpen?: boolean;
 }
 
 interface Rect { top: number; left: number; width: number; height: number; }
@@ -37,20 +43,21 @@ function findTargetRect(selector?: string): Rect | null {
   return { top: r.top, left: r.left, width: r.width, height: r.height };
 }
 
-export function OnboardingTour({ storageKey, steps, intro, onReplayReady }: Props) {
+export function OnboardingTour({ storageKey, steps, intro, onReplayReady, suppressAutoOpen }: Props) {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(-1); // -1 = intro
   const [targetRect, setTargetRect] = useState<Rect | null>(null);
   const rafRef = useRef<number>();
 
   useEffect(() => {
+    if (suppressAutoOpen) return;
     try {
       if (!localStorage.getItem(storageKey)) {
         setOpen(true);
         setIndex(intro ? -1 : 0);
       }
     } catch {}
-  }, [storageKey, intro]);
+  }, [storageKey, intro, suppressAutoOpen]);
 
   const replay = () => {
     setIndex(intro ? -1 : 0);
