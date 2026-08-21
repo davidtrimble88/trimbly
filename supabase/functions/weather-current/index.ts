@@ -61,17 +61,29 @@ Deno.serve(async (req) => {
     }
 
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-      `&current=temperature_2m,weather_code,is_day&temperature_unit=fahrenheit&timezone=auto`;
+      `&current=temperature_2m,weather_code,is_day` +
+      `&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max` +
+      `&temperature_unit=fahrenheit&timezone=auto&forecast_days=5`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Open-Meteo current-weather failed (${res.status})`);
     const json = await res.json();
     const current = json?.current;
     if (!current) throw new Error("No current-conditions data returned");
 
+    const daily = json?.daily;
+    const forecast = (daily?.time || []).map((date: string, i: number) => ({
+      date,
+      tempMaxF: Math.round(daily.temperature_2m_max[i]),
+      tempMinF: Math.round(daily.temperature_2m_min[i]),
+      weatherCode: daily.weather_code[i],
+      precipProbability: daily.precipitation_probability_max?.[i] ?? null,
+    }));
+
     return new Response(JSON.stringify({
       tempF: Math.round(current.temperature_2m),
       weatherCode: current.weather_code,
       isDay: current.is_day === 1,
+      forecast,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

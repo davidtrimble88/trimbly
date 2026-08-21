@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import StatCard from "@/components/dashboard/StatCard";
 import WeatherAlertsBanner from "@/components/home/WeatherAlertsBanner";
+import WeatherForecastStrip from "@/components/home/WeatherForecastStrip";
 import HomeCard from "./HomeCard";
 import type { HomeData, HomeStats, TaskRow, DrilldownInfo } from "./types";
 
@@ -33,6 +34,7 @@ const MyHomesTab = ({
 
   return (
     <div className="mb-12">
+      {homes.length > 0 && <WeatherForecastStrip homeId={homes[0].id} />}
       <WeatherAlertsBanner homeIds={homes.map((h) => h.id)} />
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-foreground flex items-center gap-2">

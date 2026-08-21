@@ -1,23 +1,9 @@
 import { useEffect, useState } from "react";
-import { Sun, Cloud, CloudRain, CloudSnow, CloudLightning, CloudFog, Moon, CloudMoon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { iconForWeatherCode } from "@/lib/weatherIcons";
 
 interface Props {
   homeId: string;
-}
-
-// Open-Meteo WMO weather codes collapsed into a handful of icon buckets —
-// see https://open-meteo.com/en/docs for the full table.
-function iconFor(code: number, isDay: boolean) {
-  if (code === 0 || code === 1) return isDay ? Sun : Moon;
-  if (code === 2) return isDay ? Cloud : CloudMoon;
-  if (code === 3) return Cloud;
-  if (code >= 45 && code <= 48) return CloudFog;
-  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return CloudRain;
-  if (code >= 71 && code <= 77) return CloudSnow;
-  if (code >= 85 && code <= 86) return CloudSnow;
-  if (code >= 95) return CloudLightning;
-  return Cloud;
 }
 
 /** Small ambient "what's it like outside" chip for a home — passive,
@@ -41,7 +27,7 @@ export default function CurrentWeatherChip({ homeId }: Props) {
 
   if (failed || !data) return null;
 
-  const Icon = iconFor(data.weatherCode, data.isDay);
+  const Icon = iconForWeatherCode(data.weatherCode, data.isDay);
   return (
     <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground rounded-full border border-border bg-card px-2.5 py-1">
       <Icon size={13} className="text-primary" />
