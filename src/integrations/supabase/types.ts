@@ -788,6 +788,7 @@ export type Database = {
           longitude: number | null
           name: string
           notes: string | null
+          photo_url: string | null
           roof_type: string | null
           square_feet: number | null
           state: string
@@ -817,6 +818,7 @@ export type Database = {
           longitude?: number | null
           name?: string
           notes?: string | null
+          photo_url?: string | null
           roof_type?: string | null
           square_feet?: number | null
           state?: string
@@ -846,6 +848,7 @@ export type Database = {
           longitude?: number | null
           name?: string
           notes?: string | null
+          photo_url?: string | null
           roof_type?: string | null
           square_feet?: number | null
           state?: string
