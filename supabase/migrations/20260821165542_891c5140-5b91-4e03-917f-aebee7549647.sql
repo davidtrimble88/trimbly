@@ -1,0 +1,1 @@
+UPDATE public.homes SET photo_url = NULL WHERE photo_url IS NOT NULL AND (street_address IS NULL OR btrim(street_address) = '');
