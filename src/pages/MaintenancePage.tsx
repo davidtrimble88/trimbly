@@ -177,7 +177,7 @@ const MaintenancePage = () => {
   const [generating, setGenerating] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [savingHome, setSavingHome] = useState(false);
-  const [filter, setFilter] = useState<"all" | "upcoming" | "completed">("all");
+  const [filter, setFilter] = useState<"all" | "upcoming" | "completed">("upcoming");
   const [sortBy, setSortBy] = useState<"due_date" | "priority" | "category" | "season">("due_date");
   const [wizardStep, setWizardStep] = useState(0);
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -546,6 +546,10 @@ const MaintenancePage = () => {
       return true;
     })
     .sort((a, b) => {
+      // Completed tasks always sink to the bottom in the "all" view
+      const aDone = a.status === "completed" ? 1 : 0;
+      const bDone = b.status === "completed" ? 1 : 0;
+      if (aDone !== bDone) return aDone - bDone;
       switch (sortBy) {
         case "priority":
           return (priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1);
@@ -1014,7 +1018,7 @@ const MaintenancePage = () => {
                       {/* Filter tabs + Sort */}
                       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                         <div className="flex flex-wrap gap-2">
-                          {(["all", "upcoming", "completed"] as const).map(f => (
+                          {(["upcoming", "completed", "all"] as const).map(f => (
                             <button
                               key={f}
                               onClick={() => setFilter(f)}
