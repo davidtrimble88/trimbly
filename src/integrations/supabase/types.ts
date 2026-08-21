@@ -626,6 +626,110 @@ export type Database = {
           },
         ]
       }
+      home_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          expires_at: string
+          grant_type: string
+          home_id: string | null
+          id: string
+          invitee_email: string | null
+          owner_user_id: string
+          status: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          expires_at?: string
+          grant_type: string
+          home_id?: string | null
+          id?: string
+          invitee_email?: string | null
+          owner_user_id: string
+          status?: string
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          expires_at?: string
+          grant_type?: string
+          home_id?: string | null
+          id?: string
+          invitee_email?: string | null
+          owner_user_id?: string
+          status?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "home_invites_home_id_fkey"
+            columns: ["home_id"]
+            isOneToOne: false
+            referencedRelation: "homes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      home_shares: {
+        Row: {
+          created_at: string
+          grant_type: string
+          home_id: string | null
+          id: string
+          invite_id: string | null
+          member_user_id: string
+          monthly_addon_cents: number
+          owner_user_id: string
+          revoked_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          grant_type: string
+          home_id?: string | null
+          id?: string
+          invite_id?: string | null
+          member_user_id: string
+          monthly_addon_cents?: number
+          owner_user_id: string
+          revoked_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          grant_type?: string
+          home_id?: string | null
+          id?: string
+          invite_id?: string | null
+          member_user_id?: string
+          monthly_addon_cents?: number
+          owner_user_id?: string
+          revoked_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "home_shares_home_id_fkey"
+            columns: ["home_id"]
+            isOneToOne: false
+            referencedRelation: "homes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "home_shares_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "home_invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       home_weather_alerts: {
         Row: {
           alert_type: string
@@ -3029,12 +3133,17 @@ export type Database = {
       }
     }
     Functions: {
+      accept_home_invite: { Args: { p_token: string }; Returns: Json }
       admin_list_user_emails: {
         Args: never
         Returns: {
           email: string
           user_id: string
         }[]
+      }
+      create_home_invite: {
+        Args: { p_grant_type: string; p_home_id?: string }
+        Returns: Json
       }
       find_user_by_email: {
         Args: { _email: string }
@@ -3043,6 +3152,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_invite_preview: { Args: { p_token: string }; Returns: Json }
       get_recovery_questions: {
         Args: { p_identifier: string }
         Returns: {
@@ -3078,6 +3188,7 @@ export type Database = {
         Returns: boolean
       }
       redeem_discount_code: { Args: { p_code: string }; Returns: Json }
+      revoke_home_share: { Args: { p_share_id: string }; Returns: Json }
       set_own_subscription_tier: { Args: { p_tier: string }; Returns: Json }
       set_security_questions: {
         Args: {
@@ -3101,6 +3212,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      user_has_home_access: { Args: { _home_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "support" | "analyst"
