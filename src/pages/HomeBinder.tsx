@@ -2,15 +2,16 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FolderOpen, Plus, Loader2, Pencil, Trash2, FileText, Upload,
-  X, Search, Package, Wrench, Shield, Receipt, Home as HomeIcon, Download, BookOpen, Crown
+  X, Search, Package, Wrench, Shield, Receipt, Home as HomeIcon, Download, BookOpen, Crown, Sparkles, CalendarClock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardShell from "@/components/dashboard/DashboardShell";
@@ -76,6 +77,24 @@ type ManualResult = {
   source: string;
 };
 
+type SuggestedTask = {
+  title: string;
+  description: string;
+  category: string;
+  priority: string;
+  due_date: string;
+  recurrence_months: number;
+  season: string;
+  products_search_term: string;
+};
+
+const recurrenceLabel = (months: number): string => {
+  if (!months || months <= 0) return "One-time";
+  if (months === 1) return "Every month";
+  if (months === 12) return "Every year";
+  return `Every ${months} months`;
+};
+
 const emptyItem = {
   item_type: "appliance",
   name: "",
@@ -111,6 +130,11 @@ const HomeBinder = () => {
   const [findingManual, setFindingManual] = useState(false);
   const [manualResults, setManualResults] = useState<ManualResult[]>([]);
   const [selectedManual, setSelectedManual] = useState<{ url: string; title: string } | null>(null);
+  const [loadingApplianceTasks, setLoadingApplianceTasks] = useState(false);
+  const [applianceTaskItem, setApplianceTaskItem] = useState<{ name: string; home_id: string } | null>(null);
+  const [suggestedTasks, setSuggestedTasks] = useState<SuggestedTask[]>([]);
+  const [selectedTaskIndices, setSelectedTaskIndices] = useState<Set<number>>(new Set());
+  const [addingSuggestedTasks, setAddingSuggestedTasks] = useState(false);
 
   // Effective tier for the currently-selected home: the viewer's own tier
   // if they own it, otherwise the home owner's tier — a shared member's
@@ -303,6 +327,8 @@ const HomeBinder = () => {
         updated_at: new Date().toISOString(),
       };
 
+      const isNewAppliance = !editingItem && row.item_type === "appliance";
+
       if (editingItem) {
         await supabase.from("home_binder_items").update(row).eq("id", editingItem.id);
         toast({ title: "Item updated" });
@@ -313,10 +339,80 @@ const HomeBinder = () => {
 
       setDialogOpen(false);
       await loadData();
+
+      // Paid tiers only: offer AI-suggested maintenance tasks for a newly
+      // added appliance, picked from a checklist rather than auto-added.
+      if (isNewAppliance && isPro) {
+        suggestApplianceMaintenance({ name: row.name, brand: row.brand, model_number: row.model_number, home_id: row.home_id });
+      }
     } catch (err: any) {
       toast({ title: "Error", description: err?.message || "Failed to save.", variant: "destructive" });
     }
     setSaving(false);
+  };
+
+  const suggestApplianceMaintenance = async (item: { name: string; brand: string; model_number: string; home_id: string }) => {
+    setApplianceTaskItem({ name: item.name, home_id: item.home_id });
+    setLoadingApplianceTasks(true);
+    setSuggestedTasks([]);
+    setSelectedTaskIndices(new Set());
+    try {
+      const { data: homeRow } = await supabase.from("homes").select("city, state").eq("id", item.home_id).maybeSingle();
+      const { data, error } = await supabase.functions.invoke("generate-appliance-maintenance", {
+        body: {
+          appliance: { name: item.name, brand: item.brand, model_number: item.model_number },
+          home: homeRow || {},
+        },
+      });
+      if (error || data?.error) throw new Error(data?.error || error?.message || "Failed to get suggestions");
+      const tasks: SuggestedTask[] = data?.tasks || [];
+      setSuggestedTasks(tasks);
+      setSelectedTaskIndices(new Set(tasks.map((_, i) => i)));
+    } catch {
+      // Fail quietly — this is a bonus suggestion on top of a save that
+      // already succeeded, not something worth alarming the user about.
+      setSuggestedTasks([]);
+    }
+    setLoadingApplianceTasks(false);
+  };
+
+  const toggleSuggestedTask = (index: number) => {
+    setSelectedTaskIndices(prev => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index); else next.add(index);
+      return next;
+    });
+  };
+
+  const addSelectedApplianceTasks = async () => {
+    if (!applianceTaskItem || !user) return;
+    const chosen = suggestedTasks.filter((_, i) => selectedTaskIndices.has(i));
+    if (chosen.length === 0) {
+      setApplianceTaskItem(null);
+      return;
+    }
+    setAddingSuggestedTasks(true);
+    const rows = chosen.map(t => ({
+      home_id: applianceTaskItem.home_id,
+      user_id: user.id,
+      title: t.title,
+      description: t.description || "",
+      category: t.category || "Appliances",
+      priority: t.priority || "medium",
+      status: "upcoming",
+      due_date: t.due_date || null,
+      recurrence_months: t.recurrence_months || 0,
+      season: t.season || "any",
+      products_search_term: t.products_search_term || null,
+    }));
+    const { error } = await supabase.from("maintenance_tasks").insert(rows);
+    setAddingSuggestedTasks(false);
+    if (error) {
+      toast({ title: "Couldn't add tasks", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: `${chosen.length} maintenance task${chosen.length > 1 ? "s" : ""} added`, description: "Find them in Maintenance Autopilot." });
+    setApplianceTaskItem(null);
   };
 
   const deleteItem = async (item: BinderItem) => {
@@ -742,6 +838,61 @@ const HomeBinder = () => {
                     {editingItem ? "Update" : "Add Item"}
                   </Button>
                 </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={!!applianceTaskItem} onOpenChange={(open) => { if (!open) setApplianceTaskItem(null); }}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Sparkles size={18} className="text-primary" /> Maintenance for "{applianceTaskItem?.name}"
+                </DialogTitle>
+                <DialogDescription>
+                  {loadingApplianceTasks
+                    ? "Checking what routine maintenance this item typically needs..."
+                    : suggestedTasks.length > 0
+                      ? "Pick which of these to add to Maintenance Autopilot."
+                      : "No routine maintenance is typically needed for this item."}
+                </DialogDescription>
+              </DialogHeader>
+
+              {loadingApplianceTasks ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2 size={28} className="animate-spin text-primary" />
+                </div>
+              ) : suggestedTasks.length > 0 ? (
+                <div className="space-y-2 max-h-[50vh] overflow-y-auto py-1">
+                  {suggestedTasks.map((t, i) => (
+                    <label
+                      key={i}
+                      className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer hover:border-primary/30 transition-colors"
+                    >
+                      <Checkbox checked={selectedTaskIndices.has(i)} onCheckedChange={() => toggleSuggestedTask(i)} className="mt-0.5" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-medium text-foreground">{t.title}</span>
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-1">
+                            <CalendarClock size={10} /> {recurrenceLabel(t.recurrence_months)}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">{t.description}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              ) : null}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={() => setApplianceTaskItem(null)}>
+                  {suggestedTasks.length > 0 ? "Skip" : "Close"}
+                </Button>
+                {suggestedTasks.length > 0 && (
+                  <Button onClick={addSelectedApplianceTasks} disabled={addingSuggestedTasks || selectedTaskIndices.size === 0}>
+                    {addingSuggestedTasks ? <Loader2 size={14} className="animate-spin mr-1.5" /> : null}
+                    Add {selectedTaskIndices.size > 0 ? selectedTaskIndices.size : ""} to Autopilot
+                  </Button>
+                )}
               </div>
             </DialogContent>
           </Dialog>
