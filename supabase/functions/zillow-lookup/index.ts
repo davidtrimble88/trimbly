@@ -180,17 +180,25 @@ Deno.serve(async (req) => {
     // onlyMainContent off — the gallery's photo-array JSON lives in a
     // <script> tag that onlyMainContent filtering strips out, so the
     // markdown-only scrape above can't see it.
+    //
+    // Only attempt this against an actual /homedetails/ listing page — the
+    // field-extraction fallback above will use any Zillow result (a city
+    // search page, say) when no exact listing matched, which is fine for
+    // guessing at home_type/year_built but would grab a photo of the wrong
+    // house entirely, so skip the photo step in that case.
     let photoUrl: string | null = null;
-    try {
-      const photoScrapeResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: propertyResult.url, formats: ['html'], onlyMainContent: false, waitFor: 3000 }),
-      });
-      const photoScrapeData = await photoScrapeResponse.json();
-      photoUrl = extractHeroPhoto(photoScrapeData);
-    } catch (e) {
-      console.error('Photo scrape failed:', e);
+    if (propertyResult.url.includes('zillow.com/homedetails')) {
+      try {
+        const photoScrapeResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: propertyResult.url, formats: ['html'], onlyMainContent: false, waitFor: 3000 }),
+        });
+        const photoScrapeData = await photoScrapeResponse.json();
+        photoUrl = extractHeroPhoto(photoScrapeData);
+      } catch (e) {
+        console.error('Photo scrape failed:', e);
+      }
     }
 
     // Fall back to the search snippet if the page couldn't be scraped.
