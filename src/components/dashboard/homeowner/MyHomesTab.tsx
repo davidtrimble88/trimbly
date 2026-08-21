@@ -77,9 +77,9 @@ const MyHomesTab = ({
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                   <StatCard icon={ListChecks} value={totalTasks} label="Total tasks" />
-                  <StatCard icon={AlertTriangle} value={overdueTotal} label="Overdue" isEmpty={overdueTotal === 0} emptyLabel="None overdue" />
+                  <StatCard icon={AlertTriangle} value={overdueTotal} label="Overdue" isEmpty={overdueTotal === 0} emptyLabel="None overdue" tone="danger" />
                   <StatCard icon={CalendarClock} value={upcomingTotal} label="Upcoming" />
-                  <StatCard icon={ShieldAlert} value={warrantyTotal} label="Warranties expiring" isEmpty={warrantyTotal === 0} emptyLabel="None expiring" />
+                  <StatCard icon={ShieldAlert} value={warrantyTotal} label="Warranties expiring" isEmpty={warrantyTotal === 0} emptyLabel="None expiring" tone="warning" />
                 </div>
                 {allTasks.filter((t) => t.status !== "completed" && t.due_date).length > 0 && (
                   <div>

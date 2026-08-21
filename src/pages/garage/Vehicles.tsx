@@ -10,8 +10,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Car, Bike, Plus, ScanLine, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { getPresetsFor, computeNextDueDate, computeNextDueMileage } from "@/lib/garage/maintenancePresets";
+
+const vehicleTypeLabels: Record<string, string> = {
+  car: "Car",
+  motorcycle: "Motorcycle",
+  truck: "Truck",
+  suv: "SUV",
+  other: "Other",
+};
 
 type Vehicle = {
   id: string;
@@ -253,6 +262,9 @@ export default function GarageVehicles() {
                   <div className="flex items-center gap-2 mb-1">
                     {v.vehicle_type === "motorcycle" ? <Bike size={16} className="text-muted-foreground" /> : <Car size={16} className="text-muted-foreground" />}
                     <span className="font-semibold text-sm truncate">{v.nickname || `${v.year ?? ""} ${v.make} ${v.model}`}</span>
+                    <Badge variant="outline" className="text-[10px] font-normal shrink-0 ml-auto">
+                      {vehicleTypeLabels[v.vehicle_type] || v.vehicle_type}
+                    </Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">{[v.year, v.make, v.model, v.trim].filter(Boolean).join(" ")}</p>
                   <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">

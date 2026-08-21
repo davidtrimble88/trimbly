@@ -7,6 +7,8 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   profileName: string | null;
+  avatarUrl: string | null;
+  refreshProfile: () => Promise<void>;
   signUp: (email: string, password: string, metadata?: Record<string, string>) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -21,10 +23,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const fetchProfileName = async (userId: string) => {
-    const { data } = await supabase.from("profiles").select("full_name").eq("id", userId).maybeSingle();
+    const { data } = await supabase.from("profiles").select("full_name, avatar_url").eq("id", userId).maybeSingle();
     setProfileName(data?.full_name || null);
+    setAvatarUrl(data?.avatar_url || null);
   };
 
   useEffect(() => {
@@ -32,7 +36,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) fetchProfileName(session.user.id);
-      else setProfileName(null);
+      else { setProfileName(null); setAvatarUrl(null); }
       setLoading(false);
     });
 
@@ -79,8 +83,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error: error as Error | null };
   };
 
+  const refreshProfile = async () => {
+    if (user) await fetchProfileName(user.id);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, profileName, signUp, signIn, signOut, resetPassword, updatePassword }}>
+    <AuthContext.Provider value={{ user, session, loading, profileName, avatarUrl, refreshProfile, signUp, signIn, signOut, resetPassword, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );

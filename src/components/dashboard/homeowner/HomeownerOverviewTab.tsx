@@ -2,13 +2,15 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Briefcase, Plus, Clock, Gavel, CheckCircle2, PartyPopper,
-  Wrench, ListChecks, AlertTriangle, CalendarClock, FolderOpen,
+  Wrench, ListChecks, AlertTriangle, CalendarClock, FolderOpen, PiggyBank,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import StatCard from "@/components/dashboard/StatCard";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import AttentionBanner from "@/components/dashboard/AttentionBanner";
+import AttentionList from "@/components/dashboard/AttentionList";
 import HomeSelectorStrip from "./HomeSelectorStrip";
 import GarageAnalyticsSection from "./GarageAnalyticsSection";
 import { upgradeConfig, type JobStats, type HomeData, type HomeStats, type TaskRow } from "./types";
@@ -46,23 +48,58 @@ const HomeownerOverviewTab = ({
   const binderTotal = statsInScope.reduce((s, h) => s + h.binderItemCount, 0);
   const warrantyTotal = statsInScope.reduce((s, h) => s + h.expiringWarranties, 0);
 
+  const homesInScope = selectedHomeId === "all" ? homes : homes.filter((h) => h.id === selectedHomeId);
+  const incompleteProfileHomes = homesInScope.filter((h) => !h.year_built || !h.hvac_type || !h.roof_type);
+
+  const attentionItems: string[] = [];
+  if (warrantyTotal > 0) {
+    attentionItems.push(`${warrantyTotal} warrant${warrantyTotal !== 1 ? "ies" : "y"} expiring soon`);
+  }
+  if (incompleteProfileHomes.length > 0) {
+    attentionItems.push(
+      `${incompleteProfileHomes.length} home${incompleteProfileHomes.length !== 1 ? "s" : ""} missing details (year built, HVAC, or roof type) — the AI maintenance schedule works better with them filled in`
+    );
+  }
+
   const tasksInScope = selectedHomeId === "all" ? allTasks : allTasks.filter((t) => t.home_id === selectedHomeId);
   const soonestDue = tasksInScope
     .filter((t) => t.status !== "completed" && t.due_date)
     .sort((a, b) => new Date(a.due_date!).getTime() - new Date(b.due_date!).getTime())
     .slice(0, 5);
 
+  const attentionListItems = soonestDue.map((t, i) => {
+    const home = homes.find((h) => h.id === t.home_id);
+    return {
+      id: i,
+      label: t.title,
+      sublabel: !selectedHome ? home?.name : undefined,
+      date: t.due_date ?? undefined,
+      urgent: t.status === "overdue",
+    };
+  });
+
+  // Rough DIY savings estimate — a flat per-task figure, not a precise calculation.
+  const DIY_SAVINGS_PER_TASK = 45;
+  const estimatedSavings = completedTotal * DIY_SAVINGS_PER_TASK;
+
+  // Whichever section has the more urgent open items gets a slightly bolder visual treatment.
+  const maintenanceNeedsAttention = overdueTotal > 0;
+  const jobsNeedAttention = !maintenanceNeedsAttention && jobStats.pending > 0;
+
   return (
     <div className="space-y-8">
       {/* ─── Home Maintenance Summary ─── */}
-      <div>
+      <div className={maintenanceNeedsAttention ? "border-l-2 border-destructive/60 pl-4 -ml-4" : undefined}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+          <h2 className={`font-bold text-foreground flex items-center gap-2 ${maintenanceNeedsAttention ? "text-2xl" : "text-xl"}`}>
             <Wrench size={20} className="text-primary" />
             Home Maintenance
             <span className="text-sm font-normal text-muted-foreground">
               {selectedHome ? `— ${selectedHome.name}` : homes.length > 0 ? `(${homes.length} home${homes.length !== 1 ? "s" : ""})` : ""}
             </span>
+            {maintenanceNeedsAttention && (
+              <Badge variant="destructive" className="ml-1">Needs attention</Badge>
+            )}
           </h2>
           {homes.length > 0 && (
             <Button size="sm" variant="outline" onClick={onGoToHomes}>View Homes</Button>
@@ -84,12 +121,29 @@ const HomeownerOverviewTab = ({
           <>
             <HomeSelectorStrip homes={homes} homeStats={homeStats} selectedId={selectedHomeId} onSelect={setSelectedHomeId} />
 
+            <AttentionBanner
+              severity="warning"
+              title="Needs your attention"
+              items={attentionItems}
+              actionLabel="View Homes"
+              onAction={onGoToHomes}
+            />
+
+            {completedTotal > 0 && (
+              <p className="flex items-center gap-1.5 text-sm text-muted-foreground mb-4">
+                <PiggyBank size={14} className="text-primary" />
+                {completedTotal} task{completedTotal !== 1 ? "s" : ""} completed
+                {selectedHome ? ` for ${selectedHome.name}` : " across your homes"} —
+                {" "}~${estimatedSavings.toLocaleString()} saved doing it yourself (rough estimate)
+              </p>
+            )}
+
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
               <StatCard icon={ListChecks} value={totalTasks} label="Total Tasks" onClick={onGoToHomes} />
-              <StatCard icon={AlertTriangle} value={overdueTotal} label="Overdue" isEmpty={overdueTotal === 0} emptyLabel="None overdue" onClick={onGoToHomes} />
-              <StatCard icon={Clock} value={highPriorityTotal} label="High Priority" isEmpty={highPriorityTotal === 0} emptyLabel="None urgent" onClick={onGoToHomes} />
+              <StatCard icon={AlertTriangle} value={overdueTotal} label="Overdue" isEmpty={overdueTotal === 0} emptyLabel="None overdue" onClick={onGoToHomes} tone="danger" />
+              <StatCard icon={Clock} value={highPriorityTotal} label="High Priority" isEmpty={highPriorityTotal === 0} emptyLabel="None urgent" onClick={onGoToHomes} tone="warning" />
               <StatCard icon={CalendarClock} value={upcomingTotal} label="Upcoming" onClick={onGoToHomes} />
-              <StatCard icon={CheckCircle2} value={completedTotal} label="Completed" onClick={onGoToHomes} />
+              <StatCard icon={CheckCircle2} value={completedTotal} label="Completed" onClick={onGoToHomes} tone="success" />
             </div>
 
             {soonestDue.length > 0 && (
@@ -98,20 +152,7 @@ const HomeownerOverviewTab = ({
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                     {selectedHome ? `Coming up next for ${selectedHome.name}` : "Coming up next, across your homes"}
                   </p>
-                  <ul className="divide-y divide-border">
-                    {soonestDue.map((t, i) => {
-                      const home = homes.find((h) => h.id === t.home_id);
-                      return (
-                        <li key={i} className="py-2 flex items-center justify-between gap-2 text-sm">
-                          <span className="truncate">
-                            {t.title}
-                            {!selectedHome && <span className="text-muted-foreground"> · {home?.name || "Property"}</span>}
-                          </span>
-                          <Badge variant={t.status === "overdue" ? "destructive" : "outline"} className="shrink-0">{t.due_date}</Badge>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  <AttentionList items={attentionListItems} />
                 </CardContent>
               </Card>
             )}
@@ -141,12 +182,15 @@ const HomeownerOverviewTab = ({
       </div>
 
       {/* ─── My Job Posts ─── */}
-      <div>
+      <div className={jobsNeedAttention ? "border-l-2 border-destructive/60 pl-4 -ml-4" : undefined}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+          <h2 className={`font-bold text-foreground flex items-center gap-2 ${jobsNeedAttention ? "text-2xl" : "text-xl"}`}>
             <Briefcase size={20} className="text-primary" />
             My Job Posts
             <span className="text-sm font-normal text-muted-foreground">({jobStats.total})</span>
+            {jobsNeedAttention && (
+              <Badge variant="destructive" className="ml-1">Needs attention</Badge>
+            )}
           </h2>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => navigate("/job-board")}>View Board</Button>
@@ -171,8 +215,8 @@ const HomeownerOverviewTab = ({
             <StatCard icon={Briefcase} value={jobStats.total} label="Total Posts" onClick={() => navigate("/post-job")} />
             <StatCard icon={Clock} value={jobStats.pending} label="Pending" onClick={() => navigate("/post-job")} />
             <StatCard icon={Gavel} value={jobStats.withBids} label="With Bids" onClick={() => navigate("/post-job")} />
-            <StatCard icon={CheckCircle2} value={jobStats.accepted} label="Accepted" onClick={() => navigate("/post-job")} />
-            <StatCard icon={PartyPopper} value={jobStats.completed} label="Completed" onClick={() => navigate("/post-job")} />
+            <StatCard icon={CheckCircle2} value={jobStats.accepted} label="Accepted" onClick={() => navigate("/post-job")} tone="success" />
+            <StatCard icon={PartyPopper} value={jobStats.completed} label="Completed" onClick={() => navigate("/post-job")} tone="success" />
           </div>
         )}
       </div>

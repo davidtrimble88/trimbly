@@ -36,7 +36,7 @@ const ProOverviewTab = ({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard icon={Star} value={avgRating} label={`${reviewCount} review${reviewCount !== 1 ? "s" : ""}`} isEmpty={reviewCount === 0} emptyLabel="No reviews yet" onClick={() => onGoToTab("reviews")} />
         <StatCard icon={Briefcase} value={pendingBids} label="Pending bids" onClick={() => onGoToTab("bids")} />
-        <StatCard icon={CheckCircle} value={acceptedBids} label="Accepted" onClick={() => onGoToTab("bids")} />
+        <StatCard icon={CheckCircle} value={acceptedBids} label="Accepted" onClick={() => onGoToTab("bids")} tone="success" />
         <StatCard icon={MessageSquare} value={unreadMessages} label="Unread" onClick={() => onGoToTab("messages")} />
       </div>
 

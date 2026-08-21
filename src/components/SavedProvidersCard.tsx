@@ -13,13 +13,29 @@ export default function SavedProvidersCard() {
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from("saved_providers")
-      .select("id, provider_id, provider:providers(id, business_name, category, city, state, slug)")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(6)
-      .then(({ data }) => setItems(((data as any) || []).filter((i: Saved) => i.provider)));
+    (async () => {
+      // saved_providers.provider_id has no declared FK to providers, so a
+      // PostgREST embedded select (provider:providers(...)) 400s outright
+      // ("no relationship found") — join client-side instead.
+      const { data: saved } = await supabase
+        .from("saved_providers")
+        .select("id, provider_id")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(6);
+      const rows = saved || [];
+      if (!rows.length) { setItems([]); return; }
+      const { data: providers } = await supabase
+        .from("providers")
+        .select("id, business_name, category, city, state, slug")
+        .in("id", rows.map((r) => r.provider_id));
+      const providerMap = new Map((providers || []).map((p: any) => [p.id, p]));
+      setItems(
+        rows
+          .map((r) => ({ id: r.id, provider_id: r.provider_id, provider: providerMap.get(r.provider_id) || null }))
+          .filter((i) => i.provider) as Saved[]
+      );
+    })();
   }, [user]);
 
   if (items.length === 0) return null;

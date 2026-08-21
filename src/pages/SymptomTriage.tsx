@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import UpgradeGate from "@/components/dashboard/UpgradeGate";
 import { getSymptomTriage, type SymptomTriage } from "@/lib/api/symptomTriage";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -88,23 +89,12 @@ const SymptomTriagePage = () => {
     );
   }
 
-  if (!limitLoading && !isPro) {
+  if (limitLoading) {
     return (
       <div className="min-h-screen">
         <Navbar />
-        <main className="pt-24 pb-16">
-          <div className="container mx-auto px-4 max-w-2xl text-center py-20">
-            <Crown size={48} className="mx-auto text-primary mb-4" />
-            <h2 className="text-2xl font-bold text-foreground mb-2">Upgrade to Use AI Symptom Triage</h2>
-            <p className="text-muted-foreground mb-6">
-              AI Symptom Triage is available on Home Hero and Home Super Hero plans.
-              Get instant diagnosis, urgency level, safety guidance, and DIY vs Pro recommendations whenever something goes wrong.
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Button asChild variant="outline"><Link to="/#pricing">View Plans</Link></Button>
-              <Button asChild><Link to="/dashboard">Back to Dashboard</Link></Button>
-            </div>
-          </div>
+        <main className="pt-24 pb-16 flex justify-center">
+          <Loader2 className="animate-spin" />
         </main>
         <Footer />
       </div>
@@ -157,6 +147,15 @@ const SymptomTriagePage = () => {
             </p>
           </div>
 
+          <UpgradeGate
+            hasAccess={isPro}
+            variant="card"
+            featureName="AI Symptom Triage"
+            description="Describe what's wrong with your home — get an instant diagnosis, urgency level, and DIY vs Pro guidance."
+            benefits={["Instant diagnosis & urgency level", "Safety warnings when needed", "DIY vs Pro recommendations"]}
+            pricingRoute="/#pricing"
+            icon={Crown}
+          >
           <Card className="mb-8">
             <CardContent className="pt-6 space-y-4">
               <div>
@@ -308,6 +307,7 @@ const SymptomTriagePage = () => {
               </p>
             </div>
           )}
+          </UpgradeGate>
         </div>
       </main>
       <Footer />

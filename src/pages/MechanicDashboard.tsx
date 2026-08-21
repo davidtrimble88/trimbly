@@ -18,6 +18,7 @@ import MechanicToolsTab from "@/components/dashboard/mechanic/MechanicToolsTab";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { DashboardNavItem } from "@/components/dashboard/types";
 import StatCard from "@/components/dashboard/StatCard";
+import StatCardSkeleton from "@/components/dashboard/StatCardSkeleton";
 import EditProfileDialog from "@/components/dashboard/pro/EditProfileDialog";
 import type { ProviderProfile } from "@/components/dashboard/pro/types";
 
@@ -162,7 +163,7 @@ export default function MechanicDashboard() {
     return (
       <div className="min-h-screen bg-background container mx-auto px-4 pt-16 pb-16 max-w-5xl space-y-6">
         <Skeleton className="h-10 w-64" />
-        <div className="grid md:grid-cols-4 gap-4">{[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}</div>
+        <div className="grid md:grid-cols-4 gap-4">{[1, 2, 3, 4].map(i => <StatCardSkeleton key={i} />)}</div>
         <Skeleton className="h-64" />
       </div>
     );
@@ -230,7 +231,7 @@ export default function MechanicDashboard() {
           <StatCard icon={Briefcase} value={pending} label="Pending Bids" onClick={() => setActiveTab("bids")} />
           <StatCard icon={Star} value={avgRating} label="Avg Rating" isEmpty={reviews.length === 0} emptyLabel="No reviews yet" onClick={() => setActiveTab("reviews")} />
           <StatCard icon={MessageSquare} value={unread} label="Unread" onClick={() => setActiveTab("messages")} />
-          <StatCard icon={DollarSign} value={accepted} label="Accepted" onClick={() => setActiveTab("bids")} />
+          <StatCard icon={DollarSign} value={accepted} label="Accepted" onClick={() => setActiveTab("bids")} tone="success" />
         </div>
 
         {activeTab === "overview" && (

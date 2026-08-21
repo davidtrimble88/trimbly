@@ -23,6 +23,7 @@ export interface HomeShare {
   status: "active" | "revoked";
   created_at: string;
   member_name?: string;
+  member_avatar_url?: string | null;
 }
 
 /** Owner-side view of who they've invited/shared homes with. */
@@ -49,9 +50,13 @@ export function useHomeSharing() {
     const shareRows = (sharesData || []) as HomeShare[];
     const memberIds = [...new Set(shareRows.map((s) => s.member_user_id))];
     if (memberIds.length) {
-      const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", memberIds);
-      const nameMap = new Map((profs || []).map((p: any) => [p.id, p.full_name]));
-      shareRows.forEach((s) => { s.member_name = nameMap.get(s.member_user_id) || "Trimbly user"; });
+      const { data: profs } = await supabase.from("profiles").select("id, full_name, avatar_url").in("id", memberIds);
+      const profMap = new Map((profs || []).map((p: any) => [p.id, p]));
+      shareRows.forEach((s) => {
+        const p = profMap.get(s.member_user_id);
+        s.member_name = p?.full_name || "Trimbly user";
+        s.member_avatar_url = p?.avatar_url || null;
+      });
     }
 
     setInvites(((invitesData || []) as HomeInvite[]).filter((i) => i.status === "pending"));

@@ -722,6 +722,7 @@ const JobBoard = () => {
                     }
                     actionLabel={activeTab === "posted" ? "Clear filters" : undefined}
                     onAction={activeTab === "posted" ? () => { setFilterCategory("All"); setLocationQuery(""); setSearchCenter(null); setRadiusMiles("any"); } : undefined}
+                    tone="accent"
                   />
                 </CardContent>
               </Card>

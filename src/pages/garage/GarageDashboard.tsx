@@ -4,10 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Car, Bike, Wrench, FileText, AlertTriangle, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import StatCard from "@/components/dashboard/StatCard";
+import StatCardSkeleton from "@/components/dashboard/StatCardSkeleton";
+import AttentionBanner from "@/components/dashboard/AttentionBanner";
+import AttentionList from "@/components/dashboard/AttentionList";
 
 type Vehicle = { id: string; nickname: string; vehicle_type: string; year: number | null; make: string; model: string; current_mileage: number; mileage_unit: string };
 type Task = { id: string; vehicle_id: string; task_name: string; next_due_date: string | null; next_due_mileage: number | null; status: string };
@@ -59,7 +62,7 @@ export default function GarageDashboard() {
   if (loading) return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
+        {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)}
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
@@ -83,7 +86,9 @@ export default function GarageDashboard() {
     return (
       <Card className="text-center">
         <CardContent className="p-10">
-          <Car className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+          <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3">
+            <Car className="w-8 h-8 text-accent" />
+          </div>
           <h2 className="font-display text-xl font-bold mb-1">Add your first vehicle</h2>
           <p className="text-sm text-muted-foreground mb-4">Track service, reminders, and documents for cars and motorcycles.</p>
           <Button asChild><Link to="/garage/vehicles"><Plus className="mr-1" size={16} /> Add a vehicle</Link></Button>
@@ -94,11 +99,19 @@ export default function GarageDashboard() {
 
   return (
     <div className="space-y-6">
+      {expiring.length > 0 && (
+        <AttentionBanner
+          severity="warning"
+          title="Documents expiring soon"
+          items={expiring.map((d) => `${d.file_name} — expires ${d.expires_on}`)}
+        />
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard label="Vehicles" value={vehicles.length} icon={<Car size={18} />} />
-        <StatCard label="Upcoming tasks" value={tasks.length} icon={<Wrench size={18} />} />
-        <StatCard label="Docs expiring (60d)" value={expiring.length} icon={<FileText size={18} />} />
-        <StatCard label="Overdue" value={tasks.filter((t) => t.status === "overdue").length} icon={<AlertTriangle size={18} />} tone={tasks.some((t)=>t.status==="overdue") ? "warn" : undefined} />
+        <StatCard label="Vehicles" value={vehicles.length} icon={Car} />
+        <StatCard label="Upcoming tasks" value={tasks.length} icon={Wrench} />
+        <StatCard label="Docs expiring (60d)" value={expiring.length} icon={FileText} tone="warning" />
+        <StatCard label="Overdue" value={tasks.filter((t) => t.status === "overdue").length} icon={AlertTriangle} tone="danger" />
       </div>
 
       <Card>
@@ -126,55 +139,23 @@ export default function GarageDashboard() {
         <Card>
           <CardHeader><CardTitle className="text-base">Upcoming maintenance</CardTitle></CardHeader>
           <CardContent>
-            {tasks.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No upcoming tasks yet.</p>
-            ) : (
-              <ul className="divide-y divide-border">
-                {tasks.map((t) => (
-                  <li key={t.id} className="py-2 flex items-center justify-between gap-2">
-                    <span className="text-sm truncate">{t.task_name}</span>
-                    <Badge variant={t.status === "overdue" ? "destructive" : t.status === "due" ? "default" : "outline"}>
-                      {t.status}
-                    </Badge>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <AttentionList
+              items={tasks.map((t) => ({ id: t.id, label: t.task_name, date: undefined, urgent: t.status === "overdue" }))}
+              emptyText="No upcoming tasks yet."
+            />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader><CardTitle className="text-base">Documents expiring soon</CardTitle></CardHeader>
           <CardContent>
-            {expiring.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nothing expiring in the next 60 days.</p>
-            ) : (
-              <ul className="divide-y divide-border">
-                {expiring.map((d) => (
-                  <li key={d.id} className="py-2 flex items-center justify-between gap-2">
-                    <span className="text-sm truncate">{d.file_name}</span>
-                    <span className="text-xs text-muted-foreground">{d.expires_on}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <AttentionList
+              items={expiring.map((d) => ({ id: d.id, label: d.file_name, date: d.expires_on ?? undefined, urgent: false }))}
+              emptyText="Nothing expiring in the next 60 days."
+            />
           </CardContent>
         </Card>
       </div>
     </div>
-  );
-}
-
-function StatCard({ label, value, icon, tone }: { label: string; value: number | string; icon: React.ReactNode; tone?: "warn" }) {
-  return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-xs uppercase tracking-wider text-muted-foreground">{label}</span>
-          <span className={tone === "warn" ? "text-destructive" : "text-muted-foreground"}>{icon}</span>
-        </div>
-        <p className={`font-display text-2xl font-bold ${tone === "warn" ? "text-destructive" : ""}`}>{value}</p>
-      </CardContent>
-    </Card>
   );
 }

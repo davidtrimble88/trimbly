@@ -6,10 +6,20 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import StatCard from "@/components/dashboard/StatCard";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
 import { homeTypeLabels, type HomeData, type HomeStats, type DrilldownInfo } from "./types";
+
+// Fields that meaningfully improve AI maintenance schedule accuracy, in priority order.
+const COMPLETENESS_FIELDS: { key: keyof HomeData; label: string }[] = [
+  { key: "year_built", label: "year built" },
+  { key: "square_feet", label: "square footage" },
+  { key: "hvac_type", label: "HVAC type" },
+  { key: "roof_type", label: "roof type" },
+  { key: "street_address", label: "street address" },
+];
 
 interface HomeCardProps {
   home: HomeData;
@@ -25,6 +35,12 @@ const HomeCard = ({ home, stats, isPro, currentUserId, onEdit, onDelete, onDrill
   const navigate = useNavigate();
   const homeAge = home.year_built ? new Date().getFullYear() - home.year_built : null;
   const isShared = !!currentUserId && !!home.user_id && home.user_id !== currentUserId;
+
+  const missingFields = COMPLETENESS_FIELDS.filter((f) => !home[f.key]);
+  const completeness = Math.round(
+    ((COMPLETENESS_FIELDS.length - missingFields.length) / COMPLETENESS_FIELDS.length) * 100
+  );
+  const nextMissingField = missingFields[0];
 
   const accentClass = !stats
     ? "bg-border"
@@ -112,6 +128,27 @@ const HomeCard = ({ home, stats, isPro, currentUserId, onEdit, onDelete, onDrill
           {home.has_well_water && <Badge variant="secondary" className="text-xs">Well Water</Badge>}
         </div>
 
+        {/* Profile completeness nudge - only shown when there's something to gain */}
+        {completeness < 100 && (
+          <div className="space-y-1">
+            <div className="flex items-center justify-between gap-2 text-xs">
+              <span className="text-muted-foreground">Profile {completeness}% complete</span>
+              {nextMissingField && (
+                <button
+                  onClick={() => onEdit(home)}
+                  className="text-primary hover:underline font-medium shrink-0"
+                >
+                  Add {nextMissingField.label} →
+                </button>
+              )}
+            </div>
+            <Progress
+              value={completeness}
+              className={`h-1.5 ${completeness < 50 ? "[&>div]:bg-warning" : ""}`}
+            />
+          </div>
+        )}
+
         {/* Maintenance stats - always shown, clickable */}
         <div className="grid grid-cols-2 gap-2">
           <StatCard
@@ -121,6 +158,7 @@ const HomeCard = ({ home, stats, isPro, currentUserId, onEdit, onDelete, onDrill
             isEmpty={!stats?.overdueTasks}
             emptyLabel="None overdue"
             onClick={() => onDrilldown({ title: `${home.name} — Overdue`, homeId: home.id, filter: "overdue" })}
+            tone="danger"
           />
           <StatCard
             icon={Clock}
@@ -129,6 +167,7 @@ const HomeCard = ({ home, stats, isPro, currentUserId, onEdit, onDelete, onDrill
             isEmpty={!stats?.highPriorityTasks}
             emptyLabel="None urgent"
             onClick={() => onDrilldown({ title: `${home.name} — High Priority`, homeId: home.id, filter: "high_priority" })}
+            tone="warning"
           />
           <StatCard
             icon={CalendarCheck}
@@ -141,6 +180,7 @@ const HomeCard = ({ home, stats, isPro, currentUserId, onEdit, onDelete, onDrill
             value={stats?.completedTasks ?? 0}
             label="Completed"
             onClick={() => onDrilldown({ title: `${home.name} — Completed`, homeId: home.id, filter: "completed" })}
+            tone="success"
           />
         </div>
 

@@ -625,7 +625,7 @@ Last updated: ${fmtTs(a.updated_at)}
             {loading ? (
               <div className="flex justify-center py-10"><Loader2 className="animate-spin" /></div>
             ) : filtered.length === 0 ? (
-              <EmptyState icon={Wrench} title="No equipment matches your filters" description="Try widening your search or check back soon." />
+              <EmptyState icon={Wrench} title="No equipment matches your filters" description="Try widening your search or check back soon." tone="accent" />
             ) : (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filtered.map((r) => (

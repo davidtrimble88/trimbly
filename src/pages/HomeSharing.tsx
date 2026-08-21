@@ -11,6 +11,7 @@ import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/component
 import { tierLabels } from "@/components/dashboard/homeowner/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -268,7 +269,26 @@ export default function HomeSharing() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">People with access ({shares.length})</CardTitle>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <CardTitle className="text-lg">People with access ({shares.length})</CardTitle>
+                  {shares.length > 0 && (
+                    <div className="flex -space-x-2">
+                      {shares.slice(0, 5).map((s) => (
+                        <Avatar key={s.id} className="w-7 h-7 ring-2 ring-card">
+                          <AvatarImage src={s.member_avatar_url ?? undefined} alt={s.member_name} />
+                          <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                            {s.member_name?.[0]?.toUpperCase() ?? "?"}
+                          </AvatarFallback>
+                        </Avatar>
+                      ))}
+                      {shares.length > 5 && (
+                        <div className="w-7 h-7 rounded-full ring-2 ring-card bg-muted flex items-center justify-center text-[10px] font-medium text-muted-foreground">
+                          +{shares.length - 5}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
                 {shares.length > 0 && <CardDescription>+${(monthlyAddonCents / 100).toFixed(2)}/mo in shared access</CardDescription>}
               </CardHeader>
               <CardContent>
@@ -280,6 +300,12 @@ export default function HomeSharing() {
                   <div className="divide-y divide-border">
                     {shares.map((s) => (
                       <div key={s.id} className="flex items-center gap-3 py-3 flex-wrap">
+                        <Avatar className="w-8 h-8 shrink-0">
+                          <AvatarImage src={s.member_avatar_url ?? undefined} alt={s.member_name} />
+                          <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                            {s.member_name?.[0]?.toUpperCase() ?? "?"}
+                          </AvatarFallback>
+                        </Avatar>
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-foreground">{s.member_name}</p>
                           <p className="text-xs text-muted-foreground">{GRANT_LABELS[s.grant_type]}</p>

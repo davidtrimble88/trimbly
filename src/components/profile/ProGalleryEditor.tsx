@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Camera, ExternalLink, Loader2, Save, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { uploadProfileImage, deleteProfileImage } from "@/lib/profileImages";
 import AvatarUpload from "./AvatarUpload";
 
@@ -26,6 +27,7 @@ const ProGalleryEditor = ({ userId, providerId, businessName }: Props) => {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { refreshProfile } = useAuth();
 
   useEffect(() => {
     (async () => {
@@ -44,6 +46,7 @@ const ProGalleryEditor = ({ userId, providerId, businessName }: Props) => {
   const handleLogo = async (url: string) => {
     setLogoUrl(url);
     await supabase.from("profiles").update({ avatar_url: url }).eq("id", userId);
+    await refreshProfile();
   };
 
   const handleAddPhotos = async (e: React.ChangeEvent<HTMLInputElement>) => {

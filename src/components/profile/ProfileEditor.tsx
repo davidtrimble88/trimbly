@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Camera, ExternalLink, Loader2, Save, UserCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { uploadProfileImage } from "@/lib/profileImages";
 
@@ -25,6 +26,7 @@ const ProfileEditor = ({ userId, displayName }: Props) => {
   const [avatarBusy, setAvatarBusy] = useState(false);
   const avatarInput = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { refreshProfile } = useAuth();
 
   useEffect(() => {
     (async () => {
@@ -66,6 +68,7 @@ const ProfileEditor = ({ userId, displayName }: Props) => {
       const url = await uploadProfileImage(userId, file, "avatar");
       setAvatarUrl(url);
       await save({ avatar_url: url });
+      await refreshProfile();
       toast({ title: "Profile picture updated" });
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });

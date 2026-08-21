@@ -17,6 +17,7 @@ import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import CredentialAlertBanner from "@/components/pro/CredentialAlertBanner";
 import { useProNotifications } from "@/hooks/useProNotifications";
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import StatCardSkeleton from "@/components/dashboard/StatCardSkeleton";
 import { DashboardNavItem } from "@/components/dashboard/types";
 import ProOverviewTab from "@/components/dashboard/pro/ProOverviewTab";
 import ProBidsTab from "@/components/dashboard/pro/ProBidsTab";
@@ -256,7 +257,7 @@ const ProDashboard = () => {
       <div className="min-h-screen bg-background container mx-auto px-4 pt-16 pb-16 max-w-5xl space-y-6">
         <Skeleton className="h-10 w-64" />
         <div className="grid md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}
+          {[1, 2, 3, 4].map(i => <StatCardSkeleton key={i} />)}
         </div>
         <Skeleton className="h-64" />
       </div>

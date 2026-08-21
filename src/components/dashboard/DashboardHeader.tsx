@@ -2,6 +2,7 @@ import { LucideIcon, MoreVertical, Pencil, ExternalLink, Zap, LogOut } from "luc
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -28,7 +29,7 @@ const DashboardHeader = ({
   onViewPublicProfile,
   extraMenuItems,
 }: DashboardHeaderProps) => {
-  const { signOut } = useAuth();
+  const { signOut, avatarUrl } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -39,8 +40,19 @@ const DashboardHeader = ({
   return (
     <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-card/95 backdrop-blur px-4 py-3 md:px-6">
       <SidebarTrigger />
-      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-        <AvatarIcon className="h-5 w-5 text-primary" />
+      <div className="relative shrink-0">
+        <Avatar className="w-10 h-10">
+          <AvatarImage src={avatarUrl ?? undefined} alt={displayName} />
+          <AvatarFallback className="bg-primary/10">
+            <AvatarIcon className="h-5 w-5 text-primary" />
+          </AvatarFallback>
+        </Avatar>
+        {onToggleAvailable && (
+          <span
+            className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ring-2 ring-card ${available ? "bg-primary" : "bg-muted-foreground"}`}
+            aria-hidden="true"
+          />
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <p className="font-display text-base font-semibold text-foreground truncate">{displayName}</p>

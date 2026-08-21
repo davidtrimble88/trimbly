@@ -110,6 +110,7 @@ export default function Support() {
   const openTicket = async (t: TicketRow) => {
     setSelected(t);
     setReply("");
+    try { localStorage.setItem(`trimbly:ticketSeen:${t.id}`, new Date().toISOString()); } catch {}
     const { data, error } = await (supabase.from("ticket_comments" as any) as any).select("*").eq("ticket_id", t.id).order("created_at", { ascending: true });
     if (error) { toast({ title: "Failed to load replies", description: error.message, variant: "destructive" }); return; }
     setComments((data || []) as CommentRow[]);

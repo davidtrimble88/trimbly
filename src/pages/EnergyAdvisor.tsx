@@ -5,6 +5,7 @@ import { useHomeLimit } from "@/hooks/useHomeLimit";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import UpgradeGate from "@/components/dashboard/UpgradeGate";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -140,23 +141,12 @@ export default function EnergyAdvisor() {
     );
   }
 
-  if (!limitLoading && !isPro) {
+  if (limitLoading) {
     return (
       <div className="min-h-screen">
         <Navbar />
-        <main className="pt-24 pb-16">
-          <div className="container mx-auto px-4 max-w-2xl text-center py-20">
-            <Crown size={48} className="mx-auto text-primary mb-4" />
-            <h2 className="text-2xl font-bold text-foreground mb-2">Upgrade to Use the Energy & Utility Advisor</h2>
-            <p className="text-muted-foreground mb-6">
-              The Energy & Utility Advisor is available on Home Hero and Home Super Hero plans.
-              Get prioritized upgrades with real cost, savings, and payback estimates tailored to your home.
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Button asChild variant="outline"><Link to="/#pricing">View Plans</Link></Button>
-              <Button asChild><Link to="/dashboard">Back to Dashboard</Link></Button>
-            </div>
-          </div>
+        <main className="pt-24 pb-16 flex justify-center">
+          <Loader2 className="animate-spin" />
         </main>
         <Footer />
       </div>
@@ -176,6 +166,15 @@ export default function EnergyAdvisor() {
             Get prioritized upgrades with real cost, savings, and payback estimates for your home.
           </p>
 
+          <UpgradeGate
+            hasAccess={isPro}
+            variant="card"
+            featureName="Energy & Utility Advisor"
+            description="Get prioritized upgrades with real cost, savings, and payback estimates for your home."
+            benefits={["Prioritized upgrade recommendations", "Real cost, savings & payback estimates", "Tailored to your home's specifics"]}
+            pricingRoute="/#pricing"
+            icon={Crown}
+          >
           {homes.length > 1 && (
             <div className="mb-4 max-w-xs">
               <Select value={selectedHomeId} onValueChange={setSelectedHomeId}>
@@ -216,6 +215,7 @@ export default function EnergyAdvisor() {
               </div>
             </CardContent>
           </Card>
+          </UpgradeGate>
         </div>
       </main>
       <Footer />

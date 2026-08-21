@@ -24,11 +24,15 @@ export function MobileBottomNav() {
   const { pathname } = useLocation();
   const { active: hasGarage } = useGarageSubscription();
   const [userType, setUserType] = useState<string>("homeowner");
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   useEffect(() => {
     if (!user) return;
     supabase.from("profiles").select("user_type").eq("id", user.id).maybeSingle()
       .then(({ data }) => setUserType(data?.user_type || "homeowner"));
+    supabase.from("messages").select("id", { count: "exact", head: true })
+      .eq("recipient_id", user.id).eq("read", false)
+      .then(({ count }) => setUnreadMessages(count || 0));
   }, [user]);
 
   if (!user) return null;
@@ -49,6 +53,7 @@ export function MobileBottomNav() {
       <ul className={`grid ${items.length === 5 ? "grid-cols-5" : "grid-cols-4"} max-w-screen-sm mx-auto`}>
         {items.map(({ to, label, icon: Icon }) => {
           const active = pathname === to || (to !== "/dashboard" && pathname.startsWith(to));
+          const showBadge = to === "/messages" && unreadMessages > 0;
           return (
             <li key={to}>
               <Link
@@ -57,7 +62,14 @@ export function MobileBottomNav() {
                   active ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <Icon className={`w-5 h-5 ${active ? "stroke-[2.5]" : ""}`} />
+                <span className="relative">
+                  <Icon className={`w-5 h-5 ${active ? "stroke-[2.5]" : ""}`} />
+                  {showBadge && (
+                    <span className="absolute -top-1 -right-1.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-destructive text-destructive-foreground text-[9px] leading-[14px] text-center font-semibold">
+                      {unreadMessages > 9 ? "9+" : unreadMessages}
+                    </span>
+                  )}
+                </span>
                 <span>{label}</span>
               </Link>
             </li>

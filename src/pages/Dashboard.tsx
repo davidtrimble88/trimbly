@@ -80,7 +80,49 @@ const Dashboard = () => {
     if (!user) return;
     loadHomesAndStats();
     loadJobStats();
+    loadUnreadCount();
+    loadOpenTicketCount();
   }, [user]);
+
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const loadUnreadCount = async () => {
+    if (!user) return;
+    const { count } = await supabase
+      .from("messages")
+      .select("id", { count: "exact", head: true })
+      .eq("recipient_id", user.id)
+      .eq("read", false);
+    setUnreadMessages(count || 0);
+  };
+
+  // support_tickets/ticket_comments have no read/seen column, so "unread"
+  // is approximated client-side: a ticket counts as unread if staff replied
+  // more recently than the last time this browser opened it (Support.tsx
+  // stamps `trimbly:ticketSeen:<id>` on open).
+  const [openTicketCount, setOpenTicketCount] = useState(0);
+  const loadOpenTicketCount = async () => {
+    if (!user) return;
+    const { data: tickets } = await (supabase.from("support_tickets" as any) as any)
+      .select("id")
+      .eq("user_id", user.id);
+    const ticketIds = (tickets || []).map((t: any) => t.id);
+    if (!ticketIds.length) { setOpenTicketCount(0); return; }
+    const { data: comments } = await (supabase.from("ticket_comments" as any) as any)
+      .select("ticket_id, created_at")
+      .eq("is_staff", true)
+      .in("ticket_id", ticketIds)
+      .order("created_at", { ascending: false });
+    const latestStaffReplyByTicket = new Map<string, string>();
+    (comments || []).forEach((c: any) => {
+      if (!latestStaffReplyByTicket.has(c.ticket_id)) latestStaffReplyByTicket.set(c.ticket_id, c.created_at);
+    });
+    let unread = 0;
+    latestStaffReplyByTicket.forEach((replyTime, ticketId) => {
+      const seenAt = localStorage.getItem(`trimbly:ticketSeen:${ticketId}`);
+      if (!seenAt || new Date(seenAt) < new Date(replyTime)) unread++;
+    });
+    setOpenTicketCount(unread);
+  };
 
   const loadJobStats = async () => {
     if (!user) return;
@@ -249,16 +291,19 @@ const Dashboard = () => {
     { id: "homes", label: "My Homes", icon: Home, badge: homes.length, group: "Dashboard" },
     { id: "tools", label: "Home Tools", icon: Sparkles, group: "Dashboard" },
     { id: "profile", label: "Profile", icon: UserCircle, group: "Dashboard" },
+    // Ordered by roughly how often a homeowner reaches for each: core home
+    // upkeep first, then pro-connection actions, then occasional AI tools,
+    // then account-level extras, support last.
     { id: "maintenance", label: "Maintenance Autopilot", icon: CalendarCheck, href: "/maintenance", group: "Quick Links" },
     { id: "binder-link", label: "Home Binder", icon: FolderOpen, href: "/binder", group: "Quick Links" },
+    { id: "messages-link", label: "Messages", icon: MessageSquare, href: "/messages", group: "Quick Links", badge: unreadMessages },
     { id: "find-pro", label: "Find a Pro", icon: Wrench, href: "/search", group: "Quick Links" },
-    { id: "estimator-link", label: "AI Estimator", icon: Brain, href: "/estimator", group: "Quick Links" },
-    { id: "messages-link", label: "Messages", icon: MessageSquare, href: "/messages", group: "Quick Links" },
-    { id: "coverage", label: "Coverage Advisor", icon: Shield, href: "/coverage", group: "Quick Links" },
     { id: "post-job-link", label: "Post a Job", icon: Briefcase, href: "/post-job", group: "Quick Links" },
+    { id: "estimator-link", label: "AI Estimator", icon: Brain, href: "/estimator", group: "Quick Links" },
+    { id: "coverage", label: "Coverage Advisor", icon: Shield, href: "/coverage", group: "Quick Links" },
     { id: "garage", label: hasGarage ? "Garage" : "Add Garage", icon: Car, href: hasGarage ? "/garage" : "/garage/upsell", group: "Quick Links" },
-    { id: "support-link", label: "Support & Tickets", icon: LifeBuoy, href: "/support", group: "Quick Links" },
     { id: "sharing-link", label: "Family & Sharing", icon: Users, href: "/sharing", group: "Quick Links" },
+    { id: "support-link", label: "Support & Tickets", icon: LifeBuoy, href: "/support", group: "Quick Links", badge: openTicketCount },
   ];
 
   return (

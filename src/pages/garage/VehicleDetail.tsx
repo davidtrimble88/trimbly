@@ -11,12 +11,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, ArrowLeft, Upload, Check, ShoppingCart, ExternalLink, ScanLine, AlertTriangle, Loader2 } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Upload, Check, ShoppingCart, ExternalLink, ScanLine, AlertTriangle, Loader2, Car, Bike } from "lucide-react";
 import { toast } from "sonner";
 import { VehicleProductDialog } from "@/components/garage/VehicleProductDialog";
 import FuelMileagePanel from "@/components/garage/FuelMileagePanel";
 import VehicleInspectionsPanel from "@/components/garage/VehicleInspectionsPanel";
 import { Skeleton } from "@/components/ui/skeleton";
+
+const vehicleTypeLabels: Record<string, string> = {
+  car: "Car",
+  motorcycle: "Motorcycle",
+  truck: "Truck",
+  suv: "SUV",
+  other: "Other",
+};
 
 export default function VehicleDetail() {
   const { id } = useParams();
@@ -63,13 +71,23 @@ export default function VehicleDetail() {
       <Button variant="ghost" size="sm" asChild><Link to="/garage/vehicles"><ArrowLeft size={16} className="mr-1" /> All vehicles</Link></Button>
 
       <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="font-display text-2xl font-bold">{vehicle.nickname || `${vehicle.year ?? ""} ${vehicle.make} ${vehicle.model}`.trim()}</h1>
-          <p className="text-sm text-muted-foreground">{[vehicle.year, vehicle.make, vehicle.model, vehicle.trim].filter(Boolean).join(" ")} · {vehicle.current_mileage.toLocaleString()} {vehicle.mileage_unit}{vehicle.license_plate ? ` · ${vehicle.license_plate}` : ""}</p>
-          <p className="text-xs text-muted-foreground font-mono mt-0.5 flex items-center gap-2">
-            {vehicle.vin ? `VIN: ${vehicle.vin}` : "No VIN on file"}
-            <VinDialog vehicle={vehicle} onSaved={load} />
-          </p>
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+            {vehicle.vehicle_type === "motorcycle" ? <Bike size={18} className="text-primary" /> : <Car size={18} className="text-primary" />}
+          </div>
+          <div>
+            <h1 className="font-display text-2xl font-bold flex items-center gap-2 flex-wrap">
+              {vehicle.nickname || `${vehicle.year ?? ""} ${vehicle.make} ${vehicle.model}`.trim()}
+              <Badge variant="outline" className="text-xs font-normal align-middle">
+                {vehicleTypeLabels[vehicle.vehicle_type] || vehicle.vehicle_type}
+              </Badge>
+            </h1>
+            <p className="text-sm text-muted-foreground">{[vehicle.year, vehicle.make, vehicle.model, vehicle.trim].filter(Boolean).join(" ")} · {vehicle.current_mileage.toLocaleString()} {vehicle.mileage_unit}{vehicle.license_plate ? ` · ${vehicle.license_plate}` : ""}</p>
+            <p className="text-xs text-muted-foreground font-mono mt-0.5 flex items-center gap-2">
+              {vehicle.vin ? `VIN: ${vehicle.vin}` : "No VIN on file"}
+              <VinDialog vehicle={vehicle} onSaved={load} />
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" asChild><Link to={`/garage/vehicles/${vehicle.id}/report`}>Printable report</Link></Button>
