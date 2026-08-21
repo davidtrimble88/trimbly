@@ -1,5 +1,8 @@
 project_id = "mrideliutnlaxsvbabyk"
 
+[functions.backfill-home-photos]
+verify_jwt = false
+
 [functions.ai-search-providers]
 verify_jwt = false
 
