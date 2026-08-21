@@ -687,6 +687,8 @@ export type Database = {
           roof_type: string | null
           square_feet: number | null
           state: string
+          street_address: string | null
+          street_address_normalized: string | null
           updated_at: string
           user_id: string
           water_shutoff_location: string | null
@@ -714,6 +716,8 @@ export type Database = {
           roof_type?: string | null
           square_feet?: number | null
           state?: string
+          street_address?: string | null
+          street_address_normalized?: string | null
           updated_at?: string
           user_id: string
           water_shutoff_location?: string | null
@@ -741,6 +745,8 @@ export type Database = {
           roof_type?: string | null
           square_feet?: number | null
           state?: string
+          street_address?: string | null
+          street_address_normalized?: string | null
           updated_at?: string
           user_id?: string
           water_shutoff_location?: string | null
