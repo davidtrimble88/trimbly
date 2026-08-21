@@ -26,7 +26,7 @@ import MyHomesTab from "@/components/dashboard/homeowner/MyHomesTab";
 import HomeToolsTab from "@/components/dashboard/homeowner/HomeToolsTab";
 import HomeownerProfileTab from "@/components/dashboard/homeowner/HomeownerProfileTab";
 import ActivityFeedTab from "@/components/dashboard/homeowner/ActivityFeedTab";
-import { tierOrder, tierLabels, homeTypeLabels, type HomeData, type TaskRow, type BinderRow, type HomeStats, type DrilldownInfo, type JobStats } from "@/components/dashboard/homeowner/types";
+import { tierOrder, tierLabels, homeTypeLabels, hvacTypeOptions, roofTypeOptions, type HomeData, type TaskRow, type BinderRow, type HomeStats, type DrilldownInfo, type JobStats } from "@/components/dashboard/homeowner/types";
 import { taskUrgencyIconClasses } from "@/components/dashboard/homeowner/status";
 import CurrentWeatherChip from "@/components/home/CurrentWeatherChip";
 import { uploadProfileImage } from "@/lib/profileImages";
