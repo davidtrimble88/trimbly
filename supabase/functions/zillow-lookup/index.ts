@@ -176,10 +176,10 @@ Deno.serve(async (req) => {
       console.error('Scrape failed:', e);
     }
 
-    // Separate scrape for the hero photo, requesting raw HTML with
-    // onlyMainContent off — the gallery's photo-array JSON lives in a
-    // <script> tag that onlyMainContent filtering strips out, so the
-    // markdown-only scrape above can't see it.
+    // Separate scrape for the hero photo, requesting the rawHtml format
+    // specifically — Firecrawl's cleaned 'html' format strips <script>
+    // tags, but the gallery's photo array is embedded as JSON inside one
+    // (__NEXT_DATA__), so only rawHtml preserves it. See _shared/zillowPhoto.ts.
     //
     // Only attempt this against an actual /homedetails/ listing page — the
     // field-extraction fallback above will use any Zillow result (a city
@@ -192,7 +192,7 @@ Deno.serve(async (req) => {
         const photoScrapeResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
           method: 'POST',
           headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: propertyResult.url, formats: ['html'], onlyMainContent: false, waitFor: 3000 }),
+          body: JSON.stringify({ url: propertyResult.url, formats: ['rawHtml'], onlyMainContent: false, waitFor: 3000 }),
         });
         const photoScrapeData = await photoScrapeResponse.json();
         photoUrl = extractHeroPhoto(photoScrapeData);

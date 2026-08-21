@@ -53,13 +53,13 @@ async function findListingPhoto(apiKey: string, address: string): Promise<string
     const scrapeResponse = await fetch("https://api.firecrawl.dev/v1/scrape", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ url: propertyResult.url, formats: ["html"], onlyMainContent: false, waitFor: 3000 }),
+      body: JSON.stringify({ url: propertyResult.url, formats: ["rawHtml"], onlyMainContent: false, waitFor: 3000 }),
     });
     const scrapeData = await scrapeResponse.json();
     const photo = extractHeroPhoto(scrapeData);
     if (!photo) {
-      const htmlLen = (scrapeData?.data?.html || scrapeData?.html || "").length;
-      console.error("no photo extracted", scrapeResponse.status, "htmlLen", htmlLen, JSON.stringify(scrapeData).slice(0, 300));
+      const rawHtmlLen = (scrapeData?.data?.rawHtml || scrapeData?.rawHtml || "").length;
+      console.error("no photo extracted", scrapeResponse.status, "rawHtmlLen", rawHtmlLen, JSON.stringify(scrapeData).slice(0, 300));
     }
     return photo;
   } catch (e) {
