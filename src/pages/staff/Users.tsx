@@ -56,6 +56,9 @@ const Users = () => {
   const [deleting, setDeleting] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [archived, setArchived] = useState<ArchivedUser[]>([]);
+  const [emails, setEmails] = useState<Record<string, string>>({});
+  const [roles, setRoles] = useState<Record<string, string[]>>({});
+  const [tab, setTab] = useState<"users" | "staff">("users");
 
 
   useEffect(() => { load(); }, []);
@@ -63,7 +66,28 @@ const Users = () => {
   const load = async () => {
     const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
     setProfiles(data || []);
+    const { data: emailRows } = await supabase.rpc("admin_list_user_emails");
+    if (emailRows) {
+      const map: Record<string, string> = {};
+      (emailRows as { user_id: string; email: string | null }[]).forEach((r) => {
+        if (r.email) map[r.user_id] = r.email;
+      });
+      setEmails(map);
+    }
+    const { data: roleRows } = await supabase.from("user_roles").select("user_id,role");
+    if (roleRows) {
+      const rmap: Record<string, string[]> = {};
+      (roleRows as { user_id: string; role: string }[]).forEach((r) => {
+        rmap[r.user_id] = [...(rmap[r.user_id] || []), r.role];
+      });
+      setRoles(rmap);
+    }
   };
+
+  const STAFF_ROLES = ["admin", "moderator", "support", "analyst"];
+  const isStaff = (p: Profile) =>
+    (emails[p.id] || "").endsWith("@staff.trimbly.internal") ||
+    (roles[p.id] || []).some((r) => STAFF_ROLES.includes(r));
 
   const loadNotes = async (profileId: string) => {
     const { data } = await supabase.from("staff_notes").select("*").eq("entity_type", "user").eq("entity_id", profileId).order("created_at", { ascending: false });
@@ -73,10 +97,15 @@ const Users = () => {
   useEffect(() => { if (selected) loadNotes(selected.id); }, [selected]);
 
   const filtered = profiles.filter((p) => {
+    if (tab === "staff" ? !isStaff(p) : isStaff(p)) return false;
     if (filter === "homeowner" && p.user_type !== "homeowner") return false;
     if (filter === "provider" && p.user_type !== "provider") return false;
     if (filter === "suspended" && !p.suspended) return false;
-    if (search && !p.full_name.toLowerCase().includes(search.toLowerCase()) && !p.id.includes(search)) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      const email = (emails[p.id] || "").toLowerCase();
+      if (!p.full_name.toLowerCase().includes(q) && !p.id.includes(search) && !email.includes(q)) return false;
+    }
     return true;
   });
 
@@ -162,13 +191,25 @@ const Users = () => {
 
   return (
     <div className="space-y-4">
+      <div className="inline-flex rounded-lg border border-border p-1 bg-muted/40">
+        {(["users", "staff"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => { setTab(t); setFilter("all"); }}
+            className={`px-4 py-1.5 text-sm rounded-md transition-colors ${tab === t ? "bg-background shadow-sm font-medium" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            {t === "users" ? "Users" : "Staff"} ({profiles.filter((p) => (t === "staff" ? isStaff(p) : !isStaff(p))).length})
+          </button>
+        ))}
+      </div>
+
       <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Search by name or ID..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input className="pl-9" placeholder="Search by name, email, or ID..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="flex gap-2 flex-wrap">
-          {(["all", "homeowner", "provider", "suspended"] as const).map((f) => (
+          {(tab === "users" ? (["all", "homeowner", "provider", "suspended"] as const) : (["all", "suspended"] as const)).map((f) => (
             <Button key={f} size="sm" variant={filter === f ? "default" : "outline"} onClick={() => setFilter(f)}>
               {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
             </Button>
@@ -186,7 +227,8 @@ const Users = () => {
             <thead className="bg-muted/40 text-xs text-muted-foreground">
               <tr>
                 <th className="text-left py-3 px-4 font-medium">Name</th>
-                <th className="text-left py-3 px-4 font-medium">Type</th>
+                <th className="text-left py-3 px-4 font-medium">Email</th>
+                <th className="text-left py-3 px-4 font-medium">{tab === "staff" ? "Role" : "Type"}</th>
                 <th className="text-left py-3 px-4 font-medium">Tier</th>
                 <th className="text-left py-3 px-4 font-medium">Joined</th>
                 <th className="text-left py-3 px-4 font-medium">Status</th>
@@ -197,7 +239,10 @@ const Users = () => {
               {filtered.map((p) => (
                 <tr key={p.id} className="border-t border-border hover:bg-accent/50">
                   <td className="py-3 px-4 font-medium">{p.full_name || "(no name)"}</td>
-                  <td className="py-3 px-4 text-muted-foreground capitalize">{p.user_type}</td>
+                  <td className="py-3 px-4 text-muted-foreground text-xs">{emails[p.id] || "—"}</td>
+                  <td className="py-3 px-4 text-muted-foreground capitalize">
+                    {tab === "staff" ? ((roles[p.id] || []).join(", ") || "staff") : p.user_type}
+                  </td>
                   <td className="py-3 px-4">
                     {p.subscription_tier !== "free" ? (
                       <Badge variant="default" className="text-xs"><Crown className="w-3 h-3 mr-1" />{p.subscription_tier}</Badge>
@@ -213,7 +258,7 @@ const Users = () => {
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr><td colSpan={6} className="py-8 text-center text-muted-foreground text-sm">No users match</td></tr>
+                <tr><td colSpan={7} className="py-8 text-center text-muted-foreground text-sm">No users match</td></tr>
               )}
             </tbody>
           </table>
@@ -226,6 +271,7 @@ const Users = () => {
             <>
               <DialogHeader>
                 <DialogTitle>{selected.full_name || "(no name)"}</DialogTitle>
+                {emails[selected.id] && <p className="text-sm text-muted-foreground">{emails[selected.id]}</p>}
                 <p className="text-xs text-muted-foreground font-mono">{selected.id}</p>
               </DialogHeader>
 

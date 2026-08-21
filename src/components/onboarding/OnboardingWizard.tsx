@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { Home as HomeIcon, MapPin, Sparkles, CheckCircle2 } from "lucide-react";
+import { Home as HomeIcon, MapPin, Sparkles, CheckCircle2, Search, Loader2, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Props {
@@ -22,11 +22,62 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState("My Home");
   const [homeType, setHomeType] = useState("single_family");
-  const [streetAddress, setStreetAddress] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [yearBuilt, setYearBuilt] = useState<string>("");
+  const [squareFeet, setSquareFeet] = useState<string>("");
+  const [hvacType, setHvacType] = useState<string | null>(null);
+  const [roofType, setRoofType] = useState<string | null>(null);
+  const [hasPool, setHasPool] = useState<boolean | null>(null);
+  const [address, setAddress] = useState("");
+  const [lookingUp, setLookingUp] = useState(false);
+  const [lookedUp, setLookedUp] = useState(false);
   const [homeId, setHomeId] = useState<string | null>(null);
+
+  const lookupAddress = async () => {
+    if (!address.trim()) {
+      toast({ title: "Enter your address first", variant: "destructive" });
+      return;
+    }
+    setLookingUp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("zillow-lookup", {
+        body: { address: address.trim() },
+      });
+      if (error) throw error;
+      const addrMatch = address.match(/,\s*([^,]+?),\s*([A-Za-z]{2})\s*\d{0,5}\s*$/);
+      if (data?.success && data.data) {
+        const z = data.data;
+        setCity(z.city || addrMatch?.[1]?.trim() || city);
+        setState((z.state || addrMatch?.[2] || state || "").toUpperCase());
+        if (z.home_type) setHomeType(z.home_type);
+        if (z.year_built) setYearBuilt(String(z.year_built));
+        if (z.square_feet) setSquareFeet(String(z.square_feet));
+        if (z.hvac_type) setHvacType(z.hvac_type);
+        if (z.roof_type) setRoofType(z.roof_type);
+        if (typeof z.has_pool === "boolean") setHasPool(z.has_pool);
+        setLookedUp(true);
+        toast({ title: "Home details found!", description: "We pre-filled what we could — review below and adjust anything." });
+      } else {
+        if (addrMatch) {
+          setCity(addrMatch[1].trim());
+          setState(addrMatch[2].toUpperCase());
+        }
+        setLookedUp(true);
+        toast({
+          title: "Couldn't find that property",
+          description: data?.error || "Fill in the details below manually and you're good to go.",
+          variant: "destructive",
+        });
+      }
+    } catch (e: any) {
+      console.error("Address lookup error:", e);
+      setLookedUp(true);
+      toast({ title: "Lookup failed", description: "You can still enter the details manually.", variant: "destructive" });
+    } finally {
+      setLookingUp(false);
+    }
+  };
 
   const next = async () => {
     if (step === 1) {
@@ -35,17 +86,25 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
       return;
     }
     if (step === 2) {
-      if (!city.trim() || !state.trim()) return toast({ title: "Add a city and state so we can tailor maintenance", variant: "destructive" });
+      if (!city.trim() || !state.trim()) return toast({ title: "Add your address (or city and state) so we can tailor maintenance", variant: "destructive" });
       setBusy(true);
       try {
+        // Street address isn't its own field in this wizard's UI — reuse the
+        // free-text lookup input, taking everything before the first comma
+        // as the street line, same pattern as MaintenancePage.tsx.
+        const streetMatch = address.match(/^([^,]+)/);
         const { data, error } = await supabase.from("homes").insert([{
           user_id: userId,
           name: name.trim(),
           home_type: homeType,
-          street_address: streetAddress.trim() || null,
+          street_address: streetMatch?.[1]?.trim() || null,
           city: city.trim(),
           state: state.trim().toUpperCase(),
           year_built: yearBuilt ? parseInt(yearBuilt) : null,
+          square_feet: squareFeet ? parseInt(squareFeet) : null,
+          hvac_type: hvacType,
+          roof_type: roofType,
+          ...(hasPool !== null ? { has_pool: hasPool } : {}),
         } as any]).select("id").single();
         if (error) throw error;
         setHomeId(data.id);
@@ -65,6 +124,7 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
       onComplete(homeId);
     }
   };
+
 
   const progress = (step / 3) * 100;
 
@@ -111,24 +171,55 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
             </div>
             <div className="space-y-2">
               <Label>Street address</Label>
-              <Input value={streetAddress} onChange={(e) => setStreetAddress(e.target.value)} placeholder="123 Main St" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>City</Label>
-                <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Austin" />
+              <div className="flex gap-2">
+                <Input
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); lookupAddress(); } }}
+                  placeholder="123 Main St, Austin, TX 78701"
+                />
+                <Button type="button" variant="secondary" onClick={lookupAddress} disabled={lookingUp} className="shrink-0">
+                  {lookingUp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                  <span className="ml-1.5 hidden sm:inline">{lookingUp ? "Looking up" : "Look up"}</span>
+                </Button>
               </div>
-              <div className="space-y-2">
-                <Label>State</Label>
-                <Input value={state} onChange={(e) => setState(e.target.value)} placeholder="TX" maxLength={2} />
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Wand2 className="w-3 h-3 text-primary" /> We'll pull year built, size, roof, HVAC and more automatically.
+              </p>
+            </div>
+
+            {(lookedUp || city || state) && (
+              <div className="space-y-4 rounded-lg border border-border p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Review details</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>City</Label>
+                    <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Austin" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>State</Label>
+                    <Input value={state} onChange={(e) => setState(e.target.value)} placeholder="TX" maxLength={2} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Year built</Label>
+                    <Input type="number" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} placeholder="1998" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Square feet</Label>
+                    <Input type="number" value={squareFeet} onChange={(e) => setSquareFeet(e.target.value)} placeholder="1850" />
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Year built (optional)</Label>
-              <Input type="number" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} placeholder="1998" />
-            </div>
+            )}
+
+            {!lookedUp && !city && (
+              <Button variant="ghost" size="sm" className="w-full" onClick={() => setLookedUp(true)}>
+                Enter details manually instead
+              </Button>
+            )}
           </div>
         )}
+
 
         {step === 3 && (
           <div className="space-y-4 py-2 text-center">
