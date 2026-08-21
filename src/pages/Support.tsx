@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
 import { useGarageSubscription } from "@/hooks/useGarageSubscription";
@@ -62,9 +62,10 @@ export default function Support() {
   const { subscriptionTier, loading: tierLoading } = useHomeLimit();
   const { active: hasGarage } = useGarageSubscription();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
 
-  const [category, setCategory] = useState<Category>("bug");
-  const [subject, setSubject] = useState("");
+  const [category, setCategory] = useState<Category>((searchParams.get("category") as Category) || "bug");
+  const [subject, setSubject] = useState(searchParams.get("subject") || "");
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
 

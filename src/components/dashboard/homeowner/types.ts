@@ -27,6 +27,7 @@ export const upgradeConfig: Record<string, UpgradeTierConfig> = {
       "Digital Home Binder (5 items) + export",
       "Coverage Advisor (AI-powered)",
       "Seasonal checklists",
+      "Invite family — +$2/mo per person",
     ],
   },
   multi_pro: {
@@ -37,16 +38,20 @@ export const upgradeConfig: Record<string, UpgradeTierConfig> = {
       "Up to 10 home profiles",
       "View homes individually or all together",
       "Unlimited Digital Home Binder entries",
+      "2 free family members with full access",
+      "+more from $5/mo per property",
     ],
   },
 };
 
 export type HomeData = {
   id: string;
+  user_id?: string;
   name: string;
   home_type: string;
   year_built: number | null;
   square_feet: number | null;
+  street_address?: string;
   city: string;
   state: string;
   hvac_type: string | null;

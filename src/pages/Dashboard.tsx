@@ -30,7 +30,7 @@ import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare,
   Crown, Home, CheckCircle2, Shield, HelpCircle,
   Briefcase,
-  LayoutDashboard, Sparkles, UserCircle, Car, LifeBuoy,
+  LayoutDashboard, Sparkles, UserCircle, Car, LifeBuoy, Users,
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -111,20 +111,22 @@ const Dashboard = () => {
     if (!user) return;
     setLoadingHomes(true);
 
+    // No .eq("user_id", ...) filter here on purpose — RLS now returns the
+    // natural union of homes this user owns plus any shared with them via
+    // home_shares, so a shared home just appears in the list for free.
     const { data: homesData } = await supabase
       .from("homes")
-      .select("id, name, home_type, year_built, square_feet, city, state, hvac_type, roof_type, has_pool, has_septic, has_well_water")
-      .eq("user_id", user.id)
+      .select("id, user_id, name, home_type, year_built, square_feet, street_address, city, state, hvac_type, roof_type, has_pool, has_septic, has_well_water")
       .order("created_at", { ascending: true });
 
-    const homesList = (homesData as HomeData[]) || [];
+    const homesList = (homesData as unknown as HomeData[]) || [];
     setHomes(homesList);
 
-    if (homesList.length === 0) {
+    const ownedCount = homesList.filter(h => h.user_id === user.id).length;
+    if (ownedCount === 0) {
       const skipped = localStorage.getItem("hh_wizard_skipped");
       if (!skipped) setShowWizard(true);
-      setLoadingHomes(false);
-      return;
+      if (homesList.length === 0) { setLoadingHomes(false); return; }
     }
 
     const homeIds = homesList.map(h => h.id);
@@ -178,6 +180,7 @@ const Dashboard = () => {
       home_type: editForm.home_type,
       year_built: editForm.year_built,
       square_feet: editForm.square_feet,
+      street_address: editForm.street_address,
       city: editForm.city,
       state: editForm.state,
       hvac_type: editForm.hvac_type,
@@ -186,10 +189,14 @@ const Dashboard = () => {
       has_septic: editForm.has_septic,
       has_well_water: editForm.has_well_water,
       updated_at: new Date().toISOString(),
-    }).eq("id", editingHome.id);
+    } as any).eq("id", editingHome.id);
     setSaving(false);
     if (error) {
-      toast({ title: "Error", description: "Failed to update home.", variant: "destructive" });
+      if ((error as any).code === "23505") {
+        toast({ title: "Address already claimed", description: "This address is already registered on Trimbly. If you believe this is an error, contact Support.", variant: "destructive" });
+      } else {
+        toast({ title: "Error", description: "Failed to update home.", variant: "destructive" });
+      }
     } else {
       setHomes(prev => prev.map(h => h.id === editingHome.id ? { ...h, ...editForm } as HomeData : h));
       setEditingHome(null);
@@ -251,6 +258,7 @@ const Dashboard = () => {
     { id: "post-job-link", label: "Post a Job", icon: Briefcase, href: "/post-job", group: "Quick Links" },
     { id: "garage", label: hasGarage ? "Garage" : "Add Garage", icon: Car, href: hasGarage ? "/garage" : "/garage/upsell", group: "Quick Links" },
     { id: "support-link", label: "Support & Tickets", icon: LifeBuoy, href: "/support", group: "Quick Links" },
+    { id: "sharing-link", label: "Family & Sharing", icon: Users, href: "/sharing", group: "Quick Links" },
   ];
 
   return (
@@ -335,6 +343,7 @@ const Dashboard = () => {
               loadingHomes={loadingHomes}
               maxHomes={maxHomes}
               isPro={isPro}
+              currentUserId={user.id}
               onAddHome={() => setShowWizard(true)}
               onEditHome={startEdit}
               onDeleteHome={setDeletingHome}
@@ -366,6 +375,10 @@ const Dashboard = () => {
             <div>
               <Label className="text-sm">Home Name</Label>
               <Input value={editForm.name || ""} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="mt-1" />
+            </div>
+            <div>
+              <Label className="text-sm">Street Address</Label>
+              <Input value={editForm.street_address || ""} onChange={e => setEditForm(f => ({ ...f, street_address: e.target.value }))} className="mt-1" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>

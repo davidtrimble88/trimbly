@@ -22,6 +22,7 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState("My Home");
   const [homeType, setHomeType] = useState("single_family");
+  const [streetAddress, setStreetAddress] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [yearBuilt, setYearBuilt] = useState<string>("");
@@ -41,15 +42,20 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
           user_id: userId,
           name: name.trim(),
           home_type: homeType,
+          street_address: streetAddress.trim() || null,
           city: city.trim(),
           state: state.trim().toUpperCase(),
           year_built: yearBuilt ? parseInt(yearBuilt) : null,
-        }]).select("id").single();
+        } as any]).select("id").single();
         if (error) throw error;
         setHomeId(data.id);
         setStep(3);
       } catch (e: any) {
-        toast({ title: e.message || "Could not save home", variant: "destructive" });
+        if (e.code === "23505") {
+          toast({ title: "Address already claimed", description: "This address is already registered on Trimbly. If you believe this is an error, contact Support.", variant: "destructive" });
+        } else {
+          toast({ title: e.message || "Could not save home", variant: "destructive" });
+        }
       } finally {
         setBusy(false);
       }
@@ -102,6 +108,10 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
           <div className="space-y-4 py-2">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="w-4 h-4 text-primary" /> Where is it?
+            </div>
+            <div className="space-y-2">
+              <Label>Street address</Label>
+              <Input value={streetAddress} onChange={(e) => setStreetAddress(e.target.value)} placeholder="123 Main St" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">

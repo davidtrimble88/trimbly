@@ -24,10 +24,12 @@ import { EmptyState } from "@/components/EmptyState";
 
 type HomeProfile = {
   id?: string;
+  user_id?: string;
   name: string;
   home_type: string;
   year_built: number | null;
   square_feet: number | null;
+  street_address: string;
   city: string;
   state: string;
   country: string;
@@ -56,7 +58,7 @@ type MaintenanceTask = {
 
 const emptyHome: HomeProfile = {
   name: "My Home", home_type: "single_family", year_built: null, square_feet: null,
-  city: "", state: "", country: "US", hvac_type: "", roof_type: "",
+  street_address: "", city: "", state: "", country: "US", hvac_type: "", roof_type: "",
   has_pool: false, has_septic: false, has_well_water: false, notes: "",
 };
 
@@ -184,11 +186,13 @@ const MaintenancePage = () => {
         // less-common addresses) — fall back to parsing them straight out of
         // what the user typed rather than leaving fields blank they already answered.
         const addrMatch = addressInput.match(/,\s*([^,]+?),\s*([A-Za-z]{2})\s*\d{0,5}\s*$/);
+        const streetMatch = addressInput.match(/^([^,]+)/);
         setHome(h => ({
           ...h,
           home_type: z.home_type || h.home_type,
           year_built: z.year_built || h.year_built,
           square_feet: z.square_feet || h.square_feet,
+          street_address: z.address || streetMatch?.[1]?.trim() || h.street_address,
           city: z.city || addrMatch?.[1]?.trim() || h.city,
           state: z.state || addrMatch?.[2]?.toUpperCase() || h.state,
           hvac_type: z.hvac_type || h.hvac_type,
@@ -216,13 +220,14 @@ const MaintenancePage = () => {
 
   const loadHomes = async () => {
     setLoadingHome(true);
+    // No .eq("user_id", ...) filter — RLS returns owned homes plus any
+    // shared with this user, so shared properties just show up in the picker.
     const { data } = await supabase
       .from("homes")
       .select("*")
-      .eq("user_id", user!.id)
       .order("created_at", { ascending: true });
 
-    const allHomes = (data || []).map(h => ({ ...h, year_built: h.year_built ?? null, square_feet: h.square_feet ?? null }));
+    const allHomes = (data || []).map(h => ({ ...h, year_built: h.year_built ?? null, square_feet: h.square_feet ?? null })) as unknown as HomeProfile[];
     setHomes(allHomes);
 
     if (onboarding) {
@@ -236,10 +241,12 @@ const MaintenancePage = () => {
       return;
     }
 
-    if (allHomes.length > 0) {
-      setHome(allHomes[0]);
+    // Prefer the user's own home as the default selection over a shared one.
+    const defaultHome = allHomes.find(h => h.user_id === user!.id) || allHomes[0];
+    if (defaultHome) {
+      setHome(defaultHome);
       setHomeLoaded(true);
-      loadTasks(allHomes[0].id!);
+      loadTasks(defaultHome.id!);
     } else {
       setShowSetup(true);
       setWizardStep(0);
@@ -307,14 +314,29 @@ const MaintenancePage = () => {
     if (!user) return;
     setSavingHome(true);
     try {
+      let error;
       if (home.id) {
-        await supabase.from("homes").update({ ...home, updated_at: new Date().toISOString() }).eq("id", home.id);
+        ({ error } = await supabase.from("homes").update({ ...home, updated_at: new Date().toISOString() }).eq("id", home.id));
       } else {
-        const { data } = await supabase.from("homes").insert({ ...home, user_id: user.id }).select().single();
+        const { data, error: insertErr } = await supabase.from("homes").insert({ ...home, user_id: user.id }).select().single();
+        error = insertErr;
         if (data) {
           setHome({ ...home, id: data.id });
           setHomes(prev => [...prev, { ...home, id: data.id }]);
         }
+      }
+      if (error) {
+        if ((error as any).code === "23505") {
+          toast({
+            title: "Address already claimed",
+            description: "This address is already registered on Trimbly. If you believe this is an error, contact Support.",
+            variant: "destructive",
+          });
+        } else {
+          toast({ title: "Error", description: "Failed to save home profile.", variant: "destructive" });
+        }
+        setSavingHome(false);
+        return;
       }
       setHomeLoaded(true);
       setShowSetup(false);
@@ -668,6 +690,12 @@ const MaintenancePage = () => {
                         </Select>
                       </div>
 
+                      <div>
+                        <Label className="text-sm">Street address</Label>
+                        <Input value={home.street_address} onChange={e => setHome({ ...home, street_address: e.target.value })} placeholder="e.g. 123 Main St" className="mt-1" />
+                        <p className="text-xs text-muted-foreground mt-1">Only one Trimbly account can claim a given address.</p>
+                      </div>
+
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label className="text-sm">City</Label>
@@ -840,6 +868,11 @@ const MaintenancePage = () => {
 
                   {wizardSteps[wizardStep].type === "location" && (
                     <div className="space-y-3">
+                      <div>
+                        <Label className="text-sm">Street address</Label>
+                        <Input value={home.street_address} onChange={e => setHome({ ...home, street_address: e.target.value })} placeholder="e.g. 123 Main St" className="mt-1" />
+                        <p className="text-xs text-muted-foreground mt-1">Only one Trimbly account can claim a given address.</p>
+                      </div>
                       <div>
                         <Label className="text-sm">City</Label>
                         <Input value={home.city} onChange={e => setHome({ ...home, city: e.target.value })} placeholder="e.g. Austin" className="mt-1" />

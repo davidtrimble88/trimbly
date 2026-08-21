@@ -15,14 +15,16 @@ interface HomeCardProps {
   home: HomeData;
   stats?: HomeStats;
   isPro: boolean;
+  currentUserId?: string;
   onEdit: (home: HomeData) => void;
   onDelete: (home: HomeData) => void;
   onDrilldown: (info: DrilldownInfo) => void;
 }
 
-const HomeCard = ({ home, stats, isPro, onEdit, onDelete, onDrilldown }: HomeCardProps) => {
+const HomeCard = ({ home, stats, isPro, currentUserId, onEdit, onDelete, onDrilldown }: HomeCardProps) => {
   const navigate = useNavigate();
   const homeAge = home.year_built ? new Date().getFullYear() - home.year_built : null;
+  const isShared = !!currentUserId && !!home.user_id && home.user_id !== currentUserId;
 
   const accentClass = !stats
     ? "bg-border"
@@ -44,8 +46,9 @@ const HomeCard = ({ home, stats, isPro, onEdit, onDelete, onDrilldown }: HomeCar
               <HomeIcon size={18} className="text-primary" />
             </div>
             <div>
-              <CardTitle className="font-display text-lg">
+              <CardTitle className="font-display text-lg flex items-center gap-2">
                 {home.name}
+                {isShared && <Badge variant="secondary" className="text-[10px] font-normal">Shared with you</Badge>}
               </CardTitle>
               <CardDescription className="flex items-center gap-1 mt-1">
                 <MapPin size={13} />
@@ -57,24 +60,26 @@ const HomeCard = ({ home, stats, isPro, onEdit, onDelete, onDrilldown }: HomeCar
             <Badge variant="outline" className="text-xs shrink-0">
               {homeTypeLabels[home.home_type] || home.home_type}
             </Badge>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreVertical size={14} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onEdit(home)}>
-                  <Pencil size={14} className="mr-2" /> Edit Home
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate(`/dashboard/homes/${home.id}/report`)}>
-                  <FileText size={14} className="mr-2" /> Printable Report
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDelete(home)} className="text-destructive focus:text-destructive">
-                  <Trash2 size={14} className="mr-2" /> Remove Home
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {!isShared && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreVertical size={14} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onEdit(home)}>
+                    <Pencil size={14} className="mr-2" /> Edit Home
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate(`/dashboard/homes/${home.id}/report`)}>
+                    <FileText size={14} className="mr-2" /> Printable Report
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onDelete(home)} className="text-destructive focus:text-destructive">
+                    <Trash2 size={14} className="mr-2" /> Remove Home
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
       </CardHeader>

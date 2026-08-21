@@ -15,6 +15,7 @@ interface MyHomesTabProps {
   loadingHomes: boolean;
   maxHomes: number;
   isPro: boolean;
+  currentUserId?: string;
   onAddHome: () => void;
   onEditHome: (home: HomeData) => void;
   onDeleteHome: (home: HomeData) => void;
@@ -22,8 +23,9 @@ interface MyHomesTabProps {
 }
 
 const MyHomesTab = ({
-  homes, homeStats, allTasks, loadingHomes, maxHomes, isPro, onAddHome, onEditHome, onDeleteHome, onDrilldown,
+  homes, homeStats, allTasks, loadingHomes, maxHomes, isPro, currentUserId, onAddHome, onEditHome, onDeleteHome, onDrilldown,
 }: MyHomesTabProps) => {
+  const ownedHomes = currentUserId ? homes.filter((h) => h.user_id === currentUserId) : homes;
   const totalTasks = Object.values(homeStats).reduce((s, h) => s + h.totalTasks, 0);
   const overdueTotal = Object.values(homeStats).reduce((s, h) => s + h.overdueTasks, 0);
   const upcomingTotal = Object.values(homeStats).reduce((s, h) => s + h.upcomingTasks, 0);
@@ -36,9 +38,9 @@ const MyHomesTab = ({
         <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
           <HomeIcon size={20} className="text-primary" />
           Your Homes
-          <span className="text-sm font-normal text-muted-foreground">({homes.length}/{maxHomes})</span>
+          <span className="text-sm font-normal text-muted-foreground">({ownedHomes.length}/{maxHomes})</span>
         </h2>
-        {homes.length < maxHomes && (
+        {ownedHomes.length < maxHomes && (
           <Button size="sm" onClick={onAddHome}>
             <Plus size={14} className="mr-1.5" /> Add Home
           </Button>
@@ -109,6 +111,7 @@ const MyHomesTab = ({
                 home={home}
                 stats={homeStats[home.id]}
                 isPro={isPro}
+                currentUserId={currentUserId}
                 onEdit={onEditHome}
                 onDelete={onDeleteHome}
                 onDrilldown={onDrilldown}

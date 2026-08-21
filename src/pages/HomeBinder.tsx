@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
 import { useGarageSubscription } from "@/hooks/useGarageSubscription";
+import { useHomeAccess } from "@/hooks/useHomeAccess";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
 
@@ -97,7 +98,7 @@ const HomeBinder = () => {
   const isMultiPro = subscriptionTier === "multi_pro";
 
   const [items, setItems] = useState<BinderItem[]>([]);
-  const [homes, setHomes] = useState<{ id: string; name: string }[]>([]);
+  const [homes, setHomes] = useState<{ id: string; name: string; user_id?: string }[]>([]);
   const [homeId, setHomeId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -111,6 +112,14 @@ const HomeBinder = () => {
   const [manualResults, setManualResults] = useState<ManualResult[]>([]);
   const [selectedManual, setSelectedManual] = useState<{ url: string; title: string } | null>(null);
 
+  // Effective tier for the currently-selected home: the viewer's own tier
+  // if they own it, otherwise the home owner's tier — a shared member's
+  // binder cap rides on whatever the owner is paying for, on that one home.
+  const { isOwner: isOwnHome, effectiveTier: sharedTier } = useHomeAccess(homeId && homeId !== "all" ? homeId : null);
+  const effectiveMaxBinderItems = (homeId !== "all" && isOwnHome === false && sharedTier)
+    ? (sharedTier === "free" ? 0 : sharedTier === "multi_pro" ? Infinity : 5)
+    : maxBinderItems;
+
   useEffect(() => {
     if (!user) { setLoading(false); return; }
     loadData();
@@ -118,10 +127,11 @@ const HomeBinder = () => {
 
   const loadData = async (selectedHomeId?: string | null) => {
     setLoading(true);
+    // No .eq("user_id", ...) filter — RLS returns owned homes plus any
+    // shared with this user.
     const { data: allHomes } = await supabase
       .from("homes")
-      .select("id, name")
-      .eq("user_id", user!.id)
+      .select("id, name, user_id")
       .order("created_at", { ascending: true });
 
     const homesList = allHomes || [];
@@ -169,11 +179,11 @@ const HomeBinder = () => {
     loadData(id);
   };
 
-  const canAddBinderItem = items.length < maxBinderItems;
+  const canAddBinderItem = items.length < effectiveMaxBinderItems;
 
   const openNew = () => {
     if (!canAddBinderItem) {
-      toast({ title: "Binder limit reached", description: `Your plan allows up to ${maxBinderItems} binder items. Upgrade to Home Super Hero for unlimited entries.`, variant: "destructive" });
+      toast({ title: "Binder limit reached", description: `This home's plan allows up to ${effectiveMaxBinderItems} binder items. Upgrade to Home Super Hero for unlimited entries.`, variant: "destructive" });
       return;
     }
     setEditingItem(null);
@@ -386,7 +396,7 @@ const HomeBinder = () => {
         <div className="max-w-4xl rounded-xl border border-border bg-card p-6 h-48 animate-pulse" />
       ) : (
       <UpgradeGate
-        hasAccess={isPro}
+        hasAccess={isPro || homes.some(h => h.user_id && h.user_id !== user.id)}
         featureName="Digital Home Binder"
         description="Track appliances, warranties, receipts, and documents all in one place."
         benefits={["Store appliance manuals & warranties", "Track receipts and documents", "Warranty expiration alerts"]}

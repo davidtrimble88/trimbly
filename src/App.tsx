@@ -41,6 +41,8 @@ const AccountRecovery = lazy(() => import("./pages/AccountRecovery"));
 const Messages = lazy(() => import("./pages/Messages"));
 const CoverageAdvisor = lazy(() => import("./pages/CoverageAdvisor"));
 const Support = lazy(() => import("./pages/Support"));
+const HomeSharing = lazy(() => import("./pages/HomeSharing"));
+const JoinHome = lazy(() => import("./pages/JoinHome"));
 const PostJob = lazy(() => import("./pages/PostJob"));
 const JobBoard = lazy(() => import("./pages/JobBoard"));
 const Contact = lazy(() => import("./pages/Contact"));
@@ -173,6 +175,8 @@ const App = () => (
             <Route path="/messages" element={<Messages />} />
             <Route path="/coverage" element={<CoverageAdvisor />} />
             <Route path="/support" element={<Support />} />
+            <Route path="/sharing" element={<HomeSharing />} />
+            <Route path="/join/:token" element={<JoinHome />} />
             <Route path="/energy-advisor" element={<EnergyAdvisor />} />
             <Route path="/dashboard/homes/:id/report" element={<HomeReport />} />
             <Route path="/post-job" element={<PostJob />} />
