@@ -21,24 +21,34 @@ const corsHeaders = {
 
 async function findListingPhoto(apiKey: string, address: string): Promise<string | null> {
   try {
-    const searchResponse = await fetch("https://api.firecrawl.dev/v1/search", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ query: `site:zillow.com ${address}`, limit: 3 }),
-    });
-    const searchData = await searchResponse.json();
-    if (!searchResponse.ok || !searchData.success) {
-      console.error("search failed", searchResponse.status, JSON.stringify(searchData).slice(0, 500));
+    // Only a /homedetails/ page is the actual listing. Falling back to any
+    // other Zillow result (a city search page, say) is what produced the
+    // wrong photos on the first run, so we now skip instead of guessing.
+    const queries = [
+      `site:zillow.com/homedetails ${address}`,
+      `site:zillow.com ${address}`,
+    ];
+    let listingUrl: string | null = null;
+    for (const query of queries) {
+      const searchResponse = await fetch("https://api.firecrawl.dev/v1/search", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ query, limit: 5 }),
+      });
+      const searchData = await searchResponse.json();
+      if (!searchResponse.ok || !searchData.success) {
+        console.error("search failed", searchResponse.status, JSON.stringify(searchData).slice(0, 300));
+        continue;
+      }
+      const hit = (searchData.data || []).find((r: any) => r.url?.includes("zillow.com/homedetails"));
+      if (hit?.url) { listingUrl = hit.url; break; }
+    }
+    if (!listingUrl) {
+      console.error("no listing page found for", address);
       return null;
     }
-
-    const results = searchData.data || [];
-    const propertyResult = results.find((r: any) => r.url?.includes("zillow.com/homedetails")) || results[0];
-    if (!propertyResult?.url) {
-      console.error("no search result for", address);
-      return null;
-    }
-    console.log("listing url", propertyResult.url);
+    console.log("listing url", listingUrl);
+    const propertyResult = { url: listingUrl };
 
     const scrapeResponse = await fetch("https://api.firecrawl.dev/v1/scrape", {
       method: "POST",
