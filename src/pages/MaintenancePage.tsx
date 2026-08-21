@@ -66,6 +66,19 @@ const emptyHome: HomeProfile = {
 const seasonIcons: Record<string, typeof Sun> = { spring: Leaf, summer: Sun, fall: CloudRain, winter: Snowflake, any: Clock };
 const priorityColors: Record<string, string> = { high: "destructive", medium: "default", low: "secondary" };
 
+// Northern-hemisphere season for a given due date — the season badge should
+// always describe when the task is actually due, not a value copied forward
+// from a prior cycle (a quarterly-recurring task rotates through all four
+// seasons, so a stale copied value drifts wrong after the first renewal).
+const seasonForDate = (dateStr: string | null): string => {
+  if (!dateStr) return "any";
+  const month = new Date(`${dateStr}T00:00:00`).getMonth(); // 0-indexed, Jan=0
+  if (month <= 1 || month === 11) return "winter"; // Dec, Jan, Feb
+  if (month <= 4) return "spring"; // Mar, Apr, May
+  if (month <= 7) return "summer"; // Jun, Jul, Aug
+  return "fall"; // Sep, Oct, Nov
+};
+
 const formatICSDate = (date: string) => {
   const d = new Date(date);
   return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
@@ -85,7 +98,7 @@ const generateICSEvent = (task: { id: string; title: string; description: string
 
   const alarm = `\nBEGIN:VALARM\nTRIGGER:${task.priority === "high" ? "-P1D" : "-P3D"}\nACTION:DISPLAY\nDESCRIPTION:${task.title} - Trimbly Maintenance\nEND:VALARM`;
 
-  return `BEGIN:VEVENT\nUID:${task.id}@trimbly\nSUMMARY:🏠 ${task.title}\nDESCRIPTION:${(task.description || "").replace(/\n/g, "\\n")}\\nCategory: ${task.category}\\nPriority: ${task.priority}\\nSeason: ${task.season}\n${dtStart}\n${dtEnd}${rrule}${alarm}\nEND:VEVENT`;
+  return `BEGIN:VEVENT\nUID:${task.id}@trimbly\nSUMMARY:🏠 ${task.title}\nDESCRIPTION:${(task.description || "").replace(/\n/g, "\\n")}\\nCategory: ${task.category}\\nPriority: ${task.priority}\\nSeason: ${seasonForDate(task.due_date)}\n${dtStart}\n${dtEnd}${rrule}${alarm}\nEND:VEVENT`;
 };
 
 const downloadICS = (filename: string, content: string) => {
@@ -472,7 +485,7 @@ const MaintenancePage = () => {
         status: "upcoming",
         due_date: nextDueStr,
         recurrence_months: task.recurrence_months,
-        season: task.season,
+        season: seasonForDate(nextDueStr),
         products_search_term: task.products_search_term || null,
       };
 
@@ -539,7 +552,7 @@ const MaintenancePage = () => {
         case "category":
           return a.category.localeCompare(b.category);
         case "season":
-          return (seasonOrder[a.season] ?? 4) - (seasonOrder[b.season] ?? 4);
+          return (seasonOrder[seasonForDate(a.due_date)] ?? 4) - (seasonOrder[seasonForDate(b.due_date)] ?? 4);
         case "due_date":
         default:
           if (!a.due_date && !b.due_date) return 0;
@@ -1035,7 +1048,8 @@ const MaintenancePage = () => {
                       <div className="space-y-3">
                         {filteredTasks.map(task => {
                           const isOverdue = task.status !== "completed" && task.due_date && new Date(task.due_date) < new Date();
-                          const SeasonIcon = seasonIcons[task.season] || Clock;
+                          const taskSeason = seasonForDate(task.due_date);
+                          const SeasonIcon = seasonIcons[taskSeason] || Clock;
                           return (
                             <div
                               key={task.id}
@@ -1067,10 +1081,10 @@ const MaintenancePage = () => {
                                     <Badge variant={priorityColors[task.priority] as any} className="text-[10px] px-1.5 py-0">
                                       {task.priority}
                                     </Badge>
-                                    <span className="text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded inline-flex items-center gap-1">
-                                      <SeasonIcon size={10} /> {task.season}
+                                    <span className="text-[10px] text-secondary-foreground bg-secondary px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                                      <SeasonIcon size={10} /> {taskSeason}
                                     </span>
-                                    <span className="text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">{task.category}</span>
+                                    <span className="text-[10px] text-secondary-foreground bg-secondary px-1.5 py-0.5 rounded">{task.category}</span>
                                     {allHomesView && (
                                       <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
                                         <Home size={10} /> {homes.find(h => h.id === (task as any).home_id)?.name || "Unknown"}
