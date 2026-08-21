@@ -105,8 +105,10 @@ Deno.serve(async (req) => {
     const results: { id: string; address: string; photo_url?: string }[] = [];
 
     for (const home of homes || []) {
+      // A street address is required: city+state alone matches an arbitrary
+      // listing in that city, which is not this home's photo.
       const addressParts = [home.street_address, home.city, home.state].filter(Boolean);
-      if (addressParts.length < 2) { skippedNoAddress++; continue; }
+      if (!home.street_address || addressParts.length < 2) { skippedNoAddress++; continue; }
       const address = addressParts.join(", ");
 
       const photoUrl = await findListingPhoto(FIRECRAWL_KEY, address);
