@@ -9,6 +9,40 @@ export const homeTypeLabels: Record<string, string> = {
   mobile: "Mobile Home",
 };
 
+export const hvacTypeOptions: string[] = [
+  "Central AC",
+  "Heat Pump",
+  "Furnace (Gas)",
+  "Furnace (Electric)",
+  "Furnace (Oil)",
+  "Boiler (Hot Water)",
+  "Boiler (Steam)",
+  "Mini-Split / Ductless",
+  "Window Units",
+  "Evaporative Cooler (Swamp)",
+  "Radiant Floor Heating",
+  "Baseboard Electric",
+  "Geothermal",
+  "None",
+];
+
+export const roofTypeOptions: string[] = [
+  "Asphalt Shingles",
+  "Architectural Shingles",
+  "Metal Roof",
+  "Clay Tile",
+  "Concrete Tile",
+  "Slate",
+  "Wood Shake",
+  "TPO (Flat)",
+  "EPDM / Rubber (Flat)",
+  "Tar & Gravel (Built-Up)",
+  "Solar Roof",
+  "Green / Living Roof",
+  "Other",
+  "None",
+];
+
 export type JobStats = { total: number; pending: number; withBids: number; accepted: number; completed: number };
 
 export type UpgradeTierConfig = { name: string; price: string; period: string; newFeatures: string[] };
