@@ -1,4 +1,4 @@
-// Shared by zillow-lookup and backfill-home-photos: given a Firecrawl scrape
+// Shared by zillow-lookup: given a Firecrawl scrape
 // response for a Zillow listing page, pick the listing's actual hero/first
 // gallery photo.
 //
