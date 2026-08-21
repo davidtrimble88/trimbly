@@ -56,7 +56,7 @@ const HomeCard = ({ home, stats, isPro, currentUserId, onEdit, onDelete, onDrill
     <Card className="overflow-hidden shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] transition-shadow">
       <div className={`h-1.5 w-full ${accentClass}`} />
       {home.photo_url && (
-        <img src={home.photo_url} alt={home.name} className="w-full h-32 object-cover" />
+        <img src={home.photo_url} alt={home.name} className="w-full aspect-video object-cover" />
       )}
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
