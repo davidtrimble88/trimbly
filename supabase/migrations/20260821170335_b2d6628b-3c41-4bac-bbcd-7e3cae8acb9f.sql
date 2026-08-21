@@ -1,0 +1,1 @@
+UPDATE public.homes SET photo_url = NULL WHERE id = 'c590227d-7637-451c-870d-c3a2f1a95cd6';
