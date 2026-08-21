@@ -69,8 +69,13 @@ Deno.serve(async (req) => {
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
-    let query = admin.from("homes").select("id, street_address, city, state");
+    let query = admin.from("homes").select("id, street_address, city, state").order("id");
     if (!overwrite) query = query.is("photo_url", null);
+    // Optional paging so a large overwrite pass can be run in batches that
+    // each finish well inside the edge idle timeout.
+    const offset = Number.isFinite(body.offset) ? Number(body.offset) : null;
+    const limit = Number.isFinite(body.limit) ? Number(body.limit) : null;
+    if (offset !== null && limit !== null) query = query.range(offset, offset + limit - 1);
     const { data: homes, error } = await query;
     if (error) throw error;
 
