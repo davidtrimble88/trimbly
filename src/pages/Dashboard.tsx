@@ -26,7 +26,7 @@ import MyHomesTab from "@/components/dashboard/homeowner/MyHomesTab";
 import HomeToolsTab from "@/components/dashboard/homeowner/HomeToolsTab";
 import HomeownerProfileTab from "@/components/dashboard/homeowner/HomeownerProfileTab";
 import ActivityFeedTab from "@/components/dashboard/homeowner/ActivityFeedTab";
-import { tierOrder, tierLabels, homeTypeLabels, type HomeData, type TaskRow, type BinderRow, type HomeStats, type DrilldownInfo, type JobStats } from "@/components/dashboard/homeowner/types";
+import { tierOrder, tierLabels, homeTypeLabels, hvacTypeOptions, roofTypeOptions, type HomeData, type TaskRow, type BinderRow, type HomeStats, type DrilldownInfo, type JobStats } from "@/components/dashboard/homeowner/types";
 import { taskUrgencyIconClasses } from "@/components/dashboard/homeowner/status";
 import CurrentWeatherChip from "@/components/home/CurrentWeatherChip";
 import { uploadProfileImage } from "@/lib/profileImages";
@@ -540,11 +540,29 @@ const Dashboard = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-sm">HVAC Type</Label>
-                <Input value={editForm.hvac_type || ""} onChange={e => setEditForm(f => ({ ...f, hvac_type: e.target.value }))} className="mt-1" />
+                <select
+                  value={editForm.hvac_type || ""}
+                  onChange={e => setEditForm(f => ({ ...f, hvac_type: e.target.value }))}
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="">Select HVAC type</option>
+                  {hvacTypeOptions.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <Label className="text-sm">Roof Type</Label>
-                <Input value={editForm.roof_type || ""} onChange={e => setEditForm(f => ({ ...f, roof_type: e.target.value }))} className="mt-1" />
+                <select
+                  value={editForm.roof_type || ""}
+                  onChange={e => setEditForm(f => ({ ...f, roof_type: e.target.value }))}
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="">Select roof type</option>
+                  {roofTypeOptions.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="flex flex-wrap gap-4 text-sm">
