@@ -29,6 +29,7 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
   const [hvacType, setHvacType] = useState<string | null>(null);
   const [roofType, setRoofType] = useState<string | null>(null);
   const [hasPool, setHasPool] = useState<boolean | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [address, setAddress] = useState("");
   const [lookingUp, setLookingUp] = useState(false);
   const [lookedUp, setLookedUp] = useState(false);
@@ -56,6 +57,7 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
         if (z.hvac_type) setHvacType(z.hvac_type);
         if (z.roof_type) setRoofType(z.roof_type);
         if (typeof z.has_pool === "boolean") setHasPool(z.has_pool);
+        if (z.photo_url) setPhotoUrl(z.photo_url);
         setLookedUp(true);
         toast({ title: "Home details found!", description: "We pre-filled what we could — review below and adjust anything." });
       } else {
@@ -105,6 +107,7 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
           hvac_type: hvacType,
           roof_type: roofType,
           ...(hasPool !== null ? { has_pool: hasPool } : {}),
+          ...(photoUrl ? { photo_url: photoUrl } : {}),
         } as any]).select("id").single();
         if (error) throw error;
         setHomeId(data.id);
@@ -191,6 +194,9 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
             {(lookedUp || city || state) && (
               <div className="space-y-4 rounded-lg border border-border p-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Review details</p>
+                {photoUrl && (
+                  <img src={photoUrl} alt="" className="w-full h-32 object-cover rounded-md" />
+                )}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label>City</Label>

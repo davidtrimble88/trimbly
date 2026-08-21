@@ -162,6 +162,7 @@ Deno.serve(async (req) => {
     // Scrape the listing as markdown, then extract with AI (Firecrawl's legacy
     // `extract` format returns empty objects, which left every field blank).
     let markdown = '';
+    let photoUrl: string | null = null;
     try {
       const scrapeResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
         method: 'POST',
@@ -170,6 +171,20 @@ Deno.serve(async (req) => {
       });
       const scrapeData = await scrapeResponse.json();
       markdown = scrapeData?.data?.markdown || scrapeData?.markdown || '';
+
+      // The listing's Open Graph image (set by Zillow for link-preview
+      // purposes) is the cleanest single "hero photo" available — it's
+      // page metadata, independent of onlyMainContent, so it survives even
+      // when the photo gallery itself gets filtered out as non-main-content.
+      const ogImage = scrapeData?.data?.metadata?.ogImage || scrapeData?.metadata?.ogImage;
+      if (typeof ogImage === 'string' && ogImage.startsWith('http')) {
+        photoUrl = ogImage;
+      } else {
+        // Fall back to the first Zillow-hosted photo URL embedded in the
+        // scraped markdown, if any.
+        const match = markdown.match(/https:\/\/photos\.zillowstatic\.com\/[^\s)"']+/);
+        if (match) photoUrl = match[0];
+      }
     } catch (e) {
       console.error('Scrape failed:', e);
     }
@@ -197,6 +212,7 @@ Deno.serve(async (req) => {
         bathrooms: propertyData.bathrooms ?? null,
         address: propertyData.address || '',
         zillow_url: propertyResult.url,
+        photo_url: photoUrl,
       },
     };
 

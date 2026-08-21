@@ -39,6 +39,7 @@ type HomeProfile = {
   has_septic: boolean;
   has_well_water: boolean;
   notes: string;
+  photo_url?: string | null;
 };
 
 type MaintenanceTask = {
@@ -198,6 +199,7 @@ const MaintenancePage = () => {
           hvac_type: z.hvac_type || h.hvac_type,
           roof_type: z.roof_type || h.roof_type,
           has_pool: z.has_pool ?? h.has_pool,
+          photo_url: z.photo_url || h.photo_url,
         }));
         setAddressLookedUp(true);
         toast({ title: "Home details found!", description: "We've pre-filled your home info from Zillow. You can review and adjust it on the next screen." });
@@ -841,9 +843,14 @@ const MaintenancePage = () => {
                         </Button>
                       </div>
                       {addressLookedUp && (
-                        <div className="rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3 text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
-                          <Check size={16} />
-                          Home details pre-filled from Zillow! Review and adjust on the next screen.
+                        <div className="space-y-2">
+                          {home.photo_url && (
+                            <img src={home.photo_url} alt="" className="w-full h-32 object-cover rounded-lg" />
+                          )}
+                          <div className="rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3 text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
+                            <Check size={16} />
+                            Home details pre-filled from Zillow! Review and adjust on the next screen.
+                          </div>
                         </div>
                       )}
                       {!addressLookedUp && (
