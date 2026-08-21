@@ -27,11 +27,18 @@ async function findListingPhoto(apiKey: string, address: string): Promise<string
       body: JSON.stringify({ query: `site:zillow.com ${address}`, limit: 3 }),
     });
     const searchData = await searchResponse.json();
-    if (!searchResponse.ok || !searchData.success) return null;
+    if (!searchResponse.ok || !searchData.success) {
+      console.error("search failed", searchResponse.status, JSON.stringify(searchData).slice(0, 500));
+      return null;
+    }
 
     const results = searchData.data || [];
     const propertyResult = results.find((r: any) => r.url?.includes("zillow.com/homedetails")) || results[0];
-    if (!propertyResult?.url) return null;
+    if (!propertyResult?.url) {
+      console.error("no search result for", address);
+      return null;
+    }
+    console.log("listing url", propertyResult.url);
 
     const scrapeResponse = await fetch("https://api.firecrawl.dev/v1/scrape", {
       method: "POST",
