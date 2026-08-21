@@ -82,7 +82,7 @@ export default function MilestonesPanel({
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
       pending: "bg-muted text-muted-foreground",
-      funded: "bg-yellow-500/15 text-yellow-700 border-yellow-500/40",
+      funded: "bg-warning/15 text-warning border-warning/40",
       released: "bg-green-500/15 text-green-700 border-green-500/40",
       refunded: "bg-destructive/15 text-destructive border-destructive/40",
     };

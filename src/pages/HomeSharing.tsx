@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
 import { useGarageSubscription } from "@/hooks/useGarageSubscription";
 import { useHomeSharing, type GrantType } from "@/hooks/useHomeSharing";
+import { markFeatureSeen } from "@/components/dashboard/FeatureAnnouncementDot";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import DashboardShell from "@/components/dashboard/DashboardShell";
@@ -32,6 +33,8 @@ export default function HomeSharing() {
   const { active: hasGarage } = useGarageSubscription();
   const { toast } = useToast();
   const { invites, shares, monthlyAddonCents, loading: sharingLoading, refresh } = useHomeSharing();
+
+  useEffect(() => { markFeatureSeen("family-sharing"); }, []);
 
   const [homes, setHomes] = useState<{ id: string; name: string }[]>([]);
   const [creating, setCreating] = useState<GrantType | null>(null);

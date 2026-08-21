@@ -46,7 +46,7 @@ function statusBadge(status: string) {
   const map: Record<string, { label: string; className: string }> = {
     not_started: { label: "Not started", className: "bg-muted text-muted-foreground" },
     unverified: { label: "Not submitted", className: "bg-muted text-muted-foreground" },
-    pending: { label: "In review", className: "bg-yellow-500/15 text-yellow-700 border-yellow-500/40" },
+    pending: { label: "In review", className: "bg-warning/15 text-warning border-warning/40" },
     clear: { label: "Clear", className: "bg-green-500/15 text-green-700 border-green-500/40" },
     verified: { label: "Verified", className: "bg-green-500/15 text-green-700 border-green-500/40" },
     consider: { label: "Needs review", className: "bg-orange-500/15 text-orange-700 border-orange-500/40" },

@@ -5,6 +5,7 @@ import {
   SidebarHeader, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { DashboardNavItem } from "./types";
+import FeatureAnnouncementDot from "./FeatureAnnouncementDot";
 
 interface DashboardSidebarProps {
   brandLabel: string;
@@ -31,11 +32,13 @@ const DashboardSidebar = ({ brandLabel, navItems, groups, activeItemId, onNaviga
               <Link to={item.href}>
                 <item.icon />
                 <span>{item.label}</span>
+                {item.featureKey && <FeatureAnnouncementDot featureKey={item.featureKey} />}
               </Link>
             ) : (
               <>
                 <item.icon />
                 <span>{item.label}</span>
+                {item.featureKey && <FeatureAnnouncementDot featureKey={item.featureKey} />}
               </>
             )}
           </SidebarMenuButton>

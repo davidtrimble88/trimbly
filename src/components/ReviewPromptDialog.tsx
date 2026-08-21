@@ -144,7 +144,7 @@ export function ReviewPromptDialog() {
                 <Star
                   size={32}
                   className={`transition-colors ${
-                    (hover || rating) >= n ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"
+                    (hover || rating) >= n ? "fill-warning text-warning" : "text-muted-foreground"
                   }`}
                 />
               </button>

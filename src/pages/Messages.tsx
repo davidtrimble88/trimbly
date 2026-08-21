@@ -84,7 +84,7 @@ type ConversationFilter = "all" | "rental" | "service";
 
 const statusConfig: Record<ChatStatus, { label: string; color: string; icon: typeof MessageCircle }> = {
   active: { label: "Active", color: "bg-green-500/15 text-green-700 dark:text-green-400", icon: MessageCircle },
-  pending: { label: "Pending", color: "bg-amber-500/15 text-amber-700 dark:text-amber-400", icon: Clock },
+  pending: { label: "Pending", color: "bg-warning/15 text-warning", icon: Clock },
   blocked: { label: "Blocked", color: "bg-destructive/15 text-destructive", icon: ShieldBan },
 };
 

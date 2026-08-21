@@ -1,5 +1,7 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { ArrowLeft, LayoutDashboard, Car, Wrench, FileText, Search, Briefcase, Shield } from "lucide-react";
+import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import { useGarageAccess } from "./GarageAccessContext";
 
 const navItems = [
   { to: "/garage", label: "Overview", icon: LayoutDashboard, end: true },
@@ -12,6 +14,8 @@ const navItems = [
 ];
 
 export default function GarageLayout() {
+  const hasAccess = useGarageAccess();
+
   return (
     <div className="min-h-screen bg-secondary/30">
       {/* Minimal back-to-dashboard bar, replacing the full public nav */}
@@ -65,7 +69,21 @@ export default function GarageLayout() {
       </div>
 
       <main className="container mx-auto px-4 py-6">
-        <Outlet />
+        {hasAccess ? (
+          <Outlet />
+        ) : (
+          <UpgradeGate
+            hasAccess={false}
+            variant="card"
+            featureName="My Garage"
+            description="You're looking at the real Garage — vehicles, maintenance, jobs, coverage, documents, and mechanics, all in one place. Subscribe to start tracking your own."
+            benefits={["Maintenance reminders", "Document tracking", "Repair estimates", "Find trusted mechanics"]}
+            pricingRoute="/garage/upsell"
+            icon={Car}
+          >
+            <></>
+          </UpgradeGate>
+        )}
       </main>
     </div>
   );

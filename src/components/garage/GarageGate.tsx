@@ -1,10 +1,14 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useGarageSubscription } from "@/hooks/useGarageSubscription";
+import { GarageAccessProvider } from "./GarageAccessContext";
 
 /**
- * Wraps a Garage page. Logged-out users go to auth; logged-in users without
- * the add-on go to the upsell page.
+ * Wraps a Garage page. Logged-out users still go to auth (nothing to show
+ * them). Logged-in users without the add-on now see the real Garage shell
+ * — nav, layout — as a locked preview (GarageLayout renders an UpgradeGate
+ * card in place of the Outlet) instead of being redirected away with zero
+ * idea what the feature looks like.
  */
 export default function GarageGate({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
@@ -19,6 +23,5 @@ export default function GarageGate({ children }: { children: React.ReactNode }) 
     );
   }
   if (!user) return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
-  if (!active) return <Navigate to="/garage/upsell" replace />;
-  return <>{children}</>;
+  return <GarageAccessProvider value={active}>{children}</GarageAccessProvider>;
 }

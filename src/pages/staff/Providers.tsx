@@ -52,7 +52,7 @@ interface ProviderDoc {
 function bgBadge(status: string) {
   const map: Record<string, string> = {
     not_started: "bg-muted text-muted-foreground",
-    pending: "bg-yellow-500/15 text-yellow-700 border-yellow-500/40",
+    pending: "bg-warning/15 text-warning border-warning/40",
     clear: "bg-green-500/15 text-green-700 border-green-500/40",
     consider: "bg-orange-500/15 text-orange-700 border-orange-500/40",
     failed: "bg-destructive/15 text-destructive border-destructive/40",

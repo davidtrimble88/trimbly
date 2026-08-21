@@ -59,6 +59,7 @@ export type HomeData = {
   has_pool: boolean;
   has_septic: boolean;
   has_well_water: boolean;
+  photo_url?: string | null;
 };
 
 export type TaskRow = {

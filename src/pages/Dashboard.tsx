@@ -19,17 +19,21 @@ import { NotificationPermissionPrompt } from "@/components/NotificationPermissio
 import { ReviewPromptDialog } from "@/components/ReviewPromptDialog";
 import { TestingAccountBanner } from "@/components/TestingAccountBanner";
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import DashboardHeroBanner from "@/components/dashboard/DashboardHeroBanner";
 import { DashboardNavItem } from "@/components/dashboard/types";
 import HomeownerOverviewTab from "@/components/dashboard/homeowner/HomeownerOverviewTab";
 import MyHomesTab from "@/components/dashboard/homeowner/MyHomesTab";
 import HomeToolsTab from "@/components/dashboard/homeowner/HomeToolsTab";
 import HomeownerProfileTab from "@/components/dashboard/homeowner/HomeownerProfileTab";
+import ActivityFeedTab from "@/components/dashboard/homeowner/ActivityFeedTab";
 import { tierOrder, tierLabels, homeTypeLabels, type HomeData, type TaskRow, type BinderRow, type HomeStats, type DrilldownInfo, type JobStats } from "@/components/dashboard/homeowner/types";
 import { taskUrgencyIconClasses } from "@/components/dashboard/homeowner/status";
+import CurrentWeatherChip from "@/components/home/CurrentWeatherChip";
+import { uploadProfileImage } from "@/lib/profileImages";
 import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare,
   Crown, Home, CheckCircle2, Shield, HelpCircle,
-  Briefcase,
+  Briefcase, AlertTriangle, Camera, Loader2, Activity,
   LayoutDashboard, Sparkles, UserCircle, Car, LifeBuoy, Users,
 } from "lucide-react";
 
@@ -57,6 +61,7 @@ const Dashboard = () => {
   const [deletingHome, setDeletingHome] = useState<HomeData | null>(null);
   const [editForm, setEditForm] = useState<Partial<HomeData>>({});
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [allTasks, setAllTasks] = useState<TaskRow[]>([]);
   const [allBinderItems, setAllBinderItems] = useState<BinderRow[]>([]);
   const [drilldown, setDrilldown] = useState<DrilldownInfo | null>(null);
@@ -156,10 +161,15 @@ const Dashboard = () => {
     // No .eq("user_id", ...) filter here on purpose — RLS now returns the
     // natural union of homes this user owns plus any shared with them via
     // home_shares, so a shared home just appears in the list for free.
-    const { data: homesData } = await supabase
+    const { data: homesData, error: homesErr } = await supabase
       .from("homes")
-      .select("id, user_id, name, home_type, year_built, square_feet, street_address, city, state, hvac_type, roof_type, has_pool, has_septic, has_well_water")
+      .select("id, user_id, name, home_type, year_built, square_feet, street_address, city, state, hvac_type, roof_type, has_pool, has_septic, has_well_water, photo_url")
       .order("created_at", { ascending: true });
+    if (homesErr) {
+      toast({ title: "Couldn't load your homes", description: homesErr.message, variant: "destructive" });
+      setLoadingHomes(false);
+      return;
+    }
 
     const homesList = (homesData as unknown as HomeData[]) || [];
     setHomes(homesList);
@@ -230,6 +240,7 @@ const Dashboard = () => {
       has_pool: editForm.has_pool,
       has_septic: editForm.has_septic,
       has_well_water: editForm.has_well_water,
+      photo_url: editForm.photo_url,
       updated_at: new Date().toISOString(),
     } as any).eq("id", editingHome.id);
     setSaving(false);
@@ -285,9 +296,11 @@ const Dashboard = () => {
   const userTierLevel = tierOrder[subscriptionTier] ?? 0;
   const displayName = profileName || user.user_metadata?.full_name || user.email;
   const isPro = userTierLevel >= 1;
+  const totalOverdue = Object.values(homeStats).reduce((s, h) => s + h.overdueTasks, 0);
 
   const navItems: DashboardNavItem[] = [
     { id: "overview", label: "Home Base", icon: LayoutDashboard, group: "Dashboard" },
+    { id: "activity", label: "Activity", icon: Activity, group: "Dashboard" },
     { id: "homes", label: "My Homes", icon: Home, badge: homes.length, group: "Dashboard" },
     { id: "tools", label: "Home Tools", icon: Sparkles, group: "Dashboard" },
     { id: "profile", label: "Profile", icon: UserCircle, group: "Dashboard" },
@@ -302,7 +315,7 @@ const Dashboard = () => {
     { id: "estimator-link", label: "AI Estimator", icon: Brain, href: "/estimator", group: "Quick Links" },
     { id: "coverage", label: "Coverage Advisor", icon: Shield, href: "/coverage", group: "Quick Links" },
     { id: "garage", label: hasGarage ? "Garage" : "Add Garage", icon: Car, href: hasGarage ? "/garage" : "/garage/upsell", group: "Quick Links" },
-    { id: "sharing-link", label: "Family & Sharing", icon: Users, href: "/sharing", group: "Quick Links" },
+    { id: "sharing-link", label: "Family & Sharing", icon: Users, href: "/sharing", group: "Quick Links", featureKey: "family-sharing" },
     { id: "support-link", label: "Support & Tickets", icon: LifeBuoy, href: "/support", group: "Quick Links", badge: openTicketCount },
   ];
 
@@ -368,6 +381,28 @@ const Dashboard = () => {
 
         {activeTab === "overview" && (
           <div className="mt-2">
+            <DashboardHeroBanner
+              greetingName={displayName}
+              summary={
+                totalOverdue > 0
+                  ? `${totalOverdue} overdue task${totalOverdue !== 1 ? "s" : ""} across ${homes.length} home${homes.length !== 1 ? "s" : ""}`
+                  : unreadMessages > 0
+                    ? `${unreadMessages} unread message${unreadMessages !== 1 ? "s" : ""}`
+                    : homes.length > 0
+                      ? "You're all caught up."
+                      : "Let's get your first home set up."
+              }
+              urgentAction={
+                totalOverdue > 0
+                  ? { label: "Fix overdue tasks", icon: AlertTriangle, onClick: () => navigate("/maintenance") }
+                  : unreadMessages > 0
+                    ? { label: "Read messages", icon: MessageSquare, onClick: () => navigate("/messages") }
+                    : homes.length === 0
+                      ? { label: "Add your first home", icon: Home, onClick: () => setShowWizard(true) }
+                      : undefined
+              }
+              weatherSlot={homes.length > 0 ? <CurrentWeatherChip homeId={homes[0].id} /> : undefined}
+            />
             <HomeownerOverviewTab
               jobStats={jobStats}
               subscriptionTier={subscriptionTier}
@@ -377,6 +412,12 @@ const Dashboard = () => {
               isPro={isPro}
               onGoToHomes={() => setActiveTab("homes")}
             />
+          </div>
+        )}
+
+        {activeTab === "activity" && (
+          <div className="mt-2">
+            <ActivityFeedTab />
           </div>
         )}
 
@@ -418,6 +459,44 @@ const Dashboard = () => {
             <DialogTitle>Edit Home</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div>
+              <Label className="text-sm">Photo</Label>
+              <div className="mt-1 relative rounded-lg border border-border overflow-hidden aspect-video bg-muted flex items-center justify-center">
+                {editForm.photo_url ? (
+                  <img src={editForm.photo_url} alt={editForm.name || "Home"} className="w-full h-full object-cover" />
+                ) : (
+                  <Home className="w-8 h-8 text-muted-foreground" />
+                )}
+                <label className="absolute bottom-2 right-2 inline-flex items-center gap-1.5 text-xs font-medium bg-card border border-border rounded-full px-3 py-1.5 cursor-pointer hover:bg-accent transition-colors">
+                  {uploadingPhoto ? <Loader2 size={13} className="animate-spin" /> : <Camera size={13} />}
+                  {editForm.photo_url ? "Change photo" : "Add photo"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingPhoto}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file || !user) return;
+                      if (file.size > 5 * 1024 * 1024) {
+                        toast({ title: "Image too large", description: "Max 5 MB.", variant: "destructive" });
+                        return;
+                      }
+                      setUploadingPhoto(true);
+                      try {
+                        const url = await uploadProfileImage(user.id, file, "home");
+                        setEditForm(f => ({ ...f, photo_url: url }));
+                      } catch (err: any) {
+                        toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+                      } finally {
+                        setUploadingPhoto(false);
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
             <div>
               <Label className="text-sm">Home Name</Label>
               <Input value={editForm.name || ""} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="mt-1" />

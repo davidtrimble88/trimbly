@@ -16,6 +16,7 @@ import InspectionReportDialog from "@/components/mechanic/InspectionReportDialog
 import PaymentMethodsPanel from "@/components/pro/PaymentMethodsPanel";
 import MechanicToolsTab from "@/components/dashboard/mechanic/MechanicToolsTab";
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import DashboardHeroBanner from "@/components/dashboard/DashboardHeroBanner";
 import { DashboardNavItem } from "@/components/dashboard/types";
 import StatCard from "@/components/dashboard/StatCard";
 import StatCardSkeleton from "@/components/dashboard/StatCardSkeleton";
@@ -187,6 +188,10 @@ export default function MechanicDashboard() {
   const accepted = bids.filter(b => b.status === "accepted").length;
   const unread = messages.filter(m => !m.read).length;
 
+  const heroSummary = pending > 0
+    ? `${pending} pending bid${pending === 1 ? "" : "s"} · ${unread} unread message${unread === 1 ? "" : "s"}`
+    : "You're all caught up.";
+
   const navItems: DashboardNavItem[] = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "bids", label: "Bids", icon: Wrench, badge: pending },
@@ -227,6 +232,12 @@ export default function MechanicDashboard() {
           ),
         }}
       >
+        <DashboardHeroBanner
+          greetingName={provider.business_name}
+          summary={heroSummary}
+          urgentAction={pending > 0 ? { label: "Review pending bids", icon: Briefcase, onClick: () => setActiveTab("bids") } : undefined}
+        />
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <StatCard icon={Briefcase} value={pending} label="Pending Bids" onClick={() => setActiveTab("bids")} />
           <StatCard icon={Star} value={avgRating} label="Avg Rating" isEmpty={reviews.length === 0} emptyLabel="No reviews yet" onClick={() => setActiveTab("reviews")} />

@@ -130,7 +130,7 @@ export default function GarageMechanics() {
                     )}
                     {stats?.avg_rating != null && (
                       <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-                        <Star className="w-3 h-3 fill-current text-yellow-500" />
+                        <Star className="w-3 h-3 fill-current text-warning" />
                         {stats.avg_rating.toFixed(1)} ({stats.review_count})
                       </span>
                     )}

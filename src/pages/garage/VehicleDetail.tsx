@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { VehicleProductDialog } from "@/components/garage/VehicleProductDialog";
 import FuelMileagePanel from "@/components/garage/FuelMileagePanel";
 import VehicleInspectionsPanel from "@/components/garage/VehicleInspectionsPanel";
+import VehiclePhotoUpload from "@/components/garage/VehiclePhotoUpload";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const vehicleTypeLabels: Record<string, string> = {
@@ -72,9 +73,20 @@ export default function VehicleDetail() {
 
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-            {vehicle.vehicle_type === "motorcycle" ? <Bike size={18} className="text-primary" /> : <Car size={18} className="text-primary" />}
-          </div>
+          {user && (
+            <VehiclePhotoUpload
+              userId={user.id}
+              currentUrl={vehicle.photo_url}
+              onUploaded={async (url) => {
+                const { error } = await supabase.from("vehicles").update({ photo_url: url }).eq("id", vehicle.id);
+                if (error) { toast.error(error.message); return; }
+                load();
+              }}
+              fallbackIcon={vehicle.vehicle_type === "motorcycle" ? <Bike size={18} className="text-primary" /> : <Car size={18} className="text-primary" />}
+              size="sm"
+              className="mt-0.5"
+            />
+          )}
           <div>
             <h1 className="font-display text-2xl font-bold flex items-center gap-2 flex-wrap">
               {vehicle.nickname || `${vehicle.year ?? ""} ${vehicle.make} ${vehicle.model}`.trim()}
@@ -703,14 +715,14 @@ function ScanServiceReport({ vehicle, onImported }: { vehicle: any; onImported: 
             const ringCls = (k: string) => {
               const c = conf(k);
               if (c === "low") return "ring-2 ring-destructive/50 focus-visible:ring-destructive";
-              if (c === "medium") return "ring-2 ring-yellow-500/60 focus-visible:ring-yellow-500";
+              if (c === "medium") return "ring-2 ring-warning/60 focus-visible:ring-warning";
               return "";
             };
             const ConfBadge = ({ k }: { k: string }) => {
               const c = conf(k);
               if (c === "high") return null;
               return (
-                <span className={`ml-1.5 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${c === "low" ? "bg-destructive/15 text-destructive" : "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400"}`}>
+                <span className={`ml-1.5 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${c === "low" ? "bg-destructive/15 text-destructive" : "bg-warning/15 text-warning"}`}>
                   {c === "low" ? "Check" : "Review"}
                 </span>
               );
@@ -720,15 +732,15 @@ function ScanServiceReport({ vehicle, onImported }: { vehicle: any; onImported: 
             return (
               <div className="space-y-3 text-sm">
                 {(lowCount > 0 || medCount > 0 || (extracted.confidence && extracted.confidence !== "high")) && (
-                  <div className="rounded-md border border-yellow-500/40 bg-yellow-500/10 p-2 text-xs space-y-1">
+                  <div className="rounded-md border border-warning/40 bg-warning/10 p-2 text-xs space-y-1">
                     <p>
                       Highlighted fields need a second look before saving
                       {lowCount > 0 && <> — <span className="text-destructive font-semibold">{lowCount} likely wrong</span></>}
-                      {medCount > 0 && <>, <span className="text-yellow-700 dark:text-yellow-400 font-semibold">{medCount} unclear</span></>}.
+                      {medCount > 0 && <>, <span className="text-warning font-semibold">{medCount} unclear</span></>}.
                     </p>
                     <p className="flex items-center gap-3 text-[11px] text-muted-foreground">
                       <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-destructive" /> Check</span>
-                      <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-500" /> Review</span>
+                      <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-warning" /> Review</span>
                       <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary" /> Confident</span>
                     </p>
                   </div>

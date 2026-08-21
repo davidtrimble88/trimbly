@@ -42,8 +42,8 @@ export function TestingWelcomeModal({ open, onAcknowledge }: Props) {
             testing is for.
           </p>
 
-          <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 flex gap-2.5">
-            <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
+          <div className="rounded-lg border border-warning/30 bg-warning/5 p-3 flex gap-2.5">
+            <ShieldAlert className="w-4 h-4 text-warning shrink-0 mt-0.5" />
             <div className="text-xs text-muted-foreground leading-relaxed">
               <strong className="text-foreground">Testing / beta disclaimer:</strong> Trimbly is under active
               development. Features may change, break, or behave unexpectedly, and data loss is possible during this

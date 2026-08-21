@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { getPresetsFor, computeNextDueDate, computeNextDueMileage } from "@/lib/garage/maintenancePresets";
+import VehiclePhotoUpload from "@/components/garage/VehiclePhotoUpload";
 
 const vehicleTypeLabels: Record<string, string> = {
   car: "Car",
@@ -34,6 +35,7 @@ type Vehicle = {
   mileage_unit: string;
   license_plate: string | null;
   vin: string | null;
+  photo_url: string | null;
 };
 
 export default function GarageVehicles() {
@@ -52,6 +54,7 @@ export default function GarageVehicles() {
     current_mileage: "0",
     mileage_unit: "mi",
     vin: "",
+    photo_url: null as string | null,
   });
   const [saving, setSaving] = useState(false);
   const [decoding, setDecoding] = useState(false);
@@ -94,7 +97,7 @@ export default function GarageVehicles() {
 
   useEffect(() => { load(); }, [user]);
 
-  const reset = () => setForm({ nickname: "", vehicle_type: "car", year: "", make: "", model: "", trim: "", license_plate: "", current_mileage: "0", mileage_unit: "mi", vin: "" });
+  const reset = () => setForm({ nickname: "", vehicle_type: "car", year: "", make: "", model: "", trim: "", license_plate: "", current_mileage: "0", mileage_unit: "mi", vin: "", photo_url: null });
 
   const submit = async () => {
     if (!user) return;
@@ -116,6 +119,7 @@ export default function GarageVehicles() {
       current_mileage: mileage,
       mileage_unit: form.mileage_unit,
       vin: form.vin.trim().toUpperCase() || null,
+      photo_url: form.photo_url,
     }).select().single();
 
     if (error || !data) {
@@ -155,6 +159,18 @@ export default function GarageVehicles() {
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Add a vehicle</DialogTitle></DialogHeader>
             <div className="space-y-3">
+              {user && (
+                <div>
+                  <Label>Photo (optional)</Label>
+                  <VehiclePhotoUpload
+                    userId={user.id}
+                    currentUrl={form.photo_url}
+                    onUploaded={(url) => setForm((f) => ({ ...f, photo_url: url }))}
+                    fallbackIcon={<Car size={22} className="text-primary" />}
+                    size="lg"
+                  />
+                </div>
+              )}
               <div>
                 <Label>Type</Label>
                 <Select value={form.vehicle_type} onValueChange={(v) => setForm({ ...form, vehicle_type: v })}>
@@ -257,7 +273,18 @@ export default function GarageVehicles() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {vehicles.map((v) => (
             <Link key={v.id} to={`/garage/vehicles/${v.id}`}>
-              <Card className="hover:border-primary transition-colors">
+              <Card className="hover:border-primary transition-colors overflow-hidden">
+                {v.photo_url ? (
+                  <div className="aspect-video w-full overflow-hidden bg-muted">
+                    <img src={v.photo_url} alt={v.nickname || `${v.make} ${v.model}`} className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="aspect-video w-full flex items-center justify-center bg-muted/50">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      {v.vehicle_type === "motorcycle" ? <Bike size={22} className="text-primary" /> : <Car size={22} className="text-primary" />}
+                    </div>
+                  </div>
+                )}
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-1">
                     {v.vehicle_type === "motorcycle" ? <Bike size={16} className="text-muted-foreground" /> : <Car size={16} className="text-muted-foreground" />}

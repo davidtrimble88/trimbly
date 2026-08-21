@@ -131,7 +131,7 @@ export default function VehicleJobBoard() {
         </div>
 
         {!authLoading && !providerId && (
-          <Card className="mb-4 border-amber-300 bg-amber-50 dark:bg-amber-950/20">
+          <Card className="mb-4 border-warning/40 bg-warning/10">
             <CardContent className="py-4 text-sm">
               Set up a provider profile to bid on vehicle jobs.{" "}
               <Button size="sm" variant="link" className="px-1" onClick={() => navigate("/mechanic-register")}>

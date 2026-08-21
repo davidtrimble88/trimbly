@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const BUCKET = "profile-images";
 
-export async function uploadProfileImage(userId: string, file: File, folder: "avatar" | "gallery"): Promise<string> {
+export async function uploadProfileImage(userId: string, file: File, folder: "avatar" | "gallery" | "home" | "vehicle"): Promise<string> {
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const path = `${userId}/${folder}/${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, {

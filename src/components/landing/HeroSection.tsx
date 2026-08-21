@@ -209,7 +209,7 @@ const HeroSection = () => {
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-foreground truncate">Ridge Plumbing</p>
                   <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                    <Star size={10} className="fill-amber-400 text-amber-400" /> 4.9 · Verified
+                    <Star size={10} className="fill-warning text-warning" /> 4.9 · Verified
                   </p>
                 </div>
               </div>

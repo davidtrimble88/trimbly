@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Star, Briefcase, CheckCircle, MessageSquare, Eye, Sparkles, ExternalLink, ArrowRight } from "lucide-react";
 import StatCard from "@/components/dashboard/StatCard";
 import { bidStatusClasses, bidStatusLabel } from "@/components/dashboard/status";
@@ -7,6 +9,8 @@ import type { BidWithJob } from "./types";
 
 interface ProOverviewTabProps {
   providerId: string;
+  businessName: string;
+  category: string;
   avgRating: string;
   reviewCount: number;
   pendingBids: number;
@@ -17,9 +21,24 @@ interface ProOverviewTabProps {
 }
 
 const ProOverviewTab = ({
-  providerId, avgRating, reviewCount, pendingBids, acceptedBids, unreadMessages, recentBids, onGoToTab,
+  providerId, businessName, category, avgRating, reviewCount, pendingBids, acceptedBids, unreadMessages, recentBids, onGoToTab,
 }: ProOverviewTabProps) => {
   const navigate = useNavigate();
+
+  // Bids stay "accepted" even after their job wraps up (job.status flips to
+  // "completed" separately), so split the accepted bucket into still-active
+  // vs. completed rather than double-counting a bid in two funnel stages.
+  const completedBids = recentBids.filter((b) => b.status === "accepted" && b.job?.status === "completed").length;
+  const activeAcceptedBids = Math.max(acceptedBids - completedBids, 0);
+  const funnelTotal = Math.max(pendingBids + activeAcceptedBids + completedBids, 1);
+  const funnelStages: { label: string; value: number; bar: string; text: string }[] = [
+    { label: "Pending", value: pendingBids, bar: "bg-warning", text: "text-warning" },
+    { label: "Accepted", value: activeAcceptedBids, bar: "bg-primary", text: "text-primary" },
+    { label: "Completed", value: completedBids, bar: "bg-success", text: "text-success" },
+  ];
+
+  const numericRating = Number(avgRating);
+  const filledStars = Number.isFinite(numericRating) ? Math.round(numericRating) : 0;
 
   const quickActions = [
     { icon: Eye, label: "Browse Job Board", desc: "Find new jobs and send bids", onClick: () => navigate("/job-board") },
@@ -33,6 +52,31 @@ const ProOverviewTab = ({
 
   return (
     <div className="space-y-6">
+      <div className="rounded-xl border border-border bg-card p-4 shadow-[var(--card-shadow)]">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Bid Pipeline</h2>
+        <div className="flex items-center gap-2">
+          {funnelStages.map((stage, i) => (
+            <div key={stage.label} className="flex flex-1 items-center gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="mb-1 flex items-baseline justify-between gap-2">
+                  <span className="text-xs font-medium text-muted-foreground truncate">{stage.label}</span>
+                  <span className={`text-sm font-semibold ${stage.text}`}>{stage.value}</span>
+                </div>
+                <div className="h-2 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${stage.bar} transition-all`}
+                    style={{ width: stage.value > 0 ? `${Math.max((stage.value / funnelTotal) * 100, 8)}%` : "0%" }}
+                  />
+                </div>
+              </div>
+              {i < funnelStages.length - 1 && (
+                <ArrowRight size={14} className="text-muted-foreground shrink-0 self-end mb-1" />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard icon={Star} value={avgRating} label={`${reviewCount} review${reviewCount !== 1 ? "s" : ""}`} isEmpty={reviewCount === 0} emptyLabel="No reviews yet" onClick={() => onGoToTab("reviews")} />
         <StatCard icon={Briefcase} value={pendingBids} label="Pending bids" onClick={() => onGoToTab("bids")} />
@@ -64,6 +108,38 @@ const ProOverviewTab = ({
             </button>
           ))}
         </div>
+      </div>
+
+      <div>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">How Homeowners See You</h2>
+        <Card className="p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-display font-semibold text-foreground truncate">{businessName}</span>
+                <Badge variant="secondary" className="text-xs">{category}</Badge>
+              </div>
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <div className="flex items-center">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      size={14}
+                      className={i < filledStars ? "text-warning" : "text-muted-foreground"}
+                      fill={i < filledStars ? "currentColor" : "none"}
+                    />
+                  ))}
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {reviewCount > 0 ? `${avgRating} (${reviewCount} review${reviewCount !== 1 ? "s" : ""})` : "No reviews yet"}
+                </span>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" className="gap-1.5 shrink-0" onClick={() => navigate(`/pro/${providerId}`)}>
+              View Public Profile <ExternalLink size={14} />
+            </Button>
+          </div>
+        </Card>
       </div>
 
       {recentBids.length > 0 && (

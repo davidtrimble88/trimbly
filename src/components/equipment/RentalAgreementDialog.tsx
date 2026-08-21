@@ -459,9 +459,9 @@ export default function RentalAgreementDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="rounded-md border-2 border-amber-500/40 bg-amber-50 dark:bg-amber-950/20 p-3 text-xs space-y-1">
-            <div className="font-bold uppercase tracking-wide text-amber-900 dark:text-amber-200">Trimbly Platform Disclaimer</div>
-            <p className="text-amber-900/90 dark:text-amber-100/90 leading-relaxed">
+          <div className="rounded-md border-2 border-warning/40 bg-warning/10 p-3 text-xs space-y-1">
+            <div className="font-bold uppercase tracking-wide text-warning">Trimbly Platform Disclaimer</div>
+            <p className="text-warning/90 leading-relaxed">
               Trimbly is a venue only and is <strong>NOT a party</strong> to this rental agreement. The Owner and Renter are solely responsible for the equipment, its condition, insurance, payment, damages, returns, and compliance with all applicable laws. Both parties agree to indemnify and hold harmless Trimbly, its affiliates, and its staff from any claims, damages, injuries, or losses arising from this rental. Payment and any security deposit are handled directly between the parties off-platform.
             </p>
           </div>

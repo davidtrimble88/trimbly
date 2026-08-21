@@ -55,12 +55,17 @@ const HomeCard = ({ home, stats, isPro, currentUserId, onEdit, onDelete, onDrill
   return (
     <Card className="overflow-hidden shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] transition-shadow">
       <div className={`h-1.5 w-full ${accentClass}`} />
+      {home.photo_url && (
+        <img src={home.photo_url} alt={home.name} className="w-full h-32 object-cover" />
+      )}
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-              <HomeIcon size={18} className="text-primary" />
-            </div>
+            {!home.photo_url && (
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                <HomeIcon size={18} className="text-primary" />
+              </div>
+            )}
             <div>
               <CardTitle className="font-display text-lg flex items-center gap-2">
                 {home.name}

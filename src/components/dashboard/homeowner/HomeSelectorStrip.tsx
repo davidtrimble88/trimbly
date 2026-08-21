@@ -57,9 +57,13 @@ const HomeSelectorStrip = ({ homes, homeStats, selectedId, onSelect }: HomeSelec
           >
             <div className={`h-1.5 w-full ${accentFor(stats)}`} />
             <div className={`p-3 ${isSelected ? "bg-primary/5" : ""}`}>
-              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <Icon size={16} className="text-primary" />
-              </div>
+              {home.photo_url ? (
+                <img src={home.photo_url} alt="" className="w-9 h-9 rounded-full object-cover mb-2" />
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                  <Icon size={16} className="text-primary" />
+                </div>
+              )}
               <p className="font-semibold text-sm text-foreground truncate">{home.name}</p>
               <p className="text-xs text-muted-foreground truncate">{home.city}, {home.state}</p>
               {needsAttention ? (

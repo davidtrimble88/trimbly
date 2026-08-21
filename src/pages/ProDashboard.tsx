@@ -17,6 +17,7 @@ import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import CredentialAlertBanner from "@/components/pro/CredentialAlertBanner";
 import { useProNotifications } from "@/hooks/useProNotifications";
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import DashboardHeroBanner from "@/components/dashboard/DashboardHeroBanner";
 import StatCardSkeleton from "@/components/dashboard/StatCardSkeleton";
 import { DashboardNavItem } from "@/components/dashboard/types";
 import ProOverviewTab from "@/components/dashboard/pro/ProOverviewTab";
@@ -364,10 +365,27 @@ const ProDashboard = () => {
           insuranceExpiry={provider.insurance_expiry}
           onGoToTools={() => setActiveTab("tools")}
         />
+        <DashboardHeroBanner
+          greetingName={displayName}
+          summary={
+            pendingBids > 0 || unreadMessages > 0
+              ? `${pendingBids} pending bid${pendingBids !== 1 ? "s" : ""} · ${unreadMessages} unread message${unreadMessages !== 1 ? "s" : ""}`
+              : "You're all caught up"
+          }
+          urgentAction={
+            pendingBids > 0
+              ? { label: "Review pending bids", icon: Briefcase, onClick: () => setActiveTab("bids") }
+              : unreadMessages > 0
+                ? { label: "Reply to messages", icon: MessageSquare, onClick: () => setActiveTab("messages") }
+                : undefined
+          }
+        />
         <div className="mt-6">
           {activeTab === "overview" && (
             <ProOverviewTab
               providerId={provider.id}
+              businessName={provider.business_name}
+              category={provider.category}
               avgRating={avgRating}
               reviewCount={reviewCount}
               pendingBids={pendingBids}
