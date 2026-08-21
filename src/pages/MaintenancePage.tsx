@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   CalendarCheck, Loader2, Home, Check, Clock,
-  AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus, CalendarPlus, Download, ShoppingCart, ExternalLink, Search, Filter, Crown
+  AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus, CalendarPlus, Download, ShoppingCart, ExternalLink, Search, Filter, Crown, Pencil, Lock
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ProductQuestionnaireDialog } from "@/components/maintenance/ProductQuestionnaireDialog";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -66,31 +67,50 @@ const emptyHome: HomeProfile = {
 const seasonIcons: Record<string, typeof Sun> = { spring: Leaf, summer: Sun, fall: CloudRain, winter: Snowflake, any: Clock };
 const priorityColors: Record<string, string> = { high: "destructive", medium: "default", low: "secondary" };
 
+const recurrenceOptions = [
+  { value: "0", label: "One-time (no repeat)" },
+  { value: "1", label: "Every month" },
+  { value: "3", label: "Every 3 months" },
+  { value: "6", label: "Every 6 months" },
+  { value: "12", label: "Every year" },
+];
+
+// A plain "YYYY-MM-DD" due-date string has no time or timezone component,
+// but `new Date("YYYY-MM-DD")` parses it as UTC midnight per spec — which
+// silently rolls back to the previous calendar day once formatted in any
+// timezone behind UTC (all of the Americas). Appending a local time-of-day
+// makes the browser parse it as local midnight instead, so every date
+// derived from a due_date lines up with the date actually stored, with no
+// timezone-dependent drift. Use this instead of `new Date(dueDateString)`
+// anywhere a due_date needs to become a Date object.
+const parseDateOnly = (dateStr: string): Date => new Date(`${dateStr}T00:00:00`);
+
+const formatYYYYMMDD = (d: Date): string =>
+  `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+
+const formatDateOnly = (d: Date): string =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
 // Northern-hemisphere season for a given due date — the season badge should
 // always describe when the task is actually due, not a value copied forward
 // from a prior cycle (a quarterly-recurring task rotates through all four
 // seasons, so a stale copied value drifts wrong after the first renewal).
 const seasonForDate = (dateStr: string | null): string => {
   if (!dateStr) return "any";
-  const month = new Date(`${dateStr}T00:00:00`).getMonth(); // 0-indexed, Jan=0
+  const month = parseDateOnly(dateStr).getMonth(); // 0-indexed, Jan=0
   if (month <= 1 || month === 11) return "winter"; // Dec, Jan, Feb
   if (month <= 4) return "spring"; // Mar, Apr, May
   if (month <= 7) return "summer"; // Jun, Jul, Aug
   return "fall"; // Sep, Oct, Nov
 };
 
-const formatICSDate = (date: string) => {
-  const d = new Date(date);
-  return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-};
-
 const generateICSEvent = (task: { id: string; title: string; description: string; category: string; priority: string; due_date: string | null; recurrence_months: number; season: string }) => {
-  const dueDate = task.due_date ? new Date(task.due_date) : new Date();
+  const dueDate = task.due_date ? parseDateOnly(task.due_date) : new Date();
   const nextDay = new Date(dueDate);
   nextDay.setDate(nextDay.getDate() + 1);
 
-  const dtStart = `DTSTART;VALUE=DATE:${dueDate.toISOString().slice(0, 10).replace(/-/g, "")}`;
-  const dtEnd = `DTEND;VALUE=DATE:${nextDay.toISOString().slice(0, 10).replace(/-/g, "")}`;
+  const dtStart = `DTSTART;VALUE=DATE:${formatYYYYMMDD(dueDate)}`;
+  const dtEnd = `DTEND;VALUE=DATE:${formatYYYYMMDD(nextDay)}`;
 
   const rrule = task.recurrence_months > 0
     ? `\nRRULE:FREQ=MONTHLY;INTERVAL=${task.recurrence_months}`
@@ -183,6 +203,15 @@ const MaintenancePage = () => {
   const [wizardStep, setWizardStep] = useState(0);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [productTask, setProductTask] = useState<MaintenanceTask | null>(null);
+  const [editingTask, setEditingTask] = useState<MaintenanceTask | null>(null);
+  const [editDueDate, setEditDueDate] = useState("");
+  const [editRecurrence, setEditRecurrence] = useState("0");
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDueDate, setNewTaskDueDate] = useState("");
+  const [newTaskRecurrence, setNewTaskRecurrence] = useState("0");
+  const [savingNewTask, setSavingNewTask] = useState(false);
   const [addressInput, setAddressInput] = useState("");
   const [lookingUpAddress, setLookingUpAddress] = useState(false);
   const [addressLookedUp, setAddressLookedUp] = useState(false);
@@ -459,9 +488,9 @@ const MaintenancePage = () => {
 
     // If marking complete and task is recurring, create next cycle task (no duplicates)
     if (newStatus === "completed" && task.recurrence_months > 0 && task.due_date && home.id && user) {
-      const nextDue = new Date(task.due_date);
+      const nextDue = parseDateOnly(task.due_date);
       nextDue.setMonth(nextDue.getMonth() + task.recurrence_months);
-      const nextDueStr = nextDue.toISOString().slice(0, 10);
+      const nextDueStr = formatDateOnly(nextDue);
 
       // Check if an upcoming task with same title already exists
       const duplicate = tasks.find(t =>
@@ -506,6 +535,64 @@ const MaintenancePage = () => {
   const deleteTask = async (taskId: string) => {
     await supabase.from("maintenance_tasks").delete().eq("id", taskId);
     setTasks(prev => prev.filter(t => t.id !== taskId));
+  };
+
+  const openEditTask = (task: MaintenanceTask) => {
+    setEditingTask(task);
+    setEditDueDate(task.due_date || "");
+    setEditRecurrence(String(task.recurrence_months || 0));
+  };
+
+  const saveTaskEdit = async () => {
+    if (!editingTask || !editDueDate) return;
+    setSavingEdit(true);
+    const recurrenceMonths = parseInt(editRecurrence, 10) || 0;
+    const season = seasonForDate(editDueDate);
+    const { error } = await supabase
+      .from("maintenance_tasks")
+      .update({ due_date: editDueDate, recurrence_months: recurrenceMonths, season })
+      .eq("id", editingTask.id);
+    setSavingEdit(false);
+    if (error) {
+      toast({ title: "Couldn't update task", description: error.message, variant: "destructive" });
+      return;
+    }
+    setTasks(prev => prev.map(t => t.id === editingTask.id ? { ...t, due_date: editDueDate, recurrence_months: recurrenceMonths, season } : t));
+    toast({ title: "Task updated" });
+    setEditingTask(null);
+  };
+
+  const addCustomTask = async () => {
+    if (!newTaskTitle.trim() || !newTaskDueDate || !home.id || !user) return;
+    setSavingNewTask(true);
+    const recurrenceMonths = parseInt(newTaskRecurrence, 10) || 0;
+    const { data, error } = await supabase
+      .from("maintenance_tasks")
+      .insert({
+        home_id: home.id,
+        user_id: user.id,
+        title: newTaskTitle.trim(),
+        description: "",
+        category: "Custom",
+        priority: "medium",
+        status: "upcoming",
+        due_date: newTaskDueDate,
+        recurrence_months: recurrenceMonths,
+        season: seasonForDate(newTaskDueDate),
+      } as any)
+      .select()
+      .single();
+    setSavingNewTask(false);
+    if (error) {
+      toast({ title: "Couldn't add task", description: error.message, variant: "destructive" });
+      return;
+    }
+    setTasks(prev => [...prev, data as MaintenanceTask]);
+    toast({ title: "Task added" });
+    setShowAddTask(false);
+    setNewTaskTitle("");
+    setNewTaskDueDate("");
+    setNewTaskRecurrence("0");
   };
 
   const clearAllTasks = async () => {
@@ -556,11 +643,11 @@ const MaintenancePage = () => {
       if (!a.due_date && !b.due_date) return 0;
       if (!a.due_date) return 1;
       if (!b.due_date) return -1;
-      return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+      return parseDateOnly(a.due_date).getTime() - parseDateOnly(b.due_date).getTime();
     });
 
   const upcomingCount = tasks.filter(t => t.status !== "completed").length;
-  const overdueCount = tasks.filter(t => t.status !== "completed" && t.due_date && new Date(t.due_date) < new Date()).length;
+  const overdueCount = tasks.filter(t => t.status !== "completed" && t.due_date && parseDateOnly(t.due_date) < new Date()).length;
 
   if (!user) {
     return (
@@ -980,6 +1067,17 @@ const MaintenancePage = () => {
                           </Button>
                         </>
                       )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => {
+                          if (isPro) { setShowAddTask(true); return; }
+                          toast({ title: "Custom tasks are a paid feature", description: "Upgrade your plan to add your own maintenance items.", variant: "destructive" });
+                        }}
+                      >
+                        {isPro ? <Plus size={14} /> : <Lock size={14} />} Add Task
+                      </Button>
                       <Button onClick={generateSchedule} disabled={generating} size="sm" className="gap-1">
                         {generating ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
                         {tasks.length === 0 ? "Generate Schedule" : "Regenerate"}
@@ -1054,7 +1152,7 @@ const MaintenancePage = () => {
                       {/* Task List */}
                       <div className="space-y-3">
                         {filteredTasks.map(task => {
-                          const isOverdue = task.status !== "completed" && task.due_date && new Date(task.due_date) < new Date();
+                          const isOverdue = task.status !== "completed" && task.due_date && parseDateOnly(task.due_date) < new Date();
                           const taskSeason = seasonForDate(task.due_date);
                           const SeasonIcon = seasonIcons[taskSeason] || Clock;
                           return (
@@ -1111,7 +1209,7 @@ const MaintenancePage = () => {
                                     {task.due_date && (
                                       <span className={isOverdue ? "text-destructive font-medium" : ""}>
                                         {isOverdue ? "Overdue: " : "Due: "}
-                                        {new Date(task.due_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                        {parseDateOnly(task.due_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                                       </span>
                                     )}
                                     {task.recurrence_months > 0 && (
@@ -1142,6 +1240,11 @@ const MaintenancePage = () => {
                                   )}
                                 </div>
                                 <div className="flex flex-col gap-1 shrink-0">
+                                  {task.status !== "completed" && (
+                                    <button onClick={() => openEditTask(task)} className="text-muted-foreground hover:text-primary transition-colors" title="Edit due date / frequency">
+                                      <Pencil size={14} />
+                                    </button>
+                                  )}
                                   {task.due_date && task.status !== "completed" && (
                                     <button onClick={() => addTaskToCalendar(task)} className="text-muted-foreground hover:text-primary transition-colors" title="Add to calendar">
                                       <CalendarPlus size={14} />
@@ -1176,6 +1279,82 @@ const MaintenancePage = () => {
           }}
         />
       )}
+
+      <Dialog open={!!editingTask} onOpenChange={(open) => { if (!open) setEditingTask(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Edit "{editingTask?.title}"</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Next occurrence date</Label>
+              <Input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} />
+              {editDueDate && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  {(() => { const Icon = seasonIcons[seasonForDate(editDueDate)] || Clock; return <Icon size={12} />; })()}
+                  Season: {seasonForDate(editDueDate)}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Frequency</Label>
+              <Select value={editRecurrence} onValueChange={setEditRecurrence}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {recurrenceOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingTask(null)}>Cancel</Button>
+            <Button onClick={saveTaskEdit} disabled={savingEdit || !editDueDate}>
+              {savingEdit ? <Loader2 size={14} className="animate-spin mr-1.5" /> : null}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showAddTask} onOpenChange={setShowAddTask}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Add a maintenance task</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Title</Label>
+              <Input value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} placeholder="e.g. Clean gutters" autoFocus />
+            </div>
+            <div className="space-y-2">
+              <Label>Next occurrence date</Label>
+              <Input type="date" value={newTaskDueDate} onChange={(e) => setNewTaskDueDate(e.target.value)} />
+              {newTaskDueDate && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  {(() => { const Icon = seasonIcons[seasonForDate(newTaskDueDate)] || Clock; return <Icon size={12} />; })()}
+                  Season: {seasonForDate(newTaskDueDate)}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Frequency</Label>
+              <Select value={newTaskRecurrence} onValueChange={setNewTaskRecurrence}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {recurrenceOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddTask(false)}>Cancel</Button>
+            <Button onClick={addCustomTask} disabled={savingNewTask || !newTaskTitle.trim() || !newTaskDueDate}>
+              {savingNewTask ? <Loader2 size={14} className="animate-spin mr-1.5" /> : null}
+              Add Task
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardShell>
   );
 };
