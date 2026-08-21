@@ -546,6 +546,10 @@ const MaintenancePage = () => {
       return true;
     })
     .sort((a, b) => {
+      // Completed tasks always sink to the bottom in the "all" view
+      const aDone = a.status === "completed" ? 1 : 0;
+      const bDone = b.status === "completed" ? 1 : 0;
+      if (aDone !== bDone) return aDone - bDone;
       switch (sortBy) {
         case "priority":
           return (priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1);
