@@ -1,4 +1,4 @@
-// One-off admin backfill: finds every existing home with no photo_url,
+// One-off admin backfill: finds existing homes missing a good photo_url,
 // looks up its Zillow listing, and saves the hero photo — same extraction
 // logic as zillow-lookup, but skipping the AI field extraction since only
 // the photo is needed here, and scoped to all homes via service role
@@ -7,7 +7,12 @@
 //
 // Gated by a shared secret (not verify_jwt) since it's meant to be triggered
 // once, directly, by whoever runs the backfill — not from the app itself.
+// Pass { secret, overwrite: true } to also re-check homes that already have
+// a photo_url (used once to correct the first run's wrong picks — the
+// markdown-regex-only extraction was grabbing an arbitrary photo instead of
+// the listing's actual first gallery photo).
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { extractHeroPhoto } from "../_shared/zillowPhoto.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -31,16 +36,10 @@ async function findListingPhoto(apiKey: string, address: string): Promise<string
     const scrapeResponse = await fetch("https://api.firecrawl.dev/v1/scrape", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ url: propertyResult.url, formats: ["markdown"], onlyMainContent: true, waitFor: 3000 }),
+      body: JSON.stringify({ url: propertyResult.url, formats: ["html"], onlyMainContent: false, waitFor: 3000 }),
     });
     const scrapeData = await scrapeResponse.json();
-    const markdown: string = scrapeData?.data?.markdown || scrapeData?.markdown || "";
-
-    const ogImage = scrapeData?.data?.metadata?.ogImage || scrapeData?.metadata?.ogImage;
-    if (typeof ogImage === "string" && ogImage.startsWith("http")) return ogImage;
-
-    const match = markdown.match(/https:\/\/photos\.zillowstatic\.com\/[^\s)"']+/);
-    return match ? match[0] : null;
+    return extractHeroPhoto(scrapeData);
   } catch (e) {
     console.error("findListingPhoto failed:", e);
     return null;
@@ -58,6 +57,7 @@ Deno.serve(async (req) => {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const overwrite = body.overwrite === true;
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -69,10 +69,9 @@ Deno.serve(async (req) => {
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
-    const { data: homes, error } = await admin
-      .from("homes")
-      .select("id, street_address, city, state")
-      .is("photo_url", null);
+    let query = admin.from("homes").select("id, street_address, city, state");
+    if (!overwrite) query = query.is("photo_url", null);
+    const { data: homes, error } = await query;
     if (error) throw error;
 
     let updated = 0, notFound = 0, skippedNoAddress = 0;

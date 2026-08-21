@@ -1,3 +1,5 @@
+import { extractHeroPhoto } from '../_shared/zillowPhoto.ts';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
@@ -162,7 +164,6 @@ Deno.serve(async (req) => {
     // Scrape the listing as markdown, then extract with AI (Firecrawl's legacy
     // `extract` format returns empty objects, which left every field blank).
     let markdown = '';
-    let photoUrl: string | null = null;
     try {
       const scrapeResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
         method: 'POST',
@@ -171,22 +172,25 @@ Deno.serve(async (req) => {
       });
       const scrapeData = await scrapeResponse.json();
       markdown = scrapeData?.data?.markdown || scrapeData?.markdown || '';
-
-      // The listing's Open Graph image (set by Zillow for link-preview
-      // purposes) is the cleanest single "hero photo" available — it's
-      // page metadata, independent of onlyMainContent, so it survives even
-      // when the photo gallery itself gets filtered out as non-main-content.
-      const ogImage = scrapeData?.data?.metadata?.ogImage || scrapeData?.metadata?.ogImage;
-      if (typeof ogImage === 'string' && ogImage.startsWith('http')) {
-        photoUrl = ogImage;
-      } else {
-        // Fall back to the first Zillow-hosted photo URL embedded in the
-        // scraped markdown, if any.
-        const match = markdown.match(/https:\/\/photos\.zillowstatic\.com\/[^\s)"']+/);
-        if (match) photoUrl = match[0];
-      }
     } catch (e) {
       console.error('Scrape failed:', e);
+    }
+
+    // Separate scrape for the hero photo, requesting raw HTML with
+    // onlyMainContent off — the gallery's photo-array JSON lives in a
+    // <script> tag that onlyMainContent filtering strips out, so the
+    // markdown-only scrape above can't see it.
+    let photoUrl: string | null = null;
+    try {
+      const photoScrapeResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: propertyResult.url, formats: ['html'], onlyMainContent: false, waitFor: 3000 }),
+      });
+      const photoScrapeData = await photoScrapeResponse.json();
+      photoUrl = extractHeroPhoto(photoScrapeData);
+    } catch (e) {
+      console.error('Photo scrape failed:', e);
     }
 
     // Fall back to the search snippet if the page couldn't be scraped.
