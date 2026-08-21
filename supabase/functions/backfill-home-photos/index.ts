@@ -46,7 +46,12 @@ async function findListingPhoto(apiKey: string, address: string): Promise<string
       body: JSON.stringify({ url: propertyResult.url, formats: ["html"], onlyMainContent: false, waitFor: 3000 }),
     });
     const scrapeData = await scrapeResponse.json();
-    return extractHeroPhoto(scrapeData);
+    const photo = extractHeroPhoto(scrapeData);
+    if (!photo) {
+      const htmlLen = (scrapeData?.data?.html || scrapeData?.html || "").length;
+      console.error("no photo extracted", scrapeResponse.status, "htmlLen", htmlLen, JSON.stringify(scrapeData).slice(0, 300));
+    }
+    return photo;
   } catch (e) {
     console.error("findListingPhoto failed:", e);
     return null;
