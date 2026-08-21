@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   CalendarCheck, Loader2, Home, Check, Clock,
-  AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus, CalendarPlus, Download, ShoppingCart, ExternalLink, Search, ArrowUpDown, Crown
+  AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus, CalendarPlus, Download, ShoppingCart, ExternalLink, Search, Filter, Crown
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -178,7 +178,8 @@ const MaintenancePage = () => {
   const [showSetup, setShowSetup] = useState(false);
   const [savingHome, setSavingHome] = useState(false);
   const [filter, setFilter] = useState<"all" | "upcoming" | "completed">("upcoming");
-  const [sortBy, setSortBy] = useState<"due_date" | "priority" | "category" | "season">("due_date");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [seasonFilter, setSeasonFilter] = useState<string>("all");
   const [wizardStep, setWizardStep] = useState(0);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [productTask, setProductTask] = useState<MaintenanceTask | null>(null);
@@ -536,34 +537,26 @@ const MaintenancePage = () => {
     toast({ title: "Calendar exported!", description: `${upcomingTasks.length} tasks exported. Open the file to add them to your calendar.` });
   };
 
-  const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
-  const seasonOrder: Record<string, number> = { spring: 0, summer: 1, fall: 2, winter: 3, any: 4 };
+  const taskCategories = Array.from(new Set(tasks.map(t => t.category))).sort();
 
   const filteredTasks = tasks
     .filter(t => {
-      if (filter === "upcoming") return t.status !== "completed";
-      if (filter === "completed") return t.status === "completed";
+      if (filter === "upcoming" && t.status === "completed") return false;
+      if (filter === "completed" && t.status !== "completed") return false;
+      if (categoryFilter !== "all" && t.category !== categoryFilter) return false;
+      if (seasonFilter !== "all" && seasonForDate(t.due_date) !== seasonFilter) return false;
       return true;
     })
     .sort((a, b) => {
-      // Completed tasks always sink to the bottom in the "all" view
+      // Completed tasks always sink to the bottom in the "all" view; within
+      // each group, always soonest due date first.
       const aDone = a.status === "completed" ? 1 : 0;
       const bDone = b.status === "completed" ? 1 : 0;
       if (aDone !== bDone) return aDone - bDone;
-      switch (sortBy) {
-        case "priority":
-          return (priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1);
-        case "category":
-          return a.category.localeCompare(b.category);
-        case "season":
-          return (seasonOrder[seasonForDate(a.due_date)] ?? 4) - (seasonOrder[seasonForDate(b.due_date)] ?? 4);
-        case "due_date":
-        default:
-          if (!a.due_date && !b.due_date) return 0;
-          if (!a.due_date) return 1;
-          if (!b.due_date) return -1;
-          return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
-      }
+      if (!a.due_date && !b.due_date) return 0;
+      if (!a.due_date) return 1;
+      if (!b.due_date) return -1;
+      return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
     });
 
   const upcomingCount = tasks.filter(t => t.status !== "completed").length;
@@ -1032,17 +1025,27 @@ const MaintenancePage = () => {
                             </button>
                           ))}
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <ArrowUpDown size={14} className="text-muted-foreground" />
-                          <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                            <SelectTrigger className="h-8 w-[140px] text-xs">
+                        <div className="flex items-center gap-2">
+                          <Filter size={14} className="text-muted-foreground" />
+                          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                            <SelectTrigger className="h-8 w-[130px] text-xs">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="due_date">Due Date</SelectItem>
-                              <SelectItem value="priority">Priority</SelectItem>
-                              <SelectItem value="category">Category</SelectItem>
-                              <SelectItem value="season">Season</SelectItem>
+                              <SelectItem value="all">All categories</SelectItem>
+                              {taskCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <Select value={seasonFilter} onValueChange={setSeasonFilter}>
+                            <SelectTrigger className="h-8 w-[120px] text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All seasons</SelectItem>
+                              <SelectItem value="spring">Spring</SelectItem>
+                              <SelectItem value="summer">Summer</SelectItem>
+                              <SelectItem value="fall">Fall</SelectItem>
+                              <SelectItem value="winter">Winter</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
