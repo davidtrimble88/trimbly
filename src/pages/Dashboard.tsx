@@ -60,6 +60,7 @@ const Dashboard = () => {
   const [loadingHomes, setLoadingHomes] = useState(true);
   const [editingHome, setEditingHome] = useState<HomeData | null>(null);
   const [deletingHome, setDeletingHome] = useState<HomeData | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [editForm, setEditForm] = useState<Partial<HomeData>>({});
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -276,6 +277,7 @@ const Dashboard = () => {
       delete newStats[deletingHome.id];
       setHomeStats(newStats);
       setDeletingHome(null);
+      setDeleteConfirmText("");
       toast({ title: "Home removed", description: `"${deletingHome.name}" and its data have been deleted.` });
     }
   };
@@ -587,7 +589,7 @@ const Dashboard = () => {
       </Dialog>
 
       {/* Delete Home Confirmation */}
-      <AlertDialog open={!!deletingHome} onOpenChange={open => !open && setDeletingHome(null)}>
+      <AlertDialog open={!!deletingHome} onOpenChange={open => { if (!open) { setDeletingHome(null); setDeleteConfirmText(""); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remove "{deletingHome?.name}"?</AlertDialogTitle>
@@ -595,9 +597,24 @@ const Dashboard = () => {
               This will permanently delete this home and all its maintenance tasks and binder items. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="space-y-1.5">
+            <Label htmlFor="delete-home-confirm" className="text-xs text-muted-foreground">
+              Type <strong className="text-foreground">{deletingHome?.name}</strong> to confirm
+            </Label>
+            <Input
+              id="delete-home-confirm"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              autoComplete="off"
+            />
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={deleteHome} disabled={saving} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={deleteHome}
+              disabled={saving || deleteConfirmText !== deletingHome?.name}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               {saving ? "Removing…" : "Remove Home"}
             </AlertDialogAction>
           </AlertDialogFooter>
