@@ -19,9 +19,18 @@ export interface RateLimitResult {
 }
 
 export function getClientKey(req: Request): string {
+  // cf-connecting-ip is set directly by Cloudflare from the TCP connection and
+  // can't be spoofed by the client, so it's the most trustworthy signal when
+  // present. x-forwarded-for is client-appendable — a caller can prepend any
+  // fake IP it wants — but well-behaved proxies APPEND the real client IP as
+  // the last hop, so the last entry (not the first) is the one our own edge
+  // actually saw. Taking the first entry let a caller spoof a fresh value on
+  // every request and reset their own rate-limit bucket at will.
+  const cf = req.headers.get("cf-connecting-ip");
+  if (cf) return cf.trim();
   const fwd = req.headers.get("x-forwarded-for") || "";
-  const ip = fwd.split(",")[0]?.trim() || req.headers.get("cf-connecting-ip") || "unknown";
-  return ip;
+  const parts = fwd.split(",").map((p) => p.trim()).filter(Boolean);
+  return parts.length > 0 ? parts[parts.length - 1] : "unknown";
 }
 
 export function rateLimit(key: string, opts: RateLimitOptions = {}): RateLimitResult {
