@@ -233,7 +233,7 @@ const Users = () => {
       <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Search by name, email, or ID..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input className="pl-9" placeholder="Search by name, email, address, or ID..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="flex gap-2 flex-wrap">
           {(tab === "users" ? (["all", "homeowner", "provider", "suspended"] as const) : (["all", "suspended"] as const)).map((f) => (
@@ -255,6 +255,7 @@ const Users = () => {
               <tr>
                 <th className="text-left py-3 px-4 font-medium">Name</th>
                 <th className="text-left py-3 px-4 font-medium">Email</th>
+                {tab === "users" && <th className="text-left py-3 px-4 font-medium">Address</th>}
                 <th className="text-left py-3 px-4 font-medium">{tab === "staff" ? "Role" : "Type"}</th>
                 <th className="text-left py-3 px-4 font-medium">Tier</th>
                 <th className="text-left py-3 px-4 font-medium">Joined</th>
@@ -267,6 +268,17 @@ const Users = () => {
                 <tr key={p.id} className="border-t border-border hover:bg-accent/50">
                   <td className="py-3 px-4 font-medium">{p.full_name || "(no name)"}</td>
                   <td className="py-3 px-4 text-muted-foreground text-xs">{emails[p.id] || "—"}</td>
+                  {tab === "users" && (
+                    <td className="py-3 px-4 text-muted-foreground text-xs max-w-[220px]">
+                      {(addresses[p.id] || []).length ? (
+                        <div className="space-y-0.5">
+                          {(addresses[p.id] || []).map((a) => (
+                            <div key={a} className="truncate" title={a}>{a}</div>
+                          ))}
+                        </div>
+                      ) : "—"}
+                    </td>
+                  )}
                   <td className="py-3 px-4 text-muted-foreground capitalize">
                     {tab === "staff" ? ((roles[p.id] || []).join(", ") || "staff") : p.user_type}
                   </td>
@@ -285,7 +297,7 @@ const Users = () => {
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr><td colSpan={7} className="py-8 text-center text-muted-foreground text-sm">No users match</td></tr>
+                <tr><td colSpan={tab === "users" ? 8 : 7} className="py-8 text-center text-muted-foreground text-sm">No users match</td></tr>
               )}
             </tbody>
           </table>
