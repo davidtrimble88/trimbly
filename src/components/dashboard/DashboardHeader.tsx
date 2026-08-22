@@ -73,7 +73,7 @@ const DashboardHeader = ({
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="rounded-lg">
+            <Button variant="outline" size="icon" className="rounded-lg" aria-label="More options">
               <MoreVertical size={16} />
             </Button>
           </DropdownMenuTrigger>

@@ -94,7 +94,7 @@ const HeroSection = () => {
             {/* Freeze warning tag (scattered, small) */}
             <div className="absolute top-0 left-0 w-40 bg-card rounded-lg shadow-[var(--card-shadow)] p-2.5 rotate-[-5deg] z-[3]">
               <div className="flex items-center gap-1.5">
-                <CloudSnow size={13} className="text-blue-500 shrink-0" />
+                <CloudSnow size={13} className="text-warning shrink-0" />
                 <p className="text-[11px] font-semibold text-foreground leading-tight">Freeze warning tonight</p>
               </div>
             </div>

@@ -975,9 +975,9 @@ const MaintenancePage = () => {
                       {addressLookedUp && (
                         <div className="space-y-2">
                           {home.photo_url && (
-                            <img src={home.photo_url} alt="" className="w-full h-32 object-cover rounded-lg" />
+                            <img src={home.photo_url} alt={home.name || "Home preview"} className="w-full h-32 object-cover rounded-lg" />
                           )}
-                          <div className="rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3 text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
+                          <div className="rounded-lg bg-success/10 border border-success/30 p-3 text-sm text-success flex items-center gap-2">
                             <Check size={16} />
                             Home details pre-filled from Zillow! Review and adjust on the next screen.
                           </div>
@@ -1159,7 +1159,7 @@ const MaintenancePage = () => {
                         <div className="flex items-center gap-2">
                           <Filter size={14} className="text-muted-foreground" />
                           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                            <SelectTrigger className="h-8 w-[130px] text-xs">
+                            <SelectTrigger className="h-10 w-[130px] text-xs">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -1168,7 +1168,7 @@ const MaintenancePage = () => {
                             </SelectContent>
                           </Select>
                           <Select value={seasonFilter} onValueChange={setSeasonFilter}>
-                            <SelectTrigger className="h-8 w-[120px] text-xs">
+                            <SelectTrigger className="h-10 w-[120px] text-xs">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -1198,13 +1198,19 @@ const MaintenancePage = () => {
                               <div className="flex items-start gap-3">
                                 <button
                                   onClick={() => toggleTask(task)}
-                                  className={`mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                                    task.status === "completed"
-                                      ? "bg-primary border-primary text-primary-foreground"
-                                      : "border-muted-foreground hover:border-primary"
-                                  }`}
+                                  aria-label={task.status === "completed" ? `Mark "${task.title}" as not done` : `Mark "${task.title}" as done`}
+                                  aria-pressed={task.status === "completed"}
+                                  className="mt-1 -m-2 p-2 shrink-0"
                                 >
-                                  {task.status === "completed" && <Check size={12} />}
+                                  <span
+                                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                      task.status === "completed"
+                                        ? "bg-primary border-primary text-primary-foreground"
+                                        : "border-muted-foreground hover:border-primary"
+                                    }`}
+                                  >
+                                    {task.status === "completed" && <Check size={12} />}
+                                  </span>
                                 </button>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2 flex-wrap">
@@ -1274,16 +1280,16 @@ const MaintenancePage = () => {
                                 </div>
                                 <div className="flex flex-col gap-1 shrink-0">
                                   {task.status !== "completed" && (
-                                    <button onClick={() => openEditTask(task)} className="text-muted-foreground hover:text-primary transition-colors" title="Edit due date / frequency">
+                                    <button onClick={() => openEditTask(task)} aria-label={`Edit due date and frequency for "${task.title}"`} title="Edit due date / frequency" className="text-muted-foreground hover:text-primary transition-colors p-1.5 -m-1.5">
                                       <Pencil size={14} />
                                     </button>
                                   )}
                                   {task.due_date && task.status !== "completed" && (
-                                    <button onClick={() => addTaskToCalendar(task)} className="text-muted-foreground hover:text-primary transition-colors" title="Add to calendar">
+                                    <button onClick={() => addTaskToCalendar(task)} aria-label={`Add "${task.title}" to calendar`} title="Add to calendar" className="text-muted-foreground hover:text-primary transition-colors p-1.5 -m-1.5">
                                       <CalendarPlus size={14} />
                                     </button>
                                   )}
-                                  <button onClick={() => deleteTask(task.id)} className="text-muted-foreground hover:text-destructive transition-colors" title="Delete">
+                                  <button onClick={() => deleteTask(task.id)} aria-label={`Delete "${task.title}"`} title="Delete" className="text-muted-foreground hover:text-destructive transition-colors p-1.5 -m-1.5">
                                     <Trash2 size={14} />
                                   </button>
                                 </div>

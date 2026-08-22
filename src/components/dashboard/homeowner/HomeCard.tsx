@@ -84,7 +84,7 @@ const HomeCard = ({ home, stats, isPro, currentUserId, onEdit, onDelete, onDrill
             {!isShared && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Button variant="ghost" size="icon" aria-label={`Options for ${home.name}`}>
                     <MoreVertical size={14} />
                   </Button>
                 </DropdownMenuTrigger>
@@ -231,7 +231,7 @@ const HomeCard = ({ home, stats, isPro, currentUserId, onEdit, onDelete, onDrill
             <FolderOpen size={14} className="mr-1.5" /> Binder
           </Button>
         )}
-        <Button variant="ghost" size="sm" onClick={() => navigate("/estimator")}>
+        <Button variant="ghost" size="sm" aria-label="AI Estimator" onClick={() => navigate("/estimator")}>
           <Brain size={14} />
         </Button>
       </CardFooter>
