@@ -177,14 +177,22 @@ const QuotesPanel = ({ providerId, providerUserId, businessName }: Props) => {
   };
 
   const markPaid = async (id: string) => {
-    await supabase.from("quotes").update({ status: "paid" }).eq("id", id);
+    const { error } = await supabase.from("quotes").update({ status: "paid" }).eq("id", id);
+    if (error) {
+      toast({ title: "Couldn't mark as paid", description: error.message, variant: "destructive" });
+      return;
+    }
     loadQuotes();
     toast({ title: "Marked as paid" });
   };
 
   const deleteQuote = async (id: string) => {
     if (!confirm("Delete this quote?")) return;
-    await supabase.from("quotes").delete().eq("id", id);
+    const { error } = await supabase.from("quotes").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Couldn't delete quote", description: error.message, variant: "destructive" });
+      return;
+    }
     loadQuotes();
   };
 

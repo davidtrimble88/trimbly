@@ -9,14 +9,21 @@ import { toast } from "sonner";
 export default function PayoutSetupPanel({ providerId }: { providerId: string }) {
   const [status, setStatus] = useState<{ chargesEnabled: boolean; payoutsEnabled: boolean; hasAccount: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [starting, setStarting] = useState(false);
 
   const load = async () => {
-    const { data } = await supabase
+    setLoadError(false);
+    const { data, error } = await supabase
       .from("providers")
       .select("stripe_connect_account_id, stripe_connect_charges_enabled, stripe_connect_payouts_enabled")
       .eq("id", providerId)
       .maybeSingle();
+    if (error) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
     setStatus({
       hasAccount: !!data?.stripe_connect_account_id,
       chargesEnabled: !!data?.stripe_connect_charges_enabled,
@@ -35,8 +42,19 @@ export default function PayoutSetupPanel({ providerId }: { providerId: string })
     if (data?.url) window.location.href = data.url;
   };
 
-  if (loading || !status) {
+  if (loading) {
     return <Card><CardContent className="py-6 flex items-center justify-center"><Loader2 className="animate-spin" size={18} /></CardContent></Card>;
+  }
+
+  if (loadError || !status) {
+    return (
+      <Card>
+        <CardContent className="py-6 flex flex-col items-center gap-2 text-center">
+          <p className="text-sm text-muted-foreground">Couldn't load your payout status.</p>
+          <Button size="sm" variant="outline" onClick={load}>Try again</Button>
+        </CardContent>
+      </Card>
+    );
   }
 
   const ready = status.chargesEnabled && status.payoutsEnabled;

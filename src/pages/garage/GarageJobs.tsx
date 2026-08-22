@@ -61,10 +61,15 @@ export default function GarageJobs() {
   const load = async () => {
     if (!user) return;
     setLoading(true);
-    const [{ data: jobsData }, { data: vehData }] = await Promise.all([
+    const [{ data: jobsData, error: jobsErr }, { data: vehData, error: vehErr }] = await Promise.all([
       supabase.from("vehicle_jobs").select("*").eq("owner_user_id", user.id).order("created_at", { ascending: false }),
       supabase.from("vehicles").select("id, nickname, vehicle_type, year, make, model").eq("owner_user_id", user.id),
     ]);
+    if (jobsErr || vehErr) {
+      toast.error("Couldn't load your jobs. Please refresh and try again.");
+      setLoading(false);
+      return;
+    }
     setJobs((jobsData as Job[]) || []);
     setVehicles((vehData as Vehicle[]) || []);
     setLoading(false);
@@ -127,7 +132,8 @@ export default function GarageJobs() {
   };
 
   const setBidStatus = async (bid: Bid, status: string) => {
-    await supabase.from("vehicle_job_bids").update({ status }).eq("id", bid.id);
+    const { error } = await supabase.from("vehicle_job_bids").update({ status }).eq("id", bid.id);
+    if (error) { toast.error(error.message); return; }
     loadBids(bid.vehicle_job_id);
     toast.success(status === "accepted" ? "Bid accepted" : "Bid updated");
   };

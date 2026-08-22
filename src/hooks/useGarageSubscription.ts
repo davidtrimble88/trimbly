@@ -58,12 +58,19 @@ export function useGarageSubscription() {
     }
     let cancelled = false;
     (async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("garage_subscriptions")
         .select("status, plan_interval, current_period_end, started_at")
         .eq("user_id", user.id)
         .maybeSingle();
       if (cancelled) return;
+      if (error) {
+        // Leave the cached `active` value (and its localStorage entry) alone
+        // on a transient failure — a real subscriber shouldn't see an upsell
+        // flash just because this one query hiccuped.
+        setLoading(false);
+        return;
+      }
       const isActive =
         !!data &&
         (data.status === "active" || data.status === "trial") &&

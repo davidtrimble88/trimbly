@@ -83,7 +83,7 @@ type ConversationFilter = "all" | "rental" | "service";
 
 
 const statusConfig: Record<ChatStatus, { label: string; color: string; icon: typeof MessageCircle }> = {
-  active: { label: "Active", color: "bg-green-500/15 text-green-700 dark:text-green-400", icon: MessageCircle },
+  active: { label: "Active", color: "bg-success/15 text-success", icon: MessageCircle },
   pending: { label: "Pending", color: "bg-warning/15 text-warning", icon: Clock },
   blocked: { label: "Blocked", color: "bg-destructive/15 text-destructive", icon: ShieldBan },
 };
@@ -130,13 +130,25 @@ const Messages = () => {
     if (!user) return;
     setLoading(true);
 
-    const [{ data: msgs }, { data: profile }, { data: pending }, { data: blocks }, { data: ownProvider }] = await Promise.all([
+    const [
+      { data: msgs, error: msgsErr },
+      { data: profile },
+      { data: pending },
+      { data: blocks },
+      { data: ownProvider },
+    ] = await Promise.all([
       supabase.from("messages").select("*").order("created_at", { ascending: true }),
       supabase.from("profiles").select("user_type, subscription_tier").eq("id", user.id).maybeSingle(),
       supabase.from("pending_messages").select("*").eq("sender_id", user.id).order("created_at", { ascending: true }),
       supabase.from("blocked_providers").select("*").eq("user_id", user.id),
       supabase.from("providers").select("subscription_tier, provider_type").eq("user_id", user.id).maybeSingle(),
     ]);
+
+    if (msgsErr) {
+      toast({ title: "Couldn't load messages", description: "Please refresh and try again.", variant: "destructive" });
+      setLoading(false);
+      return;
+    }
 
     setUserProfile(profile);
     setOwnProviderTier(ownProvider?.subscription_tier ?? null);

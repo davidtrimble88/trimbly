@@ -193,11 +193,17 @@ const JobBoard = () => {
       setLoading(true);
 
       // Get provider profile
-      const { data: providerData } = await supabase
+      const { data: providerData, error: providerError } = await supabase
         .from("providers")
         .select("id, subscription_tier, business_name, provider_type")
         .eq("user_id", user.id)
         .maybeSingle();
+
+      if (providerError) {
+        toast({ title: "Couldn't load your provider profile", description: "Please refresh and try again.", variant: "destructive" });
+        setLoading(false);
+        return;
+      }
 
       if (providerData) {
         setProviderId(providerData.id);
@@ -429,7 +435,7 @@ const JobBoard = () => {
 
       // Notify homeowner via in-app message (trigger also creates the review_request row)
       const businessLabel = providerBusinessName || "Your pro";
-      await supabase.from("messages").insert({
+      const { error: msgErr } = await supabase.from("messages").insert({
         sender_id: user.id,
         recipient_id: job.homeowner_id,
         subject: `Job complete: ${job.title}`,
@@ -439,7 +445,11 @@ const JobBoard = () => {
       // Optimistic local update
       setJobs((prev) => prev.map((j) => (j.id === job.id ? { ...j, status: "completed" } : j)));
       setDetailJob((d) => (d && d.id === job.id ? { ...d, status: "completed" } : d));
-      toast({ title: "Marked complete", description: "The homeowner has been notified and asked to review." });
+      if (msgErr) {
+        toast({ title: "Marked complete", description: "The job is complete, but we couldn't notify the homeowner — you may want to reach out directly.", variant: "destructive" });
+      } else {
+        toast({ title: "Marked complete", description: "The homeowner has been notified and asked to review." });
+      }
     } catch (e: any) {
       toast({ title: "Couldn't mark complete", description: e.message || "Try again.", variant: "destructive" });
     } finally {

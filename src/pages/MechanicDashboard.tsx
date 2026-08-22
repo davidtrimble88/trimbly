@@ -117,19 +117,25 @@ export default function MechanicDashboard() {
         .eq("id", bid.vehicle_job_id);
       if (jErr) throw jErr;
 
+      let notifyFailed = false;
       if (bid.vehicle_job.owner_user_id) {
-        await supabase.from("messages").insert({
+        const { error: msgErr } = await supabase.from("messages").insert({
           sender_id: user.id,
           recipient_id: bid.vehicle_job.owner_user_id,
           subject: `Job complete: ${bid.vehicle_job.title}`,
           body: `${provider?.business_name || "Your mechanic"} marked "${bid.vehicle_job.title}" as complete. If everything looks good, please take a moment to leave a quick review.`,
         });
+        notifyFailed = !!msgErr;
       }
 
       setBids((prev) => prev.map((b) => (
         b.id === bid.id && b.vehicle_job ? { ...b, vehicle_job: { ...b.vehicle_job, status: "completed" } } : b
       )));
-      toast({ title: "Marked complete", description: "The vehicle owner has been notified and asked to review." });
+      if (notifyFailed) {
+        toast({ title: "Marked complete", description: "The job is complete, but we couldn't notify the vehicle owner — you may want to reach out directly.", variant: "destructive" });
+      } else {
+        toast({ title: "Marked complete", description: "The vehicle owner has been notified and asked to review." });
+      }
     } catch (e: any) {
       toast({ title: "Couldn't mark complete", description: e.message || "Try again.", variant: "destructive" });
     } finally {

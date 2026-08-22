@@ -214,11 +214,16 @@ const PostJob = () => {
   const loadJobs = async () => {
     if (!user) return;
     setLoadingJobs(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("jobs")
       .select("*")
       .eq("homeowner_id", user.id)
       .order("created_at", { ascending: false });
+    if (error) {
+      toast({ title: "Couldn't load your jobs", description: "Please refresh and try again.", variant: "destructive" });
+      setLoadingJobs(false);
+      return;
+    }
     const jobsList = (data as Job[]) || [];
     setJobs(jobsList);
     setLoadingJobs(false);
@@ -276,11 +281,15 @@ const PostJob = () => {
 
   // Load bids when a job is expanded
   const loadBids = async (jobId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("job_bids")
       .select("*, provider:providers(user_id, business_name, category, city, state, years_experience, licensed, insured, phone)")
       .eq("job_id", jobId)
       .order("created_at", { ascending: false });
+    if (error) {
+      toast({ title: "Couldn't load bids", description: "Please try again.", variant: "destructive" });
+      return;
+    }
     const bidsList = (data as unknown as Bid[]) || [];
     setBids((prev) => ({ ...prev, [jobId]: bidsList }));
 

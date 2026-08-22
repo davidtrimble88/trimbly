@@ -284,14 +284,18 @@ export default function RentalAgreementDialog({
     });
 
     // Notify renter via in-app message
-    await supabase.from("messages").insert({
+    const { error: notifyErr } = await supabase.from("messages").insert({
       sender_id: user.id,
       recipient_id: renterUserId,
       subject: `Rental agreement: ${rental.title}`,
       body: `I've sent you a rental agreement for "${rental.title}" from ${startDate} to ${endDate}. Please review and sign in the Equipment Marketplace.`,
       rental_id: rental.id,
     } as any);
-    toast({ title: "Agreement sent", description: "The renter will review and sign." });
+    if (notifyErr) {
+      toast({ title: "Agreement sent", description: "Saved, but we couldn't notify the renter — you may want to reach out directly.", variant: "destructive" });
+    } else {
+      toast({ title: "Agreement sent", description: "The renter will review and sign." });
+    }
     setAgreement(data as any);
     setSaving(false);
     onSaved?.();
@@ -354,14 +358,18 @@ export default function RentalAgreementDialog({
       esign_consent: true,
     });
 
-    await supabase.from("messages").insert({
+    const { error: notifyErr } = await supabase.from("messages").insert({
       sender_id: user.id,
       recipient_id: agreement.owner_user_id,
       subject: `Rental agreement accepted`,
       body: `The renter has signed and accepted your rental agreement. You're all set — coordinate pickup directly.`,
       rental_id: agreement.rental_id,
     } as any);
-    toast({ title: "Signed & accepted" });
+    if (notifyErr) {
+      toast({ title: "Signed & accepted", description: "Couldn't notify the owner — you may want to reach out directly.", variant: "destructive" });
+    } else {
+      toast({ title: "Signed & accepted" });
+    }
     setSaving(false);
     onOpenChange(false);
     onSaved?.();
@@ -384,14 +392,18 @@ export default function RentalAgreementDialog({
       terms_hash: (agreement as any).terms_hash || null,
       esign_consent: false,
     });
-    await supabase.from("messages").insert({
+    const { error: notifyErr } = await supabase.from("messages").insert({
       sender_id: user.id,
       recipient_id: agreement.owner_user_id,
       subject: `Rental agreement declined`,
       body: `The renter has declined the rental agreement.`,
       rental_id: agreement.rental_id,
     } as any);
-    toast({ title: "Declined" });
+    if (notifyErr) {
+      toast({ title: "Declined", description: "Couldn't notify the owner — you may want to reach out directly.", variant: "destructive" });
+    } else {
+      toast({ title: "Declined" });
+    }
     setSaving(false);
     onOpenChange(false);
     onSaved?.();
