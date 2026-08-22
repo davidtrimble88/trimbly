@@ -10,6 +10,7 @@ import ServiceAreaPanel from "@/components/pro/ServiceAreaPanel";
 import ProFeaturesPanel from "@/components/pro/ProFeaturesPanel";
 import NotificationPrefsPanel from "@/components/pro/NotificationPrefsPanel";
 import InstallAppPanel from "@/components/pro/InstallAppPanel";
+import AccountSettingsDialog from "@/components/AccountSettingsDialog";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
 import BusinessInfoCard from "./BusinessInfoCard";
 import type { ProviderProfile } from "./types";
@@ -89,6 +90,15 @@ const ProProfileTab = ({ provider, userId, onEditProfile, onUpdated }: ProProfil
         <div className="space-y-6">
           <NotificationPrefsPanel userId={userId} />
           <InstallAppPanel />
+          <Card>
+            <CardContent className="p-5 flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <p className="text-sm font-medium text-foreground">Account settings</p>
+                <p className="text-xs text-muted-foreground">Password, data export, and account deletion</p>
+              </div>
+              <AccountSettingsDialog trigger={<Button variant="outline" size="sm">Manage</Button>} />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
