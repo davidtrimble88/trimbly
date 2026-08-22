@@ -8,6 +8,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { rateLimit, rateLimitResponse, getClientKey } from "../_shared/rateLimit.ts";
 import { readJson, validationErrorResponse, ValidationError } from "../_shared/validation.ts";
+import { normalizeRecurringDueDate } from "../_shared/dueDate.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -152,9 +153,12 @@ You must call the "appliance_maintenance" function. Pass an empty tasks array if
     }
 
     const result = JSON.parse(toolCall.function.arguments);
-
+    const tasks = (result.tasks || []).map((t: Record<string, unknown>) => ({
+      ...t,
+      due_date: normalizeRecurringDueDate(t.due_date, Number(t.recurrence_months) || 0),
+    }));
     return new Response(
-      JSON.stringify({ tasks: result.tasks || [] }),
+      JSON.stringify({ tasks }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {

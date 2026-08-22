@@ -426,13 +426,31 @@ const MaintenancePage = () => {
 
       const aiTasks = data.tasks || [];
 
-      // Filter out duplicates: tasks with same title that already exist as upcoming
-      const existingTitles = new Set(
-        tasks.filter(t => t.status !== "completed").map(t => t.title.toLowerCase().trim())
-      );
+      // Filter out duplicates: tasks with the same title AND a due date close to an
+      // existing upcoming task's. Matching on title alone meant that once a task's
+      // due date drifted years out (e.g. from a bad AI-generated date or repeated
+      // completions), Regenerate could never insert the correct near-term occurrence
+      // for that title again — it always looked like a "duplicate" of the stray one.
+      const existingByTitle = new Map<string, MaintenanceTask[]>();
+      tasks.filter(t => t.status !== "completed").forEach(t => {
+        const key = t.title.toLowerCase().trim();
+        const group = existingByTitle.get(key);
+        if (group) group.push(t); else existingByTitle.set(key, [t]);
+      });
 
-      const uniqueTasks = aiTasks.filter((t: any) => !existingTitles.has((t.title || "").toLowerCase().trim()));
+      const isDuplicate = (t: any) => {
+        const matches = existingByTitle.get((t.title || "").toLowerCase().trim());
+        if (!matches) return false;
+        if (!t.due_date) return true;
+        const newDue = parseDateOnly(t.due_date).getTime();
+        return matches.some(m => {
+          if (!m.due_date) return true;
+          const daysApart = Math.abs(parseDateOnly(m.due_date).getTime() - newDue) / 86_400_000;
+          return daysApart <= 60;
+        });
+      };
 
+      const uniqueTasks = aiTasks.filter((t: any) => !isDuplicate(t));
       if (uniqueTasks.length === 0) {
         toast({ title: "No new tasks", description: "All generated tasks already exist in your schedule." });
         setGenerating(false);
