@@ -124,8 +124,15 @@ const Users = () => {
     if (search) {
       const q = search.toLowerCase();
       const email = (emails[p.id] || "").toLowerCase();
-      if (!p.full_name.toLowerCase().includes(q) && !p.id.includes(search) && !email.includes(q)) return false;
+      const addr = (addresses[p.id] || []).join(" | ").toLowerCase();
+      if (
+        !p.full_name.toLowerCase().includes(q) &&
+        !p.id.includes(search) &&
+        !email.includes(q) &&
+        !addr.includes(q)
+      ) return false;
     }
+
     return true;
   });
 
