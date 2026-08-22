@@ -1174,17 +1174,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "maintenance_tasks_home_id_fkey"
-            columns: ["home_id"]
-            isOneToOne: false
-            referencedRelation: "homes"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "maintenance_tasks_binder_item_id_fkey"
             columns: ["binder_item_id"]
             isOneToOne: false
             referencedRelation: "home_binder_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_tasks_home_id_fkey"
+            columns: ["home_id"]
+            isOneToOne: false
+            referencedRelation: "homes"
             referencedColumns: ["id"]
           },
         ]
