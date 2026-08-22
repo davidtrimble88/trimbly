@@ -91,7 +91,17 @@ const Users = () => {
       });
       setRoles(rmap);
     }
+    // Owner-only: home addresses so staff can search a user by their address.
+    const { data: addrRows } = await supabase.rpc("admin_list_user_addresses" as any);
+    if (addrRows) {
+      const amap: Record<string, string[]> = {};
+      (addrRows as { user_id: string; address: string | null }[]).forEach((r) => {
+        if (r.address) amap[r.user_id] = [...(amap[r.user_id] || []), r.address];
+      });
+      setAddresses(amap);
+    }
   };
+
 
   const STAFF_ROLES = ["admin", "moderator", "support", "analyst"];
   const isStaff = (p: Profile) =>
