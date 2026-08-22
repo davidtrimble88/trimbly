@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
+import NotificationBell from "./NotificationBell";
 
 interface DashboardHeaderProps {
   avatarIcon: LucideIcon;
@@ -73,6 +74,7 @@ const DashboardHeader = ({
             <ExternalLink size={14} className="mr-1.5" /> View Public Profile
           </Button>
         )}
+        <NotificationBell />
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
