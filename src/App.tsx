@@ -11,6 +11,7 @@ import { installGlobalErrorReporting } from "@/lib/errorReporting";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { SecurityQuestionsGate } from "@/components/SecurityQuestionsGate";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import OfflineBanner from "@/components/OfflineBanner";
 import CookieConsent from "@/components/CookieConsent";
 
 // Eager: high-traffic landing + auth + dashboards
@@ -144,6 +145,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <OfflineBanner />
         <BrowserRouter>
           <ScrollToTop />
           <GlobalListeners />
