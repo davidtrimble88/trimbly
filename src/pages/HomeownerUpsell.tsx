@@ -2,13 +2,18 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, Zap, Crown, ArrowRight, Loader2, Tag } from "lucide-react";
+import { Check, Zap, Crown, ArrowRight, Loader2, Tag, PartyPopper } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { TestingWelcomeModal } from "@/components/onboarding/TestingWelcomeModal";
+
+// Trimbly is in a free public beta — every plan is unlocked at no cost, no
+// payment info collected. Kept as the same flag name/meaning as
+// ProPricing.tsx's BETA_FREE_ACCESS so both surfaces flip together later.
+const BETA_FREE_ACCESS = true;
 
 const tiers = [
   {
@@ -94,10 +99,11 @@ export default function HomeownerUpsell() {
       if (tierKey === "free") {
         toast({ title: "Welcome to Trimbly!", description: "You're all set with the Free plan." });
       } else {
-        // Payments not fully wired yet — let them use the tier during a grace period
         toast({
           title: `${tierKey === "homeowner_pro" ? "Home Hero" : "Home Super Hero"} activated!`,
-          description: "Billing will be enabled soon. Enjoy your premium features during the early-access period.",
+          description: BETA_FREE_ACCESS
+            ? "Free during the beta — enjoy full access, no payment needed."
+            : "Billing will be enabled soon. Enjoy your premium features during the early-access period.",
         });
       }
 
@@ -153,6 +159,11 @@ export default function HomeownerUpsell() {
             <p className="text-muted-foreground text-lg">
               Upgrade to AI-powered maintenance, a Digital Home Binder, and unlimited job estimates.
             </p>
+            {BETA_FREE_ACCESS && (
+              <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
+                <PartyPopper size={16} /> Free public beta — every plan is unlocked, no payment info needed
+              </div>
+            )}
           </div>
 
           {user && (
@@ -198,10 +209,21 @@ export default function HomeownerUpsell() {
 
                 <h3 className="font-bold text-xl text-card-foreground">{tier.name}</h3>
                 <div className="flex items-baseline gap-1 mt-2 mb-1">
-                  <span className="text-4xl font-extrabold text-card-foreground">{tier.price}</span>
-                  {tier.period && <span className="text-muted-foreground text-sm">{tier.period} USD</span>}
+                  {BETA_FREE_ACCESS ? (
+                    <>
+                      <span className="text-4xl font-extrabold text-card-foreground">Free</span>
+                      <span className="text-muted-foreground text-sm">during beta</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-4xl font-extrabold text-card-foreground">{tier.price}</span>
+                      {tier.period && <span className="text-muted-foreground text-sm">{tier.period} USD</span>}
+                    </>
+                  )}
                 </div>
-                <p className="text-xs text-muted-foreground mb-3">≈ {tier.cadPrice} {tier.period} CAD</p>
+                <p className="text-xs text-muted-foreground mb-3">
+                  {BETA_FREE_ACCESS ? `Regularly ${tier.price}${tier.period} — free while Trimbly is in beta` : `≈ ${tier.cadPrice} ${tier.period} CAD`}
+                </p>
                 <p className="text-sm text-muted-foreground mb-6">{tier.description}</p>
 
                 <ul className="space-y-2.5 mb-6 flex-1">
@@ -223,7 +245,7 @@ export default function HomeownerUpsell() {
                   {loadingTier === tier.dbKey ? (
                     <Loader2 size={16} className="animate-spin mr-2" />
                   ) : null}
-                  {tier.cta}
+                  {BETA_FREE_ACCESS ? "Unlock — Free During Beta" : tier.cta}
                   {tier.highlighted && <ArrowRight size={16} className="ml-2" />}
                 </Button>
               </div>
@@ -244,12 +266,20 @@ export default function HomeownerUpsell() {
             <span className="flex items-center gap-1.5">
               <Check size={14} className="text-primary" /> Cancel anytime
             </span>
-            <span className="flex items-center gap-1.5">
-              <Check size={14} className="text-primary" /> 14-day free trial
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Check size={14} className="text-primary" /> No credit card required to start trial
-            </span>
+            {BETA_FREE_ACCESS ? (
+              <span className="flex items-center gap-1.5">
+                <Check size={14} className="text-primary" /> Free during the beta — no credit card, ever
+              </span>
+            ) : (
+              <>
+                <span className="flex items-center gap-1.5">
+                  <Check size={14} className="text-primary" /> 14-day free trial
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Check size={14} className="text-primary" /> No credit card required to start trial
+                </span>
+              </>
+            )}
           </div>
         </div>
       </main>

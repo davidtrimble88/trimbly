@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Check, ArrowLeft, Star, Zap, Loader2 } from "lucide-react";
+import { Check, ArrowLeft, Star, Zap, Loader2, PartyPopper, Tag } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { startProviderSubscriptionCheckout } from "@/lib/billing";
+
+// Trimbly is in a free public beta — every plan is unlocked at no cost, no
+// payment info collected. Flip to false once beta ends and real Stripe
+// billing (still fully wired below, just bypassed for now) should resume.
+const BETA_FREE_ACCESS = true;
 
 const tiers = [
   {
@@ -54,6 +60,8 @@ const ProPricing = () => {
   const { toast } = useToast();
   const [hasProvider, setHasProvider] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
+  const [discountCode, setDiscountCode] = useState("");
+  const [redeeming, setRedeeming] = useState(false);
 
   useEffect(() => {
     if (!user) { setHasProvider(false); return; }
@@ -66,6 +74,17 @@ const ProPricing = () => {
   const handleSelect = async (tierKey: string) => {
     if (tierKey === "pro" && hasProvider) {
       setUpgrading(true);
+      if (BETA_FREE_ACCESS) {
+        const { data, error } = await supabase.rpc("set_own_provider_tier" as any, { p_tier: "pro" } as any);
+        setUpgrading(false);
+        if (error || !(data as any)?.success) {
+          toast({ title: "Couldn't activate Pro", description: (data as any)?.error || error?.message, variant: "destructive" });
+          return;
+        }
+        toast({ title: "Pro activated!", description: "Free during the beta — no payment needed." });
+        navigate("/pro-dashboard");
+        return;
+      }
       const { url, error } = await startProviderSubscriptionCheckout("pro");
       setUpgrading(false);
       if (error) { toast({ title: "Couldn't start checkout", description: error, variant: "destructive" }); return; }
@@ -73,6 +92,27 @@ const ProPricing = () => {
       return;
     }
     navigate(`/pro-register?tier=${tierKey}`);
+  };
+
+  const handleRedeemCode = async () => {
+    if (!discountCode.trim() || !user) return;
+    setRedeeming(true);
+    try {
+      const { data, error } = await supabase.rpc("redeem_discount_code" as any, { p_code: discountCode.trim() } as any);
+      const result = data as any;
+      if (error || !result?.success) {
+        toast({ title: "Code didn't work", description: result?.error || error?.message, variant: "destructive" });
+        return;
+      }
+      if (result.grants_provider_tier || result.grants_tier) {
+        toast({ title: "Code applied!", description: "Your plan has been upgraded — no payment needed." });
+        navigate(hasProvider ? "/pro-dashboard" : "/pro-register?tier=pro");
+      } else {
+        toast({ title: "Code applied", description: "Your discount is recorded." });
+      }
+    } finally {
+      setRedeeming(false);
+    }
   };
 
   return (
@@ -92,7 +132,33 @@ const ProPricing = () => {
             <p className="text-muted-foreground text-lg">
               Choose the plan that matches your ambition. Upgrade or downgrade anytime.
             </p>
+            {BETA_FREE_ACCESS && (
+              <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
+                <PartyPopper size={16} /> Free public beta — every plan is unlocked, no payment info needed
+              </div>
+            )}
           </div>
+
+          {user && hasProvider && (
+            <div className="max-w-md mx-auto mb-10">
+              <div className="rounded-xl border border-border bg-card p-4 flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Tag size={16} className="text-primary shrink-0" />
+                  <Input
+                    placeholder="Have a discount code?"
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleRedeemCode(); }}
+                    className="text-sm"
+                  />
+                </div>
+                <Button variant="outline" onClick={handleRedeemCode} disabled={redeeming || !discountCode.trim()}>
+                  {redeeming ? <Loader2 size={14} className="animate-spin mr-1.5" /> : null}
+                  Apply
+                </Button>
+              </div>
+            </div>
+          )}
 
           <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
             {tiers.map((tier) => (
@@ -114,10 +180,24 @@ const ProPricing = () => {
                 </div>
                 <h3 className="font-bold text-xl text-card-foreground">{tier.name}</h3>
                 <div className="flex items-baseline gap-1 mt-3 mb-1">
-                  <span className="text-4xl font-extrabold text-card-foreground">{tier.price}</span>
-                  {tier.period && <span className="text-muted-foreground text-sm">{tier.period} USD</span>}
+                  {BETA_FREE_ACCESS && tier.tier === "pro" ? (
+                    <>
+                      <span className="text-4xl font-extrabold text-card-foreground">Free</span>
+                      <span className="text-muted-foreground text-sm">during beta</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-4xl font-extrabold text-card-foreground">{tier.price}</span>
+                      {tier.period && <span className="text-muted-foreground text-sm">{tier.period} USD</span>}
+                    </>
+                  )}
                 </div>
-                <p className="text-xs text-muted-foreground mb-3">≈ {tier.cadPrice}{tier.period ? ` ${tier.period} CAD` : " CAD"}</p>
+                {!(BETA_FREE_ACCESS && tier.tier === "pro") && (
+                  <p className="text-xs text-muted-foreground mb-3">≈ {tier.cadPrice}{tier.period ? ` ${tier.period} CAD` : " CAD"}</p>
+                )}
+                {BETA_FREE_ACCESS && tier.tier === "pro" && (
+                  <p className="text-xs text-muted-foreground mb-3">Regularly {tier.price}{tier.period} — free while Trimbly is in beta</p>
+                )}
                 <p className="text-sm text-muted-foreground mb-6">{tier.description}</p>
                 <ul className="space-y-3 mb-8">
                   {tier.features.map((f) => (
@@ -135,7 +215,9 @@ const ProPricing = () => {
                   disabled={upgrading}
                 >
                   {upgrading ? <Loader2 size={16} className="animate-spin mr-1.5" /> : null}
-                  {hasProvider && tier.tier === "pro" ? "Upgrade to Pro" : tier.cta}
+                  {hasProvider && tier.tier === "pro"
+                    ? (BETA_FREE_ACCESS ? "Unlock Pro — free" : "Upgrade to Pro")
+                    : (BETA_FREE_ACCESS && tier.tier === "pro" ? "Get Started — Free Beta" : tier.cta)}
                 </Button>
               </div>
             ))}
@@ -146,10 +228,15 @@ const ProPricing = () => {
             <h2 className="text-2xl font-bold text-foreground mb-8">Frequently Asked Questions</h2>
             <div className="text-left space-y-6">
               {[
+                ...(BETA_FREE_ACCESS
+                  ? [{ q: "Will I be charged when the beta ends?", a: "No. We'll email everyone before any billing starts, and you can downgrade to Free at any time — nothing is charged automatically." }]
+                  : []),
                 { q: "Are there any additional fees?", a: "No. We only charge the monthly subscription — Trimbly does not take any portion of what you earn from your jobs." },
                 { q: "Can I switch plans later?", a: "Yes! You can upgrade or downgrade your plan at any time. Changes take effect on your next billing cycle." },
                 { q: "Is there a contract?", a: "No contracts. All plans are month-to-month. Cancel anytime with no penalties." },
-                { q: "What payment methods do you accept?", a: "We accept all major credit cards, debit cards, and ACH bank transfers." },
+                ...(BETA_FREE_ACCESS
+                  ? []
+                  : [{ q: "What payment methods do you accept?", a: "We accept all major credit cards, debit cards, and ACH bank transfers." }]),
                 { q: "Do I need a license to register?", a: "While not required to create an account, we encourage all providers to add their license information. Licensed pros get a verified badge." },
               ].map(faq => (
                 <div key={faq.q} className="border border-border rounded-xl p-5">

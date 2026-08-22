@@ -15,6 +15,7 @@ import { logActivity } from "./activityLog";
 
 type DiscountType = "free" | "percent" | "fixed";
 type GrantsTier = "" | "free" | "homeowner_pro" | "multi_pro";
+type GrantsProviderTier = "" | "free" | "pro" | "elite";
 
 interface DiscountCode {
   id: string;
@@ -23,6 +24,7 @@ interface DiscountCode {
   discount_type: DiscountType;
   discount_value: number | null;
   grants_tier: string | null;
+  grants_provider_tier: string | null;
   grants_garage: boolean;
   is_testing_code: boolean;
   max_redemptions: number | null;
@@ -33,6 +35,7 @@ interface DiscountCode {
 }
 
 const tierLabels: Record<string, string> = { free: "Free", homeowner_pro: "Home Hero", multi_pro: "Home Super Hero" };
+const providerTierLabels: Record<string, string> = { free: "Free", pro: "Pro", elite: "Elite" };
 
 export default function StaffDiscounts() {
   const { user } = useAuth();
@@ -46,6 +49,7 @@ export default function StaffDiscounts() {
   const [discountType, setDiscountType] = useState<DiscountType>("free");
   const [discountValue, setDiscountValue] = useState("");
   const [grantsTier, setGrantsTier] = useState<GrantsTier>("");
+  const [grantsProviderTier, setGrantsProviderTier] = useState<GrantsProviderTier>("");
   const [grantsGarage, setGrantsGarage] = useState(false);
   const [isTestingCode, setIsTestingCode] = useState(false);
   const [maxRedemptions, setMaxRedemptions] = useState("");
@@ -69,7 +73,7 @@ export default function StaffDiscounts() {
 
   const resetForm = () => {
     setCode(""); setDescription(""); setDiscountType("free"); setDiscountValue("");
-    setGrantsTier(""); setGrantsGarage(false); setIsTestingCode(false); setMaxRedemptions(""); setExpiresAt("");
+    setGrantsTier(""); setGrantsProviderTier(""); setGrantsGarage(false); setIsTestingCode(false); setMaxRedemptions(""); setExpiresAt("");
   };
 
   const fillTestingDefaults = () => {
@@ -78,6 +82,7 @@ export default function StaffDiscounts() {
     setDiscountType("free");
     setDiscountValue("");
     setGrantsTier("multi_pro");
+    setGrantsProviderTier("");
     setGrantsGarage(true);
     setIsTestingCode(true);
     setMaxRedemptions("");
@@ -102,6 +107,7 @@ export default function StaffDiscounts() {
       discount_type: discountType,
       discount_value: discountType === "free" ? null : Number(discountValue),
       grants_tier: grantsTier || null,
+      grants_provider_tier: grantsProviderTier || null,
       grants_garage: grantsGarage,
       is_testing_code: isTestingCode,
       max_redemptions: maxRedemptions.trim() ? Number(maxRedemptions) : null,
@@ -173,7 +179,7 @@ export default function StaffDiscounts() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-3">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <Label className="text-xs">Discount type</Label>
               <Select value={discountType} onValueChange={(v) => setDiscountType(v as DiscountType)}>
@@ -198,7 +204,7 @@ export default function StaffDiscounts() {
               />
             </div>
             <div>
-              <Label className="text-xs">Grants tier</Label>
+              <Label className="text-xs">Grants tier (homeowner)</Label>
               <Select value={grantsTier || "none"} onValueChange={(v) => setGrantsTier(v === "none" ? "" : (v as GrantsTier))}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -206,6 +212,18 @@ export default function StaffDiscounts() {
                   <SelectItem value="free">Free</SelectItem>
                   <SelectItem value="homeowner_pro">Home Hero</SelectItem>
                   <SelectItem value="multi_pro">Home Super Hero</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Grants tier (provider)</Label>
+              <Select value={grantsProviderTier || "none"} onValueChange={(v) => setGrantsProviderTier(v === "none" ? "" : (v as GrantsProviderTier))}>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No tier change</SelectItem>
+                  <SelectItem value="free">Free</SelectItem>
+                  <SelectItem value="pro">Pro</SelectItem>
+                  <SelectItem value="elite">Elite</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -275,6 +293,7 @@ export default function StaffDiscounts() {
                     {row.discount_type === "free" ? "Free" : row.discount_type === "percent" ? `${row.discount_value}% off` : `$${row.discount_value} off`}
                   </Badge>
                   {row.grants_tier && <Badge variant="outline" className="text-xs">→ {tierLabels[row.grants_tier] ?? row.grants_tier}</Badge>}
+                  {row.grants_provider_tier && <Badge variant="outline" className="text-xs">Pro → {providerTierLabels[row.grants_provider_tier] ?? row.grants_provider_tier}</Badge>}
                   {row.grants_garage && <Badge variant="outline" className="text-xs gap-1"><Car className="w-3 h-3" /> Garage</Badge>}
                   <span className="text-xs text-muted-foreground whitespace-nowrap">
                     {row.redemption_count}{row.max_redemptions ? ` / ${row.max_redemptions}` : ""} used

@@ -284,6 +284,7 @@ export type Database = {
           discount_value: number | null
           expires_at: string | null
           grants_garage: boolean
+          grants_provider_tier: string | null
           grants_tier: string | null
           id: string
           is_testing_code: boolean
@@ -301,6 +302,7 @@ export type Database = {
           discount_value?: number | null
           expires_at?: string | null
           grants_garage?: boolean
+          grants_provider_tier?: string | null
           grants_tier?: string | null
           id?: string
           is_testing_code?: boolean
@@ -318,6 +320,7 @@ export type Database = {
           discount_value?: number | null
           expires_at?: string | null
           grants_garage?: boolean
+          grants_provider_tier?: string | null
           grants_tier?: string | null
           id?: string
           is_testing_code?: boolean
