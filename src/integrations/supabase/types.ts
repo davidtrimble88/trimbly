@@ -1119,7 +1119,6 @@ export type Database = {
       }
       maintenance_tasks: {
         Row: {
-          binder_item_id: string | null
           category: string
           completed_at: string | null
           created_at: string
@@ -1137,7 +1136,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          binder_item_id?: string | null
           category?: string
           completed_at?: string | null
           created_at?: string
@@ -1155,7 +1153,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          binder_item_id?: string | null
           category?: string
           completed_at?: string | null
           created_at?: string
@@ -1178,13 +1175,6 @@ export type Database = {
             columns: ["home_id"]
             isOneToOne: false
             referencedRelation: "homes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "maintenance_tasks_binder_item_id_fkey"
-            columns: ["binder_item_id"]
-            isOneToOne: false
-            referencedRelation: "home_binder_items"
             referencedColumns: ["id"]
           },
         ]
