@@ -139,7 +139,7 @@ const SymptomTriagePage = () => {
     >
       <div className="max-w-3xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display mb-2 flex items-center gap-3">
             <Stethoscope className="text-primary" size={28} />
             AI Symptom Triage
           </h1>

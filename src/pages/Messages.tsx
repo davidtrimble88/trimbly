@@ -430,7 +430,7 @@ const Messages = () => {
         )}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold text-foreground font-display">Messages</h1>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display">Messages</h1>
             <p className="text-muted-foreground text-sm mt-1">Communicate with service providers directly</p>
           </div>
           <Button asChild className="gap-2">

@@ -166,7 +166,7 @@ const HomeValueAdvisor = () => {
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <TrendingUp size={22} className="text-primary" />
             </div>
-            <h1 className="text-3xl font-bold">Home Value Advisor</h1>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display">Home Value Advisor</h1>
           </div>
           <p className="text-muted-foreground">Describe an upgrade you're considering and find out if it's likely to pay off at resale.</p>
           <p className="text-xs text-muted-foreground mt-2">

@@ -164,7 +164,7 @@ export default function EnergyAdvisor() {
       <div className="max-w-3xl">
         <div className="flex items-center gap-2 mb-1">
           <Zap className="text-primary" size={22} />
-          <h1 className="text-3xl font-bold">Energy & Utility Savings Advisor</h1>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display">Energy & Utility Savings Advisor</h1>
         </div>
         <p className="text-muted-foreground mb-6">
           Get prioritized upgrades with real cost, savings, and payback estimates for your home.

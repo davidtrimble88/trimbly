@@ -261,7 +261,7 @@ const CoverageAdvisor = () => {
         <div className="flex items-center gap-3 mb-6">
           <Shield className="h-8 w-8 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold">Coverage Advisor</h1>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display">Coverage Advisor</h1>
             <p className="text-muted-foreground">Upload your warranty & insurance documents, then ask AI about your coverage.</p>
           </div>
         </div>
