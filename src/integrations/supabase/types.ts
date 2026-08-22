@@ -3183,6 +3183,15 @@ export type Database = {
     }
     Functions: {
       accept_home_invite: { Args: { p_token: string }; Returns: Json }
+      admin_list_user_addresses: {
+        Args: never
+        Returns: {
+          address: string
+          home_id: string
+          home_name: string
+          user_id: string
+        }[]
+      }
       admin_list_user_emails: {
         Args: never
         Returns: {
