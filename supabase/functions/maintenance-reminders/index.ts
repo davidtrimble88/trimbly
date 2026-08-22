@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { rateLimit, rateLimitResponse, getClientKey } from "../_shared/rateLimit.ts";
+import { sendEmail } from "../_shared/sendEmail.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,6 +23,11 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+    // SITE_URL should be set to the real deployed app origin (e.g.
+    // https://trimbly.lovable.app, or a custom domain once one is added) —
+    // the previous supabaseUrl-string-replace heuristic didn't reliably
+    // match the actual frontend domain.
+    const siteUrl = Deno.env.get("SITE_URL") || "https://trimbly.lovable.app";
 
     const today = new Date();
     const reminderDays = [30, 7, 1, 0];
@@ -60,6 +66,7 @@ Deno.serve(async (req) => {
         const { data: userData } = await supabase.auth.admin.getUserById(userId);
         if (!userData?.user?.email) continue;
 
+        const recipientEmail = userData.user.email;
         const userName = userData.user.user_metadata?.full_name || "Homeowner";
 
         // Get home name
@@ -116,7 +123,7 @@ Deno.serve(async (req) => {
           ${taskListHtml}
         </table>
         <div style="text-align: center; margin-top: 24px;">
-          <a href="${supabaseUrl.replace('.supabase.co', '.lovable.app')}/maintenance" 
+          <a href="${siteUrl}/maintenance"
              style="display: inline-block; padding: 12px 28px; background: #2563eb; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
             View Maintenance Schedule
           </a>
@@ -130,20 +137,17 @@ Deno.serve(async (req) => {
 </body>
 </html>`;
 
-        // Send via Supabase auth email (use admin API to send)
-        // Since we can't send arbitrary emails through Supabase auth,
-        // we'll use the Lovable AI gateway to send
-        const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+        const { ok: emailSent } = await sendEmail({
+          to: recipientEmail,
+          subject: `${urgencyLabel.replace(/^[^\w]+/, "")}: ${userTasks.length} maintenance task${userTasks.length > 1 ? "s" : ""} for ${homeName}`,
+          html: htmlBody,
+        });
 
-        // For now, log the reminder - in production, integrate with an email service.
         // Deliberately not logging the email address itself — server logs
-        // aren't the place for customer PII, and it isn't needed to see
-        // that the reminder pipeline is working.
-        console.log(`Reminder queued for user ${userId}: ${urgencyLabel} - ${userTasks.length} task(s)`);
+        // aren't the place for customer PII.
+        console.log(`Reminder ${emailSent ? "sent" : "FAILED"} for user ${userId}: ${urgencyLabel} - ${userTasks.length} task(s)`);
 
-        // Store the reminder in a notification log so the UI can show it
-        // We'll use the maintenance_tasks table's status to track notifications
-        totalSent++;
+        if (emailSent) totalSent++;
       }
     }
 
