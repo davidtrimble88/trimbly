@@ -59,6 +59,8 @@ const Users = () => {
   const [emails, setEmails] = useState<Record<string, string>>({});
   const [roles, setRoles] = useState<Record<string, string[]>>({});
   const [tab, setTab] = useState<"users" | "staff">("users");
+  const [addresses, setAddresses] = useState<Record<string, string[]>>({});
+
 
 
   useEffect(() => { load(); }, []);
