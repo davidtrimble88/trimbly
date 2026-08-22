@@ -1,21 +1,24 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Stethoscope, Loader2, AlertTriangle, ShieldAlert, Clock, Calendar,
-  Wrench, DollarSign, Crown, CheckCircle2, PhoneCall, ChevronRight
+  Wrench, DollarSign, Crown, CheckCircle2, PhoneCall, ChevronRight, Home
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { Skeleton } from "@/components/ui/skeleton";
+import DashboardShell from "@/components/dashboard/DashboardShell";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
+import { tierLabels } from "@/components/dashboard/homeowner/types";
 import { getSymptomTriage, type SymptomTriage } from "@/lib/api/symptomTriage";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
+import { useGarageSubscription } from "@/hooks/useGarageSubscription";
 
 const systemOptions = [
   "HVAC", "Plumbing", "Electrical", "Appliance",
@@ -61,42 +64,25 @@ const likelihoodBadge: Record<"high" | "medium" | "low", string> = {
 };
 
 const SymptomTriagePage = () => {
-  const { user } = useAuth();
-  const { isPro, loading: limitLoading } = useHomeLimit();
+  const { user, profileName, loading: authLoading } = useAuth();
+  const { isPro, subscriptionTier, loading: limitLoading } = useHomeLimit();
+  const { active: hasGarage } = useGarageSubscription();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const [symptom, setSymptom] = useState("");
   const [system, setSystem] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SymptomTriage | null>(null);
 
-  if (!user) {
-    return (
-      <div className="min-h-screen">
-        <Navbar />
-        <main className="pt-24 pb-16">
-          <div className="container mx-auto px-4 max-w-2xl text-center py-20">
-            <Stethoscope size={48} className="mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-2xl font-bold text-foreground mb-2">Sign in to use AI Symptom Triage</h2>
-            <p className="text-muted-foreground mb-6">
-              Describe what's wrong with your home — get an instant diagnosis, urgency level, and DIY vs Pro guidance.
-            </p>
-            <Button asChild><Link to="/auth">Sign In / Sign Up</Link></Button>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!authLoading && !user) navigate("/auth");
+  }, [user, authLoading]);
 
-  if (limitLoading) {
+  if (authLoading || !user) {
     return (
-      <div className="min-h-screen">
-        <Navbar />
-        <main className="pt-24 pb-16 flex justify-center">
-          <Loader2 className="animate-spin" />
-        </main>
-        <Footer />
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -130,24 +116,43 @@ const SymptomTriagePage = () => {
   };
 
   const UrgencyIcon = result ? urgencyMeta[result.urgency].icon : null;
+  const displayName = profileName || user.user_metadata?.full_name || user.email;
+  const navItems = buildHomeownerSatelliteNavItems(hasGarage);
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <main className="pt-24 pb-16">
-        <div className="container mx-auto px-4 max-w-3xl">
-          <div className="mb-8">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2 flex items-center gap-3">
-              <Stethoscope className="text-primary" size={32} />
-              AI Symptom Triage
-            </h1>
-            <p className="text-muted-foreground">
-              Tell us what's happening — a noise, smell, leak, or weird behavior. You'll get an instant diagnosis,
-              urgency level, safety check, and DIY vs Pro recommendation.
-            </p>
-          </div>
+    <DashboardShell
+      brandLabel="My Home"
+      navItems={navItems}
+      groups={homeownerNavGroups}
+      activeItemId="tools"
+      onNavigate={() => {}}
+      header={{
+        avatarIcon: Home,
+        displayName,
+        subtitle: (
+          <Badge variant="secondary" className="text-xs gap-1">
+            <Crown size={12} className="text-primary" /> {tierLabels[subscriptionTier] ?? "Free"}
+          </Badge>
+        ),
+        onEditProfile: () => navigate("/dashboard?tab=profile"),
+      }}
+    >
+      <div className="max-w-3xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+            <Stethoscope className="text-primary" size={28} />
+            AI Symptom Triage
+          </h1>
+          <p className="text-muted-foreground">
+            Tell us what's happening — a noise, smell, leak, or weird behavior. You'll get an instant diagnosis,
+            urgency level, safety check, and DIY vs Pro recommendation.
+          </p>
+        </div>
 
-          <UpgradeGate
+        {limitLoading ? (
+          <Skeleton className="h-64" />
+        ) : (
+        <UpgradeGate
             hasAccess={isPro}
             variant="card"
             featureName="AI Symptom Triage"
@@ -307,11 +312,10 @@ const SymptomTriagePage = () => {
               </p>
             </div>
           )}
-          </UpgradeGate>
-        </div>
-      </main>
-      <Footer />
-    </div>
+        </UpgradeGate>
+        )}
+      </div>
+    </DashboardShell>
   );
 };
 

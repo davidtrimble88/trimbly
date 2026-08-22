@@ -1,20 +1,23 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  ArrowLeft, TrendingUp, TrendingDown, Minus, HelpCircle, Loader2, Crown,
+  TrendingUp, TrendingDown, Minus, HelpCircle, Loader2, Crown,
   DollarSign, Percent, Clock, HardHat, Wrench, Lightbulb,
-  ShieldCheck, AlertTriangle, FileWarning, ClipboardList, ChevronRight,
+  ShieldCheck, AlertTriangle, FileWarning, ClipboardList, ChevronRight, Home,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { Skeleton } from "@/components/ui/skeleton";
+import DashboardShell from "@/components/dashboard/DashboardShell";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
+import { tierLabels } from "@/components/dashboard/homeowner/types";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
+import { useGarageSubscription } from "@/hooks/useGarageSubscription";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -39,9 +42,11 @@ const recommendationClass: Record<string, string> = {
 };
 
 const HomeValueAdvisor = () => {
-  const { user } = useAuth();
-  const { isPro, loading: limitLoading } = useHomeLimit();
+  const { user, profileName, loading: authLoading } = useAuth();
+  const { isPro, subscriptionTier, loading: limitLoading } = useHomeLimit();
+  const { active: hasGarage } = useGarageSubscription();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const [homes, setHomes] = useState<HomeOption[]>([]);
   const [selectedHomeId, setSelectedHomeId] = useState<string>("");
@@ -71,31 +76,14 @@ const HomeValueAdvisor = () => {
       });
   }, [user]);
 
-  if (!user) {
-    return (
-      <div className="min-h-screen">
-        <Navbar />
-        <main className="pt-24 pb-16">
-          <div className="container mx-auto px-4 max-w-2xl text-center py-20">
-            <TrendingUp size={48} className="mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-2xl font-bold text-foreground mb-2">Sign in to use the Home Value Advisor</h2>
-            <p className="text-muted-foreground mb-6">Find out if an upgrade would increase your home's value, with a full DIY vs. pro cost breakdown.</p>
-            <Button asChild><Link to="/auth">Sign In / Sign Up</Link></Button>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!authLoading && !user) navigate("/auth");
+  }, [user, authLoading]);
 
-  if (limitLoading) {
+  if (authLoading || !user) {
     return (
-      <div className="min-h-screen">
-        <Navbar />
-        <main className="pt-24 pb-16 flex justify-center">
-          <Loader2 className="animate-spin" />
-        </main>
-        <Footer />
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -150,31 +138,47 @@ const HomeValueAdvisor = () => {
   const VMeta = quickResult ? verdictMeta[quickResult.verdict] : null;
   const DMeta = detailedResult ? verdictMeta[detailedResult.verdict] : null;
   const materialsTotal = detailedResult?.materials.reduce((s, m) => s + m.estimated_cost, 0) || 0;
+  const displayName = profileName || user.user_metadata?.full_name || user.email;
+  const navItems = buildHomeownerSatelliteNavItems(hasGarage);
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <main className="pt-24 pb-16">
-        <div className="container mx-auto px-4 max-w-4xl">
-          {/* Header */}
-          <div className="mb-8">
-            <Link to="/dashboard" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
-              <ArrowLeft size={16} /> Back to dashboard
-            </Link>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <TrendingUp size={22} className="text-primary" />
-              </div>
-              <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display">Home Value Advisor</h1>
+    <DashboardShell
+      brandLabel="My Home"
+      navItems={navItems}
+      groups={homeownerNavGroups}
+      activeItemId="tools"
+      onNavigate={() => {}}
+      header={{
+        avatarIcon: Home,
+        displayName,
+        subtitle: (
+          <Badge variant="secondary" className="text-xs gap-1">
+            <Crown size={12} className="text-primary" /> {tierLabels[subscriptionTier] ?? "Free"}
+          </Badge>
+        ),
+        onEditProfile: () => navigate("/dashboard?tab=profile"),
+      }}
+    >
+      <div className="max-w-4xl">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <TrendingUp size={22} className="text-primary" />
             </div>
-            <p className="text-muted-foreground">Describe an upgrade you're considering and find out if it's likely to pay off at resale.</p>
-            <p className="text-xs text-muted-foreground mt-2">
-              Just need a repair cost, not a resale opinion? Try the{" "}
-              <Link to="/estimator" className="text-primary hover:underline font-medium">AI Job Estimator</Link> instead.
-            </p>
+            <h1 className="text-3xl font-bold">Home Value Advisor</h1>
           </div>
+          <p className="text-muted-foreground">Describe an upgrade you're considering and find out if it's likely to pay off at resale.</p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Just need a repair cost, not a resale opinion? Try the{" "}
+            <Link to="/estimator" className="text-primary hover:underline font-medium">AI Job Estimator</Link> instead.
+          </p>
+        </div>
 
-          <UpgradeGate
+        {limitLoading ? (
+          <Skeleton className="h-64" />
+        ) : (
+        <UpgradeGate
             hasAccess={isPro}
             variant="card"
             featureName="Home Value Advisor"
@@ -504,11 +508,10 @@ const HomeValueAdvisor = () => {
               </p>
             </div>
           )}
-          </UpgradeGate>
-        </div>
-      </main>
-      <Footer />
-    </div>
+        </UpgradeGate>
+        )}
+      </div>
+    </DashboardShell>
   );
 };
 

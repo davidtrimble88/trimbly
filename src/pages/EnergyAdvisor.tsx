@@ -1,17 +1,21 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
+import { useGarageSubscription } from "@/hooks/useGarageSubscription";
 import { supabase } from "@/integrations/supabase/client";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import DashboardShell from "@/components/dashboard/DashboardShell";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
+import { tierLabels } from "@/components/dashboard/homeowner/types";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Zap, Send, Bot, User, Loader2, Crown } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Zap, Send, Bot, User, Loader2, Crown, Home } from "lucide-react";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 type HomeOption = { id: string; name: string; home_type: string; year_built: number | null; square_feet: number | null; hvac_type: string | null; city: string; state: string };
@@ -57,8 +61,10 @@ async function streamChat(messages: ChatMessage[], homeContext: string, onDelta:
 }
 
 export default function EnergyAdvisor() {
-  const { user } = useAuth();
-  const { isPro, loading: limitLoading } = useHomeLimit();
+  const { user, profileName, loading: authLoading } = useAuth();
+  const { isPro, subscriptionTier, loading: limitLoading } = useHomeLimit();
+  const { active: hasGarage } = useGarageSubscription();
+  const navigate = useNavigate();
   const [homes, setHomes] = useState<HomeOption[]>([]);
   const [selectedHomeId, setSelectedHomeId] = useState<string>("");
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -122,51 +128,52 @@ export default function EnergyAdvisor() {
     }
   };
 
-  if (!user) {
+  useEffect(() => {
+    if (!authLoading && !user) navigate("/auth");
+  }, [user, authLoading]);
+
+  if (authLoading || !user) {
     return (
-      <div className="min-h-screen">
-        <Navbar />
-        <main className="pt-24 pb-16">
-          <div className="container mx-auto px-4 max-w-2xl text-center py-20">
-            <Zap size={48} className="mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-2xl font-bold text-foreground mb-2">Sign in to use the Energy & Utility Advisor</h2>
-            <p className="text-muted-foreground mb-6">
-              Get prioritized upgrades with real cost, savings, and payback estimates for your home.
-            </p>
-            <Button asChild><Link to="/auth">Sign In / Sign Up</Link></Button>
-          </div>
-        </main>
-        <Footer />
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  if (limitLoading) {
-    return (
-      <div className="min-h-screen">
-        <Navbar />
-        <main className="pt-24 pb-16 flex justify-center">
-          <Loader2 className="animate-spin" />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  const displayName = profileName || user.user_metadata?.full_name || user.email;
+  const navItems = buildHomeownerSatelliteNavItems(hasGarage);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Navbar />
-      <main className="flex-1 pt-24 pb-10">
-        <div className="container mx-auto px-4 max-w-3xl">
-          <div className="flex items-center gap-2 mb-1">
-            <Zap className="text-primary" size={22} />
-            <h1 className="text-2xl font-display font-bold">Energy & Utility Savings Advisor</h1>
-          </div>
-          <p className="text-sm text-muted-foreground mb-4">
-            Get prioritized upgrades with real cost, savings, and payback estimates for your home.
-          </p>
+    <DashboardShell
+      brandLabel="My Home"
+      navItems={navItems}
+      groups={homeownerNavGroups}
+      activeItemId="tools"
+      onNavigate={() => {}}
+      header={{
+        avatarIcon: Home,
+        displayName,
+        subtitle: (
+          <Badge variant="secondary" className="text-xs gap-1">
+            <Crown size={12} className="text-primary" /> {tierLabels[subscriptionTier] ?? "Free"}
+          </Badge>
+        ),
+        onEditProfile: () => navigate("/dashboard?tab=profile"),
+      }}
+    >
+      <div className="max-w-3xl">
+        <div className="flex items-center gap-2 mb-1">
+          <Zap className="text-primary" size={22} />
+          <h1 className="text-3xl font-bold">Energy & Utility Savings Advisor</h1>
+        </div>
+        <p className="text-muted-foreground mb-6">
+          Get prioritized upgrades with real cost, savings, and payback estimates for your home.
+        </p>
 
-          <UpgradeGate
+        {limitLoading ? (
+          <Skeleton className="h-[55vh]" />
+        ) : (
+        <UpgradeGate
             hasAccess={isPro}
             variant="card"
             featureName="Energy & Utility Advisor"
@@ -215,10 +222,9 @@ export default function EnergyAdvisor() {
               </div>
             </CardContent>
           </Card>
-          </UpgradeGate>
-        </div>
-      </main>
-      <Footer />
-    </div>
+        </UpgradeGate>
+        )}
+      </div>
+    </DashboardShell>
   );
 }

@@ -44,9 +44,9 @@ const itemTypes = [
 const typeColors: Record<string, string> = {
   appliance: "bg-primary/10 text-primary",
   system: "bg-accent/10 text-accent",
-  warranty: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  receipt: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  document: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+  warranty: "bg-success/10 text-success",
+  receipt: "bg-warning/10 text-warning",
+  document: "bg-secondary text-secondary-foreground",
   other: "bg-secondary text-muted-foreground",
 };
 
@@ -641,11 +641,11 @@ const HomeBinder = () => {
                             </span>
                             <Badge variant="secondary" className="text-[10px]">{typeInfo.label}</Badge>
                           </div>
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => openEdit(item)} className="text-muted-foreground hover:text-foreground p-1">
+                          <div className="flex gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => openEdit(item)} aria-label={`Edit ${item.name}`} className="text-muted-foreground hover:text-foreground p-1.5 -m-0.5">
                               <Pencil size={14} />
                             </button>
-                            <button onClick={() => deleteItem(item)} className="text-muted-foreground hover:text-destructive p-1">
+                            <button onClick={() => deleteItem(item)} aria-label={`Delete ${item.name}`} className="text-muted-foreground hover:text-destructive p-1.5 -m-0.5">
                               <Trash2 size={14} />
                             </button>
                           </div>
@@ -719,7 +719,7 @@ const HomeBinder = () => {
                 <DialogTitle>{editingItem ? "Edit Item" : "Add Item"}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-2">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label>Type</Label>
                     <Select value={form.item_type} onValueChange={v => setForm({ ...form, item_type: v })}>
@@ -734,7 +734,7 @@ const HomeBinder = () => {
                     <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Samsung Refrigerator" />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label>Brand</Label>
                     <Input value={form.brand} onChange={e => setForm({ ...form, brand: e.target.value })} placeholder="Samsung" />
@@ -759,7 +759,7 @@ const HomeBinder = () => {
                     <div className="flex items-center gap-2 text-xs bg-card border border-border rounded px-2 py-1.5">
                       <FileText size={12} className="text-primary shrink-0" />
                       <a href={selectedManual.url} target="_blank" rel="noopener noreferrer" className="truncate hover:underline flex-1">{selectedManual.title}</a>
-                      <button onClick={() => setSelectedManual(null)} className="text-muted-foreground hover:text-destructive shrink-0"><X size={12} /></button>
+                      <button onClick={() => setSelectedManual(null)} aria-label="Remove selected manual" className="text-muted-foreground hover:text-destructive shrink-0"><X size={12} /></button>
                     </div>
                   ) : (
                     <p className="text-xs text-muted-foreground">
@@ -792,7 +792,7 @@ const HomeBinder = () => {
                     </div>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label>Serial Number</Label>
                     <Input value={form.serial_number} onChange={e => setForm({ ...form, serial_number: e.target.value })} />
@@ -802,7 +802,7 @@ const HomeBinder = () => {
                     <Input value={form.location_in_home} onChange={e => setForm({ ...form, location_in_home: e.target.value })} placeholder="Kitchen" />
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <Label>Purchase Date</Label>
                     <Input type="date" value={form.purchase_date} onChange={e => setForm({ ...form, purchase_date: e.target.value })} />
@@ -826,7 +826,7 @@ const HomeBinder = () => {
                     {file ? (
                       <div className="flex items-center gap-2 text-sm text-foreground bg-secondary px-3 py-2 rounded-lg">
                         <FileText size={14} /> {file.name}
-                        <button onClick={() => setFile(null)} className="ml-auto text-muted-foreground hover:text-destructive"><X size={14} /></button>
+                        <button onClick={() => setFile(null)} aria-label="Remove attached file" className="ml-auto text-muted-foreground hover:text-destructive"><X size={14} /></button>
                       </div>
                     ) : (
                       <label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/30 text-sm text-muted-foreground">
