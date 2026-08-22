@@ -48,7 +48,7 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
               </span>
             )}
             {isWeb && (
-              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[11px] text-secondary-foreground bg-secondary px-2 py-0.5 rounded-full">
                 <Globe size={10} /> Found online
               </span>
             )}
@@ -91,7 +91,7 @@ const ProviderCard = ({ provider, onRequestQuote }: ProviderCardProps) => {
           </span>
         )}
         {provider.years_experience > 0 && (
-          <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
+          <span className="text-xs text-secondary-foreground bg-secondary px-2 py-1 rounded-full">
             {provider.years_experience}+ yrs
           </span>
         )}

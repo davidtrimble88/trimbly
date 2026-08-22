@@ -710,7 +710,7 @@ const HowItWorksSection = () => {
               <h3 className="font-bold text-lg text-foreground mt-2 mb-2">{s.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{s.description}</p>
               {!s.route && (
-                <span className="inline-block mt-3 text-xs font-medium text-muted-foreground bg-secondary px-2 py-1 rounded-full">Coming Soon</span>
+                <span className="inline-block mt-3 text-xs font-medium text-secondary-foreground bg-secondary px-2 py-1 rounded-full">Coming Soon</span>
               )}
               {i < activeData.steps.length - 1 && (
                 <div className="hidden lg:block absolute top-8 left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-border" />

@@ -49,7 +49,7 @@ const UpgradeGate = ({
       <div className="flex items-center gap-2 mb-2">
         <Icon size={20} className="text-primary" />
         <h3 className="text-lg font-bold text-foreground">{featureName}</h3>
-        <span className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+        <span className="inline-flex items-center gap-1 text-xs font-semibold text-secondary-foreground bg-secondary px-2 py-0.5 rounded-full">
           <Lock size={10} /> Locked
         </span>
       </div>

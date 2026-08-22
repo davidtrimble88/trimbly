@@ -52,7 +52,7 @@ const ForProsSection = () => {
                 <h3 className="font-bold text-card-foreground mb-1">{f.title}</h3>
                 <p className="text-sm text-muted-foreground">{f.desc}</p>
                 {!f.route && (
-                  <span className="inline-block mt-2 text-xs font-medium text-muted-foreground bg-secondary px-2 py-1 rounded-full">Coming Soon</span>
+                  <span className="inline-block mt-2 text-xs font-medium text-secondary-foreground bg-secondary px-2 py-1 rounded-full">Coming Soon</span>
                 )}
               </button>
             ))}

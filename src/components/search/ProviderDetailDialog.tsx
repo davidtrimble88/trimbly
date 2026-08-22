@@ -38,7 +38,7 @@ const ProviderDetailDialog = ({ provider, open, onOpenChange }: ProviderDetailDi
               </span>
             )}
             {isWeb && (
-              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-xs text-secondary-foreground bg-secondary px-2 py-0.5 rounded-full">
                 <Globe size={10} /> Found online
               </span>
             )}
@@ -82,12 +82,12 @@ const ProviderDetailDialog = ({ provider, open, onOpenChange }: ProviderDetailDi
               </span>
             )}
             {provider.years_experience > 0 && (
-              <span className="text-xs text-muted-foreground bg-secondary px-2.5 py-1.5 rounded-full">
+              <span className="text-xs text-secondary-foreground bg-secondary px-2.5 py-1.5 rounded-full">
                 {provider.years_experience}+ years experience
               </span>
             )}
             <span className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full ${
-              provider.available ? "text-primary bg-primary/10" : "text-muted-foreground bg-secondary"
+              provider.available ? "text-primary bg-primary/10" : "text-secondary-foreground bg-secondary"
             }`}>
               <Clock size={12} /> {provider.available ? "Available now" : "Currently booked"}
             </span>
