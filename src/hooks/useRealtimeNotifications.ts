@@ -35,6 +35,11 @@ export function useRealtimeNotifications() {
       supabase.from("notifications").insert({ user_id: user.id, type, title, body, link: url || null }).then(({ error }) => {
         if (error) console.error("Failed to persist notification:", error);
       });
+      // Also email it (fire-and-forget) — the edge function checks the
+      // user's own notification_prefs and no-ops if they've opted out.
+      supabase.functions.invoke("send-notification-email", { body: { type, title, body, link: url } }).catch((err) => {
+        console.error("Failed to send notification email:", err);
+      });
     };
 
     const messagesChannel = supabase
