@@ -284,6 +284,7 @@ export type Database = {
           discount_value: number | null
           expires_at: string | null
           grants_garage: boolean
+          grants_provider_tier: string | null
           grants_tier: string | null
           id: string
           is_testing_code: boolean
@@ -301,6 +302,7 @@ export type Database = {
           discount_value?: number | null
           expires_at?: string | null
           grants_garage?: boolean
+          grants_provider_tier?: string | null
           grants_tier?: string | null
           id?: string
           is_testing_code?: boolean
@@ -318,6 +320,7 @@ export type Database = {
           discount_value?: number | null
           expires_at?: string | null
           grants_garage?: boolean
+          grants_provider_tier?: string | null
           grants_tier?: string | null
           id?: string
           is_testing_code?: boolean
@@ -3235,6 +3238,7 @@ export type Database = {
       }
       redeem_discount_code: { Args: { p_code: string }; Returns: Json }
       revoke_home_share: { Args: { p_share_id: string }; Returns: Json }
+      set_own_provider_tier: { Args: { p_tier: string }; Returns: Json }
       set_own_subscription_tier: { Args: { p_tier: string }; Returns: Json }
       set_security_questions: {
         Args: {
