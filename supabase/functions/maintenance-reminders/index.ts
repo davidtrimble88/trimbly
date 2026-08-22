@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { rateLimit, rateLimitResponse, getClientKey } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,6 +10,13 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  // This scans every user's tasks, so it's meant for the scheduled trigger
+  // only — not gateway-authenticated (verify_jwt=false is what lets that
+  // trigger call it), so rate-limited here as the next best guard against
+  // a caller repeatedly forcing full scans across every account.
+  const rl = rateLimit(`maintenance-reminders:${getClientKey(req)}`, { limit: 2, windowMs: 60_000 });
+  if (!rl.ok) return rateLimitResponse(rl, corsHeaders);
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -52,7 +60,6 @@ Deno.serve(async (req) => {
         const { data: userData } = await supabase.auth.admin.getUserById(userId);
         if (!userData?.user?.email) continue;
 
-        const email = userData.user.email;
         const userName = userData.user.user_metadata?.full_name || "Homeowner";
 
         // Get home name
@@ -128,9 +135,12 @@ Deno.serve(async (req) => {
         // we'll use the Lovable AI gateway to send
         const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-        // For now, log the reminder - in production, integrate with an email service
-        console.log(`📧 Reminder email for ${email}: ${urgencyLabel} - ${userTasks.length} task(s)`);
-        
+        // For now, log the reminder - in production, integrate with an email service.
+        // Deliberately not logging the email address itself — server logs
+        // aren't the place for customer PII, and it isn't needed to see
+        // that the reminder pipeline is working.
+        console.log(`Reminder queued for user ${userId}: ${urgencyLabel} - ${userTasks.length} task(s)`);
+
         // Store the reminder in a notification log so the UI can show it
         // We'll use the maintenance_tasks table's status to track notifications
         totalSent++;

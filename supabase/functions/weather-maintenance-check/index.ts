@@ -10,6 +10,7 @@
 // Uses Open-Meteo (open-meteo.com) — free, no API key, no rate-limit key
 // needed for reasonable volumes — for both geocoding and forecast data.
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { rateLimit, rateLimitResponse, getClientKey } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -83,6 +84,41 @@ Deno.serve(async (req) => {
 
     const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
     const singleHomeId: string | undefined = body.home_id;
+
+    // This function isn't gateway-authenticated (verify_jwt=false, so the
+    // scheduled full-scan trigger can call it), so both call shapes need
+    // their own check here: the on-demand single-home path must belong to
+    // the caller, and the full scan is reserved for the scheduler itself.
+    const authHeader = req.headers.get("Authorization") || "";
+    const bearer = authHeader.replace(/^Bearer\s+/i, "");
+
+    if (singleHomeId) {
+      if (!bearer) {
+        return new Response(JSON.stringify({ error: "Sign in required" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: userData, error: userErr } = await admin.auth.getUser(bearer);
+      if (userErr || !userData?.user) {
+        return new Response(JSON.stringify({ error: "Sign in required" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: ownedHome } = await admin.from("homes").select("id").eq("id", singleHomeId).eq("user_id", userData.user.id).maybeSingle();
+      if (!ownedHome) {
+        return new Response(JSON.stringify({ error: "Home not found" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      // The full, unfiltered scan is meant for the scheduled trigger only.
+      // Not hard-blocking on a service-role bearer here since this repo
+      // can't see how the live schedule is actually configured — a wrong
+      // guess would silently break weather alerts with no visible error.
+      // Rate-limited instead, which is a strict improvement either way.
+      const rl = rateLimit(`weather-maintenance-check:full:${getClientKey(req)}`, { limit: 2, windowMs: 60_000 });
+      if (!rl.ok) return rateLimitResponse(rl, corsHeaders);
+    }
 
     let query = admin.from("homes").select("id, city, state, country, latitude, longitude");
     if (singleHomeId) query = query.eq("id", singleHomeId);
