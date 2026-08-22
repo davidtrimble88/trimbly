@@ -5,6 +5,7 @@ import {
   AlertTriangle, Leaf, Sun, Snowflake, CloudRain, RotateCcw, Trash2, Plus, CalendarPlus, Download, ShoppingCart, ExternalLink, Search, Filter, Crown, Pencil, Lock
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -201,6 +202,9 @@ const MaintenancePage = () => {
   const [filter, setFilter] = useState<"all" | "upcoming" | "completed">("upcoming");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [seasonFilter, setSeasonFilter] = useState<string>("all");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
+  const [bulkWorking, setBulkWorking] = useState(false);
   const [wizardStep, setWizardStep] = useState(0);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [productTask, setProductTask] = useState<MaintenanceTask | null>(null);
@@ -555,6 +559,47 @@ const MaintenancePage = () => {
   const deleteTask = async (taskId: string) => {
     await supabase.from("maintenance_tasks").delete().eq("id", taskId);
     setTasks(prev => prev.filter(t => t.id !== taskId));
+  };
+
+  const toggleTaskSelected = (taskId: string) => {
+    setSelectedTaskIds(prev => {
+      const next = new Set(prev);
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
+      return next;
+    });
+  };
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedTaskIds(new Set());
+  };
+
+  const bulkDelete = async () => {
+    if (selectedTaskIds.size === 0) return;
+    const ids = Array.from(selectedTaskIds);
+    setBulkWorking(true);
+    const { error } = await supabase.from("maintenance_tasks").delete().in("id", ids);
+    setBulkWorking(false);
+    if (error) {
+      toast({ title: "Couldn't delete tasks", description: error.message, variant: "destructive" });
+      return;
+    }
+    setTasks(prev => prev.filter(t => !selectedTaskIds.has(t.id)));
+    toast({ title: `${ids.length} task${ids.length > 1 ? "s" : ""} deleted` });
+    exitSelectMode();
+  };
+
+  const bulkComplete = async () => {
+    if (selectedTaskIds.size === 0) return;
+    setBulkWorking(true);
+    const targets = tasks.filter(t => selectedTaskIds.has(t.id) && t.status !== "completed");
+    for (const task of targets) {
+      await toggleTask(task);
+    }
+    setBulkWorking(false);
+    toast({ title: `${targets.length} task${targets.length > 1 ? "s" : ""} marked complete` });
+    exitSelectMode();
   };
 
   const openEditTask = (task: MaintenanceTask) => {
@@ -1179,8 +1224,41 @@ const MaintenancePage = () => {
                               <SelectItem value="winter">Winter</SelectItem>
                             </SelectContent>
                           </Select>
+                          <Button
+                            variant={selectMode ? "secondary" : "outline"}
+                            size="sm"
+                            className="h-10"
+                            onClick={() => (selectMode ? exitSelectMode() : setSelectMode(true))}
+                          >
+                            {selectMode ? "Cancel" : "Select"}
+                          </Button>
                         </div>
                       </div>
+
+                      {selectMode && (
+                        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 rounded-lg border border-border bg-secondary/40 px-4 py-2.5">
+                          <div className="flex items-center gap-3">
+                            <Checkbox
+                              checked={filteredTasks.length > 0 && filteredTasks.every(t => selectedTaskIds.has(t.id))}
+                              onCheckedChange={(checked) => {
+                                setSelectedTaskIds(checked ? new Set(filteredTasks.map(t => t.id)) : new Set());
+                              }}
+                              aria-label="Select all visible tasks"
+                            />
+                            <span className="text-sm text-muted-foreground">
+                              {selectedTaskIds.size > 0 ? `${selectedTaskIds.size} selected` : "Select all"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button size="sm" variant="outline" disabled={selectedTaskIds.size === 0 || bulkWorking} onClick={bulkComplete} className="gap-1.5">
+                              <Check size={14} /> Mark Complete
+                            </Button>
+                            <Button size="sm" variant="destructive" disabled={selectedTaskIds.size === 0 || bulkWorking} onClick={bulkDelete} className="gap-1.5">
+                              <Trash2 size={14} /> Delete
+                            </Button>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Task List */}
                       <div className="space-y-3">
@@ -1196,6 +1274,14 @@ const MaintenancePage = () => {
                               }`}
                             >
                               <div className="flex items-start gap-3">
+                                {selectMode && (
+                                  <Checkbox
+                                    checked={selectedTaskIds.has(task.id)}
+                                    onCheckedChange={() => toggleTaskSelected(task.id)}
+                                    aria-label={`Select "${task.title}"`}
+                                    className="mt-1.5 shrink-0"
+                                  />
+                                )}
                                 <button
                                   onClick={() => toggleTask(task)}
                                   aria-label={task.status === "completed" ? `Mark "${task.title}" as not done` : `Mark "${task.title}" as done`}
