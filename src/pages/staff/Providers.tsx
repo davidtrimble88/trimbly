@@ -73,10 +73,15 @@ const Providers = () => {
 
   useEffect(() => { load(); }, []);
 
+  const PAGE_CAP = 2000;
   const load = async () => {
-    const { data, error } = await supabase.from("providers").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("providers").select("*").order("created_at", { ascending: false }).limit(PAGE_CAP);
     if (error) { toast.error(error.message); return; }
-    setProviders((data as Provider[]) || []);
+    const rows = (data as Provider[]) || [];
+    if (rows.length >= PAGE_CAP) {
+      toast.warning(`Showing the first ${PAGE_CAP.toLocaleString()} providers — there may be more. This list needs real pagination.`);
+    }
+    setProviders(rows);
   };
 
   const toggleExpand = async (providerId: string) => {

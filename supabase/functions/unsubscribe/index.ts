@@ -22,8 +22,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Verify token (simple HMAC to prevent abuse)
-    const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    // Verify token (simple HMAC to prevent abuse). Prefers a secret scoped
+    // to just this purpose over the database's master service-role key —
+    // reusing that key here means this token scheme can never be rotated
+    // independently of the database credential itself. Falls back to the
+    // old behavior if UNSUBSCRIBE_HMAC_SECRET hasn't been set yet.
+    const secret = Deno.env.get("UNSUBSCRIBE_HMAC_SECRET") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
     const encoder = new TextEncoder();
     const key = await crypto.subtle.importKey(
       "raw",

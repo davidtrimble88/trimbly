@@ -63,9 +63,13 @@ const Users = () => {
 
   useEffect(() => { load(); }, []);
 
+  const PAGE_CAP = 2000;
   const load = async () => {
-    const { data, error } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(PAGE_CAP);
     if (error) { toast.error(error.message); return; }
+    if ((data || []).length >= PAGE_CAP) {
+      toast.warning(`Showing the first ${PAGE_CAP.toLocaleString()} users — there may be more. This list needs real pagination.`);
+    }
     setProfiles(data || []);
     const { data: emailRows, error: emailErr } = await supabase.rpc("admin_list_user_emails");
     if (emailErr) { toast.error(emailErr.message); return; }
