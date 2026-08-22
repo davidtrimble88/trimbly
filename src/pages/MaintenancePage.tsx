@@ -23,6 +23,7 @@ import { useHomeLimit } from "@/hooks/useHomeLimit";
 import { useGarageSubscription } from "@/hooks/useGarageSubscription";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
+import { parseDateOnly, formatYYYYMMDD, formatDateOnly, seasonForDate } from "@/lib/maintenanceDates";
 
 type HomeProfile = {
   id?: string;
@@ -77,34 +78,9 @@ const recurrenceOptions = [
   { value: "12", label: "Every year" },
 ];
 
-// A plain "YYYY-MM-DD" due-date string has no time or timezone component,
-// but `new Date("YYYY-MM-DD")` parses it as UTC midnight per spec — which
-// silently rolls back to the previous calendar day once formatted in any
-// timezone behind UTC (all of the Americas). Appending a local time-of-day
-// makes the browser parse it as local midnight instead, so every date
-// derived from a due_date lines up with the date actually stored, with no
-// timezone-dependent drift. Use this instead of `new Date(dueDateString)`
-// anywhere a due_date needs to become a Date object.
-const parseDateOnly = (dateStr: string): Date => new Date(`${dateStr}T00:00:00`);
-
-const formatYYYYMMDD = (d: Date): string =>
-  `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
-
-const formatDateOnly = (d: Date): string =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-
-// Northern-hemisphere season for a given due date — the season badge should
-// always describe when the task is actually due, not a value copied forward
-// from a prior cycle (a quarterly-recurring task rotates through all four
-// seasons, so a stale copied value drifts wrong after the first renewal).
-const seasonForDate = (dateStr: string | null): string => {
-  if (!dateStr) return "any";
-  const month = parseDateOnly(dateStr).getMonth(); // 0-indexed, Jan=0
-  if (month <= 1 || month === 11) return "winter"; // Dec, Jan, Feb
-  if (month <= 4) return "spring"; // Mar, Apr, May
-  if (month <= 7) return "summer"; // Jun, Jul, Aug
-  return "fall"; // Sep, Oct, Nov
-};
+// See src/lib/maintenanceDates.ts for the timezone-safety rationale
+// (also unit-tested there) — kept as a single source of truth so page code
+// and tests can't drift apart.
 
 const generateICSEvent = (task: { id: string; title: string; description: string; category: string; priority: string; due_date: string | null; recurrence_months: number; season: string }) => {
   const dueDate = task.due_date ? parseDateOnly(task.due_date) : new Date();
