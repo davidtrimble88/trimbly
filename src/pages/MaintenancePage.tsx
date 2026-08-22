@@ -56,6 +56,7 @@ type MaintenanceTask = {
   season: string;
   completed_at: string | null;
   products_search_term: string | null;
+  binder_item_id: string | null;
 };
 
 const emptyHome: HomeProfile = {
@@ -517,6 +518,7 @@ const MaintenancePage = () => {
         recurrence_months: task.recurrence_months,
         season: seasonForDate(nextDueStr),
         products_search_term: task.products_search_term || null,
+        binder_item_id: task.binder_item_id || null,
       };
 
       const { data: inserted } = await supabase.from("maintenance_tasks").insert(newTask).select().single();
@@ -600,6 +602,19 @@ const MaintenancePage = () => {
     await supabase.from("maintenance_tasks").delete().eq("home_id", home.id);
     setTasks([]);
     toast({ title: "Tasks cleared", description: "All maintenance tasks have been removed." });
+  };
+
+  const shopForTask = (task: MaintenanceTask) => {
+    if (!task.products_search_term) return;
+    // Tasks linked to a specific binder appliance already have brand/model
+    // baked into the search term by the AI that generated them — skip the
+    // clarifying-questions dialog and go straight to a targeted search
+    // instead of re-asking for info the app already has.
+    if (task.binder_item_id) {
+      window.open(`https://www.amazon.com/s?k=${encodeURIComponent(task.products_search_term)}`, "_blank");
+      return;
+    }
+    setProductTask(task);
   };
 
   const addTaskToCalendar = (task: MaintenanceTask) => {
@@ -1199,7 +1214,7 @@ const MaintenancePage = () => {
                                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
                                   {task.products_search_term && (
                                     <button
-                                      onClick={() => setProductTask(task)}
+                                      onClick={() => shopForTask(task)}
                                       className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-primary hover:underline"
                                     >
                                       <ShoppingCart size={12} /> Shop on Amazon <ExternalLink size={10} />

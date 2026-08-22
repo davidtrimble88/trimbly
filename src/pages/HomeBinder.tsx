@@ -131,7 +131,7 @@ const HomeBinder = () => {
   const [manualResults, setManualResults] = useState<ManualResult[]>([]);
   const [selectedManual, setSelectedManual] = useState<{ url: string; title: string } | null>(null);
   const [loadingApplianceTasks, setLoadingApplianceTasks] = useState(false);
-  const [applianceTaskItem, setApplianceTaskItem] = useState<{ name: string; home_id: string } | null>(null);
+  const [applianceTaskItem, setApplianceTaskItem] = useState<{ id: string | null; name: string; home_id: string } | null>(null);
   const [suggestedTasks, setSuggestedTasks] = useState<SuggestedTask[]>([]);
   const [selectedTaskIndices, setSelectedTaskIndices] = useState<Set<number>>(new Set());
   const [addingSuggestedTasks, setAddingSuggestedTasks] = useState(false);
@@ -328,10 +328,17 @@ const HomeBinder = () => {
       };
 
       const isNewAppliance = !editingItem && row.item_type === "appliance";
+      let newItemId: string | null = null;
 
       if (editingItem) {
         await supabase.from("home_binder_items").update(row).eq("id", editingItem.id);
         toast({ title: "Item updated" });
+      } else if (isNewAppliance && isPro) {
+        // Need the new row's id back so the maintenance tasks it generates
+        // can link to it (skips re-asking brand/model at "Shop on Amazon" time).
+        const { data: inserted } = await supabase.from("home_binder_items").insert(row).select("id").single();
+        newItemId = inserted?.id || null;
+        toast({ title: "Item added" });
       } else {
         await supabase.from("home_binder_items").insert(row);
         toast({ title: "Item added" });
@@ -343,7 +350,7 @@ const HomeBinder = () => {
       // Paid tiers only: offer AI-suggested maintenance tasks for a newly
       // added appliance, picked from a checklist rather than auto-added.
       if (isNewAppliance && isPro) {
-        suggestApplianceMaintenance({ name: row.name, brand: row.brand, model_number: row.model_number, home_id: row.home_id });
+        suggestApplianceMaintenance({ id: newItemId, name: row.name, brand: row.brand, model_number: row.model_number, home_id: row.home_id });
       }
     } catch (err: any) {
       toast({ title: "Error", description: err?.message || "Failed to save.", variant: "destructive" });
@@ -351,8 +358,8 @@ const HomeBinder = () => {
     setSaving(false);
   };
 
-  const suggestApplianceMaintenance = async (item: { name: string; brand: string; model_number: string; home_id: string }) => {
-    setApplianceTaskItem({ name: item.name, home_id: item.home_id });
+  const suggestApplianceMaintenance = async (item: { id: string | null; name: string; brand: string; model_number: string; home_id: string }) => {
+    setApplianceTaskItem({ id: item.id, name: item.name, home_id: item.home_id });
     setLoadingApplianceTasks(true);
     setSuggestedTasks([]);
     setSelectedTaskIndices(new Set());
@@ -395,6 +402,7 @@ const HomeBinder = () => {
     const rows = chosen.map(t => ({
       home_id: applianceTaskItem.home_id,
       user_id: user.id,
+      binder_item_id: applianceTaskItem.id,
       title: t.title,
       description: t.description || "",
       category: t.category || "Appliances",
