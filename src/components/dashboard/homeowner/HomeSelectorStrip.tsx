@@ -22,9 +22,12 @@ interface HomeSelectorStripProps {
   homeStats: Record<string, HomeStats>;
   selectedId: string;
   onSelect: (id: string) => void;
+  /** Navigates to the My Homes tab — called (in addition to onSelect) when a
+   * specific home's tile is clicked, so clicking a home takes you to it. */
+  onGoToHome?: (id: string) => void;
 }
 
-const HomeSelectorStrip = ({ homes, homeStats, selectedId, onSelect }: HomeSelectorStripProps) => {
+const HomeSelectorStrip = ({ homes, homeStats, selectedId, onSelect, onGoToHome }: HomeSelectorStripProps) => {
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 mb-4">
       <button
@@ -50,7 +53,7 @@ const HomeSelectorStrip = ({ homes, homeStats, selectedId, onSelect }: HomeSelec
         return (
           <button
             key={home.id}
-            onClick={() => onSelect(home.id)}
+            onClick={() => { onSelect(home.id); onGoToHome?.(home.id); }}
             className={`shrink-0 w-36 rounded-xl border overflow-hidden text-left transition-all ${
               isSelected ? "border-primary shadow-[var(--card-shadow)]" : "border-border bg-card hover:border-primary/40"
             }`}

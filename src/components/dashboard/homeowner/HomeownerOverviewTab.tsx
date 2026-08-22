@@ -49,15 +49,27 @@ const HomeownerOverviewTab = ({
   const warrantyTotal = statsInScope.reduce((s, h) => s + h.expiringWarranties, 0);
 
   const homesInScope = selectedHomeId === "all" ? homes : homes.filter((h) => h.id === selectedHomeId);
-  const incompleteProfileHomes = homesInScope.filter((h) => !h.year_built || !h.hvac_type || !h.roof_type);
+  const PROFILE_FIELDS: { key: keyof HomeData; label: string }[] = [
+    { key: "year_built", label: "year built" },
+    { key: "hvac_type", label: "HVAC type" },
+    { key: "roof_type", label: "roof type" },
+  ];
+  const incompleteProfileHomes = homesInScope
+    .map((h) => ({ home: h, missing: PROFILE_FIELDS.filter((f) => !h[f.key]).map((f) => f.label) }))
+    .filter((x) => x.missing.length > 0);
 
   const attentionItems: string[] = [];
   if (warrantyTotal > 0) {
     attentionItems.push(`${warrantyTotal} warrant${warrantyTotal !== 1 ? "ies" : "y"} expiring soon`);
   }
-  if (incompleteProfileHomes.length > 0) {
+  if (incompleteProfileHomes.length === 1) {
+    const { home, missing } = incompleteProfileHomes[0];
     attentionItems.push(
-      `${incompleteProfileHomes.length} home${incompleteProfileHomes.length !== 1 ? "s" : ""} missing details (year built, HVAC, or roof type) — the AI maintenance schedule works better with them filled in`
+      `${home.name} is missing ${missing.join(" and ")} — the AI maintenance schedule works better with ${missing.length > 1 ? "them" : "it"} filled in`
+    );
+  } else if (incompleteProfileHomes.length > 1) {
+    attentionItems.push(
+      `${incompleteProfileHomes.length} homes missing profile details (year built, HVAC, or roof type) — the AI maintenance schedule works better with them filled in`
     );
   }
 
@@ -119,7 +131,7 @@ const HomeownerOverviewTab = ({
           </Card>
         ) : (
           <>
-            <HomeSelectorStrip homes={homes} homeStats={homeStats} selectedId={selectedHomeId} onSelect={setSelectedHomeId} />
+            <HomeSelectorStrip homes={homes} homeStats={homeStats} selectedId={selectedHomeId} onSelect={setSelectedHomeId} onGoToHome={onGoToHomes} />
 
             <AttentionBanner
               severity="warning"
