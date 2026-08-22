@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Zap } from "lucide-react";
 import {
   Building2, Shield, Star, Briefcase, MessageSquare,
-  LayoutDashboard, Sparkles, QrCode, MapPinned, HelpCircle,
+  LayoutDashboard, Sparkles, QrCode, MapPinned, HelpCircle, Activity,
 } from "lucide-react";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { SidebarMenuButton } from "@/components/ui/sidebar";
@@ -26,6 +26,7 @@ import ProToolsTab from "@/components/dashboard/pro/ProToolsTab";
 import ProReviewsTab from "@/components/dashboard/pro/ProReviewsTab";
 import ProMessagesTab from "@/components/dashboard/pro/ProMessagesTab";
 import ProProfileTab from "@/components/dashboard/pro/ProProfileTab";
+import ProActivityFeedTab from "@/components/dashboard/pro/ProActivityFeedTab";
 import VerificationTab from "@/components/dashboard/pro/VerificationTab";
 import EditProfileDialog from "@/components/dashboard/pro/EditProfileDialog";
 import ChangeLocationDialog from "@/components/dashboard/pro/ChangeLocationDialog";
@@ -290,6 +291,7 @@ const ProDashboard = () => {
     { id: "bids", label: "Bids", icon: Briefcase, badge: pendingBids },
     { id: "tools", label: "Tools", icon: Sparkles },
     { id: "reviews", label: "Reviews", icon: Star },
+    { id: "activity", label: "Activity", icon: Activity },
     { id: "messages", label: "Messages", icon: MessageSquare, badge: unreadMessages },
     { id: "profile", label: "Profile", icon: Building2 },
     { id: "verification", label: "Verification", icon: Shield },
@@ -400,6 +402,7 @@ const ProDashboard = () => {
             <ProToolsTab provider={provider} userId={user!.id} onGoToProfile={() => setActiveTab("profile")} />
           )}
           {activeTab === "reviews" && <ProReviewsTab reviews={reviews} reviewCount={reviewCount} />}
+          {activeTab === "activity" && <ProActivityFeedTab providerId={provider.id} />}
           {activeTab === "messages" && <ProMessagesTab messages={messages} />}
           {activeTab === "profile" && (
             <ProProfileTab
