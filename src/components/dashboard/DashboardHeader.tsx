@@ -17,6 +17,7 @@ interface DashboardHeaderProps {
   onEditProfile: () => void;
   onViewPublicProfile?: () => void;
   extraMenuItems?: React.ReactNode;
+  search?: React.ReactNode;
 }
 
 const DashboardHeader = ({
@@ -28,6 +29,7 @@ const DashboardHeader = ({
   onEditProfile,
   onViewPublicProfile,
   extraMenuItems,
+  search,
 }: DashboardHeaderProps) => {
   const { signOut, avatarUrl } = useAuth();
   const navigate = useNavigate();
@@ -58,6 +60,7 @@ const DashboardHeader = ({
         <p className="font-display text-base font-semibold text-foreground truncate">{displayName}</p>
         <div className="flex flex-wrap items-center gap-2 mt-0.5" data-tour="header-tier">{subtitle}</div>
       </div>
+      {search && <div className="hidden lg:block shrink-0">{search}</div>}
       <div className="flex items-center gap-2 shrink-0">
         {onToggleAvailable && (
           <div className="hidden sm:flex items-center gap-2 mr-1">

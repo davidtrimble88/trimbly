@@ -29,6 +29,7 @@ import ActivityFeedTab from "@/components/dashboard/homeowner/ActivityFeedTab";
 import { tierOrder, tierLabels, homeTypeLabels, hvacTypeOptions, roofTypeOptions, type HomeData, type TaskRow, type BinderRow, type HomeStats, type DrilldownInfo, type JobStats } from "@/components/dashboard/homeowner/types";
 import { taskUrgencyIconClasses } from "@/components/dashboard/homeowner/status";
 import CurrentWeatherChip from "@/components/home/CurrentWeatherChip";
+import UniversalSearch from "@/components/UniversalSearch";
 import { uploadProfileImage } from "@/lib/profileImages";
 import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare,
@@ -373,6 +374,7 @@ const Dashboard = () => {
             </>
           ),
           onEditProfile: () => setActiveTab("profile"),
+          search: <UniversalSearch />,
         }}
       >
         <TestingAccountBanner />

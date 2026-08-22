@@ -20,6 +20,7 @@ interface DashboardShellProps {
     onEditProfile: () => void;
     onViewPublicProfile?: () => void;
     extraMenuItems?: React.ReactNode;
+    search?: React.ReactNode;
   };
   children: React.ReactNode;
 }
