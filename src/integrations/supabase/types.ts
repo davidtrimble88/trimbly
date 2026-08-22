@@ -1263,39 +1263,6 @@ export type Database = {
           },
         ]
       }
-      notifications: {
-        Row: {
-          body: string | null
-          created_at: string
-          id: string
-          link: string | null
-          read: boolean
-          title: string
-          type: string
-          user_id: string
-        }
-        Insert: {
-          body?: string | null
-          created_at?: string
-          id?: string
-          link?: string | null
-          read?: boolean
-          title: string
-          type: string
-          user_id: string
-        }
-        Update: {
-          body?: string | null
-          created_at?: string
-          id?: string
-          link?: string | null
-          read?: boolean
-          title?: string
-          type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       mileage_logs: {
         Row: {
           created_at: string
@@ -1367,6 +1334,39 @@ export type Database = {
           push_new_job?: boolean
           push_new_message?: boolean
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read?: boolean
+          title?: string
+          type?: string
           user_id?: string
         }
         Relationships: []
