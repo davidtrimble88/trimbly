@@ -1,50 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Check, ArrowLeft, Star, Zap, Wrench, Loader2 } from "lucide-react";
+import { Check, ArrowLeft, Wrench, Loader2, PartyPopper } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { startProviderSubscriptionCheckout } from "@/lib/billing";
+import { BETA_FREE_ACCESS, formatCad, mechanicTiers } from "@/lib/pricingTiers";
 
-const tiers = [
-  {
-    name: "Free",
-    icon: Star,
-    price: "$0",
-    cadPrice: "CA$0",
-    period: "",
-    description: "Get listed and start receiving vehicle jobs",
-    features: [
-      "Shop / mobile mechanic profile",
-      "Appear in My Garage search results",
-      "Up to 3 bids per month on vehicle jobs",
-      "Customer reviews & ratings",
-    ],
-    cta: "Get Started Free",
-    highlighted: false,
-    tier: "free",
-  },
-  {
-    name: "Pro Mechanic",
-    icon: Zap,
-    price: "$15",
-    cadPrice: "CA$21",
-    period: "/month",
-    description: "More vehicle leads, more bay throughput",
-    features: [
-      "Everything in Free",
-      "Unlimited bids on vehicle jobs",
-      "Verified Mechanic badge",
-      "Direct messaging with vehicle owners",
-    ],
-    cta: "Start 14-Day Free Trial",
-    highlighted: true,
-    tier: "pro",
-  },
-];
+const tiers = mechanicTiers;
 
 const MechanicPricing = () => {
   const navigate = useNavigate();
@@ -64,6 +30,17 @@ const MechanicPricing = () => {
   const handleSelect = async (tierKey: string) => {
     if (tierKey === "pro" && hasProvider) {
       setUpgrading(true);
+      if (BETA_FREE_ACCESS) {
+        const { data, error } = await supabase.rpc("set_own_provider_tier" as any, { p_tier: "pro" } as any);
+        setUpgrading(false);
+        if (error || !(data as any)?.success) {
+          toast({ title: "Couldn't activate Pro", description: (data as any)?.error || error?.message, variant: "destructive" });
+          return;
+        }
+        toast({ title: "Pro Mechanic activated!", description: "Free during the beta — no payment needed." });
+        navigate("/mechanic-dashboard");
+        return;
+      }
       const { url, error } = await startProviderSubscriptionCheckout("pro");
       setUpgrading(false);
       if (error) { toast({ title: "Couldn't start checkout", description: error, variant: "destructive" }); return; }
@@ -92,6 +69,11 @@ const MechanicPricing = () => {
             <p className="text-muted-foreground text-lg">
               Auto, motorcycle, mobile mechanics & body shops. Choose your plan — upgrade or downgrade anytime.
             </p>
+            {BETA_FREE_ACCESS && (
+              <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
+                <PartyPopper size={16} /> Free public beta — every plan is unlocked, no payment info needed
+              </div>
+            )}
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
@@ -113,11 +95,20 @@ const MechanicPricing = () => {
                   <tier.icon size={20} className="text-primary" />
                 </div>
                 <h3 className="font-bold text-xl text-card-foreground">{tier.name}</h3>
-                <div className="flex items-baseline gap-1 mt-3 mb-1">
-                  <span className="text-4xl font-extrabold text-card-foreground">{tier.price}</span>
-                  {tier.period && <span className="text-muted-foreground text-sm">{tier.period} USD</span>}
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 mt-3 mb-1">
+                  <span className="text-4xl font-extrabold text-card-foreground">${tier.monthlyUsd}</span>
+                  {tier.monthlyUsd > 0 && <span className="text-muted-foreground text-sm">/month USD</span>}
+                  {BETA_FREE_ACCESS && tier.key === "pro" && (
+                    <span className="inline-flex items-center rounded-full bg-primary/10 text-primary text-xs font-bold px-2.5 py-1">
+                      Free during beta
+                    </span>
+                  )}
                 </div>
-                <p className="text-xs text-muted-foreground mb-3">≈ {tier.cadPrice}{tier.period ? ` ${tier.period} CAD` : " CAD"}</p>
+                {BETA_FREE_ACCESS && tier.key === "pro" ? (
+                  <p className="text-xs text-muted-foreground mb-3">No payment needed while Trimbly is in beta — this is what it'll cost after.</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground mb-3">≈ {formatCad(tier.monthlyUsd)}{tier.monthlyUsd > 0 ? "/month CAD" : " CAD"}</p>
+                )}
                 <p className="text-sm text-muted-foreground mb-6">{tier.description}</p>
                 <ul className="space-y-3 mb-8">
                   {tier.features.map((f) => (
@@ -131,11 +122,13 @@ const MechanicPricing = () => {
                   className="w-full"
                   variant={tier.highlighted ? "default" : "outline"}
                   size="lg"
-                  onClick={() => handleSelect(tier.tier)}
+                  onClick={() => handleSelect(tier.key)}
                   disabled={upgrading}
                 >
                   {upgrading ? <Loader2 size={16} className="animate-spin mr-1.5" /> : null}
-                  {hasProvider && tier.tier === "pro" ? "Upgrade to Pro" : tier.cta}
+                  {hasProvider && tier.key === "pro"
+                    ? (BETA_FREE_ACCESS ? "Unlock Pro — free" : "Upgrade to Pro")
+                    : (BETA_FREE_ACCESS && tier.key === "pro" ? "Get Started — Free Beta" : tier.ctaPaid)}
                 </Button>
               </div>
             ))}

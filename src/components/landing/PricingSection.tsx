@@ -2,6 +2,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
+import {
+  BETA_FREE_ACCESS,
+  formatUsd as fmtUsd,
+  formatCad as fmtCad,
+  homeownerTiers,
+  providerTiers,
+  mechanicTiers,
+  type PricingTier,
+} from "@/lib/pricingTiers";
 
 type Audience = "homeowner" | "pro" | "mechanic";
 
@@ -9,179 +18,18 @@ const GARAGE_ADDON_USD = 2;
 type Billing = "monthly" | "yearly";
 
 const YEARLY_DISCOUNT = 0.1; // 10% off
-const USD_TO_CAD = 1.4;
 
-type Tier = {
-  name: string;
-  monthlyUsd: number; // 0 = free
-  description: string;
-  features: string[];
-  cta: string;
-  highlighted: boolean;
-  routeBase: string;
-};
-
-const homeownerTiers: Tier[] = [
-  {
-    name: "Free",
-    monthlyUsd: 0,
-    description: "Get started with basic home management",
-    features: [
-      "1 home profile",
-      "Search & browse local pros",
-      "Create up to 3 job requests/month",
-      "Receive pro bids & messages",
-      "In-app messaging with pros",
-      "Basic maintenance reminders",
-      "User Manual Finder",
-      "Community reviews access",
-    ],
-    cta: "Get Started Free",
-    highlighted: false,
-    routeBase: "/auth?mode=signup&type=homeowner&tier=free",
-  },
-  {
-    name: "Home Hero",
-    monthlyUsd: 5,
-    description: "Full-powered home maintenance on autopilot",
-    features: [
-      "1 home profile",
-      "Unlimited job requests & bidding",
-      "AI Job Estimator (unlimited)",
-      "AI Symptom Triage",
-      "Maintenance Autopilot schedules",
-      "Coverage Advisor (AI warranty & insurance)",
-      "Equipment Rentals Marketplace access",
-      "E-sign rental agreements + Archive",
-      "Priority pro matching",
-      "Emergency support channel",
-      "Seasonal checklists",
-      "Amazon supply recommendations",
-      "Add My Garage add-on for +$2/month",
-    ],
-    cta: "Start Free Trial",
-    highlighted: true,
-    routeBase: "/auth?mode=signup&type=homeowner&tier=homeowner_pro",
-  },
-  {
-    name: "Home Super Hero",
-    monthlyUsd: 20,
-    description: "Manage up to 10 properties from one account",
-    features: [
-      "Everything in Home Hero",
-      "Up to 10 home profiles",
-      "View homes individually or all together",
-      "Unlimited Digital Home Binder entries (vs. 5)",
-      "Multi-home maintenance dashboard",
-      "Priority pro matching",
-      "Emergency support channel",
-      "Family sharing across every home",
-      "Consolidated all-homes maintenance report",
-      "Add My Garage add-on for +$2/month",
-    ],
-    cta: "Start Free Trial",
-    highlighted: false,
-    routeBase: "/auth?mode=signup&type=homeowner&tier=multi_pro",
-  },
-];
-
-const proTiers: Tier[] = [
-  {
-    name: "Free",
-    monthlyUsd: 0,
-    description: "Get listed and start receiving leads",
-    features: [
-      "Business profile listing",
-      "Appear in local search results",
-      "Up to 5 active bids per month",
-      "In-app messaging with homeowners",
-      "Customer reviews & ratings",
-      "Basic analytics dashboard",
-    ],
-    cta: "Get Started Free",
-    highlighted: false,
-    routeBase: "/pro-register?tier=free",
-  },
-  {
-    name: "Pro Provider",
-    monthlyUsd: 29,
-    description: "More visibility, more leads, more growth",
-    features: [
-      "Everything in Free",
-      "Unlimited bids",
-      "Verified Pro badge",
-      "Response-time badge",
-      "Priority search placement",
-      "AI Message Copilot",
-      "AI Follow-Up drafts",
-      "AI competitor pricing intel",
-      "Auto-request reviews (in-app)",
-      "Rent out your equipment (ESIGN/UETA agreements)",
-      "Signed-contract archive + audit trail",
-      "Referral link to share with other pros",
-      "Local SEO microsite",
-      "Yard sign QR codes",
-      "Service area, hours & mileage tools",
-      "Photo portfolio (up to 10 images)",
-    ],
-    cta: "Start 14-Day Free Trial",
-    highlighted: true,
-    routeBase: "/pro-register?tier=pro",
-  },
-];
-
-const mechanicTiers: Tier[] = [
-  {
-    name: "Free",
-    monthlyUsd: 0,
-    description: "List your shop and start receiving vehicle leads",
-    features: [
-      "Mechanic profile listing",
-      "Appear in local vehicle search results",
-      "Up to 3 active bids per month",
-      "In-app messaging with vehicle owners",
-      "Customer reviews & ratings",
-      "Basic analytics dashboard",
-    ],
-    cta: "Get Started Free",
-    highlighted: false,
-    routeBase: "/mechanic-register?tier=free",
-  },
-  {
-    name: "Pro Mechanic",
-    monthlyUsd: 15,
-    description: "Unlimited vehicle leads and AI tools for your shop",
-    features: [
-      "Everything in Free",
-      "Unlimited bids on vehicle jobs",
-      "Verified Mechanic badge",
-      "Response-time badge",
-      "AI Message Copilot",
-      "AI Follow-Up drafts",
-      "AI competitor pricing intel",
-      "Auto-request reviews (in-app)",
-      "Referral link to share with other mechanics",
-      "Shop QR codes for marketing",
-      "Service area, hours & mileage tools",
-    ],
-    cta: "Start 14-Day Free Trial",
-    highlighted: true,
-    routeBase: "/mechanic-register?tier=pro",
-  },
-];
-
-const fmtUsd = (n: number) =>
-  n % 1 === 0 ? `$${n}` : `$${n.toFixed(2)}`;
-const fmtCad = (n: number) => {
-  const v = n * USD_TO_CAD;
-  return v % 1 === 0 ? `CA$${v}` : `CA$${v.toFixed(2)}`;
+const routeBaseFor = (audience: Audience, tier: PricingTier) => {
+  if (audience === "homeowner") return `/auth?mode=signup&type=homeowner&tier=${tier.key}`;
+  if (audience === "pro") return `/pro-register?tier=${tier.key}`;
+  return `/mechanic-register?tier=${tier.key}`;
 };
 
 const PricingSection = () => {
   const navigate = useNavigate();
   const [audience, setAudience] = useState<Audience>("homeowner");
   const [billing, setBilling] = useState<Billing>("monthly");
-  const tiers = audience === "homeowner" ? homeownerTiers : audience === "pro" ? proTiers : mechanicTiers;
+  const tiers = audience === "homeowner" ? homeownerTiers : audience === "pro" ? providerTiers : mechanicTiers;
 
   return (
     <section id="pricing" className="py-20 md:py-28">
@@ -275,9 +123,8 @@ const PricingSection = () => {
 
             const displayUsd = isFree ? 0 : showYearly ? yearlyDiscounted : tier.monthlyUsd;
             const periodLabel = isFree ? "" : showYearly ? "/year" : "/month";
-            const route = isFree
-              ? tier.routeBase
-              : `${tier.routeBase}&billing=${billing}`;
+            const routeBase = routeBaseFor(audience, tier);
+            const route = isFree ? routeBase : `${routeBase}&billing=${billing}`;
 
             return (
               <div
@@ -294,16 +141,23 @@ const PricingSection = () => {
                   </span>
                 )}
                 <h3 className="font-display font-semibold text-xl text-card-foreground">{tier.name}</h3>
-                <div className="flex items-baseline gap-1 mt-3 mb-1">
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 mt-3 mb-1">
                   <span className="font-display text-4xl font-semibold text-card-foreground">{fmtUsd(displayUsd)}</span>
                   {periodLabel && <span className="text-muted-foreground text-sm">{periodLabel} USD</span>}
+                  {BETA_FREE_ACCESS && !isFree && (
+                    <span className="inline-flex items-center rounded-full bg-primary/10 text-primary text-xs font-bold px-2.5 py-1">
+                      Free during beta
+                    </span>
+                  )}
                 </div>
                 {!isFree && (
                   <p className="text-xs text-muted-foreground mb-1">
                     ≈ {fmtCad(displayUsd)}{periodLabel ? ` ${periodLabel} CAD` : ""}
                   </p>
                 )}
-                {showYearly ? (
+                {BETA_FREE_ACCESS && !isFree ? (
+                  <p className="text-xs text-muted-foreground mb-3">No payment needed while Trimbly is in beta — this is what it'll cost after.</p>
+                ) : showYearly ? (
                   <p className="text-xs font-semibold text-primary mb-3">
                     Save {fmtUsd(yearlySavings)}/yr vs monthly
                   </p>
@@ -329,7 +183,7 @@ const PricingSection = () => {
                   size="lg"
                   onClick={() => navigate(route)}
                 >
-                  {tier.cta}
+                  {isFree ? tier.ctaFree : tier.ctaPaid}
                 </Button>
               </div>
             );

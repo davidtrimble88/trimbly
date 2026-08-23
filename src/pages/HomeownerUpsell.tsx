@@ -2,66 +2,18 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, Zap, Crown, ArrowRight, Loader2, Tag, PartyPopper } from "lucide-react";
+import { Check, ArrowRight, Loader2, Tag, PartyPopper } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { TestingWelcomeModal } from "@/components/onboarding/TestingWelcomeModal";
+import { BETA_FREE_ACCESS, formatUsd, formatCad, homeownerTiers } from "@/lib/pricingTiers";
 
-// Trimbly is in a free public beta — every plan is unlocked at no cost, no
-// payment info collected. Kept as the same flag name/meaning as
-// ProPricing.tsx's BETA_FREE_ACCESS so both surfaces flip together later.
-const BETA_FREE_ACCESS = true;
-
-const tiers = [
-  {
-    name: "Home Hero",
-    dbKey: "homeowner_pro",
-    icon: Zap,
-    price: "$5",
-    cadPrice: "CA$7",
-    period: "/mo",
-    description: "Unlock AI-powered home management",
-    features: [
-      "1 home",
-      "Digital Home Binder (5 items)",
-      "Coverage Advisor — AI doc review",
-      "Unlimited AI job estimates",
-      "Advanced maintenance schedules",
-      "Seasonal checklists",
-      "Search & message pros",
-      "Post jobs to the board",
-      "Invite family — +$2/mo per person",
-    ],
-    cta: "Start 14-Day Free Trial",
-    highlighted: true,
-    badge: "Most Popular",
-  },
-  {
-    name: "Home Super Hero",
-    dbKey: "multi_pro",
-    icon: Crown,
-    price: "$20",
-    cadPrice: "CA$28",
-    period: "/mo",
-    description: "For property owners & multi-home families",
-    features: [
-      "Everything in Home Hero",
-      "Up to 10 homes",
-      "View homes individually or all together",
-      "Unlimited Home Binder items (vs. 5)",
-      "Multi-home maintenance dashboard",
-      "Priority pro matching",
-      "Emergency support priority",
-      "2 free family members with full access",
-      "More members from $5/mo",
-    ],
-    cta: "Start 14-Day Free Trial",
-    highlighted: false,
-  },
-];
+// Only the paid tiers render as cards here — Free is a plain text link
+// below (see "No thanks..."), so it's filtered out of the shared list.
+const tiers = homeownerTiers.filter((t) => t.monthlyUsd > 0);
 
 export default function HomeownerUpsell() {
   const navigate = useNavigate();
@@ -212,8 +164,8 @@ export default function HomeownerUpsell() {
 
                 <h3 className="font-bold text-xl text-card-foreground">{tier.name}</h3>
                 <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 mt-2 mb-1">
-                  <span className="text-4xl font-extrabold text-card-foreground">{tier.price}</span>
-                  {tier.period && <span className="text-muted-foreground text-sm">{tier.period} USD</span>}
+                  <span className="text-4xl font-extrabold text-card-foreground">{formatUsd(tier.monthlyUsd)}</span>
+                  <span className="text-muted-foreground text-sm">/mo USD</span>
                   {BETA_FREE_ACCESS && (
                     <span className="inline-flex items-center rounded-full bg-primary/10 text-primary text-xs font-bold px-2.5 py-1">
                       Free during beta
@@ -221,7 +173,7 @@ export default function HomeownerUpsell() {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground mb-3">
-                  {BETA_FREE_ACCESS ? "No payment needed while Trimbly is in beta — this is what it'll cost after." : `≈ ${tier.cadPrice} ${tier.period} CAD`}
+                  {BETA_FREE_ACCESS ? "No payment needed while Trimbly is in beta — this is what it'll cost after." : `≈ ${formatCad(tier.monthlyUsd)}/mo CAD`}
                 </p>
                 <p className="text-sm text-muted-foreground mb-6">{tier.description}</p>
 
@@ -239,12 +191,12 @@ export default function HomeownerUpsell() {
                   variant={tier.highlighted ? "default" : "outline"}
                   size="lg"
                   disabled={loadingTier !== null}
-                  onClick={() => handleSelect(tier.dbKey)}
+                  onClick={() => handleSelect(tier.key)}
                 >
-                  {loadingTier === tier.dbKey ? (
+                  {loadingTier === tier.key ? (
                     <Loader2 size={16} className="animate-spin mr-2" />
                   ) : null}
-                  {BETA_FREE_ACCESS ? "Unlock — Free During Beta" : tier.cta}
+                  {BETA_FREE_ACCESS ? "Unlock — Free During Beta" : tier.ctaPaid}
                   {tier.highlighted && <ArrowRight size={16} className="ml-2" />}
                 </Button>
               </div>

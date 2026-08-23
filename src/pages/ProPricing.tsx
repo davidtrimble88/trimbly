@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Check, ArrowLeft, Star, Zap, Loader2, PartyPopper, Tag } from "lucide-react";
+import { Check, ArrowLeft, Loader2, PartyPopper, Tag } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Input } from "@/components/ui/input";
@@ -9,50 +9,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { startProviderSubscriptionCheckout } from "@/lib/billing";
+import { BETA_FREE_ACCESS, formatCad, providerTiers } from "@/lib/pricingTiers";
 
-// Trimbly is in a free public beta — every plan is unlocked at no cost, no
-// payment info collected. Flip to false once beta ends and real Stripe
-// billing (still fully wired below, just bypassed for now) should resume.
-const BETA_FREE_ACCESS = true;
-
-const tiers = [
-  {
-    name: "Free",
-    icon: Star,
-    price: "$0",
-    cadPrice: "CA$0",
-    period: "",
-    description: "Get listed and start receiving leads",
-    features: [
-      "Business profile listing",
-      "Appear in search results",
-      "Customer reviews & ratings",
-      "Basic analytics dashboard",
-    ],
-    cta: "Get Started Free",
-    highlighted: false,
-    tier: "free",
-  },
-  {
-    name: "Pro",
-    icon: Zap,
-    price: "$29",
-    cadPrice: "CA$40",
-    period: "/month",
-    description: "More visibility, more leads, more growth",
-    features: [
-      "Everything in Free",
-      "Priority search placement",
-      "Verified Pro badge",
-      "Detailed performance analytics",
-      "Direct messaging with homeowners",
-      "Photo portfolio (up to 10 images)",
-    ],
-    cta: "Start 14-Day Free Trial",
-    highlighted: true,
-    tier: "pro",
-  },
-];
+const tiers = providerTiers;
 
 const ProPricing = () => {
   const navigate = useNavigate();
@@ -180,18 +139,18 @@ const ProPricing = () => {
                 </div>
                 <h3 className="font-bold text-xl text-card-foreground">{tier.name}</h3>
                 <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 mt-3 mb-1">
-                  <span className="text-4xl font-extrabold text-card-foreground">{tier.price}</span>
-                  {tier.period && <span className="text-muted-foreground text-sm">{tier.period} USD</span>}
-                  {BETA_FREE_ACCESS && tier.tier === "pro" && (
+                  <span className="text-4xl font-extrabold text-card-foreground">${tier.monthlyUsd}</span>
+                  {tier.monthlyUsd > 0 && <span className="text-muted-foreground text-sm">/month USD</span>}
+                  {BETA_FREE_ACCESS && tier.key === "pro" && (
                     <span className="inline-flex items-center rounded-full bg-primary/10 text-primary text-xs font-bold px-2.5 py-1">
                       Free during beta
                     </span>
                   )}
                 </div>
-                {BETA_FREE_ACCESS && tier.tier === "pro" ? (
+                {BETA_FREE_ACCESS && tier.key === "pro" ? (
                   <p className="text-xs text-muted-foreground mb-3">No payment needed while Trimbly is in beta — this is what it'll cost after.</p>
                 ) : (
-                  <p className="text-xs text-muted-foreground mb-3">≈ {tier.cadPrice}{tier.period ? ` ${tier.period} CAD` : " CAD"}</p>
+                  <p className="text-xs text-muted-foreground mb-3">≈ {formatCad(tier.monthlyUsd)}{tier.monthlyUsd > 0 ? "/month CAD" : " CAD"}</p>
                 )}
                 <p className="text-sm text-muted-foreground mb-6">{tier.description}</p>
                 <ul className="space-y-3 mb-8">
@@ -206,13 +165,13 @@ const ProPricing = () => {
                   className="w-full"
                   variant={tier.highlighted ? "default" : "outline"}
                   size="lg"
-                  onClick={() => handleSelect(tier.tier)}
+                  onClick={() => handleSelect(tier.key)}
                   disabled={upgrading}
                 >
                   {upgrading ? <Loader2 size={16} className="animate-spin mr-1.5" /> : null}
-                  {hasProvider && tier.tier === "pro"
+                  {hasProvider && tier.key === "pro"
                     ? (BETA_FREE_ACCESS ? "Unlock Pro — free" : "Upgrade to Pro")
-                    : (BETA_FREE_ACCESS && tier.tier === "pro" ? "Get Started — Free Beta" : tier.cta)}
+                    : (BETA_FREE_ACCESS && tier.key === "pro" ? "Get Started — Free Beta" : tier.ctaPaid)}
                 </Button>
               </div>
             ))}
