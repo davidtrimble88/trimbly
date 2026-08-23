@@ -150,12 +150,12 @@ const proFeatures = [
   {
     icon: BadgeCheck,
     title: "Verified Pro Badge",
-    description: "Show a trust badge on your profile so homeowners know you've been vetted before they ever message you.",
+    description: "Available on any plan, including Free — pass our one-time $29 background check & document review to show a trust badge before homeowners message you.",
   },
   {
     icon: Gauge,
     title: "Response-Time Badge",
-    description: "Auto-calculated 'Replies in under 1 hr' badge on your listing — proven speed wins more jobs.",
+    description: "Auto-calculated 'Replies in under 1 hr' badge on your listing, on any plan — proven speed wins more jobs.",
   },
   {
     icon: Star,
@@ -170,7 +170,7 @@ const proFeatures = [
   {
     icon: Home,
     title: "Local SEO Microsite",
-    description: "Your own page at trimbly.com/pros/your-business — designed to rank in Google for your service area.",
+    description: "Your own page at trimbly.com/pros/your-business, on any plan — designed to rank in Google for your service area.",
   },
   {
     icon: QrCode,
@@ -185,7 +185,7 @@ const proFeatures = [
   {
     icon: TrendingUp,
     title: "AI Competitor Pricing Intel",
-    description: "See what other pros in your zip charge per hour and per job so you can price competitively and confidently.",
+    description: "AI-estimated hourly rate ranges for your trade, localized to your city & state, so you can price competitively and confidently.",
   },
   {
     icon: MessageSquare,
@@ -195,7 +195,7 @@ const proFeatures = [
   {
     icon: Hammer,
     title: "Rent Out Your Equipment",
-    description: "List tools and equipment for other pros (and subscribed homeowners) to rent. ESIGN/UETA-compliant digital agreements, audit trail, and signed-contract archive included.",
+    description: "List tools and equipment for other pros (and subscribed homeowners) to rent, on any plan. ESIGN/UETA-compliant digital agreements included.",
   },
   {
     icon: Repeat,
@@ -234,12 +234,12 @@ const mechanicFeatures = [
   {
     icon: BadgeCheck,
     title: "Verified Mechanic Badge",
-    description: "Show a trust badge on your profile so vehicle owners know you've been vetted before they ever message you.",
+    description: "Available on any plan, including Free — pass our one-time $29 background check & document review to show a trust badge before vehicle owners message you.",
   },
   {
     icon: Gauge,
     title: "Response-Time Badge",
-    description: "Auto-calculated 'Replies in under 1 hr' badge on your listing — proven speed wins more vehicle jobs.",
+    description: "Auto-calculated 'Replies in under 1 hr' badge on your listing, on any plan — proven speed wins more vehicle jobs.",
   },
   {
     icon: QrCode,
@@ -254,7 +254,7 @@ const mechanicFeatures = [
   {
     icon: Hammer,
     title: "Rent Out Your Equipment",
-    description: "List specialty tools and lifts for other mechanics (and subscribed owners) to rent. ESIGN/UETA-compliant digital agreements included.",
+    description: "List specialty tools and lifts for other mechanics (and subscribed owners) to rent, on any plan. ESIGN/UETA-compliant digital agreements included.",
   },
   {
     icon: Wallet,

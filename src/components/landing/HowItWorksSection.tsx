@@ -443,7 +443,7 @@ const mechanicTabs = [
       },
       {
         icon: ListChecks, step: "04", title: "Pick Your Plan",
-        description: "Start free with 5 bids/month or upgrade to Pro Mechanic for unlimited bids, analytics, and priority placement.",
+        description: "Start free with 3 bids/month or upgrade to Pro Mechanic for unlimited bids, analytics, and priority placement.",
         route: "/mechanic-pricing",
       },
     ],
@@ -482,7 +482,7 @@ const mechanicTabs = [
     steps: [
       {
         icon: Star, step: "01", title: "Collect Reviews",
-        description: "After every completed repair, an automated text and email asks the vehicle owner to leave a review.",
+        description: "After every completed repair, send a one-click in-app request asking the vehicle owner to leave a review.",
         route: "/mechanic-dashboard",
       },
       {
@@ -566,7 +566,7 @@ const proTabs = [
     steps: [
       {
         icon: Star, step: "01", title: "Auto-Request Reviews",
-        description: "After every completed job, an automated text and email asks the homeowner to leave a review.",
+        description: "After every completed job, send a one-click in-app request asking the homeowner to leave a review.",
         route: "/pro-dashboard",
       },
       {

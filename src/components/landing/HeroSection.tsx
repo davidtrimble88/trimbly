@@ -43,16 +43,20 @@ const HeroSection = () => {
               you do need a pro, one's already vetted.
             </p>
 
-            <div className="flex flex-wrap items-center gap-2 mb-7">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
               {pillars.map((p) => (
                 <span
                   key={p.label}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary border border-border text-xs font-semibold text-foreground"
                 >
                   <p.icon size={13} className="text-primary" /> {p.label}
+                  {p.label === "Your Garage" && <span className="text-muted-foreground font-normal">*</span>}
                 </span>
               ))}
             </div>
+            <p className="text-xs text-muted-foreground mb-7">
+              *Your Garage is an optional add-on ($3.99/mo) — stacks on any plan, including Free.
+            </p>
 
             <div className="flex flex-wrap items-center gap-3 mb-11">
               <Button
@@ -68,7 +72,15 @@ const HeroSection = () => {
                 className="text-base px-7 h-12 rounded-lg border-2"
                 onClick={() => navigate("/pro-pricing")}
               >
-                I'm a pro or mechanic
+                I'm a pro
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="text-base px-7 h-12 rounded-lg border-2"
+                onClick={() => navigate("/mechanic-pricing")}
+              >
+                I'm a mechanic
               </Button>
             </div>
 
@@ -168,7 +180,7 @@ const HeroSection = () => {
                   <FolderOpen size={14} className="text-accent" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold text-foreground truncate">6 warranties on file</p>
+                  <p className="text-xs font-semibold text-foreground truncate">5 warranties on file</p>
                   <p className="text-[11px] text-muted-foreground">All in one binder</p>
                 </div>
               </div>
