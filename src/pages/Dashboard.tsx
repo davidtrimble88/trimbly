@@ -260,10 +260,17 @@ const Dashboard = () => {
       supabase.from("maintenance_tasks").delete().eq("home_id", deletingHome.id),
       supabase.from("home_binder_items").delete().eq("home_id", deletingHome.id),
     ]);
-    const { error } = await supabase.from("homes").delete().eq("id", deletingHome.id);
+    // .select() so we get back the row(s) actually deleted — a delete blocked
+    // by RLS (e.g. someone who only has shared, not owner, access to this
+    // home) returns success with an empty array rather than an error, so
+    // checking only `error` would show "Home removed" while the home (and
+    // its claim on the address) silently survives, breaking re-adding it.
+    const { data, error } = await supabase.from("homes").delete().eq("id", deletingHome.id).select("id");
     setSaving(false);
     if (error) {
       toast({ title: "Error", description: "Failed to delete home.", variant: "destructive" });
+    } else if (!data || data.length === 0) {
+      toast({ title: "Couldn't delete home", description: "You don't have permission to delete this home — only the owner can. Contact them if it needs to be removed.", variant: "destructive" });
     } else {
       setHomes(prev => prev.filter(h => h.id !== deletingHome.id));
       const newStats = { ...homeStats };
