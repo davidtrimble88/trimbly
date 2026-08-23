@@ -10,11 +10,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Wrench, Car, Bike, MapPin, DollarSign, Star, MessageSquare,
   Briefcase, Zap, ExternalLink, LayoutDashboard, QrCode, CheckCircle, Sparkles,
+  Building2, Shield,
 } from "lucide-react";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import InspectionReportDialog from "@/components/mechanic/InspectionReportDialog";
 import PaymentMethodsPanel from "@/components/pro/PaymentMethodsPanel";
+import CredentialAlertBanner from "@/components/pro/CredentialAlertBanner";
+import { useProNotifications } from "@/hooks/useProNotifications";
 import MechanicToolsTab from "@/components/dashboard/mechanic/MechanicToolsTab";
+import MechanicProfileTab from "@/components/dashboard/mechanic/MechanicProfileTab";
+import VerificationTab from "@/components/dashboard/pro/VerificationTab";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardHeroBanner from "@/components/dashboard/DashboardHeroBanner";
 import { DashboardNavItem } from "@/components/dashboard/types";
@@ -93,6 +98,15 @@ export default function MechanicDashboard() {
 
   useEffect(() => { if (user) load(); }, [user]);
 
+  useProNotifications({
+    userId: user?.id || null,
+    providerId: provider?.id || null,
+    providerState: provider?.state || null,
+    providerCategory: provider?.category || null,
+    jobsTable: "vehicle_jobs",
+    bidsTable: "vehicle_job_bids",
+  });
+
   const toggleAvailable = async () => {
     if (!provider) return;
     const v = !provider.available;
@@ -155,6 +169,10 @@ export default function MechanicDashboard() {
       description: editForm.description || null,
       hourly_rate_min: editForm.hourly_rate_min,
       hourly_rate_max: editForm.hourly_rate_max,
+      licensed: editForm.licensed,
+      license_number: editForm.licensed ? editForm.license_number : null,
+      insured: editForm.insured,
+      insurance_details: editForm.insured ? editForm.insurance_details : null,
     }).eq("id", provider.id);
     setSaving(false);
     if (error) {
@@ -204,6 +222,8 @@ export default function MechanicDashboard() {
     { id: "tools", label: "Tools", icon: Sparkles },
     { id: "reviews", label: "Reviews", icon: Star },
     { id: "messages", label: "Messages", icon: MessageSquare, badge: unread },
+    { id: "profile", label: "Profile", icon: Building2 },
+    { id: "verification", label: "Verification", icon: Shield },
   ];
 
   return (
@@ -238,6 +258,11 @@ export default function MechanicDashboard() {
           ),
         }}
       >
+        <CredentialAlertBanner
+          licenseExpiry={provider.license_expiry}
+          insuranceExpiry={provider.insurance_expiry}
+          onGoToTools={() => setActiveTab("profile")}
+        />
         <DashboardHeroBanner
           greetingName={provider.business_name}
           summary={heroSummary}
@@ -374,6 +399,17 @@ export default function MechanicDashboard() {
             <Button variant="outline" onClick={() => navigate("/messages")} className="w-full">Open Messages</Button>
           </div>
         )}
+
+        {activeTab === "profile" && (
+          <MechanicProfileTab
+            provider={provider}
+            userId={user!.id}
+            onEditProfile={openEdit}
+            onUpdated={(patch) => setProvider((p) => p ? { ...p, ...patch } : p)}
+          />
+        )}
+
+        {activeTab === "verification" && <VerificationTab providerId={provider.id} />}
       </DashboardShell>
 
       <EditProfileDialog

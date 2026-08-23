@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Check, ArrowLeft, Wrench, Loader2, PartyPopper } from "lucide-react";
+import { Check, ArrowLeft, Wrench, Loader2, PartyPopper, Tag } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +19,8 @@ const MechanicPricing = () => {
   const { toast } = useToast();
   const [hasProvider, setHasProvider] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
+  const [discountCode, setDiscountCode] = useState("");
+  const [redeeming, setRedeeming] = useState(false);
 
   useEffect(() => {
     if (!user) { setHasProvider(false); return; }
@@ -66,6 +69,27 @@ const MechanicPricing = () => {
     navigate(`/mechanic-register?tier=${tierKey}`);
   };
 
+  const handleRedeemCode = async () => {
+    if (!discountCode.trim() || !user) return;
+    setRedeeming(true);
+    try {
+      const { data, error } = await supabase.rpc("redeem_discount_code" as any, { p_code: discountCode.trim() } as any);
+      const result = data as any;
+      if (error || !result?.success) {
+        toast({ title: "Code didn't work", description: result?.error || error?.message, variant: "destructive" });
+        return;
+      }
+      if (result.grants_provider_tier || result.grants_tier) {
+        toast({ title: "Code applied!", description: "Your plan has been upgraded — no payment needed." });
+        navigate(hasProvider ? "/mechanic-dashboard" : "/mechanic-register?tier=pro");
+      } else {
+        toast({ title: "Code applied", description: "Your discount is recorded." });
+      }
+    } finally {
+      setRedeeming(false);
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <Navbar minimal />
@@ -91,6 +115,27 @@ const MechanicPricing = () => {
               </div>
             )}
           </div>
+
+          {user && hasProvider && (
+            <div className="max-w-md mx-auto mb-10">
+              <div className="rounded-xl border border-border bg-card p-4 flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Tag size={16} className="text-primary shrink-0" />
+                  <Input
+                    placeholder="Have a discount code?"
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleRedeemCode(); }}
+                    className="text-sm"
+                  />
+                </div>
+                <Button variant="outline" onClick={handleRedeemCode} disabled={redeeming || !discountCode.trim()}>
+                  {redeeming ? <Loader2 size={14} className="animate-spin mr-1.5" /> : null}
+                  Apply
+                </Button>
+              </div>
+            </div>
+          )}
 
           <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
             {tiers.map((tier) => (

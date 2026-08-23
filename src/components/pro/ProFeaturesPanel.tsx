@@ -34,6 +34,9 @@ interface Props {
   provider: ProviderRow;
   userId: string;
   onUpdated: (patch: Partial<ProviderRow>) => void;
+  jobsTable?: "jobs" | "vehicle_jobs";
+  bidsTable?: "job_bids" | "vehicle_job_bids";
+  ownerIdField?: "homeowner_id" | "owner_user_id";
 }
 
 const daysUntil = (date: string | null): number | null => {
@@ -42,7 +45,7 @@ const daysUntil = (date: string | null): number | null => {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
 
-const ProFeaturesPanel = ({ provider, userId, onUpdated }: Props) => {
+const ProFeaturesPanel = ({ provider, userId, onUpdated, jobsTable = "jobs", bidsTable = "job_bids", ownerIdField = "homeowner_id" }: Props) => {
   const { toast } = useToast();
 
   // Lead analytics
@@ -84,8 +87,8 @@ const ProFeaturesPanel = ({ provider, userId, onUpdated }: Props) => {
           .eq("provider_id", provider.id).gte("viewed_at", d30),
         supabase.from("messages").select("id", { count: "exact", head: true })
           .eq("recipient_id", userId).gte("created_at", d30),
-        supabase.from("job_bids").select("status").eq("provider_id", provider.id),
-        supabase.from("jobs").select("id, title, homeowner_id")
+        (supabase.from(bidsTable as any) as any).select("status").eq("provider_id", provider.id),
+        (supabase.from(jobsTable as any) as any).select(`id, title, ${ownerIdField}`)
           .eq("provider_id", provider.id).eq("status", "completed").limit(20),
         supabase.from("review_requests").select("job_id").eq("provider_id", provider.id),
       ]);
@@ -104,7 +107,7 @@ const ProFeaturesPanel = ({ provider, userId, onUpdated }: Props) => {
         (jobsCompleted.data || []).map((j: any) => ({
           id: j.id,
           title: j.title,
-          homeowner_id: j.homeowner_id,
+          homeowner_id: j[ownerIdField],
           requested: reqSet.has(j.id),
         }))
       );

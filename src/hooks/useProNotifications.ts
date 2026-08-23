@@ -34,11 +34,15 @@ export function useProNotifications({
   providerId,
   providerState,
   providerCategory,
+  jobsTable = "jobs",
+  bidsTable = "job_bids",
 }: {
   userId: string | null;
   providerId: string | null;
   providerState: string | null;
   providerCategory: string | null;
+  jobsTable?: "jobs" | "vehicle_jobs";
+  bidsTable?: "job_bids" | "vehicle_job_bids";
 }) {
   const { toast } = useToast();
   const prefsRef = useRef<Prefs>(DEFAULT_PREFS);
@@ -97,10 +101,10 @@ export function useProNotifications({
     const channel = supabase
       .channel("pro-notifications-" + userId)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, handleMessage)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "jobs" }, handleJob)
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "job_bids" }, handleBid)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: jobsTable }, handleJob)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: bidsTable }, handleBid)
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [userId, providerId, providerState, providerCategory, toast]);
+  }, [userId, providerId, providerState, providerCategory, jobsTable, bidsTable, toast]);
 }

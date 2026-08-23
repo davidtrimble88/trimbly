@@ -13,7 +13,7 @@ interface EditProfileDialogProps {
   onChange: (updater: (f: Partial<ProviderProfile>) => Partial<ProviderProfile>) => void;
   onSave: () => void;
   saving: boolean;
-  /** "mechanic" hides licensed/insured (handled elsewhere for shops) and shows a Specialty field instead. */
+  /** "mechanic" shows a Specialty field instead of Years Exp. */
   variant?: "pro" | "mechanic";
 }
 
@@ -84,16 +84,14 @@ const EditProfileDialog = ({ open, onOpenChange, form, onChange, onSave, saving,
               </div>
             )}
           </div>
-          {!isMechanic && (
-            <div className="flex flex-wrap gap-4 text-sm">
-              <label className="flex items-center gap-2">
-                <input type="checkbox" checked={form.licensed || false} onChange={e => onChange(f => ({ ...f, licensed: e.target.checked }))} className="rounded" /> Licensed
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" checked={form.insured || false} onChange={e => onChange(f => ({ ...f, insured: e.target.checked }))} className="rounded" /> Insured
-              </label>
-            </div>
-          )}
+          <div className="flex flex-wrap gap-4 text-sm">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={form.licensed || false} onChange={e => onChange(f => ({ ...f, licensed: e.target.checked }))} className="rounded" /> Licensed
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={form.insured || false} onChange={e => onChange(f => ({ ...f, insured: e.target.checked }))} className="rounded" /> Insured
+            </label>
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>

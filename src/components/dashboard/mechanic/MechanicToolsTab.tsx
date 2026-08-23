@@ -1,4 +1,5 @@
 import { TrendingUp, Briefcase } from "lucide-react";
+import UpsellPanel from "@/components/pro/UpsellPanel";
 import CompetitorPricingPanel from "@/components/pro/CompetitorPricingPanel";
 import AIFollowUpPanel from "@/components/pro/AIFollowUpPanel";
 import AutoReviewPanel from "@/components/pro/AutoReviewPanel";
@@ -8,6 +9,8 @@ import YardSignQRPanel from "@/components/pro/YardSignQRPanel";
 import ServiceAreaPanel from "@/components/pro/ServiceAreaPanel";
 import BusinessHoursPanel from "@/components/pro/BusinessHoursPanel";
 import MileageLogPanel from "@/components/pro/MileageLogPanel";
+import QuotesPanel from "@/components/pro/QuotesPanel";
+import ServicePlansPanel from "@/components/pro/ServicePlansPanel";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
 import { ToolSectionHeader } from "@/components/dashboard/ToolSectionHeader";
 import type { ProviderProfile } from "@/components/dashboard/pro/types";
@@ -25,6 +28,14 @@ const MechanicToolsTab = ({ provider, userId, onUpdated }: MechanicToolsTabProps
       <div>
         <ToolSectionHeader icon={TrendingUp} title="Grow My Shop" description="Marketing, leads, and AI tools that bring in more work." />
         <div className="grid lg:grid-cols-2 gap-5 mt-4 items-start">
+          <UpsellPanel
+            providerId={provider.id}
+            providerCategory={provider.category}
+            businessName={provider.business_name}
+            userId={userId}
+            jobsTable="vehicle_jobs"
+            ownerIdField="owner_user_id"
+          />
           <UpgradeGate hasAccess={hasAccess} featureName="AI Competitor Pricing Intel" pricingRoute="/mechanic-pricing" description="See what other mechanics in your area charge before you quote." benefits={["Live low/median/high rates for your category", "Localized to your city & state"]}>
             <CompetitorPricingPanel
               category={provider.category}
@@ -60,8 +71,14 @@ const MechanicToolsTab = ({ provider, userId, onUpdated }: MechanicToolsTabProps
       </div>
 
       <div>
-        <ToolSectionHeader icon={Briefcase} title="Day-to-Day Work" description="Service area, hours, and mileage tracking." />
+        <ToolSectionHeader icon={Briefcase} title="Day-to-Day Work" description="Quotes, service plans, service area, hours, and mileage tracking." />
         <div className="grid lg:grid-cols-2 gap-5 mt-4 items-start">
+          <QuotesPanel
+            providerId={provider.id}
+            providerUserId={userId}
+            businessName={provider.business_name}
+          />
+          <ServicePlansPanel providerId={provider.id} />
           <UpgradeGate hasAccess={hasAccess} featureName="Service Area" pricingRoute="/mechanic-pricing" description="Set your service radius so the right vehicle owners find you.">
             <ServiceAreaPanel
               providerId={provider.id}
