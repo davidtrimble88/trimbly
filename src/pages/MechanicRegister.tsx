@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { startProviderSubscriptionCheckout } from "@/lib/billing";
 import { validatePassword, PASSWORD_MIN } from "@/lib/passwordPolicy";
 import { TosAgreement } from "@/components/TosAgreement";
+import { mechanicTiers } from "@/lib/pricingTiers";
 
 const categories = [
   "Auto Repair", "Motorcycle Repair", "Mobile Mechanic", "Auto Body",
@@ -22,10 +23,13 @@ const categories = [
   "Detailing", "Glass / Windshield", "Other",
 ];
 
-const tierLabels: Record<string, { label: string; icon: typeof Star; color: string }> = {
-  free: { label: "Free", icon: Star, color: "secondary" },
-  pro: { label: "Pro Mechanic", icon: Zap, color: "default" },
-};
+// Name + icon derived from pricingTiers.ts (the single source of truth)
+// instead of a hand-copied map — this exact table had already drifted
+// from the pricing page it sits one click after in the signup funnel.
+const tierColors: Record<string, string> = { free: "secondary", pro: "default" };
+const tierLabels: Record<string, { label: string; icon: typeof Star; color: string }> = Object.fromEntries(
+  mechanicTiers.map((t) => [t.key, { label: t.name, icon: t.icon, color: tierColors[t.key] || "default" }])
+);
 
 const MechanicRegister = () => {
   const { user, signUp } = useAuth();

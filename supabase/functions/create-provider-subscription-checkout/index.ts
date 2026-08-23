@@ -16,9 +16,17 @@ const corsHeaders = {
 
 // Home-service pros and mechanics share one "pro" tier concept but at
 // different price points. Keyed by providers.provider_type.
+//
+// !! KEEP IN SYNC WITH src/lib/pricingTiers.ts !!
+// This is what actually gets charged via Stripe — it cannot import
+// pricingTiers.ts directly (that file pulls in lucide-react, a browser/Vite
+// dependency Deno can't resolve), so there is no compiler-enforced link. If
+// you change providerTiers["pro"].monthlyUsd or mechanicTiers["pro"].monthlyUsd
+// there, a real customer's card will still be charged the old amount here
+// until this map is updated by hand too.
 const PRICING_CENTS: Record<string, number> = {
-  mechanic: 1500, // $15/mo
-  default: 2900,  // $29/mo (general home-service pros)
+  mechanic: 1500, // $15/mo — must match mechanicTiers["pro"].monthlyUsd in pricingTiers.ts
+  default: 2900,  // $29/mo (general home-service pros) — must match providerTiers["pro"].monthlyUsd
 };
 
 Deno.serve(async (req) => {

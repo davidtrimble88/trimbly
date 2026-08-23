@@ -130,6 +130,10 @@ export const providerTiers: PricingTier[] = [
     key: "pro",
     name: "Pro Provider",
     icon: Zap,
+    // !! If you change this, also update PRICING_CENTS.default in
+    // supabase/functions/create-provider-subscription-checkout/index.ts —
+    // that's what Stripe actually charges, and it can't import this file
+    // (Deno can't resolve the lucide-react import below).
     monthlyUsd: 29,
     description: "More visibility, more leads, more growth",
     features: [
@@ -179,6 +183,10 @@ export const mechanicTiers: PricingTier[] = [
     key: "pro",
     name: "Pro Mechanic",
     icon: Zap,
+    // !! If you change this, also update PRICING_CENTS.mechanic in
+    // supabase/functions/create-provider-subscription-checkout/index.ts —
+    // that's what Stripe actually charges, and it can't import this file
+    // (Deno can't resolve the lucide-react import below).
     monthlyUsd: 15,
     description: "Unlimited vehicle leads and AI tools for your shop",
     features: [

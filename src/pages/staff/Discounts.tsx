@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tag, Plus, Trash2, FlaskConical, Copy, Car } from "lucide-react";
 import { logActivity } from "./activityLog";
+import { homeownerTiers, providerTiers } from "@/lib/pricingTiers";
 
 type DiscountType = "free" | "percent" | "fixed";
 type GrantsTier = "" | "free" | "homeowner_pro" | "multi_pro";
@@ -34,8 +35,13 @@ interface DiscountCode {
   created_at: string;
 }
 
-const tierLabels: Record<string, string> = { free: "Free", homeowner_pro: "Home Hero", multi_pro: "Home Super Hero" };
-const providerTierLabels: Record<string, string> = { free: "Free", pro: "Pro", elite: "Elite" };
+// Derived from pricingTiers.ts (the single source of truth) instead of a
+// hand-copied map — this exact map used to be duplicated three times.
+const tierLabels: Record<string, string> = Object.fromEntries(homeownerTiers.map((t) => [t.key, t.name]));
+// "elite" isn't a modeled tier in pricingTiers.ts (providerTiers only has
+// free/pro) — it's a legacy/reserved value the discount_codes schema still
+// allows, so it keeps its own manual label here.
+const providerTierLabels: Record<string, string> = { ...Object.fromEntries(providerTiers.map((t) => [t.key, t.name])), elite: "Elite" };
 
 export default function StaffDiscounts() {
   const { user } = useAuth();

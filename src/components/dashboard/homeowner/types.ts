@@ -1,5 +1,11 @@
+import { homeownerTiers, formatUsd } from "@/lib/pricingTiers";
+
 export const tierOrder: Record<string, number> = { free: 0, homeowner_pro: 1, multi_pro: 2 };
-export const tierLabels: Record<string, string> = { free: "Free", homeowner_pro: "Home Hero", multi_pro: "Home Super Hero" };
+// Derived from pricingTiers.ts (the single source of truth) instead of a
+// hand-copied map — this exact map used to be duplicated three times
+// (here, staff/Discounts.tsx, and ProRegister/MechanicRegister's own
+// versions) and had already drifted on the dashboard's upgrade-prompt copy.
+export const tierLabels: Record<string, string> = Object.fromEntries(homeownerTiers.map((t) => [t.key, t.name]));
 
 export const homeTypeLabels: Record<string, string> = {
   single_family: "Single Family",
@@ -47,36 +53,14 @@ export type JobStats = { total: number; pending: number; withBids: number; accep
 
 export type UpgradeTierConfig = { name: string; price: string; period: string; newFeatures: string[] };
 
-export const upgradeConfig: Record<string, UpgradeTierConfig> = {
-  homeowner_pro: {
-    name: "Home Hero",
-    price: "$5",
-    period: "/month",
-    newFeatures: [
-      "Unlimited job requests",
-      "AI job estimator (unlimited)",
-      "Advanced maintenance schedules",
-      "Priority pro matching",
-      "Emergency support channel",
-      "Digital Home Binder (5 items) + export",
-      "Coverage Advisor (AI-powered)",
-      "Seasonal checklists",
-      "Invite family — +$2/mo per person",
-    ],
-  },
-  multi_pro: {
-    name: "Home Super Hero",
-    price: "$20",
-    period: "/month",
-    newFeatures: [
-      "Up to 10 home profiles",
-      "View homes individually or all together",
-      "Unlimited Digital Home Binder entries",
-      "2 free family members with full access",
-      "+more from $5/mo per property",
-    ],
-  },
-};
+// Derived from pricingTiers.ts instead of a hand-copied feature list — the
+// old copy here had already drifted (it advertised a "+ export" Home Binder
+// feature that doesn't exist anywhere in the real, canonical feature list).
+export const upgradeConfig: Record<string, UpgradeTierConfig> = Object.fromEntries(
+  homeownerTiers
+    .filter((t) => t.monthlyUsd > 0)
+    .map((t) => [t.key, { name: t.name, price: formatUsd(t.monthlyUsd), period: "/month", newFeatures: t.features }])
+);
 
 export type HomeData = {
   id: string;

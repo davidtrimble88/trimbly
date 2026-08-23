@@ -14,6 +14,9 @@ import AccountSettingsDialog from "@/components/AccountSettingsDialog";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
 import BusinessInfoCard from "./BusinessInfoCard";
 import type { ProviderProfile } from "./types";
+import { BETA_FREE_ACCESS, formatUsd, providerTiers } from "@/lib/pricingTiers";
+
+const proTier = providerTiers.find((t) => t.key === "pro")!;
 
 interface ProProfileTabProps {
   provider: ProviderProfile;
@@ -64,13 +67,18 @@ const ProProfileTab = ({ provider, userId, onEditProfile, onUpdated }: ProProfil
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <Crown size={20} className="text-primary" />
-                  <h3 className="text-lg font-bold text-foreground">Upgrade to Pro</h3>
-                  <Badge className="bg-primary text-primary-foreground text-xs">$29/mo</Badge>
+                  <h3 className="text-lg font-bold text-foreground">Upgrade to {proTier.name}</h3>
+                  <Badge className="bg-primary text-primary-foreground text-xs">
+                    {BETA_FREE_ACCESS ? "Free during beta" : `${formatUsd(proTier.monthlyUsd)}/mo`}
+                  </Badge>
                 </div>
+                {BETA_FREE_ACCESS && (
+                  <p className="text-xs text-muted-foreground mb-3">Regularly {formatUsd(proTier.monthlyUsd)}/mo — no payment needed while Trimbly is in beta.</p>
+                )}
                 <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-foreground">
-                  {["Direct messaging with homeowners", "Priority search placement", "Verified Pro badge", "Job management tools"].map(f => (
+                  {proTier.features.map((f) => (
                     <li key={f} className="flex items-center gap-2">
                       <CheckCircle size={14} className="text-primary shrink-0" /> {f}
                     </li>

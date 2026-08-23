@@ -14,6 +14,7 @@ import AttentionList from "@/components/dashboard/AttentionList";
 import HomeSelectorStrip from "./HomeSelectorStrip";
 import GarageAnalyticsSection from "./GarageAnalyticsSection";
 import { upgradeConfig, type JobStats, type HomeData, type HomeStats, type TaskRow } from "./types";
+import { BETA_FREE_ACCESS } from "@/lib/pricingTiers";
 
 interface HomeownerOverviewTabProps {
   jobStats: JobStats;
@@ -238,7 +239,11 @@ const HomeownerOverviewTab = ({
       <UpgradeGate
         hasAccess={subscriptionTier === "multi_pro"}
         featureName={`Unlock ${cfg.name}`}
-        description={`${cfg.price}${cfg.period} — here's what you'll get by upgrading.`}
+        description={
+          BETA_FREE_ACCESS
+            ? `Free during the beta — regularly ${cfg.price}${cfg.period}. Here's what you'll get.`
+            : `${cfg.price}${cfg.period} — here's what you'll get by upgrading.`
+        }
         benefits={cfg.newFeatures}
         pricingRoute="/#pricing"
       >

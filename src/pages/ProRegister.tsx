@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { startProviderSubscriptionCheckout } from "@/lib/billing";
 import { validatePassword, PASSWORD_MIN } from "@/lib/passwordPolicy";
 import { TosAgreement } from "@/components/TosAgreement";
+import { providerTiers } from "@/lib/pricingTiers";
 
 const categories = [
   "General Contractor", "Plumbing", "Electrical", "HVAC", "Roofing", "Painting",
@@ -23,11 +24,14 @@ const categories = [
   "Carpentry", "Masonry", "Windows & Doors", "Appliance Repair", "Other",
 ];
 
-
-const tierLabels: Record<string, { label: string; icon: typeof Star; color: string }> = {
-  free: { label: "Free", icon: Star, color: "secondary" },
-  pro: { label: "Pro", icon: Zap, color: "default" },
-};
+// Name + icon derived from pricingTiers.ts (the single source of truth)
+// instead of a hand-copied map — this used to show "Pro Plan" here right
+// after the pricing page (which reads providerTiers directly) showed
+// "Pro Provider", a real, already-live inconsistency one click apart.
+const tierColors: Record<string, string> = { free: "secondary", pro: "default" };
+const tierLabels: Record<string, { label: string; icon: typeof Star; color: string }> = Object.fromEntries(
+  providerTiers.map((t) => [t.key, { label: t.name, icon: t.icon, color: tierColors[t.key] || "default" }])
+);
 
 const ProRegister = () => {
   const { user, signUp } = useAuth();
