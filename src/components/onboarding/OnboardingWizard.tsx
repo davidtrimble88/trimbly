@@ -88,7 +88,15 @@ export function OnboardingWizard({ open, userId, onComplete, onSkip }: Props) {
       return;
     }
     if (step === 2) {
-      if (!city.trim() || !state.trim()) return toast({ title: "Add your address (or city and state) so we can tailor maintenance", variant: "destructive" });
+      if (!city.trim() || !state.trim()) {
+        // Reveal the editable City/State fields right away instead of just
+        // toasting an error with no visible next step — this is the fix for
+        // users getting "stuck" after typing an address but never clicking
+        // Look up (or when lookup fails on an address with no comma).
+        setLookedUp(true);
+        toast({ title: "Add city and state below to continue", description: "Fill them in manually, or use Look up to auto-fill from your street address.", variant: "destructive" });
+        return;
+      }
       setBusy(true);
       try {
         // Street address isn't its own field in this wizard's UI — reuse the

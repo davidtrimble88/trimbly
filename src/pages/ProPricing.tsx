@@ -179,24 +179,19 @@ const ProPricing = () => {
                   <tier.icon size={20} className="text-primary" />
                 </div>
                 <h3 className="font-bold text-xl text-card-foreground">{tier.name}</h3>
-                <div className="flex items-baseline gap-1 mt-3 mb-1">
-                  {BETA_FREE_ACCESS && tier.tier === "pro" ? (
-                    <>
-                      <span className="text-4xl font-extrabold text-card-foreground">Free</span>
-                      <span className="text-muted-foreground text-sm">during beta</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-4xl font-extrabold text-card-foreground">{tier.price}</span>
-                      {tier.period && <span className="text-muted-foreground text-sm">{tier.period} USD</span>}
-                    </>
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 mt-3 mb-1">
+                  <span className="text-4xl font-extrabold text-card-foreground">{tier.price}</span>
+                  {tier.period && <span className="text-muted-foreground text-sm">{tier.period} USD</span>}
+                  {BETA_FREE_ACCESS && tier.tier === "pro" && (
+                    <span className="inline-flex items-center rounded-full bg-primary/10 text-primary text-xs font-bold px-2.5 py-1">
+                      Free during beta
+                    </span>
                   )}
                 </div>
-                {!(BETA_FREE_ACCESS && tier.tier === "pro") && (
+                {BETA_FREE_ACCESS && tier.tier === "pro" ? (
+                  <p className="text-xs text-muted-foreground mb-3">No payment needed while Trimbly is in beta — this is what it'll cost after.</p>
+                ) : (
                   <p className="text-xs text-muted-foreground mb-3">≈ {tier.cadPrice}{tier.period ? ` ${tier.period} CAD` : " CAD"}</p>
-                )}
-                {BETA_FREE_ACCESS && tier.tier === "pro" && (
-                  <p className="text-xs text-muted-foreground mb-3">Regularly {tier.price}{tier.period} — free while Trimbly is in beta</p>
                 )}
                 <p className="text-sm text-muted-foreground mb-6">{tier.description}</p>
                 <ul className="space-y-3 mb-8">

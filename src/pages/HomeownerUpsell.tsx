@@ -50,7 +50,10 @@ const tiers = [
     features: [
       "Everything in Home Hero",
       "Up to 10 homes",
-      "Unlimited Home Binder items",
+      "View homes individually or all together",
+      "Unlimited Home Binder items (vs. 5)",
+      "Multi-home maintenance dashboard",
+      "Priority pro matching",
       "Emergency support priority",
       "2 free family members with full access",
       "More members from $5/mo",
@@ -208,21 +211,17 @@ export default function HomeownerUpsell() {
                 </div>
 
                 <h3 className="font-bold text-xl text-card-foreground">{tier.name}</h3>
-                <div className="flex items-baseline gap-1 mt-2 mb-1">
-                  {BETA_FREE_ACCESS ? (
-                    <>
-                      <span className="text-4xl font-extrabold text-card-foreground">Free</span>
-                      <span className="text-muted-foreground text-sm">during beta</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-4xl font-extrabold text-card-foreground">{tier.price}</span>
-                      {tier.period && <span className="text-muted-foreground text-sm">{tier.period} USD</span>}
-                    </>
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 mt-2 mb-1">
+                  <span className="text-4xl font-extrabold text-card-foreground">{tier.price}</span>
+                  {tier.period && <span className="text-muted-foreground text-sm">{tier.period} USD</span>}
+                  {BETA_FREE_ACCESS && (
+                    <span className="inline-flex items-center rounded-full bg-primary/10 text-primary text-xs font-bold px-2.5 py-1">
+                      Free during beta
+                    </span>
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground mb-3">
-                  {BETA_FREE_ACCESS ? `Regularly ${tier.price}${tier.period} — free while Trimbly is in beta` : `≈ ${tier.cadPrice} ${tier.period} CAD`}
+                  {BETA_FREE_ACCESS ? "No payment needed while Trimbly is in beta — this is what it'll cost after." : `≈ ${tier.cadPrice} ${tier.period} CAD`}
                 </p>
                 <p className="text-sm text-muted-foreground mb-6">{tier.description}</p>
 
