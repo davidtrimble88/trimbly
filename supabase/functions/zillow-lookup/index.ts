@@ -161,45 +161,54 @@ Deno.serve(async (req) => {
 
     console.log('Found Zillow URL:', propertyResult.url);
 
-    // Scrape the listing as markdown, then extract with AI (Firecrawl's legacy
-    // `extract` format returns empty objects, which left every field blank).
-    let markdown = '';
-    try {
-      const scrapeResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: propertyResult.url, formats: ['markdown'], onlyMainContent: true, waitFor: 3000 }),
-      });
-      const scrapeData = await scrapeResponse.json();
-      markdown = scrapeData?.data?.markdown || scrapeData?.markdown || '';
-    } catch (e) {
-      console.error('Scrape failed:', e);
-    }
-
-    // Separate scrape for the hero photo, requesting the rawHtml format
-    // specifically — Firecrawl's cleaned 'html' format strips <script>
-    // tags, but the gallery's photo array is embedded as JSON inside one
-    // (__NEXT_DATA__), so only rawHtml preserves it. See _shared/zillowPhoto.ts.
+    // Scrape the listing as markdown (for AI field extraction) and, separately,
+    // as rawHtml (for the hero photo — Firecrawl's cleaned 'html' format strips
+    // <script> tags, but the gallery's photo array is embedded as JSON inside
+    // one (__NEXT_DATA__), so only rawHtml preserves it; see
+    // _shared/zillowPhoto.ts). These two scrapes are independent requests
+    // against the same URL, so run them concurrently instead of back-to-back —
+    // each one already waits 3s for the page to render, and doing that twice
+    // in sequence was most of why this lookup felt like it had hung.
     //
-    // Only attempt this against an actual /homedetails/ listing page — the
-    // field-extraction fallback above will use any Zillow result (a city
-    // search page, say) when no exact listing matched, which is fine for
-    // guessing at home_type/year_built but would grab a photo of the wrong
-    // house entirely, so skip the photo step in that case.
-    let photoUrl: string | null = null;
-    if (propertyResult.url.includes('zillow.com/homedetails')) {
+    // The photo scrape is only attempted against an actual /homedetails/
+    // listing page — the field-extraction fallback below will use any Zillow
+    // result (a city search page, say) when no exact listing matched, which is
+    // fine for guessing at home_type/year_built but would grab a photo of the
+    // wrong house entirely, so skip the photo step in that case.
+    const isListingPage = propertyResult.url.includes('zillow.com/homedetails');
+
+    const scrapeMarkdown = async (): Promise<string> => {
       try {
-        const photoScrapeResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
+        const res = await fetch('https://api.firecrawl.dev/v1/scrape', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: propertyResult.url, formats: ['markdown'], onlyMainContent: true, waitFor: 3000 }),
+        });
+        const data = await res.json();
+        return data?.data?.markdown || data?.markdown || '';
+      } catch (e) {
+        console.error('Scrape failed:', e);
+        return '';
+      }
+    };
+
+    const scrapePhoto = async (): Promise<string | null> => {
+      if (!isListingPage) return null;
+      try {
+        const res = await fetch('https://api.firecrawl.dev/v1/scrape', {
           method: 'POST',
           headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: propertyResult.url, formats: ['rawHtml'], onlyMainContent: false, waitFor: 3000 }),
         });
-        const photoScrapeData = await photoScrapeResponse.json();
-        photoUrl = extractHeroPhoto(photoScrapeData);
+        const data = await res.json();
+        return extractHeroPhoto(data);
       } catch (e) {
         console.error('Photo scrape failed:', e);
+        return null;
       }
-    }
+    };
+
+    let [markdown, photoUrl] = await Promise.all([scrapeMarkdown(), scrapePhoto()]);
 
     // Fall back to the search snippet if the page couldn't be scraped.
     if (!markdown) markdown = [propertyResult.title, propertyResult.description].filter(Boolean).join('\n');

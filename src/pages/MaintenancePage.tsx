@@ -993,6 +993,12 @@ const MaintenancePage = () => {
                           {lookingUpAddress ? "Looking up…" : "Look Up"}
                         </Button>
                       </div>
+                      {lookingUpAddress && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <Loader2 size={12} className="animate-spin shrink-0" />
+                          Searching Zillow and reading the listing — this can take up to 30 seconds, hang tight.
+                        </p>
+                      )}
                       {addressLookedUp && (
                         <div className="space-y-2">
                           {home.photo_url && (

@@ -14,7 +14,6 @@ import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
-import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { NotificationPermissionPrompt } from "@/components/NotificationPermissionPrompt";
 import { ReviewPromptDialog } from "@/components/ReviewPromptDialog";
 import { TestingAccountBanner } from "@/components/TestingAccountBanner";
@@ -68,7 +67,6 @@ const Dashboard = () => {
   const [allBinderItems, setAllBinderItems] = useState<BinderRow[]>([]);
   const [drilldown, setDrilldown] = useState<DrilldownInfo | null>(null);
   const [jobStats, setJobStats] = useState<JobStats>({ total: 0, pending: 0, withBids: 0, accepted: 0, completed: 0 });
-  const [showWizard, setShowWizard] = useState(false);
   const [replayTour, setReplayTour] = useState<(() => void) | null>(null);
 
   useEffect(() => {
@@ -176,12 +174,7 @@ const Dashboard = () => {
     const homesList = (homesData as unknown as HomeData[]) || [];
     setHomes(homesList);
 
-    const ownedCount = homesList.filter(h => h.user_id === user.id).length;
-    if (ownedCount === 0) {
-      const skipped = localStorage.getItem("hh_wizard_skipped");
-      if (!skipped) setShowWizard(true);
-      if (homesList.length === 0) { setLoadingHomes(false); return; }
-    }
+    if (homesList.length === 0) { setLoadingHomes(false); return; }
 
     const homeIds = homesList.map(h => h.id);
 
@@ -326,7 +319,7 @@ const Dashboard = () => {
     <>
       <OnboardingTour
         storageKey={`hh-tour-homeowner-${user.id}`}
-        suppressAutoOpen={loadingHomes || showWizard}
+        suppressAutoOpen={loadingHomes}
         intro={{
           title: `Welcome to Trimbly, ${displayName?.split(" ")[0] || "friend"}!`,
           body: "Let's take a quick tour of your dashboard so you know where everything lives. It'll only take a minute.",
@@ -343,14 +336,6 @@ const Dashboard = () => {
         ]}
         onReplayReady={(replay) => setReplayTour(() => replay)}
       />
-      {user && (
-        <OnboardingWizard
-          open={showWizard}
-          userId={user.id}
-          onComplete={(id) => { setShowWizard(false); loadHomesAndStats(); }}
-          onSkip={() => { setShowWizard(false); localStorage.setItem("hh_wizard_skipped", "1"); }}
-        />
-      )}
       <DashboardShell
         brandLabel="My Home"
         navItems={navItems}
@@ -402,7 +387,7 @@ const Dashboard = () => {
                   : unreadMessages > 0
                     ? { label: "Read messages", icon: MessageSquare, onClick: () => navigate("/messages") }
                     : homes.length === 0
-                      ? { label: "Add your first home", icon: Home, onClick: () => setShowWizard(true) }
+                      ? { label: "Add your first home", icon: Home, onClick: () => navigate("/maintenance?onboarding=1") }
                       : undefined
               }
               weatherSlot={homes.length > 0 ? <CurrentWeatherChip homeId={homes[0].id} /> : undefined}
@@ -435,7 +420,7 @@ const Dashboard = () => {
               maxHomes={maxHomes}
               isPro={isPro}
               currentUserId={user.id}
-              onAddHome={() => setShowWizard(true)}
+              onAddHome={() => navigate("/maintenance?onboarding=1")}
               onEditHome={startEdit}
               onDeleteHome={setDeletingHome}
               onDrilldown={setDrilldown}
