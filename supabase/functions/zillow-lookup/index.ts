@@ -76,8 +76,8 @@ async function extractWithAI(markdown: string): Promise<Record<string, unknown>>
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: 'Extract property facts from the Zillow listing text. Only use facts stated in the text. Use null when unknown.' },
-          { role: 'user', content: markdown.slice(0, 30000) },
+          { role: 'system', content: 'Extract property facts from the Zillow listing text. The page includes a "Facts and features" / "Home details" section with construction, cooling, heating, parking, and lot info — check there specifically for roof_type and hvac_type. Only use facts stated in the text. Use null when unknown.' },
+          { role: 'user', content: markdown.slice(0, 60000) },
         ],
         tools: [{
           type: 'function',
@@ -91,8 +91,8 @@ async function extractWithAI(markdown: string): Promise<Record<string, unknown>>
                 square_feet: { type: ['number', 'null'] },
                 city: { type: ['string', 'null'] },
                 state: { type: ['string', 'null'] },
-                hvac_type: { type: ['string', 'null'] },
-                roof_type: { type: ['string', 'null'] },
+                hvac_type: { type: ['string', 'null'], description: 'The heating/cooling system type. Zillow usually lists Heating and Cooling as two separate lines (e.g. Heating: "Forced Air, Gas", Cooling: "Central") — combine both lines when deciding this; if either mentions "central", use that.' },
+                roof_type: { type: ['string', 'null'], description: 'Roof material, from the Construction / Facts and features section (e.g. "Asphalt", "Composition Shingle").' },
                 has_pool: { type: ['boolean', 'null'] },
                 bedrooms: { type: ['number', 'null'] },
                 bathrooms: { type: ['number', 'null'] },
@@ -179,10 +179,17 @@ Deno.serve(async (req) => {
 
     const scrapeMarkdown = async (): Promise<string> => {
       try {
+        // onlyMainContent: false — Zillow's "Facts and features" block (roof,
+        // cooling/heating, parking, lot size, construction, etc., the same
+        // section shown under the listing's own "Home details" tab) sits
+        // outside whatever Firecrawl's main-content heuristic keeps, so the
+        // "cleaned" scrape was silently dropping it and the AI had nothing to
+        // extract those fields from. The photo scrape already uses false for
+        // the same kind of reason (see below).
         const res = await fetch('https://api.firecrawl.dev/v1/scrape', {
           method: 'POST',
           headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: propertyResult.url, formats: ['markdown'], onlyMainContent: true, waitFor: 3000 }),
+          body: JSON.stringify({ url: propertyResult.url, formats: ['markdown'], onlyMainContent: false, waitFor: 3000 }),
         });
         const data = await res.json();
         return data?.data?.markdown || data?.markdown || '';
