@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Loader2, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { uploadProfileImage } from "@/lib/profileImages";
+import { uploadProfileImage, MAX_PROFILE_IMAGE_BYTES } from "@/lib/profileImages";
 
 interface Props {
   userId: string;
@@ -22,7 +22,7 @@ const AvatarUpload = ({ userId, currentUrl, fallback, onUploaded, size = "md" }:
   const handle = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > MAX_PROFILE_IMAGE_BYTES) {
       toast({ title: "Image too large", description: "Max 5 MB.", variant: "destructive" });
       return;
     }

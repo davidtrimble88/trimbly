@@ -8,7 +8,7 @@ import { Camera, ExternalLink, Loader2, Save, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { uploadProfileImage, deleteProfileImage } from "@/lib/profileImages";
+import { uploadProfileImage, deleteProfileImage, MAX_PROFILE_IMAGE_BYTES } from "@/lib/profileImages";
 import AvatarUpload from "./AvatarUpload";
 
 interface Props {
@@ -60,15 +60,21 @@ const ProGalleryEditor = ({ userId, providerId, businessName }: Props) => {
     setUploading(true);
     try {
       const uploaded: string[] = [];
+      let skipped = 0;
       for (const file of files.slice(0, room)) {
-        if (file.size > 5 * 1024 * 1024) continue;
+        if (file.size > MAX_PROFILE_IMAGE_BYTES) { skipped++; continue; }
         const url = await uploadProfileImage(userId, file, "gallery");
         uploaded.push(url);
       }
       const next = [...gallery, ...uploaded];
       setGallery(next);
       await supabase.from("providers").update({ gallery_urls: next }).eq("id", providerId);
-      toast({ title: `${uploaded.length} photo${uploaded.length !== 1 ? "s" : ""} added` });
+      if (uploaded.length > 0) {
+        toast({ title: `${uploaded.length} photo${uploaded.length !== 1 ? "s" : ""} added` });
+      }
+      if (skipped > 0) {
+        toast({ title: `${skipped} photo${skipped !== 1 ? "s" : ""} too large`, description: "Max 5 MB per photo.", variant: "destructive" });
+      }
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
     } finally {

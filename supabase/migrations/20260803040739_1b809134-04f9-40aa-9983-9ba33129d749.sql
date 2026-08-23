@@ -4,9 +4,15 @@ FROM auth.users
 WHERE lower(email) = lower('davidharrisontrimble@icloud.com')
 ON CONFLICT (user_id, role) DO NOTHING;
 
+-- These two policies were already created by
+-- 20260729093000_admin_manage_pending_messages.sql; guarded with DROP
+-- POLICY IF EXISTS so replaying migrations from scratch doesn't fail with
+-- "policy already exists" (Postgres has no CREATE POLICY IF NOT EXISTS).
+DROP POLICY IF EXISTS "Admins can update any pending message" ON public.pending_messages;
 CREATE POLICY "Admins can update any pending message" ON public.pending_messages
 FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 
+DROP POLICY IF EXISTS "Admins can delete any pending message" ON public.pending_messages;
 CREATE POLICY "Admins can delete any pending message" ON public.pending_messages
 FOR DELETE TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 

@@ -1,5 +1,6 @@
 import { MessageSquare, Gavel, CheckCircle2, Users, Star, Activity as ActivityIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/EmptyState";
 import { useHomeownerActivity, type ActivityType } from "@/hooks/useHomeownerActivity";
 
 const iconFor: Record<ActivityType, typeof MessageSquare> = {
@@ -38,15 +39,11 @@ export default function ActivityFeedTab() {
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center text-center py-16 px-4">
-        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-5">
-          <ActivityIcon className="w-8 h-8 text-primary" />
-        </div>
-        <h3 className="font-display text-xl font-bold text-foreground mb-2">Nothing new yet</h3>
-        <p className="text-sm text-muted-foreground max-w-md">
-          Messages, bids, completed tasks, and anything else that changes will show up here.
-        </p>
-      </div>
+      <EmptyState
+        icon={ActivityIcon}
+        title="Nothing new yet"
+        description="Messages, bids, completed tasks, and anything else that changes will show up here."
+      />
     );
   }
 

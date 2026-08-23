@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { uploadProfileImage } from "@/lib/profileImages";
+import { uploadProfileImage, MAX_PROFILE_IMAGE_BYTES } from "@/lib/profileImages";
 
 interface VehiclePhotoUploadProps {
   userId: string;
@@ -28,7 +28,7 @@ export default function VehiclePhotoUpload({
   const handle = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > MAX_PROFILE_IMAGE_BYTES) {
       toast.error("Image too large — max 5 MB");
       return;
     }

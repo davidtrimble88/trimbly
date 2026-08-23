@@ -29,7 +29,7 @@ import { tierOrder, tierLabels, homeTypeLabels, hvacTypeOptions, roofTypeOptions
 import { taskUrgencyIconClasses } from "@/components/dashboard/homeowner/status";
 import CurrentWeatherChip from "@/components/home/CurrentWeatherChip";
 import UniversalSearch from "@/components/UniversalSearch";
-import { uploadProfileImage } from "@/lib/profileImages";
+import { uploadProfileImage, MAX_PROFILE_IMAGE_BYTES } from "@/lib/profileImages";
 import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare,
   Crown, Home, CheckCircle2, Shield, HelpCircle,
@@ -474,7 +474,7 @@ const Dashboard = () => {
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (!file || !user) return;
-                      if (file.size > 5 * 1024 * 1024) {
+                      if (file.size > MAX_PROFILE_IMAGE_BYTES) {
                         toast({ title: "Image too large", description: "Max 5 MB.", variant: "destructive" });
                         return;
                       }

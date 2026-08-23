@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ImagePlus, X, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { uploadJobMedia } from "@/lib/jobMedia";
 
 export default function JobPhotoUploader({
   value,
@@ -31,15 +31,11 @@ export default function JobPhotoUploader({
         toast({ title: "File too large", description: `${file.name} is over 8MB`, variant: "destructive" });
         continue;
       }
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error } = await supabase.storage.from("job-photos").upload(path, file, { contentType: file.type });
-      if (error) {
+      try {
+        urls.push(await uploadJobMedia(user.id, file));
+      } catch (error: any) {
         toast({ title: "Upload failed", description: error.message, variant: "destructive" });
-        continue;
       }
-      const { data } = supabase.storage.from("job-photos").getPublicUrl(path);
-      urls.push(data.publicUrl);
     }
     onChange([...value, ...urls]);
     setUploading(false);

@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { uploadProfileImage } from "@/lib/profileImages";
+import { uploadProfileImage, MAX_PROFILE_IMAGE_BYTES } from "@/lib/profileImages";
 
 interface Props {
   userId: string;
@@ -59,7 +59,7 @@ const ProfileEditor = ({ userId, displayName }: Props) => {
   const handleAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > MAX_PROFILE_IMAGE_BYTES) {
       toast({ title: "Image too large", description: "Max 5 MB.", variant: "destructive" });
       return;
     }

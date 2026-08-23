@@ -42,8 +42,16 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_testing_account boolean 
 
 -- ============================================================================
 -- Discount codes
+--
+-- The table/policy/trigger block below was already created by
+-- 20260809100000_discount_codes.sql; duplicated here verbatim with no
+-- guard, which breaks replaying migrations from scratch ("relation
+-- already exists"). Guarded with IF NOT EXISTS / DROP ... IF EXISTS so
+-- it's a no-op on the current database (which already has this table)
+-- and only matters for a fresh environment. The RPCs and column below
+-- this block are NOT duplicates — they're unique to this file.
 -- ============================================================================
-CREATE TABLE public.discount_codes (
+CREATE TABLE IF NOT EXISTS public.discount_codes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   code text NOT NULL UNIQUE,
   description text,
@@ -75,11 +83,13 @@ GRANT ALL ON public.discount_codes TO service_role;
 
 ALTER TABLE public.discount_codes ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Admins manage discount codes" ON public.discount_codes;
 CREATE POLICY "Admins manage discount codes" ON public.discount_codes
 FOR ALL TO authenticated
 USING (has_role(auth.uid(), 'admin'::app_role))
 WITH CHECK (has_role(auth.uid(), 'admin'::app_role));
 
+DROP TRIGGER IF EXISTS trg_discount_codes_updated ON public.discount_codes;
 CREATE TRIGGER trg_discount_codes_updated
   BEFORE UPDATE ON public.discount_codes
   FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
@@ -88,7 +98,7 @@ CREATE TRIGGER trg_discount_codes_updated
 -- and redeemed only through redeem_discount_code() below, so a regular user
 -- can never browse/enumerate active codes or see redemption counts.
 
-CREATE TABLE public.discount_code_redemptions (
+CREATE TABLE IF NOT EXISTS public.discount_code_redemptions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   code_id uuid NOT NULL REFERENCES public.discount_codes(id) ON DELETE CASCADE,
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -101,10 +111,12 @@ GRANT ALL ON public.discount_code_redemptions TO service_role;
 
 ALTER TABLE public.discount_code_redemptions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view own redemptions" ON public.discount_code_redemptions;
 CREATE POLICY "Users can view own redemptions" ON public.discount_code_redemptions
 FOR SELECT TO authenticated
 USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Admins view all redemptions" ON public.discount_code_redemptions;
 CREATE POLICY "Admins view all redemptions" ON public.discount_code_redemptions
 FOR SELECT TO authenticated
 USING (has_role(auth.uid(), 'admin'::app_role));

@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
 import { Video, X, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { uploadJobMedia } from "@/lib/jobMedia";
 
 const MAX_SECONDS = 30;
 const MAX_BYTES = 50 * 1024 * 1024; // 50MB
@@ -52,15 +52,7 @@ export default function JobVideoUploader({
         });
         return;
       }
-      const ext = file.name.split(".").pop() || "mp4";
-      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error } = await supabase.storage.from("job-photos").upload(path, file, { contentType: file.type });
-      if (error) {
-        toast({ title: "Upload failed", description: error.message, variant: "destructive" });
-        return;
-      }
-      const { data } = supabase.storage.from("job-photos").getPublicUrl(path);
-      onChange(data.publicUrl);
+      onChange(await uploadJobMedia(user.id, file));
     } catch (e: any) {
       toast({ title: "Upload error", description: e.message || "Could not upload video", variant: "destructive" });
     } finally {
