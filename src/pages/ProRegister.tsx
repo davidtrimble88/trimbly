@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { startProviderSubscriptionCheckout } from "@/lib/billing";
 import { validatePassword, PASSWORD_MIN } from "@/lib/passwordPolicy";
+import { TosAgreement } from "@/components/TosAgreement";
 
 const categories = [
   "General Contractor", "Plumbing", "Electrical", "HVAC", "Roofing", "Painting",
@@ -206,20 +207,7 @@ const ProRegister = () => {
                 <Input id="password" type="password" placeholder={`Min ${PASSWORD_MIN} characters`} value={authForm.password} onChange={e => setAuthForm(f => ({ ...f, password: e.target.value }))} required minLength={PASSWORD_MIN} />
                 <p className="text-xs text-muted-foreground">At least {PASSWORD_MIN} characters, with a letter and a number.</p>
               </div>
-              <label className="flex items-start gap-2.5 text-sm text-muted-foreground cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={acceptedTos}
-                  onChange={(e) => setAcceptedTos(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded border-border accent-primary"
-                />
-                <span>
-                  I agree to the{" "}
-                  <Link to="/terms" target="_blank" className="text-primary hover:underline font-medium">Terms of Service</Link>
-                  {" "}and{" "}
-                  <Link to="/privacy" target="_blank" className="text-primary hover:underline font-medium">Privacy Policy</Link>. I understand Trimbly is a marketplace only and is not responsible for the work I perform, disputes with homeowners, or AI-generated content.
-                </span>
-              </label>
+              <TosAgreement audience="provider" checked={acceptedTos} onCheckedChange={setAcceptedTos} />
               <Button type="submit" className="w-full" size="lg" disabled={loading || !acceptedTos}>
                 {loading ? <><Loader2 size={16} className="animate-spin mr-2" /> Creating account...</> : "Create Account"}
               </Button>

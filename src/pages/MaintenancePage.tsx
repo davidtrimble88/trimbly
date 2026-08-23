@@ -482,7 +482,19 @@ const MaintenancePage = () => {
       }
     }
 
-    await supabase.from("maintenance_tasks").update({ status: newStatus, completed_at: completedAt }).eq("id", task.id);
+    // .select() so a write blocked by RLS (a shared, non-owner viewer —
+    // maintenance_tasks is owner-only for writes) comes back as an empty
+    // array instead of silently "succeeding" with 0 rows affected, which
+    // was letting the UI show the task as toggled until the next reload.
+    const { data: updated, error: updateErr } = await supabase
+      .from("maintenance_tasks")
+      .update({ status: newStatus, completed_at: completedAt })
+      .eq("id", task.id)
+      .select("id");
+    if (updateErr || !updated || updated.length === 0) {
+      toast({ title: "Couldn't update task", description: "Only the home's owner can change tasks on a shared home.", variant: "destructive" });
+      return;
+    }
     setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus, completed_at: completedAt } : t));
 
     // If marking complete and task is recurring, create next cycle task (no duplicates)
@@ -533,7 +545,11 @@ const MaintenancePage = () => {
   };
 
   const deleteTask = async (taskId: string) => {
-    await supabase.from("maintenance_tasks").delete().eq("id", taskId);
+    const { data: deleted, error } = await supabase.from("maintenance_tasks").delete().eq("id", taskId).select("id");
+    if (error || !deleted || deleted.length === 0) {
+      toast({ title: "Couldn't delete task", description: "Only the home's owner can delete tasks on a shared home.", variant: "destructive" });
+      return;
+    }
     setTasks(prev => prev.filter(t => t.id !== taskId));
   };
 
@@ -638,7 +654,15 @@ const MaintenancePage = () => {
 
   const clearAllTasks = async () => {
     if (!home.id) return;
-    await supabase.from("maintenance_tasks").delete().eq("home_id", home.id);
+    const { data: deleted, error } = await supabase.from("maintenance_tasks").delete().eq("home_id", home.id).select("id");
+    if (error) {
+      toast({ title: "Couldn't clear tasks", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (!deleted || deleted.length === 0) {
+      toast({ title: "Couldn't clear tasks", description: "Only the home's owner can clear tasks on a shared home.", variant: "destructive" });
+      return;
+    }
     setTasks([]);
     toast({ title: "Tasks cleared", description: "All maintenance tasks have been removed." });
   };
@@ -1245,6 +1269,11 @@ const MaintenancePage = () => {
                       {/* Task List */}
                       <div className="space-y-3">
                         {filteredTasks.map(task => {
+                          // Shared (non-owner) viewers only have read access to a
+                          // home's tasks at the database level — hide the write
+                          // actions here instead of letting them click through to
+                          // a silently-denied, then-reverted write.
+                          const isOwnHome = !user || home.user_id === user.id;
                           const isOverdue = task.status !== "completed" && task.due_date && parseDateOnly(task.due_date) < new Date();
                           const taskSeason = seasonForDate(task.due_date);
                           const SeasonIcon = seasonIcons[taskSeason] || Clock;
@@ -1265,10 +1294,12 @@ const MaintenancePage = () => {
                                   />
                                 )}
                                 <button
-                                  onClick={() => toggleTask(task)}
-                                  aria-label={task.status === "completed" ? `Mark "${task.title}" as not done` : `Mark "${task.title}" as done`}
+                                  onClick={() => isOwnHome && toggleTask(task)}
+                                  disabled={!isOwnHome}
+                                  aria-label={!isOwnHome ? `"${task.title}" — read-only on a shared home` : task.status === "completed" ? `Mark "${task.title}" as not done` : `Mark "${task.title}" as done`}
                                   aria-pressed={task.status === "completed"}
-                                  className="mt-1 -m-2 p-2 shrink-0"
+                                  title={!isOwnHome ? "Only the home's owner can update tasks" : undefined}
+                                  className={`mt-1 -m-2 p-2 shrink-0 ${!isOwnHome ? "cursor-default" : ""}`}
                                 >
                                   <span
                                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
@@ -1325,8 +1356,8 @@ const MaintenancePage = () => {
                                       </span>
                                     )}
                                   </div>
-                                  {/* Mark Complete / Undo button */}
-                                  {task.status !== "completed" ? (
+                                  {/* Mark Complete / Undo button — read-only for a shared, non-owner home */}
+                                  {isOwnHome && (task.status !== "completed" ? (
                                     <Button
                                       variant="outline"
                                       size="sm"
@@ -1344,10 +1375,10 @@ const MaintenancePage = () => {
                                     >
                                       <RotateCcw size={12} /> Undo
                                     </Button>
-                                  )}
+                                  ))}
                                 </div>
                                 <div className="flex flex-col gap-1 shrink-0">
-                                  {task.status !== "completed" && (
+                                  {isOwnHome && task.status !== "completed" && (
                                     <button onClick={() => openEditTask(task)} aria-label={`Edit due date and frequency for "${task.title}"`} title="Edit due date / frequency" className="text-muted-foreground hover:text-primary transition-colors p-1.5 -m-1.5">
                                       <Pencil size={14} />
                                     </button>
@@ -1357,9 +1388,11 @@ const MaintenancePage = () => {
                                       <CalendarPlus size={14} />
                                     </button>
                                   )}
-                                  <button onClick={() => deleteTask(task.id)} aria-label={`Delete "${task.title}"`} title="Delete" className="text-muted-foreground hover:text-destructive transition-colors p-1.5 -m-1.5">
-                                    <Trash2 size={14} />
-                                  </button>
+                                  {isOwnHome && (
+                                    <button onClick={() => deleteTask(task.id)} aria-label={`Delete "${task.title}"`} title="Delete" className="text-muted-foreground hover:text-destructive transition-colors p-1.5 -m-1.5">
+                                      <Trash2 size={14} />
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                             </div>

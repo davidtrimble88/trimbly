@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { startProviderSubscriptionCheckout } from "@/lib/billing";
 import { validatePassword, PASSWORD_MIN } from "@/lib/passwordPolicy";
+import { TosAgreement } from "@/components/TosAgreement";
 
 const categories = [
   "Auto Repair", "Motorcycle Repair", "Mobile Mechanic", "Auto Body",
@@ -196,12 +197,7 @@ const MechanicRegister = () => {
                 <Input id="password" type="password" placeholder={`Min ${PASSWORD_MIN} characters`} value={authForm.password} onChange={e => setAuthForm(f => ({ ...f, password: e.target.value }))} required minLength={PASSWORD_MIN} />
                 <p className="text-xs text-muted-foreground">At least {PASSWORD_MIN} characters, with a letter and a number.</p>
               </div>
-              <label className="flex items-start gap-2.5 text-sm text-muted-foreground cursor-pointer">
-                <input type="checkbox" checked={acceptedTos} onChange={(e) => setAcceptedTos(e.target.checked)} className="mt-0.5 w-4 h-4 rounded border-border accent-primary" />
-                <span>
-                  I agree to the <Link to="/terms" target="_blank" className="text-primary hover:underline font-medium">Terms</Link> and <Link to="/privacy" target="_blank" className="text-primary hover:underline font-medium">Privacy Policy</Link>.
-                </span>
-              </label>
+              <TosAgreement audience="mechanic" checked={acceptedTos} onCheckedChange={setAcceptedTos} />
               <Button type="submit" className="w-full" size="lg" disabled={loading || !acceptedTos}>
                 {loading ? <><Loader2 size={16} className="animate-spin mr-2" /> Creating account...</> : "Create Account"}
               </Button>

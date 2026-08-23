@@ -9,6 +9,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import BrandMark from "@/components/BrandMark";
+import { TosAgreement } from "@/components/TosAgreement";
 import { validatePassword, PASSWORD_MIN } from "@/lib/passwordPolicy";
 
 type AuthMode = "login" | "signup" | "forgot";
@@ -417,20 +418,7 @@ function AuthForm({
       )}
 
       {mode === "signup" && (
-        <label className="flex items-start gap-2.5 text-sm text-muted-foreground cursor-pointer">
-          <input
-            type="checkbox"
-            checked={acceptedTos}
-            onChange={(e) => setAcceptedTos(e.target.checked)}
-            className="mt-0.5 w-4 h-4 rounded border-border accent-primary"
-          />
-          <span>
-            I agree to the{" "}
-            <Link to="/terms" target="_blank" className="text-primary hover:underline font-medium">Terms of Service</Link>
-            {" "}and{" "}
-            <Link to="/privacy" target="_blank" className="text-primary hover:underline font-medium">Privacy Policy</Link>, and I understand Trimbly is not responsible for services rendered by providers, AI-generated content, or any DIY work I choose to perform.
-          </span>
-        </label>
+        <TosAgreement audience="homeowner" checked={acceptedTos} onCheckedChange={setAcceptedTos} />
       )}
 
       <Button type="submit" className="w-full h-11" size="lg" disabled={loading || (mode === "signup" && !acceptedTos)}>

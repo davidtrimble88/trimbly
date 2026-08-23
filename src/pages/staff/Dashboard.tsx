@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Briefcase, ShieldCheck, MessageSquare, DollarSign, Inbox, TrendingUp, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { homeownerTiers, providerTiers } from "@/lib/pricingTiers";
 
 interface Stats {
   totalUsers: number;
@@ -23,10 +24,14 @@ interface Stats {
   verifiedProviders: number;
 }
 
+// Derived from pricingTiers.ts (the single source of truth) instead of a
+// hand-copied map — the copy this replaced had drifted to $10 for Home Hero
+// (real price $5) and referenced a nonexistent "multi_homeowner_pro" key,
+// silently turning the Home Super Hero row/total into NaN.
 const PRICING: Record<string, number> = {
-  homeowner_pro: 10,
-  multi_pro: 20,
-  pro: 29,
+  homeowner_pro: homeownerTiers.find((t) => t.key === "homeowner_pro")!.monthlyUsd,
+  multi_pro: homeownerTiers.find((t) => t.key === "multi_pro")!.monthlyUsd,
+  pro: providerTiers.find((t) => t.key === "pro")!.monthlyUsd,
 };
 
 const Dashboard = () => {
@@ -71,7 +76,7 @@ const Dashboard = () => {
 
   const mrr =
     stats.homeownerPro * PRICING.homeowner_pro +
-    stats.multiHomeownerPro * PRICING.multi_homeowner_pro +
+    stats.multiHomeownerPro * PRICING.multi_pro +
     stats.providerPro * PRICING.pro;
 
   const kpis = [
@@ -132,7 +137,7 @@ const Dashboard = () => {
               </thead>
               <tbody>
                 <SubRow name="Home Hero" audience="Homeowners" count={stats.homeownerPro} price={PRICING.homeowner_pro} />
-                <SubRow name="Home Super Hero" audience="Homeowners" count={stats.multiHomeownerPro} price={PRICING.multi_homeowner_pro} />
+                <SubRow name="Home Super Hero" audience="Homeowners" count={stats.multiHomeownerPro} price={PRICING.multi_pro} />
                 <SubRow name="Provider Pro" audience="Service Providers" count={stats.providerPro} price={PRICING.pro} />
                 <tr className="font-semibold bg-muted/40">
                   <td className="py-3 px-2" colSpan={2}>Total Recurring Revenue</td>

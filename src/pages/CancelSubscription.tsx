@@ -16,6 +16,7 @@ export default function CancelSubscription() {
   const navigate = useNavigate();
   const [tier, setTier] = useState<string>("free");
   const [userType, setUserType] = useState<string>("homeowner");
+  const [providerType, setProviderType] = useState<string>("pro");
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -28,9 +29,23 @@ export default function CancelSubscription() {
         .select("subscription_tier, user_type, full_name")
         .eq("id", user.id)
         .maybeSingle();
-      if (profile) {
+      if (!profile) return;
+      setUserType(profile.user_type ?? "homeowner");
+      // A provider/mechanic's real paid tier lives on their `providers` row,
+      // not `profiles` — reading only profiles.subscription_tier here always
+      // showed "Free" for a paying provider (it's never written for them),
+      // permanently disabling the cancel button for anyone who actually
+      // needed it.
+      if (profile.user_type === "provider") {
+        const { data: provider } = await supabase
+          .from("providers")
+          .select("subscription_tier, provider_type")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        setTier(provider?.subscription_tier ?? "free");
+        setProviderType(provider?.provider_type ?? "pro");
+      } else {
         setTier(profile.subscription_tier ?? "free");
-        setUserType(profile.user_type ?? "homeowner");
       }
     })();
   }, [user, loading, navigate]);
@@ -50,7 +65,8 @@ export default function CancelSubscription() {
       if (error) throw error;
       toast.success("Cancellation request received. Our team will reach out shortly.");
       setReason("");
-      setTimeout(() => navigate(userType === "provider" ? "/pro-dashboard" : "/dashboard"), 1500);
+      const dest = userType === "provider" ? (providerType === "mechanic" ? "/mechanic-dashboard" : "/pro-dashboard") : "/dashboard";
+      setTimeout(() => navigate(dest), 1500);
     } catch (e: any) {
       toast.error(e.message ?? "Failed to submit request");
     } finally {

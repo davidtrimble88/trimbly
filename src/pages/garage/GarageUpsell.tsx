@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Car, Wrench, FileText, Bell, Bike, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState } from "react";
 import { startGarageCheckout } from "@/lib/billing";
+import { BETA_FREE_ACCESS } from "@/lib/pricingTiers";
 
 export default function GarageUpsell() {
   const { user } = useAuth();
@@ -25,6 +27,20 @@ export default function GarageUpsell() {
       return;
     }
     setActivating(true);
+    // Garage was the one add-on still running a real Stripe checkout during
+    // the free beta — every other tier already bypasses payment via its own
+    // set_own_*_tier RPC, so this mirrors that instead of charging a card.
+    if (BETA_FREE_ACCESS) {
+      const { data, error } = await supabase.rpc("set_own_garage_subscription" as any, { p_interval: billingInterval } as any);
+      setActivating(false);
+      if (error || !(data as any)?.success) {
+        toast.error((data as any)?.error || error?.message || "Couldn't activate My Garage");
+        return;
+      }
+      toast.success("My Garage activated — free during the beta.");
+      navigate("/garage");
+      return;
+    }
     const { url, error } = await startGarageCheckout(billingInterval);
     setActivating(false);
     if (error) {
@@ -77,14 +93,16 @@ export default function GarageUpsell() {
             </div>
             <div className="flex flex-wrap gap-3">
               <Button size="lg" onClick={startTrial} disabled={activating} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                {activating ? "Redirecting…" : "Start 14-day free trial"}
+                {activating ? "Activating…" : BETA_FREE_ACCESS ? "Add My Garage — free during beta" : "Start 14-day free trial"}
               </Button>
               <Button size="lg" className="bg-background text-foreground hover:bg-background/90" asChild>
                 <a href="#features">See what's inside</a>
               </Button>
             </div>
             <p className="text-xs text-background/60 mt-4">
-              {billingInterval === "monthly" ? `$${MONTHLY_PRICE}/mo` : `$${YEARLY_PRICE}/yr`} after your 14-day trial. Cancel anytime.
+              {BETA_FREE_ACCESS
+                ? `No payment needed while Trimbly is in beta — regularly ${billingInterval === "monthly" ? `$${MONTHLY_PRICE}/mo` : `$${YEARLY_PRICE}/yr`} after. Stacks on any plan, including Free.`
+                : `${billingInterval === "monthly" ? `$${MONTHLY_PRICE}/mo` : `$${YEARLY_PRICE}/yr`} after your 14-day trial. Cancel anytime.`}
             </p>
           </div>
         </section>
@@ -122,7 +140,11 @@ export default function GarageUpsell() {
             <PlanToggle />
           </div>
           <Button size="lg" onClick={startTrial} disabled={activating}>
-            {activating ? "Redirecting…" : `Start free trial — then $${billingInterval === "monthly" ? MONTHLY_PRICE + "/mo" : YEARLY_PRICE + "/yr"}`}
+            {activating
+              ? "Activating…"
+              : BETA_FREE_ACCESS
+                ? "Add My Garage — free during beta"
+                : `Start free trial — then $${billingInterval === "monthly" ? MONTHLY_PRICE + "/mo" : YEARLY_PRICE + "/yr"}`}
           </Button>
           {!user && (
             <p className="text-xs text-muted-foreground mt-3">

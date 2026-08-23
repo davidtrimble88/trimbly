@@ -61,7 +61,7 @@ const homeownerFeatures = [
   {
     icon: Car,
     title: "My Garage",
-    description: "The same AI diagnosis, coverage checks, and cost breakdowns — for your cars and motorcycles. Log service history, manage insurance & warranty docs, shop parts through Amazon, and find trusted mechanics. Add-on for +$2/month on any paid plan.",
+    description: "The same AI diagnosis, coverage checks, and cost breakdowns — for your cars and motorcycles. Log service history, manage insurance & warranty docs, shop parts through Amazon, and find trusted mechanics. Optional add-on for $3.99/month, stacks on any plan including Free.",
     tab: "garage",
   },
   {

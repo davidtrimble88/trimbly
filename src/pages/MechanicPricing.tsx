@@ -47,6 +47,22 @@ const MechanicPricing = () => {
       if (url) window.location.href = url;
       return;
     }
+    // An existing mechanic clicking Free (downgrading) was previously
+    // falling through to the registration flow below, which does a plain
+    // INSERT and hit a duplicate-key error against their existing row —
+    // "downgrade any time" didn't actually work. Downgrade in place instead.
+    if (tierKey === "free" && hasProvider) {
+      setUpgrading(true);
+      const { data, error } = await supabase.rpc("set_own_provider_tier" as any, { p_tier: "free" } as any);
+      setUpgrading(false);
+      if (error || !(data as any)?.success) {
+        toast({ title: "Couldn't switch to Free", description: (data as any)?.error || error?.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: "You're on the Free plan", description: "Downgraded — no further charges." });
+      navigate("/mechanic-dashboard");
+      return;
+    }
     navigate(`/mechanic-register?tier=${tierKey}`);
   };
 

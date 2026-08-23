@@ -50,6 +50,22 @@ const ProPricing = () => {
       if (url) window.location.href = url;
       return;
     }
+    // An existing pro clicking Free (downgrading) was previously falling
+    // through to the registration flow below, which does a plain INSERT and
+    // hit a duplicate-key error against their existing row — "downgrade any
+    // time" didn't actually work. Downgrade in place instead.
+    if (tierKey === "free" && hasProvider) {
+      setUpgrading(true);
+      const { data, error } = await supabase.rpc("set_own_provider_tier" as any, { p_tier: "free" } as any);
+      setUpgrading(false);
+      if (error || !(data as any)?.success) {
+        toast({ title: "Couldn't switch to Free", description: (data as any)?.error || error?.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: "You're on the Free plan", description: "Downgraded — no further charges." });
+      navigate("/pro-dashboard");
+      return;
+    }
     navigate(`/pro-register?tier=${tierKey}`);
   };
 
@@ -191,7 +207,7 @@ const ProPricing = () => {
                 ...(BETA_FREE_ACCESS
                   ? []
                   : [{ q: "What payment methods do you accept?", a: "We accept all major credit cards, debit cards, and ACH bank transfers." }]),
-                { q: "Do I need a license to register?", a: "While not required to create an account, we encourage all providers to add their license information. Licensed pros get a verified badge." },
+                { q: "Do I need a license to register?", a: "While not required to create an account, we encourage all providers to add their license information. To earn the Verified badge, you'll need to pass our one-time $29 verification — a background check plus a review of your license and insurance documents." },
               ].map(faq => (
                 <div key={faq.q} className="border border-border rounded-xl p-5">
                   <h3 className="font-semibold text-foreground mb-1">{faq.q}</h3>

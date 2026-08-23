@@ -331,7 +331,15 @@ const HomeBinder = () => {
       let newItemId: string | null = null;
 
       if (editingItem) {
-        await supabase.from("home_binder_items").update(row).eq("id", editingItem.id);
+        // .select() so a write blocked by RLS (a shared, non-owner viewer —
+        // home_binder_items is owner-only for writes) comes back as an empty
+        // array instead of silently "succeeding" with 0 rows affected.
+        const { data: updated, error: updateErr } = await supabase.from("home_binder_items").update(row).eq("id", editingItem.id).select("id");
+        if (updateErr || !updated || updated.length === 0) {
+          toast({ title: "Couldn't update item", description: "Only the home's owner can edit binder items on a shared home.", variant: "destructive" });
+          setSaving(false);
+          return;
+        }
         toast({ title: "Item updated" });
       } else if (isNewAppliance && isPro) {
         // Need the new row's id back so the maintenance tasks it generates
@@ -424,10 +432,18 @@ const HomeBinder = () => {
   };
 
   const deleteItem = async (item: BinderItem) => {
+    // Delete the row first — a shared, non-owner viewer's delete is blocked
+    // by RLS (empty array back, no error), and this used to unconditionally
+    // remove the storage document and show "Item deleted" regardless,
+    // orphaning the still-existing row's document.
+    const { data: deleted, error } = await supabase.from("home_binder_items").delete().eq("id", item.id).select("id");
+    if (error || !deleted || deleted.length === 0) {
+      toast({ title: "Couldn't delete item", description: "Only the home's owner can delete binder items on a shared home.", variant: "destructive" });
+      return;
+    }
     if (item.document_url) {
       await supabase.storage.from("binder-docs").remove([item.document_url]);
     }
-    await supabase.from("home_binder_items").delete().eq("id", item.id);
     setItems(prev => prev.filter(i => i.id !== item.id));
     toast({ title: "Item deleted" });
   };
@@ -641,13 +657,25 @@ const HomeBinder = () => {
                             </span>
                             <Badge variant="secondary" className="text-[10px]">{typeInfo.label}</Badge>
                           </div>
+                          {/* isOwnHome is only ever definitively false for a real
+                              shared, non-owner viewer of a single home — hide
+                              the write actions there instead of letting them
+                              click through to a silently-denied write. Leave
+                              them visible in the "all homes" / loading cases
+                              (undefined), where per-item ownership isn't known
+                              here and the backend write check still protects
+                              the data either way. */}
                           <div className="flex gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => openEdit(item)} aria-label={`Edit ${item.name}`} className="text-muted-foreground hover:text-foreground p-1.5 -m-0.5">
-                              <Pencil size={14} />
-                            </button>
-                            <button onClick={() => deleteItem(item)} aria-label={`Delete ${item.name}`} className="text-muted-foreground hover:text-destructive p-1.5 -m-0.5">
-                              <Trash2 size={14} />
-                            </button>
+                            {isOwnHome !== false && (
+                              <button onClick={() => openEdit(item)} aria-label={`Edit ${item.name}`} className="text-muted-foreground hover:text-foreground p-1.5 -m-0.5">
+                                <Pencil size={14} />
+                              </button>
+                            )}
+                            {isOwnHome !== false && (
+                              <button onClick={() => deleteItem(item)} aria-label={`Delete ${item.name}`} className="text-muted-foreground hover:text-destructive p-1.5 -m-0.5">
+                                <Trash2 size={14} />
+                              </button>
+                            )}
                           </div>
                         </div>
 

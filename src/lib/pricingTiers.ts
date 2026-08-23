@@ -100,7 +100,6 @@ export const homeownerTiers: PricingTier[] = [
       "Emergency support channel",
       "2 free family members with full access",
       "More members from $5/mo",
-      "Add My Garage add-on for +$2/month",
     ],
     highlighted: false,
     ctaFree: "Start Free Trial",
