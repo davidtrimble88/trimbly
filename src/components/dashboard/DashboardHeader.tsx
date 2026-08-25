@@ -1,4 +1,5 @@
-import { LucideIcon, MoreVertical, Pencil, ExternalLink, Zap, LogOut } from "lucide-react";
+import { useState } from "react";
+import { LucideIcon, MoreVertical, Pencil, ExternalLink, Zap, LogOut, Smartphone } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
 import NotificationBell from "./NotificationBell";
+import InstallAppDialog from "@/components/InstallAppDialog";
 
 interface DashboardHeaderProps {
   avatarIcon: LucideIcon;
@@ -34,6 +36,7 @@ const DashboardHeader = ({
 }: DashboardHeaderProps) => {
   const { signOut, avatarUrl } = useAuth();
   const navigate = useNavigate();
+  const [installOpen, setInstallOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -74,6 +77,9 @@ const DashboardHeader = ({
             <ExternalLink size={14} className="mr-1.5" /> View Public Profile
           </Button>
         )}
+        <Button variant="outline" size="sm" className="hidden md:inline-flex rounded-lg gap-1.5" onClick={() => setInstallOpen(true)}>
+          <Smartphone size={14} /> Download App
+        </Button>
         <NotificationBell />
         <ThemeToggle />
         <DropdownMenu>
@@ -99,12 +105,17 @@ const DashboardHeader = ({
             )}
             {extraMenuItems}
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setInstallOpen(true)}>
+              <Smartphone size={14} className="mr-2" /> Download App
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut}>
               <LogOut size={14} className="mr-2" /> Sign Out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <InstallAppDialog open={installOpen} onOpenChange={setInstallOpen} />
     </header>
   );
 };
