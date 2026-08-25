@@ -34,10 +34,13 @@ export default function JoinHome() {
   const [accepting, setAccepting] = useState(false);
 
   useEffect(() => {
+    // The preview RPC is only callable by signed-in users, so logged-out
+    // visitors see the generic sign-in card below instead.
+    if (authLoading || !user) return;
     supabase.rpc("get_invite_preview" as any, { p_token: token } as any).then(({ data, error }) => {
       setPreview((data as Preview) || { success: false, error: error?.message || "Something went wrong" });
     });
-  }, [token]);
+  }, [token, user, authLoading]);
 
   const accept = async () => {
     setAccepting(true);
@@ -62,12 +65,33 @@ export default function JoinHome() {
       <Navbar minimal />
       <main className="flex-1 flex items-center justify-center px-4 py-16">
         <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 text-center">
-          {!preview ? (
+          {authLoading ? (
+            <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
+          ) : !user ? (
+            <>
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Users className="w-6 h-6 text-primary" />
+              </div>
+              <h1 className="text-2xl font-bold text-foreground mb-1 font-display">You've been invited to Trimbly</h1>
+              <p className="text-sm text-muted-foreground mb-6">
+                Sign in or create your free account to see the invite details and accept it.
+              </p>
+              <div className="space-y-2">
+                <Button asChild className="w-full" size="lg">
+                  <Link to={`/auth?mode=signup&redirect=${encodeURIComponent(redirectParam)}`}>Sign up to accept</Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full">
+                  <Link to={`/auth?redirect=${encodeURIComponent(redirectParam)}`}>I already have an account</Link>
+                </Button>
+              </div>
+            </>
+          ) : !preview ? (
             <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
           ) : !preview.success ? (
             <>
               <AlertCircle className="w-10 h-10 text-destructive mx-auto mb-3" />
               <h1 className="text-xl font-bold text-foreground mb-1">This invite isn't valid</h1>
+
               <p className="text-sm text-muted-foreground mb-6">{preview.error}</p>
               <Button asChild variant="outline"><Link to="/">Back to home</Link></Button>
             </>
