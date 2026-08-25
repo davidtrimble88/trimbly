@@ -215,9 +215,9 @@ export default function StaffDiscounts() {
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">No tier change</SelectItem>
-                  <SelectItem value="free">Free</SelectItem>
-                  <SelectItem value="homeowner_pro">Home Hero</SelectItem>
-                  <SelectItem value="multi_pro">Home Super Hero</SelectItem>
+                  {Object.entries(tierLabels).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -227,9 +227,9 @@ export default function StaffDiscounts() {
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">No tier change</SelectItem>
-                  <SelectItem value="free">Free</SelectItem>
-                  <SelectItem value="pro">Pro</SelectItem>
-                  <SelectItem value="elite">Elite</SelectItem>
+                  {Object.entries(providerTierLabels).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

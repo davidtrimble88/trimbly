@@ -82,7 +82,7 @@ const MechanicRegister = () => {
         user_type: "provider",
       });
       if (error) toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
-      else toast({ title: "Check your email", description: "Verify your email, then come back to finish your shop profile." });
+      else toast({ title: "Account created!", description: "Let's set up your shop profile." });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
