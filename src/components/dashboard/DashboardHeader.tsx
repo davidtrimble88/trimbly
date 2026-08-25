@@ -77,6 +77,9 @@ const DashboardHeader = ({
             <ExternalLink size={14} className="mr-1.5" /> View Public Profile
           </Button>
         )}
+        <Button variant="outline" size="sm" className="hidden md:inline-flex rounded-lg gap-1.5" onClick={() => setInstallOpen(true)}>
+          <Smartphone size={14} /> Download App
+        </Button>
         <NotificationBell />
         <ThemeToggle />
         <DropdownMenu>
