@@ -167,6 +167,7 @@ const App = () => (
             <Route path="/pro-pricing" element={<ProPricing />} />
             <Route path="/pro-register" element={<ProRegister />} />
             <Route path="/homeowner-upsell" element={<HomeownerUpsell />} />
+            <Route path="/testing-notice" element={<TestingNotice />} />
             <Route path="/about" element={<About />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
