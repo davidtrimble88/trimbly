@@ -231,10 +231,25 @@ function AuthForm({
         ? trimmedEmail
         : `${trimmedEmail.toLowerCase()}@staff.trimbly.internal`;
       const { error } = await signIn(loginEmail, form.password);
+      // During the testing period, send testers through the beta notice once
+      // per browser before dropping them at their destination.
+      const goAfterLogin = (dest: string) => {
+        let acked = false;
+        try {
+          acked = localStorage.getItem(TESTING_NOTICE_ACK_KEY) === "1";
+        } catch {
+          acked = false;
+        }
+        if (acked || loginEmail.endsWith("@staff.trimbly.internal")) {
+          navigate(dest);
+        } else {
+          navigate(`/testing-notice?next=${encodeURIComponent(dest)}`);
+        }
+      };
       if (error) {
         toast({ title: "Login failed", description: error.message, variant: "destructive" });
       } else if (redirect) {
-        navigate(redirect);
+        goAfterLogin(redirect);
       } else {
         const { data: { user: authUser } } = await supabase.auth.getUser();
         const uid = authUser?.id || "";
@@ -261,9 +276,9 @@ function AuthForm({
             .select("provider_type")
             .eq("user_id", uid)
             .maybeSingle();
-          navigate((prov as any)?.provider_type === "mechanic" ? "/mechanic-dashboard" : "/pro-dashboard");
+          goAfterLogin((prov as any)?.provider_type === "mechanic" ? "/mechanic-dashboard" : "/pro-dashboard");
         } else {
-          navigate("/dashboard");
+          goAfterLogin("/dashboard");
         }
       }
     } catch (err: any) {
