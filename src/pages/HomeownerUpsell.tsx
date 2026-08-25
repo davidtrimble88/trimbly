@@ -24,6 +24,10 @@ export default function HomeownerUpsell() {
   const [discountCode, setDiscountCode] = useState("");
   const [redeeming, setRedeeming] = useState(false);
   const [showTestingWelcome, setShowTestingWelcome] = useState(false);
+  // Set once a code with no fixed tier baked in ("No tier change" for both
+  // fields in the staff UI) has been validated — it's applied to whichever
+  // plan the user actually picks below, rather than a tier chosen up front.
+  const [pendingFlexCode, setPendingFlexCode] = useState<string | null>(null);
 
   const onboarding = searchParams.get("onboarding") === "1";
 
@@ -39,10 +43,29 @@ export default function HomeownerUpsell() {
     setLoadingTier(tierKey);
 
     try {
+      let appliedViaCode = false;
+      if (tierKey !== "free" && user && pendingFlexCode) {
+        // A flexible code was validated earlier but never redeemed — redeem
+        // it now for the specific plan just picked, instead of the normal
+        // free-during-beta bypass.
+        const { data, error } = await supabase.rpc("redeem_discount_code" as any, {
+          p_code: pendingFlexCode, p_target_tier: tierKey,
+        } as any);
+        const result = data as any;
+        setPendingFlexCode(null);
+        if (error || !result?.success) {
+          toast({ title: "Code didn't apply", description: result?.error || error?.message || "Continuing without it.", variant: "destructive" });
+          // Fall through to the normal free-during-beta path below rather
+          // than blocking the plan they picked over a code issue.
+        } else {
+          appliedViaCode = true;
+        }
+      }
+
       // Early-access tier selection — no real checkout exists yet, so this
       // just records the choice via a scoped RPC (a user may only set their
       // OWN tier to one of the three real values; see set_own_subscription_tier).
-      if (tierKey !== "free" && user) {
+      if (tierKey !== "free" && user && !appliedViaCode) {
         const { data, error } = await supabase.rpc("set_own_subscription_tier" as any, { p_tier: tierKey } as any);
         if (error || !(data as any)?.success) {
           toast({ title: "Couldn't update your plan", description: (data as any)?.error || error?.message, variant: "destructive" });
@@ -72,27 +95,38 @@ export default function HomeownerUpsell() {
 
   const handleRedeemCode = async () => {
     if (!discountCode.trim() || !user) return;
+    const trimmedCode = discountCode.trim();
     setRedeeming(true);
     try {
-      const { data, error } = await supabase.rpc("redeem_discount_code" as any, { p_code: discountCode.trim() } as any);
+      // Validate only, without consuming the one-time-per-user redemption —
+      // a flexible code (no fixed tier) doesn't actually get redeemed until
+      // the user picks a plan below, in handleSelect.
+      const { data, error } = await supabase.rpc("validate_discount_code" as any, { p_code: trimmedCode } as any);
       const result = data as any;
       if (error || !result?.success) {
         toast({ title: "Code didn't work", description: result?.error || error?.message, variant: "destructive" });
         return;
       }
 
-      if (result.is_testing_code) {
-        // Skip payment/tier-selection entirely — the welcome modal handles
-        // the redirect once acknowledged.
-        setShowTestingWelcome(true);
-        return;
-      }
-
-      if (result.grants_tier) {
+      if (result.is_testing_code || result.grants_tier) {
+        // Fixed-tier / testing codes redeem immediately, exactly as before.
+        const { data: redeemData, error: redeemError } = await supabase.rpc("redeem_discount_code" as any, { p_code: trimmedCode } as any);
+        const redeemResult = redeemData as any;
+        if (redeemError || !redeemResult?.success) {
+          toast({ title: "Code didn't work", description: redeemResult?.error || redeemError?.message, variant: "destructive" });
+          return;
+        }
+        if (redeemResult.is_testing_code) {
+          // Skip payment/tier-selection entirely — the welcome modal handles
+          // the redirect once acknowledged.
+          setShowTestingWelcome(true);
+          return;
+        }
         toast({ title: "Code applied!", description: "Your plan has been upgraded — no payment needed." });
         goNext();
       } else {
-        toast({ title: "Code applied", description: "Your discount is recorded. Pick a plan below to continue." });
+        setPendingFlexCode(trimmedCode);
+        toast({ title: "Code applied", description: "Pick a plan below and it'll be applied automatically." });
       }
     } finally {
       setRedeeming(false);
@@ -139,6 +173,11 @@ export default function HomeownerUpsell() {
                   Apply
                 </Button>
               </div>
+              {pendingFlexCode && (
+                <p className="text-xs text-primary text-center mt-2">
+                  "{pendingFlexCode}" is ready — pick a plan below to apply it.
+                </p>
+              )}
             </div>
           )}
 

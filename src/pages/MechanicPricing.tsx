@@ -21,6 +21,9 @@ const MechanicPricing = () => {
   const [upgrading, setUpgrading] = useState(false);
   const [discountCode, setDiscountCode] = useState("");
   const [redeeming, setRedeeming] = useState(false);
+  // Set once a code with no fixed tier baked in has been validated — applied
+  // to whichever plan the user actually clicks below, not chosen up front.
+  const [pendingFlexCode, setPendingFlexCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) { setHasProvider(false); return; }
@@ -33,6 +36,22 @@ const MechanicPricing = () => {
   const handleSelect = async (tierKey: string) => {
     if (tierKey === "pro" && hasProvider) {
       setUpgrading(true);
+      if (pendingFlexCode) {
+        const code = pendingFlexCode;
+        setPendingFlexCode(null);
+        const { data, error } = await supabase.rpc("redeem_discount_code" as any, {
+          p_code: code, p_target_provider_tier: "pro",
+        } as any);
+        const result = data as any;
+        if (result?.success) {
+          setUpgrading(false);
+          toast({ title: "Pro Mechanic activated!", description: "Applied your discount code — no payment needed." });
+          navigate("/mechanic-dashboard");
+          return;
+        }
+        toast({ title: "Code didn't apply", description: result?.error || error?.message || "Continuing without it.", variant: "destructive" });
+        // Fall through to the normal beta/checkout path below.
+      }
       if (BETA_FREE_ACCESS) {
         const { data, error } = await supabase.rpc("set_own_provider_tier" as any, { p_tier: "pro" } as any);
         setUpgrading(false);
@@ -71,19 +90,30 @@ const MechanicPricing = () => {
 
   const handleRedeemCode = async () => {
     if (!discountCode.trim() || !user) return;
+    const trimmedCode = discountCode.trim();
     setRedeeming(true);
     try {
-      const { data, error } = await supabase.rpc("redeem_discount_code" as any, { p_code: discountCode.trim() } as any);
+      // Validate only — a flexible code (no fixed tier) doesn't get redeemed
+      // until the user clicks a plan below, so it doesn't burn the one
+      // redemption per user before they've picked anything.
+      const { data, error } = await supabase.rpc("validate_discount_code" as any, { p_code: trimmedCode } as any);
       const result = data as any;
       if (error || !result?.success) {
         toast({ title: "Code didn't work", description: result?.error || error?.message, variant: "destructive" });
         return;
       }
       if (result.grants_provider_tier || result.grants_tier) {
+        const { data: redeemData, error: redeemError } = await supabase.rpc("redeem_discount_code" as any, { p_code: trimmedCode } as any);
+        const redeemResult = redeemData as any;
+        if (redeemError || !redeemResult?.success) {
+          toast({ title: "Code didn't work", description: redeemResult?.error || redeemError?.message, variant: "destructive" });
+          return;
+        }
         toast({ title: "Code applied!", description: "Your plan has been upgraded — no payment needed." });
         navigate(hasProvider ? "/mechanic-dashboard" : "/mechanic-register?tier=pro");
       } else {
-        toast({ title: "Code applied", description: "Your discount is recorded." });
+        setPendingFlexCode(trimmedCode);
+        toast({ title: "Code applied", description: "Click Unlock Pro below and it'll be applied automatically." });
       }
     } finally {
       setRedeeming(false);
@@ -134,6 +164,11 @@ const MechanicPricing = () => {
                   Apply
                 </Button>
               </div>
+              {pendingFlexCode && (
+                <p className="text-xs text-primary text-center mt-2">
+                  "{pendingFlexCode}" is ready — click Unlock Pro below to apply it.
+                </p>
+              )}
             </div>
           )}
 
