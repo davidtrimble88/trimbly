@@ -1,4 +1,5 @@
-import { LucideIcon, MoreVertical, Pencil, ExternalLink, Zap, LogOut } from "lucide-react";
+import { useState } from "react";
+import { LucideIcon, MoreVertical, Pencil, ExternalLink, Zap, LogOut, Smartphone } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
 import NotificationBell from "./NotificationBell";
+import InstallAppDialog from "@/components/InstallAppDialog";
 
 interface DashboardHeaderProps {
   avatarIcon: LucideIcon;
