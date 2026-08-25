@@ -23,6 +23,7 @@ import NotFound from "./pages/NotFound";
 
 // Lazy-load secondary routes for smaller initial bundle
 const SearchPros = lazy(() => import("./pages/SearchPros"));
+const TestingNotice = lazy(() => import("./pages/TestingNotice"));
 const EstimatorPage = lazy(() => import("./pages/EstimatorPage"));
 const HomeValueAdvisor = lazy(() => import("./pages/HomeValueAdvisor"));
 const SystemLifespanTracker = lazy(() => import("./pages/SystemLifespanTracker"));
