@@ -34,10 +34,13 @@ export default function JoinHome() {
   const [accepting, setAccepting] = useState(false);
 
   useEffect(() => {
+    // The preview RPC is only callable by signed-in users, so logged-out
+    // visitors see the generic sign-in card below instead.
+    if (authLoading || !user) return;
     supabase.rpc("get_invite_preview" as any, { p_token: token } as any).then(({ data, error }) => {
       setPreview((data as Preview) || { success: false, error: error?.message || "Something went wrong" });
     });
-  }, [token]);
+  }, [token, user, authLoading]);
 
   const accept = async () => {
     setAccepting(true);
