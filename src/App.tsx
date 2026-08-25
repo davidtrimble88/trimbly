@@ -23,6 +23,7 @@ import NotFound from "./pages/NotFound";
 
 // Lazy-load secondary routes for smaller initial bundle
 const SearchPros = lazy(() => import("./pages/SearchPros"));
+const TestingNotice = lazy(() => import("./pages/TestingNotice"));
 const EstimatorPage = lazy(() => import("./pages/EstimatorPage"));
 const HomeValueAdvisor = lazy(() => import("./pages/HomeValueAdvisor"));
 const SystemLifespanTracker = lazy(() => import("./pages/SystemLifespanTracker"));
@@ -167,6 +168,7 @@ const App = () => (
             <Route path="/pro-pricing" element={<ProPricing />} />
             <Route path="/pro-register" element={<ProRegister />} />
             <Route path="/homeowner-upsell" element={<HomeownerUpsell />} />
+            <Route path="/testing-notice" element={<TestingNotice />} />
             <Route path="/about" element={<About />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
