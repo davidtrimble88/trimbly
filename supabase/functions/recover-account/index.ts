@@ -30,8 +30,10 @@ serve(async (req) => {
 
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const client = createClient(SUPABASE_URL, ANON_KEY);
+    // The recovery RPCs are SECURITY DEFINER and are no longer executable by
+    // anon — they can only be reached through this rate-limited function.
+    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const client = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 
     const body = await req.json();
     const action = String(body.action || "");
