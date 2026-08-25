@@ -115,6 +115,7 @@ const DashboardHeader = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <InstallAppDialog open={installOpen} onOpenChange={setInstallOpen} />
     </header>
   );
 };
