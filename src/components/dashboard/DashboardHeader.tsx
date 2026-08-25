@@ -105,6 +105,10 @@ const DashboardHeader = ({
             )}
             {extraMenuItems}
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setInstallOpen(true)}>
+              <Smartphone size={14} className="mr-2" /> Download App
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut}>
               <LogOut size={14} className="mr-2" /> Sign Out
             </DropdownMenuItem>
