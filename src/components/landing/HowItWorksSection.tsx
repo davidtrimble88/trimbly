@@ -497,7 +497,7 @@ const mechanicTabs = [
       },
       {
         icon: TrendingUp, step: "04", title: "Pricing Intel",
-        description: "See what mechanics in your zip charge per hour and per job so you price competitively.",
+        description: "AI-estimated hourly rates for mechanics in your city & state, so you price competitively.",
         route: "/mechanic-dashboard",
       },
     ],
@@ -581,7 +581,7 @@ const proTabs = [
       },
       {
         icon: TrendingUp, step: "04", title: "AI Pricing Intel",
-        description: "See what pros in your zip charge per hour and per job so you price competitively.",
+        description: "AI-estimated hourly rates for pros in your city & state, so you price competitively.",
         route: "/pro-dashboard",
       },
     ],
