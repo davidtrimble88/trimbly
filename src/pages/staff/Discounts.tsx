@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tag, Plus, Trash2, FlaskConical, Copy, Car } from "lucide-react";
+import { Tag, Plus, Trash2, FlaskConical, Copy, Car, Pencil, X } from "lucide-react";
 import { logActivity } from "./activityLog";
 import { homeownerTiers, providerTiers } from "@/lib/pricingTiers";
 
@@ -49,6 +49,7 @@ export default function StaffDiscounts() {
   const [rows, setRows] = useState<DiscountCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const [code, setCode] = useState("");
   const [description, setDescription] = useState("");
@@ -78,8 +79,24 @@ export default function StaffDiscounts() {
   useEffect(() => { load(); }, []);
 
   const resetForm = () => {
+    setEditingId(null);
     setCode(""); setDescription(""); setDiscountType("free"); setDiscountValue("");
     setGrantsTier(""); setGrantsProviderTier(""); setGrantsGarage(false); setIsTestingCode(false); setMaxRedemptions(""); setExpiresAt("");
+  };
+
+  const startEdit = (row: DiscountCode) => {
+    setEditingId(row.id);
+    setCode(row.code);
+    setDescription(row.description || "");
+    setDiscountType(row.discount_type);
+    setDiscountValue(row.discount_value != null ? String(row.discount_value) : "");
+    setGrantsTier((row.grants_tier as GrantsTier) || "");
+    setGrantsProviderTier((row.grants_provider_tier as GrantsProviderTier) || "");
+    setGrantsGarage(row.grants_garage);
+    setIsTestingCode(row.is_testing_code);
+    setMaxRedemptions(row.max_redemptions != null ? String(row.max_redemptions) : "");
+    setExpiresAt(row.expires_at ? row.expires_at.slice(0, 10) : "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const fillTestingDefaults = () => {
@@ -95,7 +112,7 @@ export default function StaffDiscounts() {
     setExpiresAt(""); // blank = never expires, matching "works until testing is over, undefined amount of time"
   };
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
     if (!user) return;
     const trimmedCode = code.trim().toUpperCase();
     if (!trimmedCode) {
@@ -107,7 +124,7 @@ export default function StaffDiscounts() {
       return;
     }
     setSaving(true);
-    const { error } = await (supabase.from("discount_codes" as any) as any).insert({
+    const payload = {
       code: trimmedCode,
       description: description.trim() || null,
       discount_type: discountType,
@@ -118,15 +135,27 @@ export default function StaffDiscounts() {
       is_testing_code: isTestingCode,
       max_redemptions: maxRedemptions.trim() ? Number(maxRedemptions) : null,
       expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
-      created_by: user.id,
-    });
-    setSaving(false);
-    if (error) {
-      toast({ title: "Couldn't create code", description: error.message, variant: "destructive" });
-      return;
+    };
+
+    if (editingId) {
+      const { error } = await (supabase.from("discount_codes" as any) as any).update(payload).eq("id", editingId);
+      setSaving(false);
+      if (error) {
+        toast({ title: "Couldn't save changes", description: error.message, variant: "destructive" });
+        return;
+      }
+      await logActivity(user.id, "discount_code_updated", "discount_code", trimmedCode, { discountType, grantsTier, grantsProviderTier, grantsGarage, isTestingCode });
+      toast({ title: "Discount code updated", description: trimmedCode });
+    } else {
+      const { error } = await (supabase.from("discount_codes" as any) as any).insert({ ...payload, created_by: user.id });
+      setSaving(false);
+      if (error) {
+        toast({ title: "Couldn't create code", description: error.message, variant: "destructive" });
+        return;
+      }
+      await logActivity(user.id, "discount_code_created", "discount_code", trimmedCode, { discountType, grantsTier, grantsProviderTier, grantsGarage, isTestingCode });
+      toast({ title: "Discount code created", description: trimmedCode });
     }
-    await logActivity(user.id, "discount_code_created", "discount_code", trimmedCode, { discountType, grantsTier, grantsGarage, isTestingCode });
-    toast({ title: "Discount code created", description: trimmedCode });
     resetForm();
     load();
   };
@@ -161,16 +190,18 @@ export default function StaffDiscounts() {
         </p>
       </div>
 
-      <Card>
+      <Card className={editingId ? "border-primary/40" : undefined}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Tag className="w-5 h-5 text-primary" /> New code
+            <Tag className="w-5 h-5 text-primary" /> {editingId ? `Edit code — ${code}` : "New code"}
           </CardTitle>
           <CardDescription className="flex items-center justify-between gap-3 flex-wrap">
-            <span>Set the amount, what it grants, and how long it lasts.</span>
-            <Button variant="outline" size="sm" onClick={fillTestingDefaults} className="gap-1.5">
-              <FlaskConical className="w-3.5 h-3.5" /> Fill testing-code defaults
-            </Button>
+            <span>{editingId ? "Change what this code grants, how long it lasts, or its limits." : "Set the amount, what it grants, and how long it lasts."}</span>
+            {!editingId && (
+              <Button variant="outline" size="sm" onClick={fillTestingDefaults} className="gap-1.5">
+                <FlaskConical className="w-3.5 h-3.5" /> Fill testing-code defaults
+              </Button>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -263,9 +294,17 @@ export default function StaffDiscounts() {
             </div>
           </div>
 
-          <Button onClick={handleCreate} disabled={saving} className="gap-1.5">
-            <Plus className="w-4 h-4" /> {saving ? "Creating..." : "Create code"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={handleSave} disabled={saving} className="gap-1.5">
+              {editingId ? <Pencil className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+              {saving ? "Saving..." : editingId ? "Save changes" : "Create code"}
+            </Button>
+            {editingId && (
+              <Button variant="ghost" onClick={resetForm} disabled={saving} className="gap-1.5">
+                <X className="w-4 h-4" /> Cancel
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -310,6 +349,9 @@ export default function StaffDiscounts() {
                   <div className="flex items-center gap-2 ml-auto">
                     <Switch checked={row.active} onCheckedChange={() => toggleActive(row)} />
                     <span className="text-xs text-muted-foreground w-12">{row.active ? "Active" : "Off"}</span>
+                    <Button variant="ghost" size="icon" onClick={() => startEdit(row)} title="Edit">
+                      <Pencil className="w-4 h-4" />
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => remove(row)} title="Delete">
                       <Trash2 className="w-4 h-4 text-destructive" />
                     </Button>
