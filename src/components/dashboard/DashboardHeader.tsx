@@ -36,6 +36,7 @@ const DashboardHeader = ({
 }: DashboardHeaderProps) => {
   const { signOut, avatarUrl } = useAuth();
   const navigate = useNavigate();
+  const [installOpen, setInstallOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
