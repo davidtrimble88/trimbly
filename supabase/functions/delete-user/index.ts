@@ -32,6 +32,7 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const targetId = String(body.userId || "");
     const reason = String(body.reason || "").trim();
+    const confirmAdminDeletion = String(body.confirmAdminDeletion || "").trim();
 
     if (!/^[0-9a-f-]{36}$/i.test(targetId)) return json({ error: "Invalid user id." }, 400);
     if (reason.length < 10) return json({ error: "A deletion reason of at least 10 characters is required." }, 400);
@@ -40,8 +41,26 @@ serve(async (req) => {
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
     const { data: targetRoles } = await admin.from("user_roles").select("role").eq("user_id", targetId);
-    if ((targetRoles || []).some((r: any) => r.role === "admin")) {
-      return json({ error: "Admin accounts cannot be deleted here. Remove the admin role first." }, 400);
+    const targetIsAdmin = (targetRoles || []).some((r: any) => r.role === "admin");
+    if (targetIsAdmin) {
+      if (confirmAdminDeletion !== "DELETE ADMIN") {
+        return json({ error: "Deleting an admin account requires typing DELETE ADMIN." }, 400);
+      }
+
+      const { data: adminRows, error: adminRowsErr } = await admin
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+      if (adminRowsErr) return json({ error: `Could not verify remaining admins: ${adminRowsErr.message}` }, 500);
+
+      const remainingAdminIds = new Set(
+        (adminRows || [])
+          .map((r: any) => String(r.user_id || ""))
+          .filter((id: string) => id && id !== targetId),
+      );
+      if (remainingAdminIds.size === 0) {
+        return json({ error: "You can't delete the last admin account." }, 400);
+      }
     }
 
     const { data: profile } = await admin.from("profiles").select("*").eq("id", targetId).maybeSingle();
@@ -68,7 +87,7 @@ serve(async (req) => {
       action: "user_deleted",
       target_type: "user",
       target_id: targetId,
-      details: { reason },
+      details: { reason, deleted_admin_account: targetIsAdmin, roles: targetRoles ?? [] },
     });
 
     return json({ success: true }, 200);
