@@ -23,6 +23,7 @@ import { useHomeLimit } from "@/hooks/useHomeLimit";
 import { useGarageSubscription } from "@/hooks/useGarageSubscription";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
+import HomePhotoChoice, { type HomePhotoChoiceValue } from "@/components/maintenance/HomePhotoChoice";
 import { parseDateOnly, formatYYYYMMDD, formatDateOnly, seasonForDate } from "@/lib/maintenanceDates";
 
 type HomeProfile = {
@@ -196,6 +197,8 @@ const MaintenancePage = () => {
   const [addressInput, setAddressInput] = useState("");
   const [lookingUpAddress, setLookingUpAddress] = useState(false);
   const [addressLookedUp, setAddressLookedUp] = useState(false);
+  const [zillowPhotoUrl, setZillowPhotoUrl] = useState<string | null>(null);
+  const [photoChoice, setPhotoChoice] = useState<HomePhotoChoiceValue | null>(null);
 
   const lookupAddress = async () => {
     if (!addressInput.trim()) return;
@@ -225,6 +228,12 @@ const MaintenancePage = () => {
           has_pool: z.has_pool ?? h.has_pool,
           photo_url: z.photo_url || h.photo_url,
         }));
+        // Zillow's photo is only a starting suggestion — default to it but let
+        // the review screen offer uploading their own or a generic icon instead.
+        if (z.photo_url) {
+          setZillowPhotoUrl(z.photo_url);
+          setPhotoChoice("found");
+        }
         setAddressLookedUp(true);
         toast({ title: "Home details found!", description: "We've pre-filled your home info from Zillow. You can review and adjust it on the next screen." });
       } else {
@@ -846,6 +855,19 @@ const MaintenancePage = () => {
                     <p className="text-sm text-muted-foreground mb-6">Double-check everything below and fix anything that's off.</p>
 
                     <div className="space-y-4">
+                      {user && (
+                        <HomePhotoChoice
+                          userId={user.id}
+                          foundPhotoUrl={zillowPhotoUrl}
+                          photoUrl={home.photo_url ?? null}
+                          choice={photoChoice}
+                          onChange={(photoUrl, choiceValue) => {
+                            setHome(h => ({ ...h, photo_url: photoUrl }));
+                            setPhotoChoice(choiceValue);
+                          }}
+                        />
+                      )}
+
                       {isMultiPro && (
                         <div>
                           <Label className="text-sm">Home name</Label>

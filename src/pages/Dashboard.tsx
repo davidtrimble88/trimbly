@@ -30,6 +30,7 @@ import { taskUrgencyIconClasses } from "@/components/dashboard/homeowner/status"
 import CurrentWeatherChip from "@/components/home/CurrentWeatherChip";
 import UniversalSearch from "@/components/UniversalSearch";
 import { uploadProfileImage, MAX_PROFILE_IMAGE_BYTES } from "@/lib/profileImages";
+import AnimatedHomePlaceholder from "@/components/dashboard/homeowner/AnimatedHomePlaceholder";
 import {
   Wrench, Brain, CalendarCheck, FolderOpen, MessageSquare,
   Crown, Home, CheckCircle2, Shield, HelpCircle,
@@ -461,7 +462,7 @@ const Dashboard = () => {
                 {editForm.photo_url ? (
                   <img src={editForm.photo_url} alt={editForm.name || "Home"} className="w-full h-full object-cover" />
                 ) : (
-                  <Home className="w-8 h-8 text-muted-foreground" />
+                  <AnimatedHomePlaceholder size="lg" className="w-full h-full" />
                 )}
                 <label className="absolute bottom-2 right-2 inline-flex items-center gap-1.5 text-xs font-medium bg-card border border-border rounded-full px-3 py-1.5 cursor-pointer hover:bg-accent transition-colors">
                   {uploadingPhoto ? <Loader2 size={13} className="animate-spin" /> : <Camera size={13} />}
@@ -491,6 +492,15 @@ const Dashboard = () => {
                     }}
                   />
                 </label>
+                {editForm.photo_url && (
+                  <button
+                    type="button"
+                    onClick={() => setEditForm(f => ({ ...f, photo_url: null }))}
+                    className="absolute bottom-2 left-2 text-xs font-medium bg-card border border-border rounded-full px-3 py-1.5 hover:bg-accent transition-colors"
+                  >
+                    Use icon instead
+                  </button>
+                )}
               </div>
             </div>
             <div>

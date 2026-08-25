@@ -1,13 +1,6 @@
-import { LayoutGrid, Home as HomeIcon, Building2, Building, Caravan } from "lucide-react";
+import { LayoutGrid } from "lucide-react";
+import AnimatedHomePlaceholder from "./AnimatedHomePlaceholder";
 import type { HomeData, HomeStats } from "./types";
-
-const typeIcon: Record<string, typeof HomeIcon> = {
-  single_family: HomeIcon,
-  townhouse: Building,
-  condo: Building2,
-  multi_family: Building2,
-  mobile: Caravan,
-};
 
 const accentFor = (stats?: HomeStats) => {
   if (!stats) return "bg-border";
@@ -46,7 +39,6 @@ const HomeSelectorStrip = ({ homes, homeStats, selectedId, onSelect, onGoToHome 
       </button>
 
       {homes.map((home) => {
-        const Icon = typeIcon[home.home_type] || HomeIcon;
         const stats = homeStats[home.id];
         const isSelected = selectedId === home.id;
         const needsAttention = !!stats && (stats.overdueTasks > 0 || stats.highPriorityTasks > 0);
@@ -63,9 +55,7 @@ const HomeSelectorStrip = ({ homes, homeStats, selectedId, onSelect, onGoToHome 
               {home.photo_url ? (
                 <img src={home.photo_url} alt="" className="w-9 h-9 rounded-full object-cover mb-2" />
               ) : (
-                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                  <Icon size={16} className="text-primary" />
-                </div>
+                <AnimatedHomePlaceholder size="sm" className="w-9 h-9 mb-2" />
               )}
               <p className="font-semibold text-sm text-foreground truncate">{home.name}</p>
               <p className="text-xs text-muted-foreground truncate">{home.city}, {home.state}</p>

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import {
-  Home as HomeIcon, MapPin, MoreVertical, Pencil, FileText, Trash2, FolderOpen,
+  MapPin, MoreVertical, Pencil, FileText, Trash2, FolderOpen,
   Calendar, Ruler, Thermometer, AlertTriangle, Clock, CalendarCheck, CheckCircle2, Brain, Shield,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import StatCard from "@/components/dashboard/StatCard";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import AnimatedHomePlaceholder from "./AnimatedHomePlaceholder";
 import { homeTypeLabels, type HomeData, type HomeStats, type DrilldownInfo } from "./types";
 
 // Fields that meaningfully improve AI maintenance schedule accuracy, in priority order.
@@ -55,17 +56,14 @@ const HomeCard = ({ home, stats, isPro, currentUserId, onEdit, onDelete, onDrill
   return (
     <Card className="overflow-hidden shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] transition-shadow">
       <div className={`h-1.5 w-full ${accentClass}`} />
-      {home.photo_url && (
+      {home.photo_url ? (
         <img src={home.photo_url} alt={home.name} className="w-full aspect-video object-cover" />
+      ) : (
+        <AnimatedHomePlaceholder size="lg" className="w-full aspect-video" />
       )}
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3">
-            {!home.photo_url && (
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                <HomeIcon size={18} className="text-primary" />
-              </div>
-            )}
             <div>
               <CardTitle className="font-display text-lg flex items-center gap-2">
                 {home.name}
