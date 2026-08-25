@@ -3245,7 +3245,14 @@ export type Database = {
         }
         Returns: boolean
       }
-      redeem_discount_code: { Args: { p_code: string }; Returns: Json }
+      redeem_discount_code: {
+        Args: {
+          p_code: string
+          p_target_provider_tier?: string
+          p_target_tier?: string
+        }
+        Returns: Json
+      }
       revoke_home_share: { Args: { p_share_id: string }; Returns: Json }
       set_own_garage_subscription: {
         Args: { p_interval?: string }
@@ -3276,6 +3283,7 @@ export type Database = {
         Returns: undefined
       }
       user_has_home_access: { Args: { _home_id: string }; Returns: boolean }
+      validate_discount_code: { Args: { p_code: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "support" | "analyst"
