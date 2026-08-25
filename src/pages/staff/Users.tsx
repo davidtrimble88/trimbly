@@ -53,6 +53,7 @@ const Users = () => {
   const [suspendReason, setSuspendReason] = useState("");
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteReason, setDeleteReason] = useState("");
+  const [deleteAdminConfirm, setDeleteAdminConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [archived, setArchived] = useState<ArchivedUser[]>([]);
@@ -107,6 +108,8 @@ const Users = () => {
   const isStaff = (p: Profile) =>
     (emails[p.id] || "").endsWith("@staff.trimbly.internal") ||
     (roles[p.id] || []).some((r) => STAFF_ROLES.includes(r));
+
+  const hasAdminRole = (profileId: string) => (roles[profileId] || []).includes("admin");
 
   const loadNotes = async (profileId: string) => {
     const { data, error } = await supabase.from("staff_notes").select("*").eq("entity_type", "user").eq("entity_id", profileId).order("created_at", { ascending: false });
@@ -200,9 +203,18 @@ const Users = () => {
       toast.error("Please enter a reason of at least 10 characters.");
       return;
     }
+    const deletingAdmin = hasAdminRole(selected.id);
+    if (deletingAdmin && deleteAdminConfirm.trim() !== "DELETE ADMIN") {
+      toast.error("Type DELETE ADMIN to confirm deleting an admin account.");
+      return;
+    }
     setDeleting(true);
     const { data, error } = await supabase.functions.invoke("delete-user", {
-      body: { userId: selected.id, reason: deleteReason.trim() },
+      body: {
+        userId: selected.id,
+        reason: deleteReason.trim(),
+        ...(deletingAdmin ? { confirmAdminDeletion: "DELETE ADMIN" } : {}),
+      },
     });
     setDeleting(false);
     if (error || (data as any)?.error) {
@@ -211,6 +223,7 @@ const Users = () => {
     }
     toast.success("User deleted and archived");
     setDeleteReason("");
+    setDeleteAdminConfirm("");
     setDeleteOpen(false);
     setSelected(null);
     load();
@@ -349,7 +362,7 @@ const Users = () => {
                     <Button variant="outline" size="sm" onClick={messageUser}>
                       <MessageSquare className="w-4 h-4" /> Message
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={() => { setDeleteReason(""); setDeleteOpen(true); }}>
+                    <Button variant="destructive" size="sm" onClick={() => { setDeleteReason(""); setDeleteAdminConfirm(""); setDeleteOpen(true); }}>
                       <Trash2 className="w-4 h-4" /> Delete
                     </Button>
                   </div>
@@ -382,7 +395,7 @@ const Users = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={deleteOpen} onOpenChange={(o) => { if (!deleting) setDeleteOpen(o); }}>
+      <Dialog open={deleteOpen} onOpenChange={(o) => { if (!deleting) { setDeleteOpen(o); if (!o) setDeleteAdminConfirm(""); } }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Delete {selected?.full_name || "user"}</DialogTitle>
@@ -391,6 +404,20 @@ const Users = () => {
             <p className="text-sm text-muted-foreground">
               This permanently removes the account. A snapshot and your reason are saved to the archive first. A reason of at least 10 characters is required.
             </p>
+            {selected && hasAdminRole(selected.id) && (
+              <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
+                <p className="font-medium text-destructive">This account has admin access.</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  To delete it, another admin must remain active. Type <strong>DELETE ADMIN</strong> below.
+                </p>
+                <Input
+                  className="mt-2"
+                  placeholder="DELETE ADMIN"
+                  value={deleteAdminConfirm}
+                  onChange={(e) => setDeleteAdminConfirm(e.target.value)}
+                />
+              </div>
+            )}
             <Textarea
               placeholder="Why is this account being deleted? (required)"
               value={deleteReason}
@@ -401,7 +428,11 @@ const Users = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={deleting}>Cancel</Button>
-            <Button variant="destructive" onClick={deleteUser} disabled={deleting || deleteReason.trim().length < 10}>
+            <Button
+              variant="destructive"
+              onClick={deleteUser}
+              disabled={deleting || deleteReason.trim().length < 10 || Boolean(selected && hasAdminRole(selected.id) && deleteAdminConfirm.trim() !== "DELETE ADMIN")}
+            >
               {deleting ? "Deleting..." : "Delete & Archive"}
             </Button>
           </DialogFooter>
