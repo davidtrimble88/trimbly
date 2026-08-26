@@ -690,7 +690,7 @@ function ScanServiceReport({ vehicle, onImported }: { vehicle: any; onImported: 
             <Input
               id="scan-report"
               type="file"
-              accept="image/*,.pdf"
+              accept="image/png,image/jpeg,image/webp,image/heic,.pdf,.png,.jpg,.jpeg,.webp,.heic"
               disabled={scanning}
               onChange={(e) => e.target.files?.[0] && runScan(e.target.files[0])}
               className="max-w-xs"
