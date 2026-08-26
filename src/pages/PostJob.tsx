@@ -356,7 +356,7 @@ const PostJob = () => {
     // Gate: ensure the post is a residential home service request
     try {
       const { data: check, error: checkErr } = await supabase.functions.invoke("validate-home-job", {
-        body: { title: form.title, category: form.category, description: form.description },
+        body: { title: form.title, category: finalCategory, description: form.description },
       });
       if (!checkErr && check && check.is_home_related === false) {
         toast({
@@ -380,7 +380,7 @@ const PostJob = () => {
       const { error } = await supabase.from("jobs").update({
         title: form.title,
         description: form.description || null,
-        category: form.category,
+        category: finalCategory,
         city: form.city,
         state: form.state,
         country: form.country,
@@ -395,6 +395,7 @@ const PostJob = () => {
       } else {
         toast({ title: "Job updated" });
         setForm({ title: "", description: "", category: "", city: "", state: "", country: "US", budget_min: "", budget_max: "", home_id: "" });
+        setCustomCategory("");
         setPhotos([]);
         setVideoUrl(null);
         setEditingJobId(null);
@@ -409,7 +410,7 @@ const PostJob = () => {
       homeowner_id: user.id,
       title: form.title,
       description: form.description || null,
-      category: form.category,
+      category: finalCategory,
       city: form.city,
       state: form.state,
       country: form.country,
@@ -425,6 +426,7 @@ const PostJob = () => {
     } else {
       toast({ title: "Job posted!", description: "Pros can now see and bid on your job." });
       setForm({ title: "", description: "", category: "", city: "", state: "", country: "US", budget_min: "", budget_max: "", home_id: "" });
+        setCustomCategory("");
       setPhotos([]);
       setVideoUrl(null);
       setShowForm(false);
