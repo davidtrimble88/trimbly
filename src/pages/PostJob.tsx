@@ -923,6 +923,19 @@ const PostJob = () => {
                   {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
+              {form.category === "Other" && (
+                <div className="mt-2">
+                  <Label htmlFor="custom-category" className="text-xs">What kind of service? *</Label>
+                  <Input
+                    id="custom-category"
+                    className="mt-1"
+                    maxLength={60}
+                    value={customCategory}
+                    onChange={(e) => setCustomCategory(e.target.value)}
+                    placeholder="e.g. Chimney sweep, Sauna repair, Dock maintenance"
+                  />
+                </div>
+              )}
               {(() => {
                 const suggestions = suggestCategories(`${form.title} ${form.description}`).filter(c => c !== form.category);
                 if (suggestions.length === 0) return null;
