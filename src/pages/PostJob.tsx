@@ -327,6 +327,11 @@ const PostJob = () => {
       toast({ title: "Missing fields", description: "Please fill in all required fields.", variant: "destructive" });
       return;
     }
+    if (form.category === "Other" && !customCategory.trim()) {
+      toast({ title: "Tell us the service", description: "Type in what kind of work you need.", variant: "destructive" });
+      return;
+    }
+    const finalCategory = form.category === "Other" ? `Other: ${customCategory.trim()}` : form.category;
     setSubmitting(true);
 
     // Hard denylist for obviously off-topic / inappropriate posts (sexual, illegal, etc.)
