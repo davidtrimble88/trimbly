@@ -203,6 +203,24 @@ function AuthForm({
   const [creatingKind, setCreatingKind] = useState<AccountKind | null>(null);
   const [acceptedTos, setAcceptedTos] = useState(false);
 
+  // During the testing period, send everyone through the beta notice once
+  // per browser before dropping them at their destination. Shared by both
+  // login and signup — it used to live only inside the login handler, so a
+  // brand-new signup skipped it entirely and never saw the notice.
+  const goAfterAuth = (dest: string, email: string) => {
+    let acked = false;
+    try {
+      acked = localStorage.getItem(TESTING_NOTICE_ACK_KEY) === "1";
+    } catch {
+      acked = false;
+    }
+    if (acked || email.toLowerCase().endsWith("@staff.trimbly.internal")) {
+      navigate(dest);
+    } else {
+      navigate(`/testing-notice?next=${encodeURIComponent(dest)}`);
+    }
+  };
+
   // Step 1 of signup (or the only step for login): collect name/email/password.
   // For signup this just advances to the "which are you" step — the account
   // isn't created until a kind is picked, so we never have to fix up
@@ -232,21 +250,7 @@ function AuthForm({
         ? trimmedEmail
         : `${trimmedEmail.toLowerCase()}@staff.trimbly.internal`;
       const { error } = await signIn(loginEmail, form.password);
-      // During the testing period, send testers through the beta notice once
-      // per browser before dropping them at their destination.
-      const goAfterLogin = (dest: string) => {
-        let acked = false;
-        try {
-          acked = localStorage.getItem(TESTING_NOTICE_ACK_KEY) === "1";
-        } catch {
-          acked = false;
-        }
-        if (acked || loginEmail.endsWith("@staff.trimbly.internal")) {
-          navigate(dest);
-        } else {
-          navigate(`/testing-notice?next=${encodeURIComponent(dest)}`);
-        }
-      };
+      const goAfterLogin = (dest: string) => goAfterAuth(dest, loginEmail);
       if (error) {
         toast({ title: "Login failed", description: error.message, variant: "destructive" });
       } else if (redirect) {
@@ -305,15 +309,15 @@ function AuthForm({
         return;
       }
       if (kind === "provider") {
-        navigate("/pro-register");
+        goAfterAuth("/pro-register", form.email);
       } else if (kind === "mechanic") {
-        navigate("/mechanic-register");
+        goAfterAuth("/mechanic-register", form.email);
       } else if (redirect) {
         toast({ title: "Welcome!", description: "You're all set." });
-        navigate(redirect);
+        goAfterAuth(redirect, form.email);
       } else {
         toast({ title: "Welcome!", description: "Let's pick the right plan for you." });
-        navigate("/homeowner-upsell?onboarding=1");
+        goAfterAuth("/homeowner-upsell?onboarding=1", form.email);
       }
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });

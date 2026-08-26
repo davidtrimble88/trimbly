@@ -30,7 +30,13 @@ export function SecurityQuestionsGate() {
       .maybeSingle()
       .then(({ data }: { data: any }) => {
         if (cancelled || data) return;
-        navigate(`/security-questions-setup?redirect=${encodeURIComponent(location.pathname)}`, { replace: true });
+        // Must preserve the query string, not just the path — e.g. redirecting
+        // to /testing-notice?next=%2Fhomeowner-upsell... with the query string
+        // dropped loses the "next" destination entirely, so TestingNotice falls
+        // back to its own default (/dashboard) instead of continuing the real
+        // onboarding chain (this is exactly what happened to a fresh signup:
+        // pricing page and setup wizard got silently skipped).
+        navigate(`/security-questions-setup?redirect=${encodeURIComponent(location.pathname + location.search)}`, { replace: true });
       });
     return () => {
       cancelled = true;

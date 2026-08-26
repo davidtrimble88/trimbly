@@ -424,8 +424,14 @@ const MaintenancePage = () => {
 
   const finishWizard = async () => {
     await saveHome();
-    setTimeout(() => {
-      generateSchedule();
+    setTimeout(async () => {
+      await generateSchedule();
+      // First-time setup (arrived here via signup's onboarding=1 redirect)
+      // used to leave the user sitting on the bare task list with no nav
+      // context — they'd never actually visit /dashboard, which also meant
+      // OnboardingTour (only rendered on Dashboard.tsx) never got a chance
+      // to run. Send them there now that their home and schedule exist.
+      if (onboarding) navigate("/dashboard");
     }, 500);
   };
 
