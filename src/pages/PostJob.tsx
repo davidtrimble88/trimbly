@@ -145,6 +145,7 @@ const PostJob = () => {
     title: "", description: "", category: "", city: "", state: "", country: "US",
     budget_min: "", budget_max: "", home_id: "",
   });
+  const [customCategory, setCustomCategory] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [homes, setHomes] = useState<{ id: string; name: string; city: string; state: string }[]>([]);
