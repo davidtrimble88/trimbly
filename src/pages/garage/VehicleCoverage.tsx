@@ -97,6 +97,7 @@ export default function VehicleCoverage() {
   const [uploadVehicle, setUploadVehicle] = useState<string>("none");
   const [providerName, setProviderName] = useState("");
   const [policyNumber, setPolicyNumber] = useState("");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -163,13 +164,15 @@ export default function VehicleCoverage() {
       })()
     : "";
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  // Picking a file used to upload it immediately via onChange, using whatever
+  // was in the metadata fields at that exact instant — a user who picks the
+  // file first and fills in Provider/Policy after (a very natural order) had
+  // those fields silently discarded, and there was no visible "Save" action
+  // at all to signal that picking the file already submitted the form. Now
+  // the file is just staged, and this explicit button does the actual save.
+  const handleSaveUpload = async () => {
+    const file = pendingFile;
     if (!file || !user) return;
-    if (file.size > 10 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Max 10MB per file.", variant: "destructive" });
-      return;
-    }
     setUploading(true);
     const path = `${user.id}/coverage/${Date.now()}_${file.name}`;
     const { error: uploadErr } = await supabase.storage.from("vehicle-docs").upload(path, file);
@@ -194,6 +197,7 @@ export default function VehicleCoverage() {
       toast({ title: "Uploaded", description: `${file.name} added.` });
       setProviderName("");
       setPolicyNumber("");
+      setPendingFile(null);
       const { data } = await (supabase as any)
         .from("vehicle_coverage_documents")
         .select("*")
@@ -202,7 +206,6 @@ export default function VehicleCoverage() {
       setDocs((data as CoverageDoc[]) || []);
     }
     setUploading(false);
-    e.target.value = "";
   };
 
   const handleView = async (doc: CoverageDoc) => {
@@ -315,15 +318,25 @@ export default function VehicleCoverage() {
               <Input
                 type="file"
                 accept=".pdf,.txt,.md,.jpg,.jpeg,.png"
-                onChange={handleUpload}
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  if (file && file.size > 10 * 1024 * 1024) {
+                    toast({ title: "File too large", description: "Max 10MB per file.", variant: "destructive" });
+                    e.target.value = "";
+                    return;
+                  }
+                  setPendingFile(file);
+                }}
                 disabled={uploading}
                 className="cursor-pointer"
               />
-              {uploading && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Uploading…
-                </div>
+              {pendingFile && (
+                <p className="text-xs text-muted-foreground truncate">Selected: {pendingFile.name}</p>
               )}
+              <Button onClick={handleSaveUpload} disabled={!pendingFile || uploading} className="w-full">
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Upload className="h-4 w-4 mr-1.5" />}
+                {uploading ? "Uploading…" : "Save document"}
+              </Button>
             </CardContent>
           </Card>
 

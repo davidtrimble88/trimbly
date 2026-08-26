@@ -32,6 +32,8 @@ export default function GarageMaintenance() {
   }, [user]);
 
   const shopVehicle = shopTask ? vehicleMap[shopTask.vehicle_id] : null;
+  const activeTasks = tasks.filter((t) => t.status !== "done");
+  const completedTasks = tasks.filter((t) => t.status === "done");
 
   if (loading) return (
     <div className="space-y-2">
@@ -45,35 +47,65 @@ export default function GarageMaintenance() {
       {tasks.length === 0 ? (
         <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Add a vehicle to seed maintenance tasks.</CardContent></Card>
       ) : (
-        <Card>
-          <CardHeader><CardTitle className="text-base">Across all vehicles</CardTitle></CardHeader>
-          <CardContent>
-            <ul className="divide-y divide-border">
-              {tasks.map((t) => {
-                const v = vehicleMap[t.vehicle_id];
-                return (
-                  <li key={t.id} className="py-3 flex items-center justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{t.task_name}</p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {v ? (<Link to={`/garage/vehicles/${t.vehicle_id}`} className="hover:text-foreground underline">{v.nickname || `${v.year ?? ""} ${v.make} ${v.model}`.trim()}</Link>) : "—"}
-                        {t.next_due_date ? ` · due ${t.next_due_date}` : ""}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {v && (
-                        <Button variant="ghost" size="sm" onClick={() => setShopTask(t)}>
-                          <ShoppingCart size={14} className="mr-1" /> <span className="hidden sm:inline">Shop</span> <ExternalLink size={10} className="ml-0.5" />
-                        </Button>
-                      )}
-                      <Badge variant={t.status === "overdue" ? "destructive" : t.status === "due" ? "default" : "outline"}>{t.status}</Badge>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </CardContent>
-        </Card>
+        <>
+          <Card>
+            <CardHeader><CardTitle className="text-base">Across all vehicles</CardTitle></CardHeader>
+            <CardContent>
+              {activeTasks.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No upcoming tasks.</p>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {activeTasks.map((t) => {
+                    const v = vehicleMap[t.vehicle_id];
+                    return (
+                      <li key={t.id} className="py-3 flex items-center justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">{t.task_name}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {v ? (<Link to={`/garage/vehicles/${t.vehicle_id}`} className="hover:text-foreground underline">{v.nickname || `${v.year ?? ""} ${v.make} ${v.model}`.trim()}</Link>) : "—"}
+                            {t.next_due_date ? ` · due ${t.next_due_date}` : ""}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {v && (
+                            <Button variant="ghost" size="sm" onClick={() => setShopTask(t)}>
+                              <ShoppingCart size={14} className="mr-1" /> <span className="hidden sm:inline">Shop</span> <ExternalLink size={10} className="ml-0.5" />
+                            </Button>
+                          )}
+                          <Badge variant={t.status === "overdue" ? "destructive" : t.status === "due" ? "default" : "outline"}>{t.status}</Badge>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+
+          {completedTasks.length > 0 && (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Completed</CardTitle></CardHeader>
+              <CardContent>
+                <ul className="divide-y divide-border">
+                  {completedTasks.map((t) => {
+                    const v = vehicleMap[t.vehicle_id];
+                    return (
+                      <li key={t.id} className="py-3 flex items-center justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate text-muted-foreground line-through">{t.task_name}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {v ? (<Link to={`/garage/vehicles/${t.vehicle_id}`} className="hover:text-foreground underline">{v.nickname || `${v.year ?? ""} ${v.make} ${v.model}`.trim()}</Link>) : "—"}
+                            {t.last_done_date ? ` · done ${t.last_done_date}` : ""}
+                          </p>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
       {shopTask && shopVehicle && (
         <VehicleProductDialog

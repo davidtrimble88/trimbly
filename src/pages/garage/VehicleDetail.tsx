@@ -122,6 +122,10 @@ export default function VehicleDetail() {
         </TabsContent>
 
         <TabsContent value="maintenance" className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">Did the work yourself with no receipt to scan?</p>
+            <LogServiceDialog vehicle={vehicle} onLogged={load} />
+          </div>
           <ScanServiceReport vehicle={vehicle} onImported={load} />
           <MaintenanceList vehicle={vehicle} tasks={tasks} onChanged={load} />
         </TabsContent>
@@ -267,7 +271,12 @@ function UpdateMileageDialog({ vehicle, onSaved }: { vehicle: any; onSaved: () =
   );
 }
 
-function ServiceLog({ vehicle, services, onChanged }: { vehicle: any; services: any[]; onChanged: () => void }) {
+// Shared by the Service Log tab and the Maintenance tab — the only way to
+// record a service used to be uploading a receipt for AI parsing
+// (ScanServiceReport); there was no way to type in an at-home job (oil
+// change, spark plugs, battery) with no receipt at all. The form itself
+// already existed here, just wasn't reachable from the Maintenance tab.
+function LogServiceDialog({ vehicle, onLogged }: { vehicle: any; onLogged: () => void }) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ service_date: new Date().toISOString().slice(0,10), service_type: "maintenance", description: "", cost: "", shop_name: "", mileage: String(vehicle.current_mileage) });
@@ -294,9 +303,48 @@ function ServiceLog({ vehicle, services, onChanged }: { vehicle: any; services: 
     setOpen(false);
     setForm({ service_date: new Date().toISOString().slice(0,10), service_type: "maintenance", description: "", cost: "", shop_name: "", mileage: String(vehicle.current_mileage) });
     toast.success("Service logged");
-    onChanged();
+    onLogged();
   };
 
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild><Button size="sm"><Plus size={14} className="mr-1" /> Log manually</Button></DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader><DialogTitle>Log a service</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div><Label>Date</Label><Input type="date" value={form.service_date} onChange={(e) => setForm({ ...form, service_date: e.target.value })} /></div>
+            <div><Label>Mileage</Label><Input inputMode="numeric" value={form.mileage} onChange={(e) => setForm({ ...form, mileage: e.target.value.replace(/\D/g, "").slice(0,7) })} /></div>
+          </div>
+          <div>
+            <Label>Type</Label>
+            <Select value={form.service_type} onValueChange={(v) => setForm({ ...form, service_type: v })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="maintenance">Maintenance</SelectItem>
+                <SelectItem value="repair">Repair</SelectItem>
+                <SelectItem value="inspection">Inspection</SelectItem>
+                <SelectItem value="modification">Modification</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div><Label>What was done *</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} maxLength={500} placeholder="e.g. Changed oil and filter, replaced spark plugs" /></div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><Label>Cost</Label><Input inputMode="decimal" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value.replace(/[^\d.]/g, "") })} placeholder="0.00" /></div>
+            <div><Label>Shop / Pro (leave blank if at-home)</Label><Input value={form.shop_name} onChange={(e) => setForm({ ...form, shop_name: e.target.value })} maxLength={80} /></div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={add}>Save</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ServiceLog({ vehicle, services, onChanged }: { vehicle: any; services: any[]; onChanged: () => void }) {
   const remove = async (recordId: string) => {
     if (!confirm("Delete this service record?")) return;
     const { error } = await supabase.from("vehicle_service_records").delete().eq("id", recordId);
@@ -308,40 +356,7 @@ function ServiceLog({ vehicle, services, onChanged }: { vehicle: any; services: 
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-base">Service log</CardTitle>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button size="sm"><Plus size={14} className="mr-1" /> Add</Button></DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader><DialogTitle>Log a service</DialogTitle></DialogHeader>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div><Label>Date</Label><Input type="date" value={form.service_date} onChange={(e) => setForm({ ...form, service_date: e.target.value })} /></div>
-                <div><Label>Mileage</Label><Input inputMode="numeric" value={form.mileage} onChange={(e) => setForm({ ...form, mileage: e.target.value.replace(/\D/g, "").slice(0,7) })} /></div>
-              </div>
-              <div>
-                <Label>Type</Label>
-                <Select value={form.service_type} onValueChange={(v) => setForm({ ...form, service_type: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="repair">Repair</SelectItem>
-                    <SelectItem value="inspection">Inspection</SelectItem>
-                    <SelectItem value="modification">Modification</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div><Label>What was done *</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} maxLength={500} /></div>
-              <div className="grid grid-cols-2 gap-2">
-                <div><Label>Cost</Label><Input inputMode="decimal" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value.replace(/[^\d.]/g, "") })} placeholder="0.00" /></div>
-                <div><Label>Shop / Pro</Label><Input value={form.shop_name} onChange={(e) => setForm({ ...form, shop_name: e.target.value })} maxLength={80} /></div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button onClick={add}>Save</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <LogServiceDialog vehicle={vehicle} onLogged={onChanged} />
       </CardHeader>
       <CardContent>
         {services.length === 0 ? (
@@ -377,6 +392,12 @@ function ServiceLog({ vehicle, services, onChanged }: { vehicle: any; services: 
 function MaintenanceList({ vehicle, tasks, onChanged }: { vehicle: any; tasks: any[]; onChanged: () => void }) {
   const [shopTask, setShopTask] = useState<any>(null);
   const markDone = async (task: any) => {
+    // A task with a recurrence interval schedules its next occurrence and
+    // stays "upcoming" for that cycle — that's correct, not a bug. A
+    // one-time task (no interval) has no next cycle, so it must actually
+    // reach "done" here; leaving it "upcoming" (the old, hardcoded value)
+    // meant it could never move to completed and just sat in the list forever.
+    const recurs = !!(task.interval_months || task.interval_miles);
     const today = new Date();
     const next_due_date = task.interval_months ? (() => { const d = new Date(today); d.setMonth(d.getMonth() + task.interval_months); return d.toISOString().slice(0,10); })() : null;
     const next_due_mileage = task.interval_miles ? (vehicle.current_mileage + task.interval_miles) : null;
@@ -385,7 +406,7 @@ function MaintenanceList({ vehicle, tasks, onChanged }: { vehicle: any; tasks: a
       last_done_mileage: vehicle.current_mileage,
       next_due_date,
       next_due_mileage,
-      status: "upcoming",
+      status: recurs ? "upcoming" : "done",
     }).eq("id", task.id);
     if (error) return toast.error(error.message);
     toast.success(`${task.task_name} marked done`);
@@ -399,15 +420,18 @@ function MaintenanceList({ vehicle, tasks, onChanged }: { vehicle: any; tasks: a
     onChanged();
   };
 
+  const active = tasks.filter((t) => t.status !== "done");
+  const completed = tasks.filter((t) => t.status === "done");
+
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">Maintenance schedule</CardTitle></CardHeader>
-      <CardContent>
-        {tasks.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No tasks yet.</p>
+      <CardContent className="space-y-4">
+        {active.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No upcoming tasks.</p>
         ) : (
           <ul className="divide-y divide-border">
-            {tasks.map((t) => (
+            {active.map((t) => (
               <li key={t.id} className="py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-0.5">
@@ -431,6 +455,29 @@ function MaintenanceList({ vehicle, tasks, onChanged }: { vehicle: any; tasks: a
               </li>
             ))}
           </ul>
+        )}
+
+        {completed.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Completed</p>
+            <ul className="divide-y divide-border">
+              {completed.map((t) => (
+                <li key={t.id} className="py-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-sm font-medium truncate text-muted-foreground line-through">{t.task_name}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t.last_done_date ? `done ${t.last_done_date}` : ""}
+                      {t.last_done_date && t.last_done_mileage ? " · " : ""}
+                      {t.last_done_mileage ? `${t.last_done_mileage.toLocaleString()} ${vehicle.mileage_unit}` : ""}
+                    </p>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => remove(t.id)}><Trash2 size={14} className="text-destructive" /></Button>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </CardContent>
       {shopTask && (
