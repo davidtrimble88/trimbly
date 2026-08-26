@@ -437,10 +437,13 @@ const PostJob = () => {
 
   const openEditJob = (job: Job) => {
     setEditingJobId(job.id);
+    const rawCategory = job.category || "";
+    const isOther = rawCategory.startsWith("Other:");
+    setCustomCategory(isOther ? rawCategory.slice(6).trim() : "");
     setForm({
       title: job.title || "",
       description: job.description || "",
-      category: job.category || "",
+      category: isOther ? "Other" : rawCategory,
       city: job.city || "",
       state: job.state || "",
       country: job.country || "US",
