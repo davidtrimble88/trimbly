@@ -291,7 +291,13 @@ export default function HomeSharing() {
                     </div>
                   )}
                 </div>
-                {shares.length > 0 && <CardDescription>+${(monthlyAddonCents / 100).toFixed(2)}/mo in shared access</CardDescription>}
+                {shares.length > 0 && (
+                  <CardDescription>
+                    {isSuperHero
+                      ? `+$${(monthlyAddonCents / 100).toFixed(2)}/mo in shared access`
+                      : "Free during beta"}
+                  </CardDescription>
+                )}
               </CardHeader>
               <CardContent>
                 {sharingLoading ? (
