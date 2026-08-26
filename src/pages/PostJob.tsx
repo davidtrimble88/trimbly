@@ -145,6 +145,7 @@ const PostJob = () => {
     title: "", description: "", category: "", city: "", state: "", country: "US",
     budget_min: "", budget_max: "", home_id: "",
   });
+  const [customCategory, setCustomCategory] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [homes, setHomes] = useState<{ id: string; name: string; city: string; state: string }[]>([]);
@@ -326,6 +327,11 @@ const PostJob = () => {
       toast({ title: "Missing fields", description: "Please fill in all required fields.", variant: "destructive" });
       return;
     }
+    if (form.category === "Other" && !customCategory.trim()) {
+      toast({ title: "Tell us the service", description: "Type in what kind of work you need.", variant: "destructive" });
+      return;
+    }
+    const finalCategory = form.category === "Other" ? `Other: ${customCategory.trim()}` : form.category;
     setSubmitting(true);
 
     // Hard denylist for obviously off-topic / inappropriate posts (sexual, illegal, etc.)
@@ -350,7 +356,7 @@ const PostJob = () => {
     // Gate: ensure the post is a residential home service request
     try {
       const { data: check, error: checkErr } = await supabase.functions.invoke("validate-home-job", {
-        body: { title: form.title, category: form.category, description: form.description },
+        body: { title: form.title, category: finalCategory, description: form.description },
       });
       if (!checkErr && check && check.is_home_related === false) {
         toast({
@@ -374,7 +380,7 @@ const PostJob = () => {
       const { error } = await supabase.from("jobs").update({
         title: form.title,
         description: form.description || null,
-        category: form.category,
+        category: finalCategory,
         city: form.city,
         state: form.state,
         country: form.country,
@@ -389,6 +395,7 @@ const PostJob = () => {
       } else {
         toast({ title: "Job updated" });
         setForm({ title: "", description: "", category: "", city: "", state: "", country: "US", budget_min: "", budget_max: "", home_id: "" });
+        setCustomCategory("");
         setPhotos([]);
         setVideoUrl(null);
         setEditingJobId(null);
@@ -403,7 +410,7 @@ const PostJob = () => {
       homeowner_id: user.id,
       title: form.title,
       description: form.description || null,
-      category: form.category,
+      category: finalCategory,
       city: form.city,
       state: form.state,
       country: form.country,
@@ -419,6 +426,7 @@ const PostJob = () => {
     } else {
       toast({ title: "Job posted!", description: "Pros can now see and bid on your job." });
       setForm({ title: "", description: "", category: "", city: "", state: "", country: "US", budget_min: "", budget_max: "", home_id: "" });
+        setCustomCategory("");
       setPhotos([]);
       setVideoUrl(null);
       setShowForm(false);
@@ -429,10 +437,13 @@ const PostJob = () => {
 
   const openEditJob = (job: Job) => {
     setEditingJobId(job.id);
+    const rawCategory = job.category || "";
+    const isOther = rawCategory.startsWith("Other:");
+    setCustomCategory(isOther ? rawCategory.slice(6).trim() : "");
     setForm({
       title: job.title || "",
       description: job.description || "",
-      category: job.category || "",
+      category: isOther ? "Other" : rawCategory,
       city: job.city || "",
       state: job.state || "",
       country: job.country || "US",
@@ -912,6 +923,19 @@ const PostJob = () => {
                   {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
+              {form.category === "Other" && (
+                <div className="mt-2">
+                  <Label htmlFor="custom-category" className="text-xs">What kind of service? *</Label>
+                  <Input
+                    id="custom-category"
+                    className="mt-1"
+                    maxLength={60}
+                    value={customCategory}
+                    onChange={(e) => setCustomCategory(e.target.value)}
+                    placeholder="e.g. Chimney sweep, Sauna repair, Dock maintenance"
+                  />
+                </div>
+              )}
               {(() => {
                 const suggestions = suggestCategories(`${form.title} ${form.description}`).filter(c => c !== form.category);
                 if (suggestions.length === 0) return null;
