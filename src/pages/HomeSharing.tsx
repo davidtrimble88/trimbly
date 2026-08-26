@@ -153,24 +153,22 @@ export default function HomeSharing() {
           </div>
         </div>
 
-        {!isHero && !isSuperHero && (
+        {!isSuperHero && (
           <Card className="border-primary/30 bg-primary/5">
-            <CardContent className="pt-6 text-center space-y-3">
-              <Sparkles className="w-8 h-8 text-primary mx-auto" />
-              <p className="font-semibold text-foreground">Sharing is a Home Hero feature</p>
-              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                Upgrade to Home Hero to invite a family member for $2/mo, or Home Super Hero to share with several people at once.
+            <CardContent className="pt-6 space-y-2">
+              <p className="font-semibold text-foreground flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" /> Free during beta</p>
+              <p className="text-sm text-muted-foreground">
+                Inviting a household member normally costs $2/mo on Home Hero. While Trimbly is in beta it's free for everyone — invite whoever shares your address.
               </p>
-              <Button onClick={() => navigate("/homeowner-upsell")}>See plans</Button>
             </CardContent>
           </Card>
         )}
 
-        {isHero && (
+        {!isSuperHero && (
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2"><UserPlus className="w-5 h-5 text-primary" /> Invite a family member</CardTitle>
-              <CardDescription>$2/mo per person, added to your bill. They get their own login and can see your home.</CardDescription>
+              <CardDescription>Free during beta (normally $2/mo per person). They get their own login and can see your home.</CardDescription>
             </CardHeader>
             <CardContent>
               <Button onClick={() => createInvite("hero_member")} disabled={creating !== null} className="gap-1.5">
