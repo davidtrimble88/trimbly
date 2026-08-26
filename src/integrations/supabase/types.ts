@@ -2423,6 +2423,13 @@ export type Database = {
       }
       support_tickets: {
         Row: {
+          ai_analyzed_at: string | null
+          ai_area: string | null
+          ai_group_key: string | null
+          ai_group_label: string | null
+          ai_issue_type: string | null
+          ai_summary: string | null
+          ai_urgency: string | null
           body: string
           category: string
           created_at: string
@@ -2433,6 +2440,13 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_analyzed_at?: string | null
+          ai_area?: string | null
+          ai_group_key?: string | null
+          ai_group_label?: string | null
+          ai_issue_type?: string | null
+          ai_summary?: string | null
+          ai_urgency?: string | null
           body: string
           category: string
           created_at?: string
@@ -2443,6 +2457,13 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_analyzed_at?: string | null
+          ai_area?: string | null
+          ai_group_key?: string | null
+          ai_group_label?: string | null
+          ai_issue_type?: string | null
+          ai_summary?: string | null
+          ai_urgency?: string | null
           body?: string
           category?: string
           created_at?: string
