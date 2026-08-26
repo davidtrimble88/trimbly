@@ -54,6 +54,7 @@ export default function HomeSharing() {
     });
   }, [user]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isHero = subscriptionTier === "homeowner_pro";
   const isSuperHero = subscriptionTier === "multi_pro";
   const fullAccessCount = shares.filter((s) => s.grant_type === "multi_full").length;
@@ -238,7 +239,7 @@ export default function HomeSharing() {
           </Card>
         )}
 
-        {(isHero || isSuperHero) && (
+        {(
           <>
             <Card>
               <CardHeader><CardTitle className="text-lg">Pending invite links ({invites.length})</CardTitle></CardHeader>
