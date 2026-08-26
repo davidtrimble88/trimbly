@@ -130,6 +130,7 @@ const HomeBinder = () => {
   const [findingManual, setFindingManual] = useState(false);
   const [manualResults, setManualResults] = useState<ManualResult[]>([]);
   const [selectedManual, setSelectedManual] = useState<{ url: string; title: string } | null>(null);
+  const [uploadingManual, setUploadingManual] = useState(false);
   const [loadingApplianceTasks, setLoadingApplianceTasks] = useState(false);
   const [applianceTaskItem, setApplianceTaskItem] = useState<{ id: string | null; name: string; home_id: string } | null>(null);
   const [suggestedTasks, setSuggestedTasks] = useState<SuggestedTask[]>([]);
@@ -265,6 +266,37 @@ const HomeBinder = () => {
       toast({ title: "Search error", description: msg, variant: "destructive" });
     } finally {
       setFindingManual(false);
+    }
+  };
+
+  // The User Manual section only ever offered "search the web for it" —
+  // there was no way to attach a manual you already have as a PDF. This
+  // mirrors manual_url's existing contract (a plain fetchable URL that
+  // manual-proxy fetches server-side) by generating a long-lived signed URL
+  // for the private binder-docs bucket, so it's viewed exactly like a
+  // manual found via search — no schema or proxy changes needed.
+  const uploadOwnManual = async (uploadedFile: File) => {
+    if (!user) return;
+    if (uploadedFile.size > 15 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Max 15MB.", variant: "destructive" });
+      return;
+    }
+    setUploadingManual(true);
+    try {
+      const path = `${user.id}/manuals/${Date.now()}-${uploadedFile.name}`;
+      const { error: upErr } = await supabase.storage.from("binder-docs").upload(path, uploadedFile);
+      if (upErr) throw upErr;
+      const { data: signed, error: signErr } = await supabase.storage
+        .from("binder-docs")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (signErr || !signed?.signedUrl) throw signErr || new Error("Could not create a link to the file");
+      setSelectedManual({ url: signed.signedUrl, title: uploadedFile.name });
+      setManualResults([]);
+      toast({ title: "Manual attached", description: uploadedFile.name });
+    } catch (err) {
+      toast({ title: "Upload failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    } finally {
+      setUploadingManual(false);
     }
   };
 
@@ -779,9 +811,22 @@ const HomeBinder = () => {
                     <Label className="flex items-center gap-1.5 text-sm">
                       <BookOpen size={14} className="text-primary" /> User Manual
                     </Label>
-                    <Button type="button" size="sm" variant="outline" onClick={findManual} disabled={findingManual || !form.brand.trim() || !form.model_number.trim()}>
-                      {findingManual ? <><Loader2 size={12} className="animate-spin mr-1.5" /> Searching</> : <><Search size={12} className="mr-1.5" /> Find Manual</>}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button type="button" size="sm" variant="outline" onClick={findManual} disabled={findingManual || !form.brand.trim() || !form.model_number.trim()}>
+                        {findingManual ? <><Loader2 size={12} className="animate-spin mr-1.5" /> Searching</> : <><Search size={12} className="mr-1.5" /> Find Manual</>}
+                      </Button>
+                      <label className={`inline-flex items-center text-xs font-medium border border-border rounded-md px-3 py-1.5 cursor-pointer hover:border-primary/30 ${uploadingManual ? "opacity-60 pointer-events-none" : ""}`}>
+                        {uploadingManual ? <Loader2 size={12} className="animate-spin mr-1.5" /> : <Upload size={12} className="mr-1.5" />}
+                        Upload your own
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          disabled={uploadingManual}
+                          onChange={e => { const f = e.target.files?.[0]; if (f) uploadOwnManual(f); e.target.value = ""; }}
+                        />
+                      </label>
+                    </div>
                   </div>
                   {selectedManual ? (
                     <div className="flex items-center gap-2 text-xs bg-card border border-border rounded px-2 py-1.5">
@@ -792,8 +837,8 @@ const HomeBinder = () => {
                   ) : (
                     <p className="text-xs text-muted-foreground">
                       {form.brand && form.model_number
-                        ? "We'll auto-attach the manual when you save, or click Find Manual to choose."
-                        : "Enter brand + model to attach the user manual."}
+                        ? "We'll auto-attach the manual when you save, or click Find Manual to choose — or upload your own if you already have it."
+                        : "Enter brand + model to search for the manual, or upload your own."}
                     </p>
                   )}
                   {manualResults.length > 0 && (

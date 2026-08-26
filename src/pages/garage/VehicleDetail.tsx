@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, ArrowLeft, Upload, Check, ShoppingCart, ExternalLink, ScanLine, AlertTriangle, Loader2, Car, Bike } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Upload, Check, ShoppingCart, ExternalLink, ScanLine, AlertTriangle, Loader2, Car, Bike, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { VehicleProductDialog } from "@/components/garage/VehicleProductDialog";
 import FuelMileagePanel from "@/components/garage/FuelMileagePanel";
@@ -391,25 +391,51 @@ function ServiceLog({ vehicle, services, onChanged }: { vehicle: any; services: 
 
 function MaintenanceList({ vehicle, tasks, onChanged }: { vehicle: any; tasks: any[]; onChanged: () => void }) {
   const [shopTask, setShopTask] = useState<any>(null);
+  const [editTask, setEditTask] = useState<any>(null);
+
+  // Mirrors how home maintenance handles this: the completed occurrence is
+  // kept as a permanent "done" record (real history, same as a one-time
+  // task), and — if the task recurs — a brand new row is inserted for the
+  // next cycle with a freshly computed due date/mileage. The previous
+  // version updated the SAME row in place and flipped it straight back to
+  // "upcoming", which never visibly changed anything in the list (it looked
+  // static) and left no record that the task was ever actually done.
   const markDone = async (task: any) => {
-    // A task with a recurrence interval schedules its next occurrence and
-    // stays "upcoming" for that cycle — that's correct, not a bug. A
-    // one-time task (no interval) has no next cycle, so it must actually
-    // reach "done" here; leaving it "upcoming" (the old, hardcoded value)
-    // meant it could never move to completed and just sat in the list forever.
     const recurs = !!(task.interval_months || task.interval_miles);
     const today = new Date();
-    const next_due_date = task.interval_months ? (() => { const d = new Date(today); d.setMonth(d.getMonth() + task.interval_months); return d.toISOString().slice(0,10); })() : null;
-    const next_due_mileage = task.interval_miles ? (vehicle.current_mileage + task.interval_miles) : null;
+    const todayStr = today.toISOString().slice(0, 10);
+
     const { error } = await supabase.from("vehicle_maintenance_tasks").update({
-      last_done_date: today.toISOString().slice(0,10),
+      last_done_date: todayStr,
       last_done_mileage: vehicle.current_mileage,
-      next_due_date,
-      next_due_mileage,
-      status: recurs ? "upcoming" : "done",
+      status: "done",
     }).eq("id", task.id);
     if (error) return toast.error(error.message);
-    toast.success(`${task.task_name} marked done`);
+
+    if (recurs) {
+      // Guard against duplicates the same way home maintenance does — if a
+      // fresh "upcoming" row for this task already exists (e.g. double click),
+      // don't create a second one.
+      const dup = tasks.find((t) => t.id !== task.id && t.status !== "done" && t.task_name.toLowerCase().trim() === task.task_name.toLowerCase().trim());
+      if (!dup) {
+        const next_due_date = task.interval_months ? (() => { const d = new Date(today); d.setMonth(d.getMonth() + task.interval_months); return d.toISOString().slice(0,10); })() : null;
+        const next_due_mileage = task.interval_miles ? (vehicle.current_mileage + task.interval_miles) : null;
+        const { error: insErr } = await supabase.from("vehicle_maintenance_tasks").insert({
+          vehicle_id: task.vehicle_id,
+          owner_user_id: task.owner_user_id,
+          task_name: task.task_name,
+          category: task.category,
+          interval_months: task.interval_months,
+          interval_miles: task.interval_miles,
+          notes: task.notes,
+          status: "upcoming",
+          next_due_date,
+          next_due_mileage,
+        });
+        if (insErr) toast.error(`Marked done, but couldn't schedule the next cycle: ${insErr.message}`);
+      }
+    }
+    toast.success(`${task.task_name} marked done${recurs ? " — next cycle scheduled" : ""}`);
     onChanged();
   };
 
@@ -450,6 +476,7 @@ function MaintenanceList({ vehicle, tasks, onChanged }: { vehicle: any; tasks: a
                     <ShoppingCart size={14} className="mr-1" /> <span className="hidden sm:inline">Shop</span> <ExternalLink size={10} className="ml-0.5" />
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => markDone(t)}><Check size={14} className="mr-1" /> Done</Button>
+                  <Button variant="ghost" size="icon" onClick={() => setEditTask(t)} title="Edit"><Pencil size={14} /></Button>
                   <Button variant="ghost" size="icon" onClick={() => remove(t.id)}><Trash2 size={14} className="text-destructive" /></Button>
                 </div>
               </li>
@@ -488,7 +515,70 @@ function MaintenanceList({ vehicle, tasks, onChanged }: { vehicle: any; tasks: a
           vehicle={vehicle}
         />
       )}
+      {editTask && (
+        <EditTaskDialog
+          task={editTask}
+          mileageUnit={vehicle.mileage_unit}
+          onClose={() => setEditTask(null)}
+          onSaved={() => { setEditTask(null); onChanged(); }}
+        />
+      )}
     </Card>
+  );
+}
+
+// There was no way to change a task's frequency (or anything else about it)
+// once created — only Done/Shop/Delete existed. This mirrors the field set
+// home maintenance's edit dialog exposes (due date + recurrence), extended
+// with the mileage-based interval since vehicle tasks can recur by mileage too.
+function EditTaskDialog({ task, mileageUnit, onClose, onSaved }: { task: any; mileageUnit: string; onClose: () => void; onSaved: () => void }) {
+  const [taskName, setTaskName] = useState(task.task_name || "");
+  const [intervalMonths, setIntervalMonths] = useState(task.interval_months != null ? String(task.interval_months) : "");
+  const [intervalMiles, setIntervalMiles] = useState(task.interval_miles != null ? String(task.interval_miles) : "");
+  const [nextDueDate, setNextDueDate] = useState(task.next_due_date || "");
+  const [nextDueMileage, setNextDueMileage] = useState(task.next_due_mileage != null ? String(task.next_due_mileage) : "");
+  const [notes, setNotes] = useState(task.notes || "");
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    if (!taskName.trim()) return toast.error("Task name is required");
+    setSaving(true);
+    const { error } = await supabase.from("vehicle_maintenance_tasks").update({
+      task_name: taskName.trim(),
+      interval_months: intervalMonths ? parseInt(intervalMonths, 10) : null,
+      interval_miles: intervalMiles ? parseInt(intervalMiles, 10) : null,
+      next_due_date: nextDueDate || null,
+      next_due_mileage: nextDueMileage ? parseInt(nextDueMileage, 10) : null,
+      notes: notes.trim() || null,
+    }).eq("id", task.id);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success("Task updated");
+    onSaved();
+  };
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader><DialogTitle>Edit task</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div><Label>Task name</Label><Input value={taskName} onChange={(e) => setTaskName(e.target.value)} /></div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><Label>Repeat every (months)</Label><Input inputMode="numeric" value={intervalMonths} onChange={(e) => setIntervalMonths(e.target.value.replace(/\D/g, "").slice(0,3))} placeholder="e.g. 6" /></div>
+            <div><Label>Repeat every ({mileageUnit})</Label><Input inputMode="numeric" value={intervalMiles} onChange={(e) => setIntervalMiles(e.target.value.replace(/\D/g, "").slice(0,7))} placeholder="e.g. 5000" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><Label>Next due date</Label><Input type="date" value={nextDueDate} onChange={(e) => setNextDueDate(e.target.value)} /></div>
+            <div><Label>Next due ({mileageUnit})</Label><Input inputMode="numeric" value={nextDueMileage} onChange={(e) => setNextDueMileage(e.target.value.replace(/\D/g, "").slice(0,7))} /></div>
+          </div>
+          <div><Label>Notes</Label><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} maxLength={500} /></div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
