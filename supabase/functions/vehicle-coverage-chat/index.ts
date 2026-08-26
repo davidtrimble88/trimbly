@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { rateLimit, rateLimitResponse, getClientKey } from "../_shared/rateLimit.ts";
 import { readJson, requireArray, optionalString, validationErrorResponse } from "../_shared/validation.ts";
+import { buildDocumentContentParts, type DocFileRef } from "../_shared/documentFiles.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,7 +16,7 @@ serve(async (req) => {
   if (!rl.ok) return rateLimitResponse(rl, corsHeaders);
 
   let messages: Array<{ role: string; content: string }>;
-  let documentContents: string | undefined;
+  let documentFiles: DocFileRef[] = [];
   let vehicleContext: string | undefined;
   try {
     const body = await readJson(req, 256 * 1024);
@@ -27,7 +28,16 @@ serve(async (req) => {
       }
       if ((m as any).content.length > 8000) throw new Error("message too long");
     }
-    documentContents = optionalString(body.documentContents, "documentContents", { max: 200_000 });
+    if (body.documentFiles !== undefined) {
+      const raw = requireArray(body.documentFiles, "documentFiles", { max: 8 });
+      for (const f of raw) {
+        if (!f || typeof f !== "object") throw new Error("invalid documentFiles entry");
+        if (typeof (f as any).url !== "string" || !(f as any).url.startsWith("http")) throw new Error("invalid document url");
+        if (typeof (f as any).mimeType !== "string") throw new Error("invalid document mimeType");
+        if (typeof (f as any).label !== "string" || (f as any).label.length > 300) throw new Error("invalid document label");
+      }
+      documentFiles = raw as DocFileRef[];
+    }
     vehicleContext = optionalString(body.vehicleContext, "vehicleContext", { max: 8_000 });
   } catch (e) {
     return validationErrorResponse(e, corsHeaders);
@@ -36,6 +46,8 @@ serve(async (req) => {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    const documentParts = documentFiles.length > 0 ? await buildDocumentContentParts(documentFiles) : [];
 
     const systemPrompt = `You are an expert automotive insurance, warranty, and extended-service-contract advisor. The user has uploaded their vehicle coverage documents (auto insurance policies, manufacturer warranties, extended warranties, service contracts) and is asking about a specific issue with their vehicle.
 
@@ -66,9 +78,16 @@ Always include this disclaimer at the end: "Estimates are general — confirm ex
 
 ${vehicleContext ? `\n--- VEHICLE CONTEXT ---\n${vehicleContext}\n--- END VEHICLE CONTEXT ---` : ""}
 
-Some documents below may be marked "content not available" — this means you were only given that file's name and metadata, not its actual text. Never cite a specific coverage limit, deductible, or clause as if you read it in a document marked this way; say you can't read that file format yet and ask the user to paste the relevant terms as text instead. General industry-typical estimates (premium surcharge ranges, etc.) are fine to use as clearly-labeled estimates, just don't attribute invented numbers to a specific unread document.
+Your uploaded coverage documents are attached below as readable files/images, labeled by type and vehicle. A document may still come through marked "content not available", "too large", or "could not load" — this means you were NOT given that file's actual content. Never cite a specific coverage limit, deductible, or clause as if you read it in a document marked this way; say you couldn't read that particular file and ask the user to re-upload it or paste the relevant terms as text instead. General industry-typical estimates (premium surcharge ranges, etc.) are fine to use as clearly-labeled estimates, just don't attribute invented numbers to a specific unread document.
 
-${documentContents ? `\n--- UPLOADED COVERAGE DOCUMENTS ---\n${documentContents}\n--- END DOCUMENTS ---` : "\nNo documents have been uploaded yet. Tell the user to upload their auto insurance policy or vehicle warranty first so you can analyze coverage."}`;
+${documentParts.length === 0 ? "\nNo documents have been uploaded yet. Tell the user to upload their auto insurance policy or vehicle warranty first so you can analyze coverage." : ""}`;
+
+    const chatMessages: Array<Record<string, unknown>> = [{ role: "system", content: systemPrompt }];
+    if (documentParts.length > 0) {
+      chatMessages.push({ role: "user", content: [{ type: "text", text: "Here are my uploaded vehicle coverage documents:" }, ...documentParts] });
+      chatMessages.push({ role: "assistant", content: "Got it — I've reviewed your uploaded documents. Tell me what happened." });
+    }
+    chatMessages.push(...messages);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -78,10 +97,7 @@ ${documentContents ? `\n--- UPLOADED COVERAGE DOCUMENTS ---\n${documentContents}
       },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages,
-        ],
+        messages: chatMessages,
         stream: true,
       }),
     });

@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Shield, Upload, FileText, Trash2, Send, Bot, User, Crown, MessageSquare, Loader2, Home,
 } from "lucide-react";
+import { guessMimeType } from "@/lib/fileMime";
 
 type CoverageDoc = {
   id: string;
@@ -29,12 +30,13 @@ type CoverageDoc = {
 };
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
+type DocFileRef = { url: string; mimeType: string; label: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/coverage-chat`;
 
 async function streamChat(
   messages: ChatMessage[],
-  documentContents: string,
+  documentFiles: DocFileRef[],
   onDelta: (t: string) => void,
   onDone: () => void
 ) {
@@ -44,7 +46,7 @@ async function streamChat(
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ messages, documentContents }),
+    body: JSON.stringify({ messages, documentFiles }),
   });
   if (!resp.ok || !resp.body) throw new Error("Failed to start stream");
 
@@ -88,7 +90,7 @@ const CoverageAdvisor = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
-  const [docContents, setDocContents] = useState("");
+  const [docFiles, setDocFiles] = useState<DocFileRef[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -115,33 +117,27 @@ const CoverageAdvisor = () => {
     })();
   }, [user]);
 
-  // Build document context for the AI: real extracted text for plain-text files,
-  // an honest "content not available" note for anything we can't parse client-side
-  // (PDF/image/doc) so the model doesn't invent coverage figures for files it never read.
+  // Get a signed URL + inferred mime type for each uploaded document so the
+  // AI chat edge function can fetch and read it directly (PDFs and images
+  // are sent to the model as native multimodal input; the edge function
+  // handles anything it genuinely can't read, like .doc/.docx, honestly).
   useEffect(() => {
-    if (docs.length === 0) { setDocContents(""); return; }
+    if (docs.length === 0) { setDocFiles([]); return; }
     let cancelled = false;
     (async () => {
-      const parts = await Promise.all(docs.map(async (d) => {
-        const header = `[${d.document_type.toUpperCase()}] ${d.file_name} (uploaded ${new Date(d.created_at).toLocaleDateString()})`;
-        const isPlainText = /\.(txt|md)$/i.test(d.file_name);
-        if (!isPlainText) {
-          return `${header}\nContent not available — this file type can't be read yet. Only the file name and upload date are known; do not guess or invent coverage figures from it.`;
-        }
+      const refs = await Promise.all(docs.map(async (d): Promise<DocFileRef | null> => {
+        const label = `[${d.document_type.toUpperCase()}] ${d.file_name} (uploaded ${new Date(d.created_at).toLocaleDateString()})`;
         try {
           const pathParts = d.file_url.split("/coverage-docs/");
           const storagePath = pathParts.length > 1 ? pathParts[1] : d.file_url;
-          const { data: signed } = await supabase.storage.from("coverage-docs").createSignedUrl(storagePath, 60);
+          const { data: signed } = await supabase.storage.from("coverage-docs").createSignedUrl(storagePath, 120);
           if (!signed?.signedUrl) throw new Error("no signed url");
-          const res = await fetch(signed.signedUrl);
-          if (!res.ok) throw new Error("fetch failed");
-          const text = (await res.text()).slice(0, 20_000);
-          return `${header}\n${text}`;
+          return { url: signed.signedUrl, mimeType: guessMimeType(d.file_name), label };
         } catch {
-          return `${header}\nContent not available — could not load this file's text. Do not guess or invent coverage figures from it.`;
+          return null;
         }
       }));
-      if (!cancelled) setDocContents(parts.join("\n\n"));
+      if (!cancelled) setDocFiles(refs.filter((r): r is DocFileRef => !!r));
     })();
     return () => { cancelled = true; };
   }, [docs]);
@@ -154,8 +150,8 @@ const CoverageAdvisor = () => {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, docType: string) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    if (file.size > 20 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Max 20MB per file.", variant: "destructive" });
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Max 10MB per file.", variant: "destructive" });
       return;
     }
     setUploading(true);
@@ -219,7 +215,7 @@ const CoverageAdvisor = () => {
     };
 
     try {
-      await streamChat([...messages, userMsg], docContents, upsert, () => setStreaming(false));
+      await streamChat([...messages, userMsg], docFiles, upsert, () => setStreaming(false));
     } catch {
       toast({ title: "Chat error", description: "Could not get AI response.", variant: "destructive" });
       setStreaming(false);
@@ -295,7 +291,7 @@ const CoverageAdvisor = () => {
                   <label className="block text-sm font-medium mb-1">Home Warranty</label>
                   <Input
                     type="file"
-                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                    accept=".pdf,.txt,.md,.jpg,.jpeg,.png"
                     onChange={(e) => handleUpload(e, "warranty")}
                     disabled={uploading}
                     className="cursor-pointer"
@@ -305,7 +301,7 @@ const CoverageAdvisor = () => {
                   <label className="block text-sm font-medium mb-1">Insurance Policy</label>
                   <Input
                     type="file"
-                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                    accept=".pdf,.txt,.md,.jpg,.jpeg,.png"
                     onChange={(e) => handleUpload(e, "insurance")}
                     disabled={uploading}
                     className="cursor-pointer"

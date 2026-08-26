@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { rateLimit, rateLimitResponse, getClientKey } from "../_shared/rateLimit.ts";
-import { readJson, requireArray, optionalString, validationErrorResponse } from "../_shared/validation.ts";
+import { readJson, requireArray, validationErrorResponse } from "../_shared/validation.ts";
+import { buildDocumentContentParts, type DocFileRef } from "../_shared/documentFiles.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,7 +16,7 @@ serve(async (req) => {
   if (!rl.ok) return rateLimitResponse(rl, corsHeaders);
 
   let messages: Array<{ role: string; content: string }>;
-  let documentContents: string | undefined;
+  let documentFiles: DocFileRef[] = [];
   try {
     const body = await readJson(req, 256 * 1024);
     messages = requireArray(body.messages, "messages", { min: 1, max: 50 });
@@ -26,7 +27,16 @@ serve(async (req) => {
       }
       if ((m as any).content.length > 8000) throw new Error("message too long");
     }
-    documentContents = optionalString(body.documentContents, "documentContents", { max: 200_000 });
+    if (body.documentFiles !== undefined) {
+      const raw = requireArray(body.documentFiles, "documentFiles", { max: 8 });
+      for (const f of raw) {
+        if (!f || typeof f !== "object") throw new Error("invalid documentFiles entry");
+        if (typeof (f as any).url !== "string" || !(f as any).url.startsWith("http")) throw new Error("invalid document url");
+        if (typeof (f as any).mimeType !== "string") throw new Error("invalid document mimeType");
+        if (typeof (f as any).label !== "string" || (f as any).label.length > 300) throw new Error("invalid document label");
+      }
+      documentFiles = raw as DocFileRef[];
+    }
   } catch (e) {
     return validationErrorResponse(e, corsHeaders);
   }
@@ -35,9 +45,9 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    const documentParts = documentFiles.length > 0 ? await buildDocumentContentParts(documentFiles) : [];
 
-
-    const systemPrompt = `You are an expert insurance and home warranty advisor. The user has uploaded their coverage documents, each labeled [WARRANTY] or [INSURANCE] in the content below. Use these to answer their questions accurately.
+    const systemPrompt = `You are an expert insurance and home warranty advisor. The user has uploaded their coverage documents, each labeled [WARRANTY] or [INSURANCE], attached below as readable files/images. Use these to answer their questions accurately.
 
 If the user asks about something not covered in their documents, clearly state that you couldn't find that information in their uploaded documents.
 
@@ -48,9 +58,16 @@ When something the user asks about IS covered:
 - If it's covered by BOTH a [WARRANTY] and an [INSURANCE] document, explicitly recommend which one to file the claim on, and explain why in plain terms (e.g. lower deductible, no effect on future premiums, faster turnaround, higher coverage limit, fewer exclusions that might apply here). Don't just list both — give a clear recommendation.
 - After answering, offer to help them word the claim submission to improve the odds it gets approved (e.g. "Want help wording this claim so it's more likely to be approved?"). If they say yes, draft language that: describes the issue factually and specifically, cites the exact policy/warranty section and page that covers it, uses the document's own terminology rather than the user's casual phrasing, and avoids language that could sound like a pre-existing condition or excluded cause unless that's genuinely accurate. Never suggest omitting relevant facts or misrepresenting the cause of the problem — the goal is clear, well-supported wording, not deception.
 
-Some documents may be marked "content not available" below — this means you were NOT given that file's actual text, only its name. Never invent, estimate, or guess specific figures (dollar limits, deductibles, percentages) for a document marked this way. Instead, tell the user you can't read that file format yet and ask them to paste the relevant terms as text or upload a .txt file.
+A document may still come through marked "content not available", "too large", or "could not load" below — that means you were NOT given that file's actual content. Never invent, estimate, or guess specific figures (dollar limits, deductibles, percentages) for a document marked this way; tell the user you couldn't read that particular file and ask them to re-upload it or paste the relevant terms as text.
 
-${documentContents ? `\n--- UPLOADED DOCUMENT CONTENTS ---\n${documentContents}\n--- END DOCUMENTS ---` : "\nNo documents have been uploaded yet. Let the user know they should upload their warranty or insurance documents first."}`;
+${documentParts.length === 0 ? "\nNo documents have been uploaded yet. Let the user know they should upload their warranty or insurance documents first." : ""}`;
+
+    const chatMessages: Array<Record<string, unknown>> = [{ role: "system", content: systemPrompt }];
+    if (documentParts.length > 0) {
+      chatMessages.push({ role: "user", content: [{ type: "text", text: "Here are my uploaded coverage documents:" }, ...documentParts] });
+      chatMessages.push({ role: "assistant", content: "Got it — I've reviewed your uploaded documents. What would you like to know?" });
+    }
+    chatMessages.push(...messages);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -60,10 +77,7 @@ ${documentContents ? `\n--- UPLOADED DOCUMENT CONTENTS ---\n${documentContents}\
       },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages,
-        ],
+        messages: chatMessages,
         stream: true,
       }),
     });

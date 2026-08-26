@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Shield, Upload, FileText, Trash2, Send, Bot, User, MessageSquare, Loader2, Car,
 } from "lucide-react";
+import { guessMimeType } from "@/lib/fileMime";
 
 type CoverageDoc = {
   id: string;
@@ -28,6 +29,7 @@ type CoverageDoc = {
 type Vehicle = { id: string; nickname: string | null; make: string; model: string; year: number | null; vehicle_type: string | null };
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
+type DocFileRef = { url: string; mimeType: string; label: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/vehicle-coverage-chat`;
 
@@ -40,7 +42,7 @@ const DOC_LABELS: Record<string, string> = {
 
 async function streamChat(
   messages: ChatMessage[],
-  documentContents: string,
+  documentFiles: DocFileRef[],
   vehicleContext: string,
   onDelta: (t: string) => void,
   onDone: () => void
@@ -51,7 +53,7 @@ async function streamChat(
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ messages, documentContents, vehicleContext }),
+    body: JSON.stringify({ messages, documentFiles, vehicleContext }),
   });
   if (!resp.ok || !resp.body) throw new Error("Failed to start stream");
 
@@ -100,7 +102,7 @@ export default function VehicleCoverage() {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<string>("none");
-  const [docContents, setDocContents] = useState("");
+  const [docFiles, setDocFiles] = useState<DocFileRef[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -128,33 +130,27 @@ export default function VehicleCoverage() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  // Build document context for the AI: provider/policy metadata always, plus real
-  // extracted text for plain-text uploads. Everything else (PDF/image/doc) is marked
-  // as unread so the model doesn't invent coverage figures for a file it never saw.
+  // Get a signed URL + inferred mime type for each uploaded document so the
+  // AI chat edge function can fetch and read it directly (PDFs and images
+  // are sent to the model as native multimodal input; the edge function
+  // handles anything it genuinely can't read, like .doc/.docx, honestly).
   useEffect(() => {
-    if (docs.length === 0) { setDocContents(""); return; }
+    if (docs.length === 0) { setDocFiles([]); return; }
     let cancelled = false;
     (async () => {
-      const parts = await Promise.all(docs.map(async (d) => {
+      const refs = await Promise.all(docs.map(async (d): Promise<DocFileRef | null> => {
         const v = d.vehicle_id ? vehicles.find((x) => x.id === d.vehicle_id) : null;
         const vTag = v ? ` for ${v.year ?? ""} ${v.make} ${v.model}`.trim() : "";
-        const header = `[${DOC_LABELS[d.document_type] || d.document_type.toUpperCase()}${vTag}] Provider: ${d.provider_name || "n/a"} | Policy #: ${d.policy_number || "n/a"} | File: ${d.file_name}${d.notes ? ` | Notes: ${d.notes}` : ""}`;
-        const isPlainText = /\.(txt|md)$/i.test(d.file_name);
-        if (!isPlainText) {
-          return `${header}\nDocument content not available — this file type can't be read yet. Only the metadata above is known; do not guess or invent coverage figures from it.`;
-        }
+        const label = `[${DOC_LABELS[d.document_type] || d.document_type.toUpperCase()}${vTag}] Provider: ${d.provider_name || "n/a"} | Policy #: ${d.policy_number || "n/a"} | File: ${d.file_name}${d.notes ? ` | Notes: ${d.notes}` : ""}`;
         try {
-          const { data: signed } = await supabase.storage.from("vehicle-docs").createSignedUrl(d.file_url, 60);
+          const { data: signed } = await supabase.storage.from("vehicle-docs").createSignedUrl(d.file_url, 120);
           if (!signed?.signedUrl) throw new Error("no signed url");
-          const res = await fetch(signed.signedUrl);
-          if (!res.ok) throw new Error("fetch failed");
-          const text = (await res.text()).slice(0, 20_000);
-          return `${header}\n${text}`;
+          return { url: signed.signedUrl, mimeType: guessMimeType(d.file_name), label };
         } catch {
-          return `${header}\nDocument content not available — could not load this file's text. Do not guess or invent coverage figures from it.`;
+          return null;
         }
       }));
-      if (!cancelled) setDocContents(parts.join("\n\n"));
+      if (!cancelled) setDocFiles(refs.filter((r): r is DocFileRef => !!r));
     })();
     return () => { cancelled = true; };
   }, [docs, vehicles]);
@@ -170,8 +166,8 @@ export default function VehicleCoverage() {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    if (file.size > 20 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Max 20MB per file.", variant: "destructive" });
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Max 10MB per file.", variant: "destructive" });
       return;
     }
     setUploading(true);
@@ -243,7 +239,7 @@ export default function VehicleCoverage() {
     };
 
     try {
-      await streamChat([...messages, userMsg], docContents, vehicleContext, upsert, () => setStreaming(false));
+      await streamChat([...messages, userMsg], docFiles, vehicleContext, upsert, () => setStreaming(false));
     } catch {
       toast({ title: "Chat error", description: "Could not get AI response.", variant: "destructive" });
       setStreaming(false);
@@ -318,7 +314,7 @@ export default function VehicleCoverage() {
               />
               <Input
                 type="file"
-                accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                accept=".pdf,.txt,.md,.jpg,.jpeg,.png"
                 onChange={handleUpload}
                 disabled={uploading}
                 className="cursor-pointer"
