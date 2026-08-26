@@ -146,7 +146,7 @@ async function extractPdfLinksFromPage(
       method: "POST",
       signal: ctrl.signal,
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ url: pageUrl, formats: ["links", "markdown"] }),
+      body: JSON.stringify({ url: pageUrl, formats: ["links", "markdown", "rawHtml"] }),
     });
     clearTimeout(t);
     const data = await res.json();
@@ -168,6 +168,24 @@ async function extractPdfLinksFromPage(
     let m: RegExpExecArray | null;
     while ((m = mdLinkRx.exec(markdown)) !== null) {
       found.push({ url: m[2], text: m[1] });
+    }
+    // Some manual sites (manuals.plus in particular) render the PDF through an
+    // inline JS viewer that points at the file via a `data-pdf-url="..."`-style
+    // attribute or an inline script variable — never a real <a href> or a
+    // markdown link, so neither extraction above ever sees it. Scan the raw
+    // HTML source directly for anything that looks like a PDF reference.
+    const rawHtml: string = data?.data?.rawHtml || data?.rawHtml || "";
+    if (rawHtml) {
+      const attrRx = /(?:href|src|data-[\w-]+)\s*=\s*["']([^"']+\.pdf[^"']*)["']/gi;
+      let am: RegExpExecArray | null;
+      while ((am = attrRx.exec(rawHtml)) !== null) {
+        found.push({ url: am[1], text: "" });
+      }
+      const bareUrlRx = /https?:\/\/[^\s"'<>()]+\.pdf(?:[^\s"'<>()]*)?/gi;
+      let bm: RegExpExecArray | null;
+      while ((bm = bareUrlRx.exec(rawHtml)) !== null) {
+        found.push({ url: bm[0], text: "" });
+      }
     }
 
     // Resolve to absolute PDF-looking links only.
@@ -365,7 +383,12 @@ Deno.serve(async (req) => {
     ]) {
       if (!dedupedPages.has(p.url)) dedupedPages.set(p.url, p);
     }
-    const pageCandidates = Array.from(dedupedPages.values()).slice(0, 5);
+    // Was capped at 5, which silently dropped legitimate candidates whenever
+    // trusted-aggregator results alone exceeded it (common — a single search
+    // often returns 6-8 aggregator hits before the official-domain results
+    // are even added). Scraping runs in parallel below, so raising this cap
+    // costs more Firecrawl calls, not more wall-clock time.
+    const pageCandidates = Array.from(dedupedPages.values()).slice(0, 10);
     console.log(`[pages] scraping ${pageCandidates.length} candidates: ${JSON.stringify(pageCandidates.map((p) => p.url))}`);
     debug.pageCandidatesToScrape = pageCandidates.map((p) => p.url);
     debug.templatePageUsed = templatePage?.url || null;
