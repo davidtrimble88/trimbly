@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ProductQuestionnaireDialog } from "@/components/maintenance/ProductQuestionnaireDialog";
 import Navbar from "@/components/Navbar";
@@ -70,6 +71,18 @@ const emptyHome: HomeProfile = {
 
 const seasonIcons: Record<string, typeof Sun> = { spring: Leaf, summer: Sun, fall: CloudRain, winter: Snowflake, any: Clock };
 const priorityColors: Record<string, string> = { high: "destructive", medium: "default", low: "secondary" };
+
+// Rough elapsed-time checkpoints (seconds) for the address-lookup progress
+// messages below — real stages of a Zillow scrape, timed to roughly match
+// how long each part actually tends to take, not literal progress events.
+const LOOKUP_STATUS_TIMINGS = [0, 3, 8, 15, 22];
+const LOOKUP_STATUS_MESSAGES = [
+  "Searching Zillow for your address…",
+  "Found a listing — reading the details…",
+  "Pulling year built, square footage, and home systems…",
+  "Grabbing a photo of your home…",
+  "Almost there — finishing up…",
+];
 
 const recurrenceOptions = [
   { value: "0", label: "One-time (no repeat)" },
@@ -199,10 +212,30 @@ const MaintenancePage = () => {
   const [addressLookedUp, setAddressLookedUp] = useState(false);
   const [zillowPhotoUrl, setZillowPhotoUrl] = useState<string | null>(null);
   const [photoChoice, setPhotoChoice] = useState<HomePhotoChoiceValue | null>(null);
+  const [lookupProgress, setLookupProgress] = useState(0);
+  const [lookupStatus, setLookupStatus] = useState(LOOKUP_STATUS_MESSAGES[0]);
 
   const lookupAddress = async () => {
     if (!addressInput.trim()) return;
     setLookingUpAddress(true);
+    setLookupProgress(0);
+    setLookupStatus(LOOKUP_STATUS_MESSAGES[0]);
+    const startedAt = Date.now();
+    // The lookup is one opaque ~15-30s network call with no real progress
+    // events to report — this simulates steady, ever-slowing progress (an
+    // asymptotic curve that approaches but never quite reaches 100% on its
+    // own) purely so the wait *feels* alive instead of a frozen spinner.
+    // Actual completion below always snaps it to 100 for real.
+    const progressTimer = window.setInterval(() => {
+      const elapsedSeconds = (Date.now() - startedAt) / 1000;
+      setLookupProgress(92 * (1 - Math.exp(-elapsedSeconds / 11)));
+      for (let i = LOOKUP_STATUS_TIMINGS.length - 1; i >= 0; i--) {
+        if (elapsedSeconds >= LOOKUP_STATUS_TIMINGS[i]) {
+          setLookupStatus(LOOKUP_STATUS_MESSAGES[i]);
+          break;
+        }
+      }
+    }, 300);
     try {
       const { data, error } = await supabase.functions.invoke("zillow-lookup", {
         body: { address: addressInput.trim() },
@@ -243,6 +276,12 @@ const MaintenancePage = () => {
       console.error("Address lookup error:", err);
       toast({ title: "Lookup failed", description: "Something went wrong. You can still fill in details manually.", variant: "destructive" });
     } finally {
+      window.clearInterval(progressTimer);
+      // Snap to 100 and hold for a beat so the bar visibly finishes instead
+      // of jumping straight from ~80% to gone — a small thing, but a bar
+      // that never completes reads as broken, not as "still working."
+      setLookupProgress(100);
+      await new Promise((resolve) => setTimeout(resolve, 250));
       setLookingUpAddress(false);
     }
   };
@@ -1040,10 +1079,13 @@ const MaintenancePage = () => {
                         </Button>
                       </div>
                       {lookingUpAddress && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                          <Loader2 size={12} className="animate-spin shrink-0" />
-                          Searching Zillow and reading the listing — this can take up to 30 seconds, hang tight.
-                        </p>
+                        <div className="space-y-1.5">
+                          <Progress value={lookupProgress} className="h-1.5" />
+                          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                            <Loader2 size={12} className="animate-spin shrink-0" />
+                            {lookupStatus}
+                          </p>
+                        </div>
                       )}
                       {addressLookedUp && (
                         <div className="space-y-2">
