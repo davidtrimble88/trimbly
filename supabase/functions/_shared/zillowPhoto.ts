@@ -24,13 +24,16 @@ export interface PhotoExtractionDebug {
   rawHtmlLength: number;
   foundResponsivePhotosKey: boolean;
   responsivePhotosUrl: string | null;
+  responsivePhotosSnippet: string | null;
   foundLastSoldListingKey: boolean;
   foundSoldPhotosKey: boolean;
   soldPhotosDistance: number | null;
   soldPhotosUrl: string | null;
+  soldListingSnippet: string | null;
   hadHtml: boolean;
   hadOgImageMeta: boolean;
   hadOgImageField: boolean;
+  ogImageRawValue: string | null;
   hadMarkdown: boolean;
   finalSource: "responsivePhotos" | "lastSoldListing" | "og:image-tag" | "og:image-field" | "markdown" | "none";
 }
@@ -55,7 +58,10 @@ export function extractHeroPhoto(scrapeData: any, debug?: Partial<PhotoExtractio
     if (debug) debug.foundResponsivePhotosKey = responsiveIdx !== -1;
     if (responsiveIdx !== -1) {
       const url = firstEscapedUrl(rawHtml, responsiveIdx);
-      if (debug) debug.responsivePhotosUrl = url;
+      if (debug) {
+        debug.responsivePhotosUrl = url;
+        debug.responsivePhotosSnippet = rawHtml.slice(responsiveIdx, responsiveIdx + 150);
+      }
       if (url && url.startsWith(ZILLOW_PHOTO_HOST)) {
         if (debug) debug.finalSource = "responsivePhotos";
         return url;
@@ -66,6 +72,7 @@ export function extractHeroPhoto(scrapeData: any, debug?: Partial<PhotoExtractio
     const soldIdx = rawHtml.indexOf('\\"lastSoldListing\\":{');
     if (debug) debug.foundLastSoldListingKey = soldIdx !== -1;
     if (soldIdx !== -1) {
+      if (debug) debug.soldListingSnippet = rawHtml.slice(soldIdx, soldIdx + 300);
       const photosIdx = rawHtml.indexOf('\\"photos\\":[', soldIdx);
       if (debug) {
         debug.foundSoldPhotosKey = photosIdx !== -1;
@@ -96,7 +103,10 @@ export function extractHeroPhoto(scrapeData: any, debug?: Partial<PhotoExtractio
   }
 
   const ogImage = scrapeData?.data?.metadata?.ogImage || scrapeData?.metadata?.ogImage;
-  if (debug) debug.hadOgImageField = typeof ogImage === "string";
+  if (debug) {
+    debug.hadOgImageField = typeof ogImage === "string";
+    debug.ogImageRawValue = typeof ogImage === "string" ? ogImage : null;
+  }
   if (typeof ogImage === "string" && ogImage.startsWith(ZILLOW_PHOTO_HOST)) {
     if (debug) debug.finalSource = "og:image-field";
     return ogImage;
