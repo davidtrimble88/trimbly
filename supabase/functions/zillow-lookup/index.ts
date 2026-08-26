@@ -1,4 +1,4 @@
-import { extractHeroPhoto } from '../_shared/zillowPhoto.ts';
+import { extractHeroPhoto, type PhotoExtractionDebug } from '../_shared/zillowPhoto.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -199,6 +199,7 @@ Deno.serve(async (req) => {
       }
     };
 
+    const photoDebug: Partial<PhotoExtractionDebug> = {};
     const scrapePhoto = async (): Promise<string | null> => {
       if (!isListingPage) return null;
       try {
@@ -208,7 +209,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify({ url: propertyResult.url, formats: ['rawHtml'], onlyMainContent: false, waitFor: 3000 }),
         });
         const data = await res.json();
-        return extractHeroPhoto(data);
+        return extractHeroPhoto(data, photoDebug);
       } catch (e) {
         console.error('Photo scrape failed:', e);
         return null;
@@ -242,6 +243,7 @@ Deno.serve(async (req) => {
         zillow_url: propertyResult.url,
         photo_url: photoUrl,
       },
+      photo_debug: photoUrl ? undefined : photoDebug,
     };
 
     return new Response(JSON.stringify(result), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
