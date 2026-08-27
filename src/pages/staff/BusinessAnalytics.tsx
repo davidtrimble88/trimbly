@@ -26,6 +26,10 @@ type GrowthRow = {
   month: string; homeowners_new: number; providers_new: number; paid_new: number;
   jobs_new: number; bids_new: number; rentals_new: number; agreements_new: number;
 };
+type DailyRow = {
+  day: string; homeowners_new: number; providers_new: number; paid_new: number;
+  cumulative_users: number; cumulative_paid: number;
+};
 type Totals = {
   total_users: number; homeowners: number; providers: number;
   paid_homeowners: number; paid_providers: number; paid_total: number;
@@ -39,7 +43,7 @@ type Totals = {
   total_rentals: number; available_rentals: number; signed_agreements: number;
 };
 type Payload = {
-  totals: Totals; subscriptionBreakdown: SubRow[]; growth: GrowthRow[]; generated_at: string;
+  totals: Totals; subscriptionBreakdown: SubRow[]; growth: GrowthRow[]; dailyGrowth: DailyRow[]; generated_at: string;
 };
 
 const CHART_COLORS = ["#3da06e", "#f59e0b", "#3b82f6", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#10b981"];
@@ -49,6 +53,8 @@ const moneyDetailed = (n: number) =>
   isFinite(n) ? `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : "—";
 const num = (n: number) => (isFinite(n) ? n.toLocaleString() : "—");
 const pct = (n: number) => (isFinite(n) ? `${n.toFixed(1)}%` : "—");
+const shortDay = (isoDay: string) =>
+  new Date(`${isoDay}T00:00:00Z`).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
 
 function KPI({ label, value, sub, icon: Icon, accent }: {
   label: string; value: string; sub?: string; icon: any; accent?: string;
@@ -117,6 +123,7 @@ const BusinessAnalytics = () => {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summary), "Summary");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.subscriptionBreakdown), "Subscriptions");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.growth), "Growth (12 mo)");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.dailyGrowth), "Growth (30 day)");
     XLSX.writeFile(wb, `trimbly-business-analytics-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
@@ -173,6 +180,7 @@ const BusinessAnalytics = () => {
           <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="money">Money & GMV</TabsTrigger>
+          <TabsTrigger value="daily">Daily (30d)</TabsTrigger>
           <TabsTrigger value="growth">Growth (12 mo)</TabsTrigger>
         </TabsList>
 
@@ -318,6 +326,57 @@ const BusinessAnalytics = () => {
                   <Tooltip formatter={(v: any) => money(Number(v))} />
                   <Bar dataKey="value" fill="#3da06e" radius={[6, 6, 0, 0]} />
                 </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* DAILY */}
+        <TabsContent value="daily" className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <KPI
+              label="New users (30d)"
+              value={num(data.dailyGrowth.reduce((s, d) => s + d.homeowners_new + d.providers_new, 0))}
+              icon={Users}
+            />
+            <KPI
+              label="New paying (30d)"
+              value={num(data.dailyGrowth.reduce((s, d) => s + d.paid_new, 0))}
+              icon={Crown}
+              accent="bg-amber-500/10 text-amber-600"
+            />
+          </div>
+
+          <Card>
+            <CardHeader><CardTitle className="text-base">Signups by day</CardTitle></CardHeader>
+            <CardContent style={{ height: 300 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data.dailyGrowth}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="day" tickFormatter={shortDay} tick={{ fontSize: 11 }} interval={2} />
+                  <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                  <Tooltip labelFormatter={shortDay} />
+                  <Legend />
+                  <Bar dataKey="homeowners_new" stackId="a" fill="#3da06e" name="Homeowners" />
+                  <Bar dataKey="providers_new" stackId="a" fill="#f59e0b" name="Providers" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle className="text-base">Subscriber count by day (cumulative)</CardTitle></CardHeader>
+            <CardContent style={{ height: 300 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data.dailyGrowth}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="day" tickFormatter={shortDay} tick={{ fontSize: 11 }} interval={2} />
+                  <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                  <Tooltip labelFormatter={shortDay} />
+                  <Legend />
+                  <Line type="monotone" dataKey="cumulative_users" stroke="#3b82f6" strokeWidth={2} dot={false} name="Total users" />
+                  <Line type="monotone" dataKey="cumulative_paid" stroke="#3da06e" strokeWidth={2} dot={false} name="Paying subscribers" />
+                </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>

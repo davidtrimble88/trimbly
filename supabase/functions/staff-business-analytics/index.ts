@@ -41,6 +41,10 @@ function monthKey(d: Date): string {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
+function dayKey(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -173,6 +177,49 @@ Deno.serve(async (req) => {
       if (idx !== undefined) growth[idx].agreements_new += 1;
     }
 
+    // --- Daily growth: last 30 days of signups, plus a running subscriber
+    // count so a just-launched beta can watch day-to-day movement instead of
+    // waiting for a month bucket to fill in. Reuses the same `profiles` rows
+    // already fetched above, same "paid_new = currently non-free tier,
+    // bucketed by signup day" convention as the monthly `growth` calc.
+    const DAILY_WINDOW = 30;
+    const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const windowStart = new Date(todayUTC);
+    windowStart.setUTCDate(windowStart.getUTCDate() - (DAILY_WINDOW - 1));
+
+    const days: string[] = [];
+    for (let i = 0; i < DAILY_WINDOW; i++) {
+      const d = new Date(windowStart);
+      d.setUTCDate(d.getUTCDate() + i);
+      days.push(dayKey(d));
+    }
+    const dayIndex = new Map(days.map((d, i) => [d, i]));
+
+    let cumulativeUsers = profiles.filter((p: any) => p.created_at && new Date(p.created_at) < windowStart).length;
+    let cumulativePaid = profiles.filter((p: any) =>
+      p.created_at && new Date(p.created_at) < windowStart && (p.subscription_tier || "free") !== "free"
+    ).length;
+
+    const dailyGrowth = days.map((d) => ({
+      day: d, homeowners_new: 0, providers_new: 0, paid_new: 0,
+      cumulative_users: 0, cumulative_paid: 0,
+    }));
+
+    for (const p of profiles) {
+      if (!p.created_at) continue;
+      const idx = dayIndex.get(dayKey(new Date(p.created_at)));
+      if (idx === undefined) continue;
+      if (p.user_type === "provider") dailyGrowth[idx].providers_new += 1;
+      else dailyGrowth[idx].homeowners_new += 1;
+      if ((p.subscription_tier || "free") !== "free") dailyGrowth[idx].paid_new += 1;
+    }
+    for (const row of dailyGrowth) {
+      cumulativeUsers += row.homeowners_new + row.providers_new;
+      cumulativePaid += row.paid_new;
+      row.cumulative_users = cumulativeUsers;
+      row.cumulative_paid = cumulativePaid;
+    }
+
     // --- Marketplace economics ---
     const bidAmounts = bids.map((b: any) => Number(b.bid_amount)).filter((n: number) => n > 0);
     const acceptedBids = bids.filter((b: any) => b.status === "accepted");
@@ -222,7 +269,7 @@ Deno.serve(async (req) => {
     };
 
     return new Response(
-      JSON.stringify({ totals, subscriptionBreakdown, growth, generated_at: new Date().toISOString() }),
+      JSON.stringify({ totals, subscriptionBreakdown, growth, dailyGrowth, generated_at: new Date().toISOString() }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err: any) {
