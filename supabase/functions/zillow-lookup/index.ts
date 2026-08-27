@@ -16,15 +16,19 @@ const normalizeHomeType = (type: string | undefined): string => {
   return '';
 };
 
+// A listing's heating and cooling are usually separate systems (e.g. a gas
+// furnace plus central AC) — detect every system mentioned instead of
+// returning only the first match, so pairs like that both survive.
 const normalizeHvac = (type: string | undefined): string => {
   if (!type) return '';
   const lower = String(type).toLowerCase();
-  if (lower.includes('heat pump')) return 'heat_pump';
-  if (lower.includes('central')) return 'central';
-  if (lower.includes('furnace') || lower.includes('forced')) return 'furnace';
-  if (lower.includes('mini') || lower.includes('split')) return 'mini_split';
-  if (lower.includes('window')) return 'window';
-  return '';
+  const found: string[] = [];
+  if (lower.includes('heat pump')) found.push('heat_pump');
+  if (lower.includes('central')) found.push('central');
+  if ((lower.includes('furnace') || lower.includes('forced')) && !found.includes('heat_pump')) found.push('furnace');
+  if (lower.includes('mini') || lower.includes('split')) found.push('mini_split');
+  if (lower.includes('window')) found.push('window');
+  return found.join(', ');
 };
 
 const normalizeRoof = (type: string | undefined): string => {

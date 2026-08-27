@@ -145,7 +145,10 @@ const baseWizardSteps = [
     { value: "1980", label: "1980–1989" },
     { value: "1960", label: "Before 1980" },
   ]},
-  { key: "hvac_type", question: "What heating/cooling system do you have?", type: "select" as const, options: [
+  // Many homes have separate heating and cooling systems (e.g. a gas furnace
+  // plus central AC) — multiselect so both can be recorded instead of forcing
+  // a single pick.
+  { key: "hvac_type", question: "What heating/cooling system do you have?", type: "multiselect" as const, options: [
     { value: "central", label: "❄️ Central Air" },
     { value: "heat_pump", label: "🔄 Heat Pump" },
     { value: "furnace", label: "🔥 Furnace" },
@@ -446,6 +449,19 @@ const MaintenancePage = () => {
 
   const handleToggle = (field: string) => {
     setHome(h => ({ ...h, [field]: !(h as any)[field] }));
+  };
+
+  // hvac_type stores multiple selections as a comma-joined string (e.g.
+  // "furnace,central") since a home's heating and cooling are often separate
+  // systems. "none" is mutually exclusive with every real system.
+  const toggleHvacValue = (value: string) => {
+    setHome(h => {
+      const current = (h.hvac_type || "").split(",").map(s => s.trim()).filter(Boolean);
+      const next = value === "none"
+        ? (current.includes("none") ? [] : ["none"])
+        : (current.includes(value) ? current.filter(v => v !== value) : [...current.filter(v => v !== "none"), value]);
+      return { ...h, hvac_type: next.join(", ") };
+    });
   };
 
   const generateSchedule = async () => {
@@ -963,18 +979,34 @@ const MaintenancePage = () => {
                       </div>
 
                       <div>
-                        <Label className="text-sm">Heating / cooling</Label>
-                        <Select value={home.hvac_type || undefined} onValueChange={v => setHome(h => ({ ...h, hvac_type: v }))}>
-                          <SelectTrigger className="mt-1"><SelectValue placeholder="Select…" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="central">❄️ Central Air</SelectItem>
-                            <SelectItem value="heat_pump">🔄 Heat Pump</SelectItem>
-                            <SelectItem value="furnace">🔥 Furnace</SelectItem>
-                            <SelectItem value="mini_split">💨 Mini Split</SelectItem>
-                            <SelectItem value="window">🪟 Window Units</SelectItem>
-                            <SelectItem value="none">❌ None</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Label className="text-sm mb-2 block">Heating / cooling</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { value: "central", label: "❄️ Central Air" },
+                            { value: "heat_pump", label: "🔄 Heat Pump" },
+                            { value: "furnace", label: "🔥 Furnace" },
+                            { value: "mini_split", label: "💨 Mini Split" },
+                            { value: "window", label: "🪟 Window Units" },
+                            { value: "none", label: "❌ None" },
+                          ].map(opt => {
+                            const selected = (home.hvac_type || "").split(",").map(s => s.trim()).filter(Boolean);
+                            const isSelected = selected.includes(opt.value);
+                            return (
+                              <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => toggleHvacValue(opt.value)}
+                                className={`p-3 rounded-lg border text-left text-sm font-medium transition-all flex items-center justify-between ${
+                                  isSelected ? "border-primary bg-primary/10 text-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/30"
+                                }`}
+                              >
+                                {opt.label}
+                                {isSelected && <Check size={16} className="text-primary" />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Select all that apply — e.g. a furnace for heat and central air for cooling.</p>
                       </div>
 
                       <div>
@@ -1046,7 +1078,6 @@ const MaintenancePage = () => {
                       {wizardSteps[wizardStep].options!.map(opt => {
                         const currentVal = wizardSteps[wizardStep].key === "home_type" ? home.home_type
                           : wizardSteps[wizardStep].key === "year_built" ? String(home.year_built || "")
-                          : wizardSteps[wizardStep].key === "hvac_type" ? home.hvac_type
                           : home.roof_type;
                         const isSelected = currentVal === opt.value;
                         return (
@@ -1139,6 +1170,33 @@ const MaintenancePage = () => {
                         <Label className="text-sm">State / Province</Label>
                         <Input value={home.state} onChange={e => setHome({ ...home, state: e.target.value })} placeholder="e.g. TX" maxLength={2} className="mt-1" />
                       </div>
+                    </div>
+                  )}
+
+                  {/* Multiselect type: card-style options, several can be on at once (e.g. furnace + central air) */}
+                  {wizardSteps[wizardStep].type === "multiselect" && (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        {wizardSteps[wizardStep].options!.map(opt => {
+                          const selected = (home.hvac_type || "").split(",").map(s => s.trim()).filter(Boolean);
+                          const isSelected = selected.includes(opt.value);
+                          return (
+                            <button
+                              key={opt.value}
+                              onClick={() => toggleHvacValue(opt.value)}
+                              className={`p-4 rounded-xl border text-left text-sm font-medium transition-all flex items-center justify-between ${
+                                isSelected
+                                  ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/20"
+                                  : "border-border bg-card text-muted-foreground hover:border-primary/30"
+                              }`}
+                            >
+                              {opt.label}
+                              {isSelected && <Check size={16} className="text-primary" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Select all that apply — e.g. a furnace for heat and central air for cooling.</p>
                     </div>
                   )}
 

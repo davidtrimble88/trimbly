@@ -543,33 +543,44 @@ const Dashboard = () => {
                 ))}
               </select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-sm">HVAC Type</Label>
-                <select
-                  value={editForm.hvac_type || ""}
-                  onChange={e => setEditForm(f => ({ ...f, hvac_type: e.target.value }))}
-                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="">Select HVAC type</option>
-                  {hvacTypeOptions.map(opt => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
+            <div>
+              {/* Checkboxes, not a single-select — a home's heating and cooling are
+                  often separate systems (e.g. a gas furnace plus central AC), and a
+                  dropdown could only ever record one of them. */}
+              <Label className="text-sm mb-1 block">HVAC Type <span className="font-normal text-muted-foreground">(select all that apply)</span></Label>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 max-h-36 overflow-y-auto rounded-md border border-input p-2">
+                {hvacTypeOptions.filter(opt => opt !== "None").map(opt => {
+                  const selected = (editForm.hvac_type || "").split(",").map(s => s.trim()).filter(Boolean);
+                  const isOn = selected.includes(opt);
+                  return (
+                    <label key={opt} className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={isOn}
+                        onChange={() => setEditForm(f => {
+                          const current = (f.hvac_type || "").split(",").map(s => s.trim()).filter(Boolean);
+                          const next = isOn ? current.filter(v => v !== opt) : [...current, opt];
+                          return { ...f, hvac_type: next.join(", ") };
+                        })}
+                      />
+                      {opt}
+                    </label>
+                  );
+                })}
               </div>
-              <div>
-                <Label className="text-sm">Roof Type</Label>
-                <select
-                  value={editForm.roof_type || ""}
-                  onChange={e => setEditForm(f => ({ ...f, roof_type: e.target.value }))}
-                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="">Select roof type</option>
-                  {roofTypeOptions.map(opt => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
-              </div>
+            </div>
+            <div>
+              <Label className="text-sm">Roof Type</Label>
+              <select
+                value={editForm.roof_type || ""}
+                onChange={e => setEditForm(f => ({ ...f, roof_type: e.target.value }))}
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Select roof type</option>
+                {roofTypeOptions.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
             </div>
             <div className="flex flex-wrap gap-4 text-sm">
               <label className="flex items-center gap-2">
