@@ -953,7 +953,9 @@ const MaintenancePage = () => {
                       <div>
                         <Label className="text-sm">Street address</Label>
                         <Input value={home.street_address} onChange={e => setHome({ ...home, street_address: e.target.value })} placeholder="e.g. 123 Main St" className="mt-1" />
-                        <p className="text-xs text-muted-foreground mt-1">Only one Trimbly account can claim a given address.</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Only one Trimbly account can claim a given address. Share a home with a spouse, roommate or family member? You can invite them to this address from <button type="button" onClick={() => navigate("/sharing")} className="underline text-primary font-medium">Family &amp; Sharing</button> — free during beta.
+                        </p>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
@@ -1160,7 +1162,9 @@ const MaintenancePage = () => {
                       <div>
                         <Label className="text-sm">Street address</Label>
                         <Input value={home.street_address} onChange={e => setHome({ ...home, street_address: e.target.value })} placeholder="e.g. 123 Main St" className="mt-1" />
-                        <p className="text-xs text-muted-foreground mt-1">Only one Trimbly account can claim a given address.</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Only one Trimbly account can claim a given address. Share a home with a spouse, roommate or family member? You can invite them to this address from <button type="button" onClick={() => navigate("/sharing")} className="underline text-primary font-medium">Family &amp; Sharing</button> — free during beta.
+                        </p>
                       </div>
                       <div>
                         <Label className="text-sm">City</Label>
