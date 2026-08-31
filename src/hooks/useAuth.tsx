@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getBrowserTimezone } from "@/lib/timezone";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -8,6 +9,7 @@ interface AuthContextType {
   loading: boolean;
   profileName: string | null;
   avatarUrl: string | null;
+  userTimezone: string | null;
   refreshProfile: () => Promise<void>;
   signUp: (email: string, password: string, metadata?: Record<string, string>) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -24,11 +26,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [userTimezone, setUserTimezone] = useState<string | null>(null);
 
   const fetchProfileName = async (userId: string) => {
-    const { data } = await supabase.from("profiles").select("full_name, avatar_url").eq("id", userId).maybeSingle();
+    const { data } = await supabase.from("profiles").select("full_name, avatar_url, timezone").eq("id", userId).maybeSingle();
     setProfileName(data?.full_name || null);
     setAvatarUrl(data?.avatar_url || null);
+    setUserTimezone(data?.timezone || null);
+    // Self-heal: fill in the timezone for accounts created before we captured it,
+    // or refresh it if the user has moved devices/regions.
+    const browserTz = getBrowserTimezone();
+    if (data && data.timezone !== browserTz) {
+      supabase.from("profiles").update({ timezone: browserTz }).eq("id", userId).then(() => {});
+      setUserTimezone(browserTz);
+    }
   };
 
   useEffect(() => {
@@ -36,7 +47,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) fetchProfileName(session.user.id);
-      else { setProfileName(null); setAvatarUrl(null); }
+      else { setProfileName(null); setAvatarUrl(null); setUserTimezone(null); }
       setLoading(false);
     });
 
@@ -55,7 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       email,
       password,
       options: {
-        data: metadata,
+        data: { ...metadata, timezone: getBrowserTimezone() },
         emailRedirectTo: window.location.origin,
       },
     });
@@ -88,7 +99,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, profileName, avatarUrl, refreshProfile, signUp, signIn, signOut, resetPassword, updatePassword }}>
+    <AuthContext.Provider value={{ user, session, loading, profileName, avatarUrl, userTimezone, refreshProfile, signUp, signIn, signOut, resetPassword, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );
