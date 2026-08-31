@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [userTimezone, setUserTimezone] = useState<string | null>(null);
 
   const fetchProfileName = async (userId: string) => {
     const { data } = await supabase.from("profiles").select("full_name, avatar_url, timezone").eq("id", userId).maybeSingle();
@@ -65,7 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       email,
       password,
       options: {
-        data: metadata,
+        data: { ...metadata, timezone: getBrowserTimezone() },
         emailRedirectTo: window.location.origin,
       },
     });
