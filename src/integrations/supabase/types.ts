@@ -1516,6 +1516,7 @@ export type Database = {
           subscription_tier: string
           suspended: boolean
           suspended_reason: string | null
+          timezone: string | null
           updated_at: string
           user_type: string
         }
@@ -1531,6 +1532,7 @@ export type Database = {
           subscription_tier?: string
           suspended?: boolean
           suspended_reason?: string | null
+          timezone?: string | null
           updated_at?: string
           user_type?: string
         }
@@ -1546,6 +1548,7 @@ export type Database = {
           subscription_tier?: string
           suspended?: boolean
           suspended_reason?: string | null
+          timezone?: string | null
           updated_at?: string
           user_type?: string
         }
