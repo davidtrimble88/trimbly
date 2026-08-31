@@ -26,9 +26,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const fetchProfileName = async (userId: string) => {
-    const { data } = await supabase.from("profiles").select("full_name, avatar_url").eq("id", userId).maybeSingle();
+    const { data } = await supabase.from("profiles").select("full_name, avatar_url, timezone").eq("id", userId).maybeSingle();
     setProfileName(data?.full_name || null);
     setAvatarUrl(data?.avatar_url || null);
+    setUserTimezone(data?.timezone || null);
+    // Self-heal: fill in the timezone for accounts created before we captured it,
+    // or refresh it if the user has moved devices/regions.
+    const browserTz = getBrowserTimezone();
+    if (data && data.timezone !== browserTz) {
+      supabase.from("profiles").update({ timezone: browserTz }).eq("id", userId).then(() => {});
+      setUserTimezone(browserTz);
+    }
   };
 
   useEffect(() => {
