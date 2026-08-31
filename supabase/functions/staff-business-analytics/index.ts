@@ -41,8 +41,11 @@ function monthKey(d: Date): string {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
-function dayKey(d: Date): string {
-  return d.toISOString().slice(0, 10);
+function dayKey(d: Date, tz: string): string {
+  // YYYY-MM-DD in the caller's timezone (en-CA gives ISO-ordered dates).
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(d);
 }
 
 Deno.serve(async (req) => {
@@ -182,22 +185,37 @@ Deno.serve(async (req) => {
     // waiting for a month bucket to fill in. Reuses the same `profiles` rows
     // already fetched above, same "paid_new = currently non-free tier,
     // bucketed by signup day" convention as the monthly `growth` calc.
+    // Days are bucketed in the caller's timezone (sent in the request body)
+    // so the chart lines up with the staff member's local calendar.
+    let tz = "UTC";
+    try {
+      const body = await req.clone().json().catch(() => null);
+      const candidate = body?.timezone;
+      if (typeof candidate === "string" && candidate.length <= 64) {
+        // Throws RangeError on an invalid IANA name -> stays UTC.
+        new Intl.DateTimeFormat("en-US", { timeZone: candidate });
+        tz = candidate;
+      }
+    } catch { /* keep UTC */ }
+
     const DAILY_WINDOW = 30;
-    const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    const windowStart = new Date(todayUTC);
+    const todayKey = dayKey(now, tz);
+    // Midnight UTC on "today" in the caller's tz is a stable anchor; walking
+    // back day-by-day and re-keying in tz handles DST boundaries correctly.
+    const windowStart = new Date(`${todayKey}T00:00:00Z`);
     windowStart.setUTCDate(windowStart.getUTCDate() - (DAILY_WINDOW - 1));
 
     const days: string[] = [];
     for (let i = 0; i < DAILY_WINDOW; i++) {
       const d = new Date(windowStart);
       d.setUTCDate(d.getUTCDate() + i);
-      days.push(dayKey(d));
+      days.push(dayKey(d, tz));
     }
     const dayIndex = new Map(days.map((d, i) => [d, i]));
 
-    let cumulativeUsers = profiles.filter((p: any) => p.created_at && new Date(p.created_at) < windowStart).length;
+    let cumulativeUsers = profiles.filter((p: any) => p.created_at && dayKey(new Date(p.created_at), tz) < days[0]).length;
     let cumulativePaid = profiles.filter((p: any) =>
-      p.created_at && new Date(p.created_at) < windowStart && (p.subscription_tier || "free") !== "free"
+      p.created_at && dayKey(new Date(p.created_at), tz) < days[0] && (p.subscription_tier || "free") !== "free"
     ).length;
 
     const dailyGrowth = days.map((d) => ({
@@ -207,7 +225,7 @@ Deno.serve(async (req) => {
 
     for (const p of profiles) {
       if (!p.created_at) continue;
-      const idx = dayIndex.get(dayKey(new Date(p.created_at)));
+      const idx = dayIndex.get(dayKey(new Date(p.created_at), tz));
       if (idx === undefined) continue;
       if (p.user_type === "provider") dailyGrowth[idx].providers_new += 1;
       else dailyGrowth[idx].homeowners_new += 1;
