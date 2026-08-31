@@ -84,7 +84,8 @@ const BusinessAnalytics = () => {
 
   const load = async () => {
     setRefreshing(true);
-    const { data: res, error } = await supabase.functions.invoke("staff-business-analytics");
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+    const { data: res, error } = await supabase.functions.invoke("staff-business-analytics", { body: { timezone } });
     setRefreshing(false);
     setLoading(false);
     if (error) {
