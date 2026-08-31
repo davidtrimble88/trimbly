@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import ReportDialog from "@/components/ReportDialog";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { formatDateTimeInTimezone } from "@/lib/timezone";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator
@@ -89,7 +89,7 @@ const statusConfig: Record<ChatStatus, { label: string; color: string; icon: typ
 };
 
 const Messages = () => {
-  const { user, profileName } = useAuth();
+  const { user, profileName, userTimezone } = useAuth();
   const navigate = useNavigate();
   const { active: hasGarage } = useGarageSubscription();
   const { toast } = useToast();
@@ -522,7 +522,7 @@ const Messages = () => {
                         <div className="mt-2 flex items-center justify-between gap-2">
                           <StatusBadge status={conv.chatStatus} large />
                           <p className="text-[11px] font-medium text-muted-foreground whitespace-nowrap">
-                            {format(new Date(conv.lastTime), "MMM d, h:mm a")}
+                            {formatDateTimeInTimezone(conv.lastTime, userTimezone)}
                           </p>
                         </div>
                         <p className="text-[11px] font-semibold text-foreground/80 mt-1">
@@ -673,7 +673,7 @@ const Messages = () => {
                             <p className="whitespace-pre-wrap">{m.body}</p>
                             <div className={`flex items-center gap-1 mt-1 text-[10px] ${isMine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
                               <Clock size={9} />
-                              {format(new Date(m.created_at), "h:mm a")}
+                              {formatDateTimeInTimezone(m.created_at, userTimezone)}
                               {isMine && m.read && <CheckCheck size={10} className="ml-1" />}
                               {!isMine && !isAI && !isAIEscalation && (
                                 <ReportDialog
