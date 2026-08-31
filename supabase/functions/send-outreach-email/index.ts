@@ -48,8 +48,11 @@ Deno.serve(async (req) => {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    // Must match roles.ts's outreach: ["admin", "support"] — the page itself
+    // is visible to support staff, not analysts, so the function's gate has
+    // to allow the same roles or support staff hit a 403 on Send.
     const { data: roles } = await authClient.from("user_roles").select("role").eq("user_id", user.id);
-    const allowed = (roles || []).some((r: any) => r.role === "admin" || r.role === "analyst");
+    const allowed = (roles || []).some((r: any) => r.role === "admin" || r.role === "support");
     if (!allowed) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
