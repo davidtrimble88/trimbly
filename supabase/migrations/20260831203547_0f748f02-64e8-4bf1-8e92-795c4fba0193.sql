@@ -1,0 +1,1 @@
+ALTER TABLE public.pending_messages ADD COLUMN email text;
