@@ -58,8 +58,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // GET: list domains and their status/records
-    const res = await fetch("https://api.resend.com/domains", {
+    // GET: list domains and their status/records; ?probe=api-keys probes GET /api-keys instead
+    const probe = new URL(req.url).searchParams.get("probe");
+    const endpoint = probe === "api-keys" ? "https://api.resend.com/api-keys" : "https://api.resend.com/domains";
+    const res = await fetch(endpoint, {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
     const body = await res.text();
