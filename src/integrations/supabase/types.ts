@@ -1375,6 +1375,7 @@ export type Database = {
         Row: {
           body: string
           created_at: string
+          email: string | null
           id: string
           provider_category: string
           provider_city: string
@@ -1390,6 +1391,7 @@ export type Database = {
         Insert: {
           body: string
           created_at?: string
+          email?: string | null
           id?: string
           provider_category?: string
           provider_city?: string
@@ -1405,6 +1407,7 @@ export type Database = {
         Update: {
           body?: string
           created_at?: string
+          email?: string | null
           id?: string
           provider_category?: string
           provider_city?: string
