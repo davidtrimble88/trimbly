@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getBrowserTimezone } from "@/lib/timezone";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -8,6 +9,7 @@ interface AuthContextType {
   loading: boolean;
   profileName: string | null;
   avatarUrl: string | null;
+  userTimezone: string | null;
   refreshProfile: () => Promise<void>;
   signUp: (email: string, password: string, metadata?: Record<string, string>) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
