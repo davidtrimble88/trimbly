@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) fetchProfileName(session.user.id);
-      else { setProfileName(null); setAvatarUrl(null); }
+      else { setProfileName(null); setAvatarUrl(null); setUserTimezone(null); }
       setLoading(false);
     });
 
