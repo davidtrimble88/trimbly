@@ -4,10 +4,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Send, Globe, Phone, Ban, CheckCircle2, X } from "lucide-react";
+import { Send, Globe, Phone, Ban, CheckCircle2, X, Mail, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { logActivity } from "./activityLog";
+import { Input } from "@/components/ui/input";
 
 interface PendingMsg {
   id: string;
@@ -18,6 +19,7 @@ interface PendingMsg {
   provider_state: string;
   provider_phone: string | null;
   provider_website: string | null;
+  email: string | null;
   subject: string;
   body: string;
   status: string;
@@ -35,9 +37,11 @@ const Outreach = () => {
   const [pending, setPending] = useState<PendingMsg[]>([]);
   const [optOuts, setOptOuts] = useState<OptOut[]>([]);
   const [tab, setTab] = useState<"pending" | "optouts">("pending");
+  const [emailDrafts, setEmailDrafts] = useState<Record<string, string>>({});
+  const [sendingId, setSendingId] = useState<string | null>(null);
 
   const loadPending = () => {
-    supabase.from("pending_messages").select("*").order("created_at", { ascending: false }).then(({ data }) => setPending((data as PendingMsg[]) || []));
+    supabase.from("pending_messages").select("*").order("created_at", { ascending: false }).then(({ data }) => setPending((data as unknown as PendingMsg[]) || []));
   };
 
   useEffect(() => {
@@ -50,6 +54,29 @@ const Outreach = () => {
     if (error) { toast.error(error.message); return; }
     if (user) await logActivity(user.id, "outreach_marked_contacted", "pending_message", m.id, { provider_name: m.provider_name });
     toast.success(`Marked ${m.provider_name} as contacted`);
+    setPending((prev) => prev.map((p) => (p.id === m.id ? { ...p, status: "contacted" } : p)));
+  };
+
+  const saveEmail = async (m: PendingMsg) => {
+    const email = (emailDrafts[m.id] ?? m.email ?? "").trim();
+    if (email === (m.email || "")) return;
+    const { error } = await supabase.from("pending_messages").update({ email: email || null } as any).eq("id", m.id);
+    if (error) { toast.error(error.message); return; }
+    setPending((prev) => prev.map((p) => (p.id === m.id ? { ...p, email: email || null } : p)));
+  };
+
+  const sendEmailTo = async (m: PendingMsg) => {
+    setSendingId(m.id);
+    const { data, error } = await supabase.functions.invoke("send-outreach-email", {
+      body: { pendingMessageId: m.id },
+    });
+    setSendingId(null);
+    if (error || data?.error) {
+      toast.error(data?.error || error?.message || "Failed to send email");
+      return;
+    }
+    if (user) await logActivity(user.id, "outreach_email_sent", "pending_message", m.id, { provider_name: m.provider_name, email: m.email });
+    toast.success(`Email sent to ${m.provider_name}`);
     setPending((prev) => prev.map((p) => (p.id === m.id ? { ...p, status: "contacted" } : p)));
   };
 
@@ -94,14 +121,35 @@ const Outreach = () => {
                 <p className="text-sm font-medium mb-1">{m.subject}</p>
                 <p className="text-sm text-muted-foreground bg-muted/40 rounded p-3 whitespace-pre-wrap mb-3">{m.body}</p>
                 {m.status === "pending" && (
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" className="gap-1.5" onClick={() => markContacted(m)}>
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Mark Contacted
-                    </Button>
-                    <Button size="sm" variant="ghost" className="gap-1.5 text-muted-foreground" onClick={() => dismiss(m)}>
-                      <X className="w-3.5 h-3.5" /> Dismiss
-                    </Button>
-                  </div>
+                  <>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Mail className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                      <Input
+                        placeholder="Recipient email — required to send"
+                        value={emailDrafts[m.id] ?? m.email ?? ""}
+                        onChange={(e) => setEmailDrafts((d) => ({ ...d, [m.id]: e.target.value }))}
+                        onBlur={() => saveEmail(m)}
+                        className="h-8 text-sm max-w-xs"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="gap-1.5"
+                        disabled={!(m.email || "").trim() || sendingId === m.id}
+                        onClick={() => sendEmailTo(m)}
+                      >
+                        {sendingId === m.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                        Send Email
+                      </Button>
+                      <Button size="sm" variant="outline" className="gap-1.5" onClick={() => markContacted(m)}>
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Mark Contacted
+                      </Button>
+                      <Button size="sm" variant="ghost" className="gap-1.5 text-muted-foreground" onClick={() => dismiss(m)}>
+                        <X className="w-3.5 h-3.5" /> Dismiss
+                      </Button>
+                    </div>
+                  </>
                 )}
               </CardContent>
             </Card>
