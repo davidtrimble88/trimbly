@@ -114,7 +114,17 @@ Deno.serve(async (req) => {
 
     const bodyHtml = escapeHtml(msg.body).replace(/\n/g, "<br>");
     const providerNameHtml = escapeHtml(msg.provider_name);
-    const preheader = `A Trimbly homeowner wants to hire ${providerNameHtml} — free to join during our beta, no card required.`;
+    const preheader = `A homeowner used Trimbly to search for ${escapeHtml(msg.provider_category || "a local pro")} and found ${providerNameHtml} — here's what they sent.`;
+
+    // Names what actually happened (a real homeowner searched and messaged
+    // them) instead of opening on an unexplained claim — that unexplained
+    // claim plus an immediate promo banner was what made the first version
+    // of this email read as spam/phishing rather than a real lead.
+    const cityState = [msg.provider_city, msg.provider_state].filter(Boolean).join(", ");
+    const categoryPhrase = msg.provider_category ? `a ${escapeHtml(msg.provider_category)} pro` : "a local pro like you";
+    const leadContextHtml = cityState
+      ? `A homeowner in ${escapeHtml(cityState)} was searching Trimbly for ${categoryPhrase} and found <strong>${providerNameHtml}</strong>. Here's the message they sent:`
+      : `A homeowner searching Trimbly for ${categoryPhrase} found <strong>${providerNameHtml}</strong>. Here's the message they sent:`;
 
     // Real feature copy pulled from src/lib/pricingTiers.ts's providerTiers —
     // keep these two lists in sync so the email never promises something the
@@ -124,7 +134,6 @@ Deno.serve(async (req) => {
       ["Unlimited bids", "no 5-per-month cap while you're on the free plan"],
       ["Priority search placement", "normally a $29/mo Pro feature — free now"],
       ["AI Message Copilot &amp; follow-ups", "normally a $29/mo Pro feature — free now"],
-      ["Business profile + local SEO microsite", "so nearby homeowners can find you"],
       ["In-app messaging, reviews &amp; ratings", "no phone tag, everything in one place"],
       ["Verified Pro &amp; response-time badges", "stand out once you're verified"],
     ];
@@ -155,36 +164,43 @@ Deno.serve(async (req) => {
             <td style="background-color:#114F39;padding:28px 40px;">
               <table role="presentation" width="100%"><tr>
                 <td style="font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">Trimbly</td>
-                <td align="right" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#bfe0cf;">Home &amp; Vehicle Care, Simplified</td>
+                <td align="right" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#bfe0cf;">Where homeowners find &amp; message local pros</td>
               </tr></table>
             </td>
           </tr>
           <tr>
-            <td style="background-color:#F0780F;padding:10px 40px;text-align:center;">
-              <span style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;color:#ffffff;letter-spacing:0.5px;text-transform:uppercase;">Now in Public Beta &mdash; Every Feature Free</span>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:40px;font-family:Arial,Helvetica,sans-serif;color:#16241D;">
-              <p style="margin:0 0 20px;font-size:16px;line-height:1.6;">Hi ${providerNameHtml},</p>
-              <table role="presentation" width="100%" style="background-color:#EEF4F0;border-left:4px solid #114F39;border-radius:8px;margin:0 0 28px;">
+            <td style="padding:40px 40px 8px;font-family:Arial,Helvetica,sans-serif;color:#16241D;">
+              <p style="margin:0 0 16px;font-size:16px;line-height:1.6;">Hi ${providerNameHtml},</p>
+              <p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#2b3b32;">
+                Trimbly is a new home &amp; vehicle maintenance platform where homeowners search for local service pros and message them directly — think Yelp or Angi, but built specifically for maintenance and repair jobs, and free for pros to join.
+              </p>
+              <p style="margin:0 0 20px;font-size:15px;line-height:1.65;color:#2b3b32;">
+                ${leadContextHtml}
+              </p>
+              <table role="presentation" width="100%" style="background-color:#EEF4F0;border-left:4px solid #114F39;border-radius:8px;margin:0 0 24px;">
                 <tr>
-                  <td style="padding:20px 24px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#16241D;">
+                  <td style="padding:8px 24px 6px;font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:#5a7a68;">Message from the homeowner</td>
+                </tr>
+                <tr>
+                  <td style="padding:0 24px 20px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#16241D;">
                     ${bodyHtml}
                   </td>
                 </tr>
               </table>
+              <p style="margin:0 0 24px;font-size:15px;line-height:1.65;color:#2b3b32;">
+                ${providerNameHtml} isn't registered on Trimbly yet, so this message is waiting for you — claim your free profile below and you'll be able to reply directly. It takes about 5 minutes.
+              </p>
               <table role="presentation" width="100%"><tr>
                 <td align="center" style="padding:0 0 12px;">
-                  <a href="https://trimblyhome.com/pro-register" style="background-color:#F0780F;color:#ffffff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:15px;padding:14px 32px;border-radius:8px;display:inline-block;">Claim Your Free Pro Profile &rarr;</a>
+                  <a href="https://trimblyhome.com/pro-register" style="background-color:#F0780F;color:#ffffff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:15px;padding:14px 32px;border-radius:8px;display:inline-block;">Claim Your Free Profile &amp; Reply &rarr;</a>
                 </td>
               </tr></table>
-              <p style="text-align:center;font-size:12px;color:#6b7d73;margin:0 0 32px;">No credit card. No contracts. Free for the entire beta.</p>
+              <p style="text-align:center;font-size:12px;color:#6b7d73;margin:0 0 32px;">Free during our public beta &mdash; no credit card, no contracts.</p>
               <hr style="border:none;border-top:1px solid #eee5d8;margin:0 0 28px;">
-              <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:18px;color:#114F39;margin:0 0 16px;">What you get, free during beta:</h2>
+              <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:18px;color:#114F39;margin:0 0 16px;">Also included, free during beta:</h2>
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${featureRows}
               </table>
-              <p style="margin:12px 0 0;font-size:14px;line-height:1.6;color:#4a5a50;">Trimbly connects homeowners directly with vetted local pros &mdash; like the one who's already looking for you above. Setup takes about 5 minutes.</p>
+              <p style="margin:12px 0 28px;font-size:14px;line-height:1.6;color:#4a5a50;">No lead fees, no bidding wars for visibility — just homeowners searching and messaging pros directly. Questions? Just reply to this email; a real person reads it.</p>
             </td>
           </tr>
           <tr>
