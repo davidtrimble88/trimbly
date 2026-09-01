@@ -59,7 +59,20 @@ Deno.serve(async (req) => {
     }
 
     // GET: list domains and their status/records; ?probe=api-keys probes GET /api-keys instead
-    const probe = new URL(req.url).searchParams.get("probe");
+    const url = new URL(req.url);
+    const probe = url.searchParams.get("probe");
+    const verifyId = url.searchParams.get("verify");
+    if (verifyId) {
+      // Ask Resend to (re-)check DNS for this domain id now
+      const vRes = await fetch(`https://api.resend.com/domains/${verifyId}/verify`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+      const vBody = await vRes.text();
+      return new Response(vBody, {
+        status: vRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const endpoint = probe === "api-keys" ? "https://api.resend.com/api-keys" : "https://api.resend.com/domains";
     const res = await fetch(endpoint, {
       headers: { Authorization: `Bearer ${apiKey}` },
