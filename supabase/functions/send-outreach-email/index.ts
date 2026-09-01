@@ -113,16 +113,91 @@ Deno.serve(async (req) => {
     }
 
     const bodyHtml = escapeHtml(msg.body).replace(/\n/g, "<br>");
+    const providerNameHtml = escapeHtml(msg.provider_name);
+    const preheader = `A Trimbly homeowner wants to hire ${providerNameHtml} — free to join during our beta, no card required.`;
+
+    // Real feature copy pulled from src/lib/pricingTiers.ts's providerTiers —
+    // keep these two lists in sync so the email never promises something the
+    // product doesn't do. Every item here is normally Free or Pro ($29/mo),
+    // both unlocked at no cost while BETA_FREE_ACCESS is true.
+    const features = [
+      ["Unlimited bids", "no 5-per-month cap while you're on the free plan"],
+      ["Priority search placement", "normally a $29/mo Pro feature — free now"],
+      ["AI Message Copilot &amp; follow-ups", "normally a $29/mo Pro feature — free now"],
+      ["Business profile + local SEO microsite", "so nearby homeowners can find you"],
+      ["In-app messaging, reviews &amp; ratings", "no phone tag, everything in one place"],
+      ["Verified Pro &amp; response-time badges", "stand out once you're verified"],
+    ];
+    const featureRows = features.map(([title, detail]) => `
+                <tr>
+                  <td width="26" valign="top" style="padding:0 8px 16px 0;">
+                    <span style="display:inline-block;width:18px;height:18px;background-color:#114F39;border-radius:50%;text-align:center;line-height:18px;color:#ffffff;font-size:11px;font-family:Arial,Helvetica,sans-serif;">&#10003;</span>
+                  </td>
+                  <td valign="top" style="padding:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#16241D;">
+                    <strong>${title}</strong> — ${detail}
+                  </td>
+                </tr>`).join("");
+
     const html = `<!DOCTYPE html>
-<html>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #1f2937; max-width: 560px; margin: 0 auto; padding: 24px;">
-  <p>${bodyHtml}</p>
-  <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0 16px;">
-  <p style="font-size: 12px; color: #9ca3af; line-height: 1.6;">
-    You're receiving this because a Trimbly homeowner tried to reach ${escapeHtml(msg.provider_name)} through Trimbly.<br>
-    ${escapeHtml(mailingAddress)}<br>
-    <a href="${unsubscribeUrl}" style="color: #9ca3af;">Unsubscribe from Trimbly outreach email</a>
-  </p>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${providerNameHtml}, a homeowner wants to hire you on Trimbly</title>
+</head>
+<body style="margin:0;padding:0;background-color:#FAF8F5;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;font-size:1px;line-height:1px;color:#FAF8F5;">${preheader}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#FAF8F5;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;background-color:#ffffff;border-radius:16px;overflow:hidden;">
+          <tr>
+            <td style="background-color:#114F39;padding:28px 40px;">
+              <table role="presentation" width="100%"><tr>
+                <td style="font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">Trimbly</td>
+                <td align="right" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#bfe0cf;">Home &amp; Vehicle Care, Simplified</td>
+              </tr></table>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#F0780F;padding:10px 40px;text-align:center;">
+              <span style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;color:#ffffff;letter-spacing:0.5px;text-transform:uppercase;">Now in Public Beta &mdash; Every Feature Free</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:40px;font-family:Arial,Helvetica,sans-serif;color:#16241D;">
+              <p style="margin:0 0 20px;font-size:16px;line-height:1.6;">Hi ${providerNameHtml},</p>
+              <table role="presentation" width="100%" style="background-color:#EEF4F0;border-left:4px solid #114F39;border-radius:8px;margin:0 0 28px;">
+                <tr>
+                  <td style="padding:20px 24px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#16241D;">
+                    ${bodyHtml}
+                  </td>
+                </tr>
+              </table>
+              <table role="presentation" width="100%"><tr>
+                <td align="center" style="padding:0 0 12px;">
+                  <a href="https://trimblyhome.com/pro-register" style="background-color:#F0780F;color:#ffffff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:15px;padding:14px 32px;border-radius:8px;display:inline-block;">Claim Your Free Pro Profile &rarr;</a>
+                </td>
+              </tr></table>
+              <p style="text-align:center;font-size:12px;color:#6b7d73;margin:0 0 32px;">No credit card. No contracts. Free for the entire beta.</p>
+              <hr style="border:none;border-top:1px solid #eee5d8;margin:0 0 28px;">
+              <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:18px;color:#114F39;margin:0 0 16px;">What you get, free during beta:</h2>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${featureRows}
+              </table>
+              <p style="margin:12px 0 0;font-size:14px;line-height:1.6;color:#4a5a50;">Trimbly connects homeowners directly with vetted local pros &mdash; like the one who's already looking for you above. Setup takes about 5 minutes.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#F4F1EA;padding:28px 40px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.7;color:#8a9990;text-align:center;">
+              You're receiving this because a Trimbly homeowner tried to reach ${providerNameHtml} through Trimbly.<br>
+              ${escapeHtml(mailingAddress)}<br>
+              <a href="${unsubscribeUrl}" style="color:#8a9990;">Unsubscribe from Trimbly outreach email</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>`;
 
