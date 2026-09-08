@@ -6,17 +6,29 @@ import { useAuth } from "@/hooks/useAuth";
 
 const ThemeToggle = () => {
   const { theme, setTheme } = useTheme();
-  const { vikingModeUnlocked } = useAuth();
+  const { vikingModeUnlocked, isPaidAccount } = useAuth();
   // Avoid a light/dark mismatch flash between server-rendered default and the persisted client theme.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
   const current = mounted ? theme : "light";
+  // Redeeming a partner code alone isn't enough — the account also has to
+  // currently hold a paid (non-free) tier, i.e. one that will actually be
+  // charged once billing turns on. A free-tier account that used a code
+  // doesn't get to show off Viking Mode just for signing up.
+  const showViking = vikingModeUnlocked && isPaidAccount;
+
+  // If someone loses eligibility (e.g. downgrades to Free) while "viking"
+  // is still their saved theme, fall back to light rather than leaving the
+  // page visually stuck in Viking Mode with a toggle that no longer offers it.
+  useEffect(() => {
+    if (mounted && !showViking && theme === "viking") setTheme("light");
+  }, [mounted, showViking, theme, setTheme]);
 
   // Everyone gets the plain light/dark toggle they've always had. Only
-  // accounts that redeemed a partner code with unlocks_viking_mode cycle
-  // through a third state — that's the whole point of it being exclusive.
-  if (!vikingModeUnlocked) {
+  // paid accounts that redeemed a partner code with unlocks_viking_mode
+  // cycle through a third state — that's the whole point of it being exclusive.
+  if (!showViking) {
     const isDark = current === "dark";
     return (
       <Button

@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
+import { useAuth } from "@/hooks/useAuth";
 import { Axe } from "lucide-react";
 
 interface Props {
@@ -62,14 +63,20 @@ function LongshipIllustration() {
 
 // Shown once, right after redeeming a code with unlocks_viking_mode — the
 // "special, fun, screenshot-worthy" moment behind the partner program.
-// Switches the app straight into Viking Mode before the person even sees
-// the dashboard, so the reveal itself is the reward, not a settings toggle
-// they have to go find.
+//
+// Viking Mode itself is gated to paid (non-free-tier) accounts (see
+// ThemeToggle.tsx) — a code like HEXWOOD grants no tier on its own, so
+// redeeming it doesn't necessarily make someone paid yet. This dialog
+// reflects that honestly instead of switching the theme on and having
+// ThemeToggle's own fallback silently switch it back off a moment later:
+// a paid account gets the full "switch now" moment, a free-tier account
+// gets the same celebration framed as something waiting for them.
 export function VikingModeUnlockedDialog({ open, partnerName, onContinue }: Props) {
   const { setTheme } = useTheme();
+  const { isPaidAccount } = useAuth();
 
   const handleContinue = () => {
-    setTheme("viking");
+    if (isPaidAccount) setTheme("viking");
     onContinue();
   };
 
@@ -87,12 +94,14 @@ export function VikingModeUnlockedDialog({ open, partnerName, onContinue }: Prop
             <DialogTitle className="text-2xl font-display text-primary-foreground">Viking Mode Unlocked</DialogTitle>
             <DialogDescription className="text-sm leading-relaxed text-primary-foreground/80 pt-1">
               {partnerName ? `${partnerName}'s code just gave you something no one else gets.` : "Your code just gave you something no one else gets."}{" "}
-              A whole third look for Trimbly — yours for good, whether or not you ever upgrade.
+              {isPaidAccount
+                ? "A whole third look for Trimbly — yours for good."
+                : "A whole third look for Trimbly, waiting for you — it switches on the moment you're on a paid plan."}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="sm:justify-center pt-2">
             <Button size="lg" className="gap-2" onClick={handleContinue}>
-              <Axe className="w-4 h-4" /> Set Sail
+              <Axe className="w-4 h-4" /> {isPaidAccount ? "Set Sail" : "Got it"}
             </Button>
           </DialogFooter>
         </div>
