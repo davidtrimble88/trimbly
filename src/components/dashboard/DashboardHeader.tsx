@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTheme } from "next-themes";
 import { LucideIcon, MoreVertical, Pencil, ExternalLink, Zap, LogOut, Smartphone } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
@@ -10,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
 import NotificationBell from "./NotificationBell";
 import InstallAppDialog from "@/components/InstallAppDialog";
+import hexwoodLogo from "@/assets/branding/hexwood-creations-logo.png";
 
 interface DashboardHeaderProps {
   avatarIcon: LucideIcon;
@@ -37,6 +39,7 @@ const DashboardHeader = ({
   const { signOut, avatarUrl } = useAuth();
   const navigate = useNavigate();
   const [installOpen, setInstallOpen] = useState(false);
+  const { theme } = useTheme();
 
   const handleSignOut = async () => {
     await signOut();
@@ -44,7 +47,8 @@ const DashboardHeader = ({
   };
 
   return (
-    <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-card/95 backdrop-blur px-4 py-3 md:px-6">
+    <header className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur">
+    <div className="flex items-center gap-3 px-4 py-3 md:px-6">
       <SidebarTrigger />
       <div className="relative shrink-0">
         <Avatar className="w-10 h-10">
@@ -115,6 +119,18 @@ const DashboardHeader = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+    </div>
+    {theme === "viking" && (
+      <div className="flex items-center justify-center gap-2 px-4 py-1.5 border-t border-primary/20 bg-primary/5">
+        <img src={hexwoodLogo} alt="Hexwood Creations" className="h-4 w-4 object-contain shrink-0" />
+        <p className="text-[11px] text-muted-foreground">
+          Viking Theme presented by{" "}
+          <a href="https://ko-fi.com/hexwood" target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+            Hexwood Creations
+          </a>
+        </p>
+      </div>
+    )}
       <InstallAppDialog open={installOpen} onOpenChange={setInstallOpen} />
     </header>
   );

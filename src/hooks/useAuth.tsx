@@ -1,4 +1,5 @@
 import { useState, useEffect, createContext, useContext } from "react";
+import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { getBrowserTimezone } from "@/lib/timezone";
 import type { User, Session } from "@supabase/supabase-js";
@@ -31,6 +32,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userTimezone, setUserTimezone] = useState<string | null>(null);
   const [vikingModeUnlocked, setVikingModeUnlocked] = useState(false);
   const [isPaidAccount, setIsPaidAccount] = useState(false);
+  // AuthProvider wraps the entire app (App.tsx nests it directly inside
+  // ThemeProvider), so this is the one place that's always mounted
+  // regardless of route or login state -- unlike ThemeToggle, which only
+  // renders in the dashboard header and can't catch someone signing out or
+  // browsing to a page it isn't on. Without this, "viking" stays applied
+  // to <html> (next-themes persists it) even after logout, since nothing
+  // else ever tells it to stop.
+  const { theme, setTheme } = useTheme();
+  useEffect(() => {
+    if (theme === "viking" && !(user && vikingModeUnlocked && isPaidAccount)) {
+      setTheme("light");
+    }
+  }, [theme, user, vikingModeUnlocked, isPaidAccount, setTheme]);
 
   const fetchProfileName = async (userId: string) => {
     const { data } = await supabase.from("profiles").select("full_name, avatar_url, timezone, viking_mode_unlocked, user_type, subscription_tier").eq("id", userId).maybeSingle();

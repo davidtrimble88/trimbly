@@ -16,14 +16,11 @@ const ThemeToggle = () => {
   // currently hold a paid (non-free) tier, i.e. one that will actually be
   // charged once billing turns on. A free-tier account that used a code
   // doesn't get to show off Viking Mode just for signing up.
+  // (AuthProvider in useAuth.tsx is what actually falls back to light if
+  // eligibility is lost while "viking" is still the saved theme — it's
+  // mounted everywhere, not just here, so it also catches logout and
+  // browsing to a page without this toggle on it.)
   const showViking = vikingModeUnlocked && isPaidAccount;
-
-  // If someone loses eligibility (e.g. downgrades to Free) while "viking"
-  // is still their saved theme, fall back to light rather than leaving the
-  // page visually stuck in Viking Mode with a toggle that no longer offers it.
-  useEffect(() => {
-    if (mounted && !showViking && theme === "viking") setTheme("light");
-  }, [mounted, showViking, theme, setTheme]);
 
   // Everyone gets the plain light/dark toggle they've always had. Only
   // paid accounts that redeemed a partner code with unlocks_viking_mode
