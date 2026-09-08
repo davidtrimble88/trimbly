@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { formatDistanceToNow } from "date-fns";
-import { Bell, MessageSquare, Gavel, CheckCircle2, Inbox } from "lucide-react";
+import { Bell, Bird, MessageSquare, Gavel, CheckCircle2, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,10 @@ const TYPE_ICONS: Record<string, typeof Bell> = {
 const NotificationBell = () => {
   const { notifications, unreadCount, loading, markRead, markAllRead } = useNotifications();
   const navigate = useNavigate();
+  // A raven — Huginn and Muninn, Odin's messengers — stands in for the bell
+  // only in Viking Mode; every other theme keeps the plain bell.
+  const { theme } = useTheme();
+  const BellIcon = theme === "viking" ? Bird : Bell;
 
   const openNotification = (n: NotificationRow) => {
     if (!n.read) markRead(n.id);
@@ -25,7 +30,7 @@ const NotificationBell = () => {
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" size="icon" className="rounded-lg relative" aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}>
-          <Bell size={16} />
+          <BellIcon size={16} />
           {unreadCount > 0 && (
             <Badge variant="destructive" className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-1 text-[10px] leading-4 justify-center rounded-full">
               {unreadCount > 9 ? "9+" : unreadCount}
@@ -52,7 +57,7 @@ const NotificationBell = () => {
             </div>
           ) : (
             notifications.map((n) => {
-              const Icon = TYPE_ICONS[n.type] || Bell;
+              const Icon = TYPE_ICONS[n.type] || BellIcon;
               return (
                 <button
                   key={n.id}

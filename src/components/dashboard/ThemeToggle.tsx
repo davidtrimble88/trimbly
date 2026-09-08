@@ -39,7 +39,7 @@ const ThemeToggle = () => {
     <Button
       variant="outline"
       size="icon"
-      className={current === "viking" ? "rounded-lg border-primary/50 text-primary" : "rounded-lg"}
+      className={current === "viking" ? "rounded-lg border-primary/50 text-primary viking-ember-pulse" : "rounded-lg"}
       onClick={() => setTheme(next[current] || "light")}
       aria-label={label}
       title={label}

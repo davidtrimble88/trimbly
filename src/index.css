@@ -139,6 +139,11 @@
     --input: 210 18% 22%;
     --ring: 38 68% 54%;
 
+    /* Sharper, more hewn-wood/carved-shield corners than the rest of the
+       app's soft 0.75rem default — a deliberate, safe override since every
+       rounded-* utility derives from this one var (tailwind.config.ts). */
+    --radius: 0.35rem;
+
     --hero-gradient: linear-gradient(135deg, hsl(222 34% 6%), hsl(205 38% 16%));
     --card-shadow: 0 2px 16px -4px hsl(222 40% 3% / 0.4);
     --card-shadow-hover: 0 16px 40px -12px hsl(222 40% 3% / 0.55);
@@ -154,15 +159,103 @@
   }
 }
 
-/* Viking Mode gets its own display face — an engraved, rune-carved feel in
-   place of the app's usual Fraunces — scoped so no component needs to know
-   which theme is active. */
-.viking .font-display,
-.viking h1,
-.viking h2,
-.viking h3 {
+/* ============================================================================
+   Viking Mode — decorative layer. Everything below is purely additive CSS:
+   no component markup changes, so nothing here can break layout or
+   functionality — worst case a rule simply has nothing to select. Scoped
+   entirely under .viking, so every other theme is untouched.
+   ============================================================================ */
+
+/* An engraved, rune-carved display face in place of the app's usual
+   Fraunces. body/h1-h6 already get .font-display from @layer base below,
+   so overriding the class alone covers every heading app-wide. */
+.viking .font-display {
   font-family: "Cinzel", ui-serif, Georgia, serif;
   letter-spacing: 0.01em;
+}
+
+/* Faint engraved valknut (Odin's knot of three interlocking triangles),
+   tiled behind everything, plus a cold fjord-sky wash top-of-viewport.
+   Both painted as background-image layers on top of the flat
+   --background color from the bg-background utility — transparent SVG
+   strokes let that color show through, so if the data URI ever failed to
+   parse the app would just show the flat color, never a broken layout. */
+.viking body {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cdefs%3E%3Cpolygon id='t' points='80,34 114,96 46,96'/%3E%3C/defs%3E%3Cg fill='none' stroke='%23c9a25c' stroke-opacity='0.35' stroke-width='1.3'%3E%3Cuse href='%23t'/%3E%3Cuse href='%23t' transform='rotate(120 80 80)'/%3E%3Cuse href='%23t' transform='rotate(240 80 80)'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(ellipse 1200px 600px at 50% -10%, hsl(205 45% 20% / 0.5), transparent 65%);
+  background-repeat: repeat, no-repeat;
+  background-size: 160px 160px, 100% 100%;
+  background-attachment: fixed, fixed;
+}
+
+/* A thin gold inlay strip along the top edge of every card — like a metal
+   band set into carved wood. Targets Card's actual rendered classes
+   (card.tsx: "rounded-lg border bg-card ...") so no component needs
+   touching; overflow is left alone (no overflow:hidden) so anything a
+   card legitimately renders outside its bounds — a tooltip, a badge with
+   negative margin — is never clipped. */
+.viking .bg-card.border.rounded-lg {
+  position: relative;
+}
+.viking .bg-card.border.rounded-lg::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  height: 3px;
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.9), transparent);
+  pointer-events: none;
+}
+
+/* A low ember glow on solid primary-colored buttons specifically (not the
+   tiny bg-primary unread-dot or the pill-shaped Badge, which don't carry
+   rounded-md). */
+.viking .bg-primary.rounded-md {
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.25), 0 4px 14px -4px hsl(var(--primary) / 0.5);
+}
+.viking .bg-primary.rounded-md:hover {
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.35), 0 6px 20px -4px hsl(var(--primary) / 0.65);
+}
+
+.viking ::selection {
+  background: hsl(var(--primary) / 0.35);
+  color: hsl(var(--foreground));
+}
+
+.viking ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.viking ::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+.viking ::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.4);
+  border-radius: 999px;
+  border: 2px solid hsl(var(--background));
+}
+.viking ::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.6);
+}
+
+/* A slow ember pulse for the one control that's exclusive to unlocked
+   accounts — applied via a className in ThemeToggle.tsx, not globally, so
+   nothing else on the page ever animates unexpectedly. */
+@keyframes viking-ember-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.35); }
+  50% { box-shadow: 0 0 14px 2px hsl(var(--primary) / 0.55); }
+}
+.viking .viking-ember-pulse {
+  animation: viking-ember-pulse 2.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .viking .viking-ember-pulse {
+    animation: none;
+  }
 }
 
 @layer base {
