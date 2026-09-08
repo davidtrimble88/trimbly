@@ -102,60 +102,61 @@
   }
 
   /* Viking Mode — exclusive to accounts that redeemed a partner code with
-     unlocks_viking_mode set (see ThemeToggle.tsx). Fjord-night blue-black,
-     hammered bronze, and ember-red, instead of the app's usual green. */
+     unlocks_viking_mode set (see ThemeToggle.tsx). Aged parchment and dark
+     ink instead of the app's usual light/dark palette — vellum you'd
+     actually write a saga on, not a black "gamer" theme. */
   .viking {
-    --background: 222 32% 7%;
-    --foreground: 40 28% 92%;
+    --background: 36 42% 87%;
+    --foreground: 22 35% 14%;
 
-    --card: 222 26% 11%;
-    --card-foreground: 40 28% 92%;
+    --card: 40 45% 92%;
+    --card-foreground: 22 35% 14%;
 
-    --popover: 222 26% 11%;
-    --popover-foreground: 40 28% 92%;
+    --popover: 40 45% 92%;
+    --popover-foreground: 22 35% 14%;
 
-    --primary: 38 68% 54%;
-    --primary-foreground: 222 32% 8%;
+    --primary: 28 55% 32%;
+    --primary-foreground: 40 40% 96%;
 
-    --secondary: 210 16% 18%;
-    --secondary-foreground: 40 28% 92%;
+    --secondary: 35 30% 80%;
+    --secondary-foreground: 22 35% 14%;
 
-    --muted: 210 16% 15%;
-    --muted-foreground: 210 12% 66%;
+    --muted: 35 25% 83%;
+    --muted-foreground: 25 20% 40%;
 
-    --accent: 355 58% 46%;
-    --accent-foreground: 40 28% 96%;
+    --accent: 355 55% 38%;
+    --accent-foreground: 40 40% 96%;
 
-    --destructive: 355 65% 38%;
-    --destructive-foreground: 40 28% 96%;
+    --destructive: 355 60% 35%;
+    --destructive-foreground: 40 40% 96%;
 
-    --warning: 32 90% 52%;
-    --warning-foreground: 222 32% 8%;
+    --warning: 35 75% 42%;
+    --warning-foreground: 22 35% 14%;
 
-    --success: 150 38% 36%;
-    --success-foreground: 40 28% 96%;
+    --success: 150 35% 28%;
+    --success-foreground: 40 40% 96%;
 
-    --border: 210 18% 22%;
-    --input: 210 18% 22%;
-    --ring: 38 68% 54%;
+    --border: 32 25% 66%;
+    --input: 32 25% 66%;
+    --ring: 28 55% 32%;
 
     /* Sharper, more hewn-wood/carved-shield corners than the rest of the
        app's soft 0.75rem default — a deliberate, safe override since every
        rounded-* utility derives from this one var (tailwind.config.ts). */
     --radius: 0.35rem;
 
-    --hero-gradient: linear-gradient(135deg, hsl(222 34% 6%), hsl(205 38% 16%));
-    --card-shadow: 0 2px 16px -4px hsl(222 40% 3% / 0.4);
-    --card-shadow-hover: 0 16px 40px -12px hsl(222 40% 3% / 0.55);
+    --hero-gradient: linear-gradient(135deg, hsl(38 45% 90%), hsl(30 35% 78%));
+    --card-shadow: 0 2px 14px -4px hsl(30 40% 25% / 0.18);
+    --card-shadow-hover: 0 14px 34px -8px hsl(30 40% 20% / 0.28);
 
-    --sidebar-background: 222 30% 6%;
-    --sidebar-foreground: 40 28% 92%;
-    --sidebar-primary: 38 68% 54%;
-    --sidebar-primary-foreground: 222 32% 8%;
-    --sidebar-accent: 210 16% 18%;
-    --sidebar-accent-foreground: 40 28% 92%;
-    --sidebar-border: 210 18% 22%;
-    --sidebar-ring: 38 68% 54%;
+    --sidebar-background: 34 38% 84%;
+    --sidebar-foreground: 22 35% 14%;
+    --sidebar-primary: 28 55% 32%;
+    --sidebar-primary-foreground: 40 40% 96%;
+    --sidebar-accent: 35 30% 78%;
+    --sidebar-accent-foreground: 22 35% 14%;
+    --sidebar-border: 32 25% 66%;
+    --sidebar-ring: 28 55% 32%;
   }
 }
 
@@ -166,58 +167,63 @@
    entirely under .viking, so every other theme is untouched.
    ============================================================================ */
 
-/* An engraved, rune-carved display face in place of the app's usual
-   Fraunces. body/h1-h6 already get .font-display from @layer base below,
-   so overriding the class alone covers every heading app-wide. */
+/* An engraved, illuminated-manuscript display face in place of the app's
+   usual Fraunces. body/h1-h6 already get .font-display from @layer base
+   below, so overriding the class alone covers every heading app-wide. */
 .viking .font-display {
   font-family: "Cinzel", ui-serif, Georgia, serif;
   letter-spacing: 0.01em;
 }
 
-/* Engraved-wood background: a valknut (Odin's knot of three interlocking
-   triangles) plus two Elder Futhark runes — Sowilo (the sun/lightning
-   zigzag) and Tiwaz (the spear, an upward arrow) — over faint horizontal
-   wood-grain lines, plus a cold fjord-sky wash top-of-viewport.
-   .viking body alone turned out to be invisible in practice: the actual
-   dashboard shell (SidebarInset, from the shared shadcn sidebar
-   component) renders its own opaque "min-h-svh bg-background" <main>,
-   and the sidebar panel renders its own opaque "bg-sidebar" — both paint
-   fully over body, on every dashboard page. Targeting those specific,
-   large structural containers (not bg-background/bg-sidebar generally,
-   which also land on small buttons/inputs and would look like noise at
-   that size) plus the min-h-screen variant some full-page wrappers use
-   is what actually makes this visible where people spend their time.
-   body stays as a fallback for any page with no such wrapper. All
-   painted as background-image layers on top of the existing solid
-   color — transparent SVG strokes let that color show through, so if
-   the data URI ever failed to parse it'd just show the flat color,
-   never a broken layout. */
+/* Ink-on-parchment background: a valknut (Odin's knot of three
+   interlocking triangles) and an Othala rune — Elder Futhark's rune for
+   inherited/family land, the closest single symbol to "family" — drawn
+   as faint sepia ink linework over horizontal wood-grain lines, plus
+   Hexwood Creations' own crest tiled through as a watermark, plus a soft
+   aged-paper vignette. Layered as background-images on top of the flat
+   --background color from the bg-background utility — transparent SVG
+   strokes and the logo's own baked-in low alpha let that color show
+   through, so if either data URI ever failed to parse the app would just
+   show the flat parchment color, never a broken layout.
+
+   .viking body alone isn't enough on its own: the shared shadcn sidebar
+   component renders its own opaque "min-h-svh bg-background" <main>
+   (SidebarInset) and its own opaque "bg-sidebar" panel, both painted
+   fully over body on every dashboard page. Targeting those specific,
+   large structural containers directly (not bg-background/bg-sidebar
+   generally, which also land on small buttons/inputs and would look
+   like noise at that size) plus the min-h-screen variant some full-page
+   wrappers use is what actually makes this visible where people spend
+   their time. body stays as a fallback for any page with no such
+   wrapper. */
 .viking body,
 .viking .min-h-svh.bg-background,
 .viking .min-h-screen.bg-background,
 .viking .bg-sidebar {
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'%3E%3Cdefs%3E%3Cpolygon id='vk' points='160,114 194,176 126,176'/%3E%3C/defs%3E%3Cg fill='none' stroke='%23c9a25c' stroke-opacity='0.09' stroke-width='1'%3E%3Cpath d='M0,30 Q80,23 160,30 T320,30'/%3E%3Cpath d='M0,90 Q80,98 160,90 T320,90'/%3E%3Cpath d='M0,150 Q80,144 160,150 T320,150'/%3E%3Cpath d='M0,210 Q80,219 160,210 T320,210'/%3E%3Cpath d='M0,270 Q80,263 160,270 T320,270'/%3E%3C/g%3E%3Cg fill='none' stroke='%23c9a25c' stroke-opacity='0.34' stroke-width='1.3'%3E%3Cuse href='%23vk'/%3E%3Cuse href='%23vk' transform='rotate(120 160 160)'/%3E%3Cuse href='%23vk' transform='rotate(240 160 160)'/%3E%3C/g%3E%3Cg fill='none' stroke='%23c9a25c' stroke-opacity='0.3' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='45,272 63,238 49,238 67,206'/%3E%3Cpath d='M260,102 L260,55 M248,73 L260,55 L272,73'/%3E%3C/g%3E%3C/svg%3E"),
-    radial-gradient(ellipse 1200px 600px at 50% -10%, hsl(205 45% 20% / 0.5), transparent 65%);
-  background-repeat: repeat, no-repeat;
-  background-size: 320px 320px, 100% 100%;
-  background-attachment: fixed, fixed;
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'%3E%3Cdefs%3E%3Cpolygon id='vk' points='160,114 194,176 126,176'/%3E%3C/defs%3E%3Cg fill='none' stroke='%235a3a1e' stroke-opacity='0.09' stroke-width='1.2'%3E%3Cpath d='M0,30 Q80,23 160,30 T320,30'/%3E%3Cpath d='M0,90 Q80,98 160,90 T320,90'/%3E%3Cpath d='M0,150 Q80,144 160,150 T320,150'/%3E%3Cpath d='M0,210 Q80,219 160,210 T320,210'/%3E%3Cpath d='M0,270 Q80,263 160,270 T320,270'/%3E%3C/g%3E%3Cg fill='none' stroke='%235a3a1e' stroke-opacity='0.26' stroke-width='1.5'%3E%3Cuse href='%23vk'/%3E%3Cuse href='%23vk' transform='rotate(120 160 160)'/%3E%3Cuse href='%23vk' transform='rotate(240 160 160)'/%3E%3C/g%3E%3Cg fill='none' stroke='%235a3a1e' stroke-opacity='0.24' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M270,242 L282,260 L270,278 L258,260 Z M270,278 L258,294 M270,278 L282,294'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/png;base64,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"),
+    radial-gradient(ellipse 1400px 900px at 50% 40%, transparent 45%, hsl(30 35% 65% / 0.22) 100%);
+  background-repeat: repeat, repeat, no-repeat;
+  background-size: 320px 320px, 440px 440px, 100% 100%;
+  background-position: 0 0, 220px 220px, 0 0;
+  background-attachment: fixed, fixed, fixed;
 }
-/* The sidebar's own gradient/glow shouldn't apply — it's a narrow
-   vertical panel, not the hero area the radial wash was designed for. */
 .viking .bg-sidebar {
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'%3E%3Cdefs%3E%3Cpolygon id='vk' points='160,114 194,176 126,176'/%3E%3C/defs%3E%3Cg fill='none' stroke='%23c9a25c' stroke-opacity='0.09' stroke-width='1'%3E%3Cpath d='M0,30 Q80,23 160,30 T320,30'/%3E%3Cpath d='M0,90 Q80,98 160,90 T320,90'/%3E%3Cpath d='M0,150 Q80,144 160,150 T320,150'/%3E%3Cpath d='M0,210 Q80,219 160,210 T320,210'/%3E%3Cpath d='M0,270 Q80,263 160,270 T320,270'/%3E%3C/g%3E%3Cg fill='none' stroke='%23c9a25c' stroke-opacity='0.34' stroke-width='1.3'%3E%3Cuse href='%23vk'/%3E%3Cuse href='%23vk' transform='rotate(120 160 160)'/%3E%3Cuse href='%23vk' transform='rotate(240 160 160)'/%3E%3C/g%3E%3Cg fill='none' stroke='%23c9a25c' stroke-opacity='0.3' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='45,272 63,238 49,238 67,206'/%3E%3Cpath d='M260,102 L260,55 M248,73 L260,55 L272,73'/%3E%3C/g%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 320px 320px;
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'%3E%3Cdefs%3E%3Cpolygon id='vk' points='160,114 194,176 126,176'/%3E%3C/defs%3E%3Cg fill='none' stroke='%235a3a1e' stroke-opacity='0.09' stroke-width='1.2'%3E%3Cpath d='M0,30 Q80,23 160,30 T320,30'/%3E%3Cpath d='M0,90 Q80,98 160,90 T320,90'/%3E%3Cpath d='M0,150 Q80,144 160,150 T320,150'/%3E%3Cpath d='M0,210 Q80,219 160,210 T320,210'/%3E%3Cpath d='M0,270 Q80,263 160,270 T320,270'/%3E%3C/g%3E%3Cg fill='none' stroke='%235a3a1e' stroke-opacity='0.26' stroke-width='1.5'%3E%3Cuse href='%23vk'/%3E%3Cuse href='%23vk' transform='rotate(120 160 160)'/%3E%3Cuse href='%23vk' transform='rotate(240 160 160)'/%3E%3C/g%3E%3Cg fill='none' stroke='%235a3a1e' stroke-opacity='0.24' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M270,242 L282,260 L270,278 L258,260 Z M270,278 L258,294 M270,278 L282,294'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/png;base64,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");
+  background-repeat: repeat, repeat;
+  background-size: 320px 320px, 440px 440px;
+  background-position: 0 0, 220px 220px;
 }
 
-/* A thin gold inlay strip along the top edge of every card — like a metal
-   band set into carved wood. Targets Card's actual rendered classes
-   (card.tsx: "rounded-lg border bg-card ...") so no component needs
-   touching; overflow is left alone (no overflow:hidden) so anything a
-   card legitimately renders outside its bounds — a tooltip, a badge with
-   negative margin — is never clipped. */
+/* A thin bronze inlay strip along the top edge of every card — like a
+   metal band set into carved wood. Targets Card's actual rendered
+   classes (card.tsx: "rounded-lg border bg-card ...") so no component
+   needs touching; overflow is left alone (no overflow:hidden) so
+   anything a card legitimately renders outside its bounds — a tooltip,
+   a badge with negative margin — is never clipped. */
 .viking .bg-card.border.rounded-lg {
   position: relative;
 }
@@ -234,18 +240,21 @@
   pointer-events: none;
 }
 
-/* A low ember glow on solid primary-colored buttons specifically (not the
-   tiny bg-primary unread-dot or the pill-shaped Badge, which don't carry
-   rounded-md). */
+/* A grounded, embossed-leather shadow on solid primary-colored buttons
+   specifically (not the tiny bg-primary unread-dot or the pill-shaped
+   Badge, which don't carry rounded-md) — a soft glow reads as light
+   emitting from the button, which made sense on the old dark-fjord
+   background but not on parchment; a pressed-shadow reads as ink/leather
+   instead. */
 .viking .bg-primary.rounded-md {
-  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.25), 0 4px 14px -4px hsl(var(--primary) / 0.5);
+  box-shadow: 0 1px 0 hsl(28 55% 22%), 0 3px 10px -3px hsl(30 40% 20% / 0.45);
 }
 .viking .bg-primary.rounded-md:hover {
-  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.35), 0 6px 20px -4px hsl(var(--primary) / 0.65);
+  box-shadow: 0 1px 0 hsl(28 55% 22%), 0 5px 16px -3px hsl(30 40% 20% / 0.55);
 }
 
 .viking ::selection {
-  background: hsl(var(--primary) / 0.35);
+  background: hsl(var(--primary) / 0.3);
   color: hsl(var(--foreground));
 }
 
@@ -257,30 +266,29 @@
   background: hsl(var(--background));
 }
 .viking ::-webkit-scrollbar-thumb {
-  background: hsl(var(--primary) / 0.4);
+  background: hsl(var(--primary) / 0.5);
   border-radius: 999px;
   border: 2px solid hsl(var(--background));
 }
 .viking ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary) / 0.6);
+  background: hsl(var(--primary) / 0.7);
 }
 
-/* A slow ember pulse for the one control that's exclusive to unlocked
-   accounts — applied via a className in ThemeToggle.tsx, not globally, so
-   nothing else on the page ever animates unexpectedly. */
-@keyframes viking-ember-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.35); }
-  50% { box-shadow: 0 0 14px 2px hsl(var(--primary) / 0.55); }
+/* A slow, subtle shadow pulse for the one control that's exclusive to
+   unlocked accounts — applied via a className in ThemeToggle.tsx, not
+   globally, so nothing else on the page ever animates unexpectedly. */
+@keyframes viking-ink-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.25); }
+  50% { box-shadow: 0 0 0 4px hsl(var(--primary) / 0.15); }
 }
 .viking .viking-ember-pulse {
-  animation: viking-ember-pulse 2.6s ease-in-out infinite;
+  animation: viking-ink-pulse 2.6s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {
   .viking .viking-ember-pulse {
     animation: none;
   }
 }
-
 @layer base {
   * {
     @apply border-border;

@@ -82,7 +82,13 @@ export function VikingModeUnlockedDialog({ open, partnerName, onContinue }: Prop
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleContinue(); }}>
-      <DialogContent className="max-w-md text-center overflow-hidden p-0" style={{ background: "var(--hero-gradient)" }}>
+      {/* Forces the .viking CSS variables regardless of the account's
+          currently-active theme (light/dark/viking) — this is a preview of
+          what Viking Mode looks like, so it should always render that way,
+          not whatever colors happen to be active when someone redeems a
+          code. Without this, someone redeeming while on "dark" previously
+          got near-black text on a near-black gradient here — invisible. */}
+      <DialogContent className="viking max-w-md text-center overflow-hidden p-0" style={{ background: "var(--hero-gradient)" }}>
         <div className="pt-6 px-6">
           <LongshipIllustration />
         </div>
@@ -91,8 +97,8 @@ export function VikingModeUnlockedDialog({ open, partnerName, onContinue }: Prop
             <div className="w-14 h-14 rounded-full bg-primary/15 border-2 border-primary/40 flex items-center justify-center mb-3 -mt-2">
               <Axe className="w-6 h-6 text-primary" />
             </div>
-            <DialogTitle className="text-2xl font-display text-primary-foreground">Viking Mode Unlocked</DialogTitle>
-            <DialogDescription className="text-sm leading-relaxed text-primary-foreground/80 pt-1">
+            <DialogTitle className="text-2xl font-display text-foreground">Viking Mode Unlocked</DialogTitle>
+            <DialogDescription className="text-sm leading-relaxed text-foreground/75 pt-1">
               {partnerName ? `${partnerName}'s code just gave you something no one else gets.` : "Your code just gave you something no one else gets."}{" "}
               {isPaidAccount
                 ? "A whole third look for Trimbly — yours for good."
