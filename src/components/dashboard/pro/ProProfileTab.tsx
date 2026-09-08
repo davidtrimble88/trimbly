@@ -11,6 +11,7 @@ import ProFeaturesPanel from "@/components/pro/ProFeaturesPanel";
 import NotificationPrefsPanel from "@/components/pro/NotificationPrefsPanel";
 import InstallAppPanel from "@/components/pro/InstallAppPanel";
 import AccountSettingsDialog from "@/components/AccountSettingsDialog";
+import { RedeemCodeCard } from "@/components/RedeemCodeCard";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
 import BusinessInfoCard from "./BusinessInfoCard";
 import type { ProviderProfile } from "./types";
@@ -107,6 +108,7 @@ const ProProfileTab = ({ provider, userId, onEditProfile, onUpdated }: ProProfil
               <AccountSettingsDialog trigger={<Button variant="outline" size="sm">Manage</Button>} />
             </CardContent>
           </Card>
+          <RedeemCodeCard />
         </div>
       </div>
     </div>

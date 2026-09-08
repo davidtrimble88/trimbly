@@ -4,6 +4,7 @@ import SavedProvidersCard from "@/components/SavedProvidersCard";
 import { ShareTrimblyCard } from "@/components/ShareTrimblyCard";
 import NotificationPreferencesDialog from "@/components/NotificationPreferencesDialog";
 import AccountSettingsDialog from "@/components/AccountSettingsDialog";
+import { RedeemCodeCard } from "@/components/RedeemCodeCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Bell, Settings } from "lucide-react";
@@ -44,6 +45,7 @@ const HomeownerProfileTab = ({ userId, displayName }: HomeownerProfileTabProps) 
         <AccountSettingsDialog trigger={<Button variant="outline" size="sm">Manage</Button>} />
       </CardContent>
     </Card>
+    <RedeemCodeCard />
     <ShareTrimblyCard />
   </div>
 );

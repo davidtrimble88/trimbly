@@ -8,6 +8,7 @@ import ProFeaturesPanel from "@/components/pro/ProFeaturesPanel";
 import NotificationPrefsPanel from "@/components/pro/NotificationPrefsPanel";
 import InstallAppPanel from "@/components/pro/InstallAppPanel";
 import AccountSettingsDialog from "@/components/AccountSettingsDialog";
+import { RedeemCodeCard } from "@/components/RedeemCodeCard";
 import BusinessInfoCard from "@/components/dashboard/pro/BusinessInfoCard";
 import type { ProviderProfile } from "@/components/dashboard/pro/types";
 import { BETA_FREE_ACCESS, formatUsd, mechanicTiers } from "@/lib/pricingTiers";
@@ -84,6 +85,7 @@ const MechanicProfileTab = ({ provider, userId, onEditProfile, onUpdated }: Mech
               <AccountSettingsDialog trigger={<Button variant="outline" size="sm">Manage</Button>} />
             </CardContent>
           </Card>
+          <RedeemCodeCard />
         </div>
       </div>
     </div>
