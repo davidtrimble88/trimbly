@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { TestingWelcomeModal } from "@/components/onboarding/TestingWelcomeModal";
+import { VikingModeUnlockedDialog } from "@/components/VikingModeUnlockedDialog";
 import { BETA_FREE_ACCESS, formatUsd, formatCad, homeownerTiers } from "@/lib/pricingTiers";
 
 // Only the paid tiers render as cards here — Free is a plain text link
@@ -19,11 +20,13 @@ export default function HomeownerUpsell() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [discountCode, setDiscountCode] = useState("");
   const [redeeming, setRedeeming] = useState(false);
   const [showTestingWelcome, setShowTestingWelcome] = useState(false);
+  const [showVikingUnlock, setShowVikingUnlock] = useState(false);
+  const [vikingPartnerName, setVikingPartnerName] = useState<string | null>(null);
   // Set once a code with no fixed tier baked in ("No tier change" for both
   // fields in the staff UI) has been validated — it's applied to whichever
   // plan the user actually picks below, rather than a tier chosen up front.
@@ -37,6 +40,17 @@ export default function HomeownerUpsell() {
     } else {
       navigate("/dashboard");
     }
+  };
+
+  // Returns true if the redeem result carried a Viking Mode unlock and the
+  // celebration dialog now owns navigation (its onContinue calls goNext) —
+  // callers should skip their own toast/goNext when this returns true.
+  const handleVikingUnlock = async (result: any): Promise<boolean> => {
+    if (!result?.unlocks_viking_mode) return false;
+    await refreshProfile();
+    setVikingPartnerName(result.partner_name || null);
+    setShowVikingUnlock(true);
+    return true;
   };
 
   const handleSelect = async (tierKey: string) => {
@@ -59,6 +73,10 @@ export default function HomeownerUpsell() {
           // than blocking the plan they picked over a code issue.
         } else {
           appliedViaCode = true;
+          if (await handleVikingUnlock(result)) {
+            setLoadingTier(null);
+            return;
+          }
         }
       }
 
@@ -108,8 +126,10 @@ export default function HomeownerUpsell() {
         return;
       }
 
-      if (result.is_testing_code || result.grants_tier) {
-        // Fixed-tier / testing codes redeem immediately, exactly as before.
+      if (result.is_testing_code || result.grants_tier || result.unlocks_viking_mode) {
+        // Fixed-tier / testing / Viking-Mode codes redeem immediately —
+        // none of them need a plan pick first (a Viking-unlock-only code
+        // like HEXWOOD grants no tier at all, so there's nothing to wait for).
         const { data: redeemData, error: redeemError } = await supabase.rpc("redeem_discount_code" as any, { p_code: trimmedCode } as any);
         const redeemResult = redeemData as any;
         if (redeemError || !redeemResult?.success) {
@@ -122,6 +142,7 @@ export default function HomeownerUpsell() {
           setShowTestingWelcome(true);
           return;
         }
+        if (await handleVikingUnlock(redeemResult)) return;
         toast({ title: "Code applied!", description: "Your plan has been upgraded — no payment needed." });
         goNext();
       } else {
@@ -281,6 +302,11 @@ export default function HomeownerUpsell() {
           toast({ title: "You're in!", description: "Full access unlocked for testing. Thanks for helping us out." });
           goNext();
         }}
+      />
+      <VikingModeUnlockedDialog
+        open={showVikingUnlock}
+        partnerName={vikingPartnerName}
+        onContinue={() => { setShowVikingUnlock(false); goNext(); }}
       />
     </div>
   );

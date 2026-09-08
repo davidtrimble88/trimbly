@@ -10,12 +10,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { startProviderSubscriptionCheckout } from "@/lib/billing";
 import { BETA_FREE_ACCESS, formatCad, mechanicTiers } from "@/lib/pricingTiers";
+import { VikingModeUnlockedDialog } from "@/components/VikingModeUnlockedDialog";
 
 const tiers = mechanicTiers;
 
 const MechanicPricing = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const { toast } = useToast();
   const [hasProvider, setHasProvider] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
@@ -24,6 +25,19 @@ const MechanicPricing = () => {
   // Set once a code with no fixed tier baked in has been validated — applied
   // to whichever plan the user actually clicks below, not chosen up front.
   const [pendingFlexCode, setPendingFlexCode] = useState<string | null>(null);
+  const [showVikingUnlock, setShowVikingUnlock] = useState(false);
+  const [vikingPartnerName, setVikingPartnerName] = useState<string | null>(null);
+
+  // Returns true if the redeem result carried a Viking Mode unlock and the
+  // celebration dialog now owns navigation — callers should skip their own
+  // toast/navigate when this returns true.
+  const handleVikingUnlock = async (result: any): Promise<boolean> => {
+    if (!result?.unlocks_viking_mode) return false;
+    await refreshProfile();
+    setVikingPartnerName(result.partner_name || null);
+    setShowVikingUnlock(true);
+    return true;
+  };
 
   useEffect(() => {
     if (!user) { setHasProvider(false); return; }
@@ -45,6 +59,7 @@ const MechanicPricing = () => {
         const result = data as any;
         if (result?.success) {
           setUpgrading(false);
+          if (await handleVikingUnlock(result)) return;
           toast({ title: "Pro Mechanic activated!", description: "Applied your discount code — no payment needed." });
           navigate("/mechanic-dashboard");
           return;
@@ -102,13 +117,14 @@ const MechanicPricing = () => {
         toast({ title: "Code didn't work", description: result?.error || error?.message, variant: "destructive" });
         return;
       }
-      if (result.grants_provider_tier || result.grants_tier) {
+      if (result.grants_provider_tier || result.grants_tier || result.unlocks_viking_mode) {
         const { data: redeemData, error: redeemError } = await supabase.rpc("redeem_discount_code" as any, { p_code: trimmedCode } as any);
         const redeemResult = redeemData as any;
         if (redeemError || !redeemResult?.success) {
           toast({ title: "Code didn't work", description: redeemResult?.error || redeemError?.message, variant: "destructive" });
           return;
         }
+        if (await handleVikingUnlock(redeemResult)) return;
         toast({ title: "Code applied!", description: "Your plan has been upgraded — no payment needed." });
         navigate(hasProvider ? "/mechanic-dashboard" : "/mechanic-register?tier=pro");
       } else {
@@ -250,6 +266,11 @@ const MechanicPricing = () => {
         </div>
       </main>
       <Footer />
+      <VikingModeUnlockedDialog
+        open={showVikingUnlock}
+        partnerName={vikingPartnerName}
+        onContinue={() => { setShowVikingUnlock(false); navigate(hasProvider ? "/mechanic-dashboard" : "/mechanic-register?tier=pro"); }}
+      />
     </div>
   );
 };

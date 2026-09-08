@@ -62,6 +62,7 @@ const StaffSeo = lazy(() => import("./pages/staff/Seo"));
 const StaffErrors = lazy(() => import("./pages/staff/Errors"));
 const StaffTeam = lazy(() => import("./pages/staff/Team"));
 const StaffDiscounts = lazy(() => import("./pages/staff/Discounts"));
+const StaffPartners = lazy(() => import("./pages/staff/Partners"));
 const StaffTickets = lazy(() => import("./pages/staff/Tickets"));
 const StaffAnalytics = lazy(() => import("./pages/staff/Analytics"));
 const StaffBusinessAnalytics = lazy(() => import("./pages/staff/BusinessAnalytics"));
@@ -139,7 +140,7 @@ const RouteLoader = () => (
 );
 
 const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+  <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} themes={["light", "dark", "viking"]} disableTransitionOnChange>
   <QueryClientProvider client={queryClient}>
     <ErrorBoundary>
       <AuthProvider>
@@ -215,6 +216,7 @@ const App = () => (
               <Route path="errors" element={<StaffErrors />} />
               <Route path="team" element={<StaffTeam />} />
               <Route path="discounts" element={<StaffDiscounts />} />
+              <Route path="partners" element={<StaffPartners />} />
               <Route path="tickets" element={<StaffTickets />} />
               <Route path="analytics" element={<StaffAnalytics />} />
               <Route path="business" element={<StaffBusinessAnalytics />} />

@@ -277,6 +277,7 @@ export type Database = {
         Row: {
           active: boolean
           code: string
+          commission_percent: number | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -289,12 +290,15 @@ export type Database = {
           id: string
           is_testing_code: boolean
           max_redemptions: number | null
+          partner_name: string | null
           redemption_count: number
+          unlocks_viking_mode: boolean
           updated_at: string
         }
         Insert: {
           active?: boolean
           code: string
+          commission_percent?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -307,12 +311,15 @@ export type Database = {
           id?: string
           is_testing_code?: boolean
           max_redemptions?: number | null
+          partner_name?: string | null
           redemption_count?: number
+          unlocks_viking_mode?: boolean
           updated_at?: string
         }
         Update: {
           active?: boolean
           code?: string
+          commission_percent?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -325,7 +332,9 @@ export type Database = {
           id?: string
           is_testing_code?: boolean
           max_redemptions?: number | null
+          partner_name?: string | null
           redemption_count?: number
+          unlocks_viking_mode?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -1516,12 +1525,14 @@ export type Database = {
           id: string
           is_public: boolean
           is_testing_account: boolean
+          referred_by_code: string | null
           subscription_tier: string
           suspended: boolean
           suspended_reason: string | null
           timezone: string | null
           updated_at: string
           user_type: string
+          viking_mode_unlocked: boolean
         }
         Insert: {
           avatar_url?: string | null
@@ -1532,12 +1543,14 @@ export type Database = {
           id: string
           is_public?: boolean
           is_testing_account?: boolean
+          referred_by_code?: string | null
           subscription_tier?: string
           suspended?: boolean
           suspended_reason?: string | null
           timezone?: string | null
           updated_at?: string
           user_type?: string
+          viking_mode_unlocked?: boolean
         }
         Update: {
           avatar_url?: string | null
@@ -1548,12 +1561,14 @@ export type Database = {
           id?: string
           is_public?: boolean
           is_testing_account?: boolean
+          referred_by_code?: string | null
           subscription_tier?: string
           suspended?: boolean
           suspended_reason?: string | null
           timezone?: string | null
           updated_at?: string
           user_type?: string
+          viking_mode_unlocked?: boolean
         }
         Relationships: []
       }
@@ -3190,6 +3205,22 @@ export type Database = {
       }
     }
     Views: {
+      partner_redemptions: {
+        Row: {
+          code: string | null
+          code_id: string | null
+          commission_percent: number | null
+          full_name: string | null
+          homeowner_tier: string | null
+          partner_name: string | null
+          provider_tier: string | null
+          provider_type: string | null
+          redeemed_at: string | null
+          user_id: string | null
+          user_type: string | null
+        }
+        Relationships: []
+      }
       provider_response_times: {
         Row: {
           avg_reply_minutes: number | null

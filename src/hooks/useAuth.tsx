@@ -10,6 +10,7 @@ interface AuthContextType {
   profileName: string | null;
   avatarUrl: string | null;
   userTimezone: string | null;
+  vikingModeUnlocked: boolean;
   refreshProfile: () => Promise<void>;
   signUp: (email: string, password: string, metadata?: Record<string, string>) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -27,12 +28,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profileName, setProfileName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [userTimezone, setUserTimezone] = useState<string | null>(null);
+  const [vikingModeUnlocked, setVikingModeUnlocked] = useState(false);
 
   const fetchProfileName = async (userId: string) => {
-    const { data } = await supabase.from("profiles").select("full_name, avatar_url, timezone").eq("id", userId).maybeSingle();
+    const { data } = await supabase.from("profiles").select("full_name, avatar_url, timezone, viking_mode_unlocked").eq("id", userId).maybeSingle();
     setProfileName(data?.full_name || null);
     setAvatarUrl(data?.avatar_url || null);
     setUserTimezone(data?.timezone || null);
+    setVikingModeUnlocked(data?.viking_mode_unlocked || false);
     // Self-heal: fill in the timezone for accounts created before we captured it,
     // or refresh it if the user has moved devices/regions.
     const browserTz = getBrowserTimezone();
@@ -47,7 +50,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) fetchProfileName(session.user.id);
-      else { setProfileName(null); setAvatarUrl(null); setUserTimezone(null); }
+      else { setProfileName(null); setAvatarUrl(null); setUserTimezone(null); setVikingModeUnlocked(false); }
       setLoading(false);
     });
 
@@ -99,7 +102,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, profileName, avatarUrl, userTimezone, refreshProfile, signUp, signIn, signOut, resetPassword, updatePassword }}>
+    <AuthContext.Provider value={{ user, session, loading, profileName, avatarUrl, userTimezone, vikingModeUnlocked, refreshProfile, signUp, signIn, signOut, resetPassword, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );

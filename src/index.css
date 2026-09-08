@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=DM+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=DM+Sans:wght@400;500;600;700&family=Cinzel:wght@500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -100,6 +100,69 @@
     --sidebar-border: 156 16% 18%;
     --sidebar-ring: 156 55% 50%;
   }
+
+  /* Viking Mode — exclusive to accounts that redeemed a partner code with
+     unlocks_viking_mode set (see ThemeToggle.tsx). Fjord-night blue-black,
+     hammered bronze, and ember-red, instead of the app's usual green. */
+  .viking {
+    --background: 222 32% 7%;
+    --foreground: 40 28% 92%;
+
+    --card: 222 26% 11%;
+    --card-foreground: 40 28% 92%;
+
+    --popover: 222 26% 11%;
+    --popover-foreground: 40 28% 92%;
+
+    --primary: 38 68% 54%;
+    --primary-foreground: 222 32% 8%;
+
+    --secondary: 210 16% 18%;
+    --secondary-foreground: 40 28% 92%;
+
+    --muted: 210 16% 15%;
+    --muted-foreground: 210 12% 66%;
+
+    --accent: 355 58% 46%;
+    --accent-foreground: 40 28% 96%;
+
+    --destructive: 355 65% 38%;
+    --destructive-foreground: 40 28% 96%;
+
+    --warning: 32 90% 52%;
+    --warning-foreground: 222 32% 8%;
+
+    --success: 150 38% 36%;
+    --success-foreground: 40 28% 96%;
+
+    --border: 210 18% 22%;
+    --input: 210 18% 22%;
+    --ring: 38 68% 54%;
+
+    --hero-gradient: linear-gradient(135deg, hsl(222 34% 6%), hsl(205 38% 16%));
+    --card-shadow: 0 2px 16px -4px hsl(222 40% 3% / 0.4);
+    --card-shadow-hover: 0 16px 40px -12px hsl(222 40% 3% / 0.55);
+
+    --sidebar-background: 222 30% 6%;
+    --sidebar-foreground: 40 28% 92%;
+    --sidebar-primary: 38 68% 54%;
+    --sidebar-primary-foreground: 222 32% 8%;
+    --sidebar-accent: 210 16% 18%;
+    --sidebar-accent-foreground: 40 28% 92%;
+    --sidebar-border: 210 18% 22%;
+    --sidebar-ring: 38 68% 54%;
+  }
+}
+
+/* Viking Mode gets its own display face — an engraved, rune-carved feel in
+   place of the app's usual Fraunces — scoped so no component needs to know
+   which theme is active. */
+.viking .font-display,
+.viking h1,
+.viking h2,
+.viking h3 {
+  font-family: "Cinzel", ui-serif, Georgia, serif;
+  letter-spacing: 0.01em;
 }
 
 @layer base {

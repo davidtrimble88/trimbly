@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tag, Plus, Trash2, FlaskConical, Copy, Car, Pencil, X } from "lucide-react";
+import { Tag, Plus, Trash2, FlaskConical, Copy, Car, Pencil, X, Axe, Handshake } from "lucide-react";
 import { logActivity } from "./activityLog";
 import { homeownerTiers, providerTiers } from "@/lib/pricingTiers";
 
@@ -33,6 +33,9 @@ interface DiscountCode {
   expires_at: string | null;
   active: boolean;
   created_at: string;
+  partner_name: string | null;
+  commission_percent: number | null;
+  unlocks_viking_mode: boolean;
 }
 
 // Derived from pricingTiers.ts (the single source of truth) instead of a
@@ -61,6 +64,9 @@ export default function StaffDiscounts() {
   const [isTestingCode, setIsTestingCode] = useState(false);
   const [maxRedemptions, setMaxRedemptions] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
+  const [partnerName, setPartnerName] = useState("");
+  const [commissionPercent, setCommissionPercent] = useState("");
+  const [unlocksVikingMode, setUnlocksVikingMode] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -82,6 +88,7 @@ export default function StaffDiscounts() {
     setEditingId(null);
     setCode(""); setDescription(""); setDiscountType("free"); setDiscountValue("");
     setGrantsTier(""); setGrantsProviderTier(""); setGrantsGarage(false); setIsTestingCode(false); setMaxRedemptions(""); setExpiresAt("");
+    setPartnerName(""); setCommissionPercent(""); setUnlocksVikingMode(false);
   };
 
   const startEdit = (row: DiscountCode) => {
@@ -96,6 +103,9 @@ export default function StaffDiscounts() {
     setIsTestingCode(row.is_testing_code);
     setMaxRedemptions(row.max_redemptions != null ? String(row.max_redemptions) : "");
     setExpiresAt(row.expires_at ? row.expires_at.slice(0, 10) : "");
+    setPartnerName(row.partner_name || "");
+    setCommissionPercent(row.commission_percent != null ? String(row.commission_percent) : "");
+    setUnlocksVikingMode(row.unlocks_viking_mode);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -135,6 +145,9 @@ export default function StaffDiscounts() {
       is_testing_code: isTestingCode,
       max_redemptions: maxRedemptions.trim() ? Number(maxRedemptions) : null,
       expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+      partner_name: partnerName.trim() || null,
+      commission_percent: commissionPercent.trim() ? Number(commissionPercent) : null,
+      unlocks_viking_mode: unlocksVikingMode,
     };
 
     if (editingId) {
@@ -294,6 +307,37 @@ export default function StaffDiscounts() {
             </div>
           </div>
 
+          <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-3">
+            <p className="text-xs font-semibold text-primary flex items-center gap-1.5">
+              <Handshake className="w-3.5 h-3.5" /> Creator / partner program
+            </p>
+            <div className="grid md:grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Partner name (internal)</Label>
+                <Input placeholder="e.g. Hexwood Creations" value={partnerName} onChange={(e) => setPartnerName(e.target.value)} className="mt-1 text-sm" />
+              </div>
+              <div>
+                <Label className="text-xs">Commission % of subscription (recurring, while subscribed)</Label>
+                <Input type="number" min={0} max={100} step={1} placeholder="e.g. 20" value={commissionPercent} onChange={(e) => setCommissionPercent(e.target.value)} className="mt-1 text-sm" />
+              </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Setting a partner name/commission does NOT grant any tier or bypass payment — the redeemer still pays
+              normally. It only records who to credit, for the "owed this cycle" report on the Partners page.
+              Commission is paid manually; there's no automatic payout yet.
+            </p>
+            <div className="flex items-center justify-between rounded-lg border border-border bg-background p-2.5">
+              <div className="flex items-center gap-1.5">
+                <Axe className="w-3.5 h-3.5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Unlocks Viking Mode</p>
+                  <p className="text-[11px] text-muted-foreground">A third, exclusive theme — permanent once redeemed, even if they never upgrade</p>
+                </div>
+              </div>
+              <Switch checked={unlocksVikingMode} onCheckedChange={setUnlocksVikingMode} />
+            </div>
+          </div>
+
           <div className="flex items-center gap-2">
             <Button onClick={handleSave} disabled={saving} className="gap-1.5">
               {editingId ? <Pencil className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
@@ -340,6 +384,12 @@ export default function StaffDiscounts() {
                   {row.grants_tier && <Badge variant="outline" className="text-xs">→ {tierLabels[row.grants_tier] ?? row.grants_tier}</Badge>}
                   {row.grants_provider_tier && <Badge variant="outline" className="text-xs">Pro → {providerTierLabels[row.grants_provider_tier] ?? row.grants_provider_tier}</Badge>}
                   {row.grants_garage && <Badge variant="outline" className="text-xs gap-1"><Car className="w-3 h-3" /> Garage</Badge>}
+                  {row.partner_name && (
+                    <Badge variant="outline" className="text-xs gap-1 border-primary/40 text-primary">
+                      <Handshake className="w-3 h-3" /> {row.partner_name}{row.commission_percent != null ? ` · ${row.commission_percent}%` : ""}
+                    </Badge>
+                  )}
+                  {row.unlocks_viking_mode && <Badge variant="outline" className="text-xs gap-1"><Axe className="w-3 h-3" /> Viking</Badge>}
                   <span className="text-xs text-muted-foreground whitespace-nowrap">
                     {row.redemption_count}{row.max_redemptions ? ` / ${row.max_redemptions}` : ""} used
                   </span>
