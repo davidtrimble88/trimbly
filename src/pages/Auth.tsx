@@ -66,7 +66,7 @@ const Auth = () => {
         }} />
         <div className="relative z-10 text-center">
           <Link to="/" className="inline-flex items-center gap-2 mb-8">
-            <BrandMark className="w-14 h-14" fillClassName="fill-primary-foreground" markClassName="fill-primary" />
+            <BrandMark className="w-32 h-32" fillClassName="fill-primary-foreground" markClassName="fill-primary" />
           </Link>
           <h1 className="text-4xl font-semibold text-primary-foreground mb-4 font-display">
             {mode === "login" ? "Welcome back" : mode === "signup" ? "Join Trimbly" : "Reset password"}
