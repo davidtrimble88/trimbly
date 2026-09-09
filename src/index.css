@@ -42,7 +42,10 @@
 
     --radius: 0.75rem;
 
-    --hero-gradient: linear-gradient(135deg, hsl(158 66% 15%), hsl(156 56% 26%));
+    /* Blue-to-green sweep lifted from the turtle badge's ring (BrandMark /
+       src/assets/branding/trimbly-logo.png) so the Auth hero panel echoes
+       the mark instead of clashing with its blue. */
+    --hero-gradient: linear-gradient(135deg, hsl(213 88% 30%), hsl(142 62% 26%));
     --card-shadow: 0 2px 16px -4px hsl(152 30% 10% / 0.08);
     --card-shadow-hover: 0 16px 40px -12px hsl(152 30% 10% / 0.18);
 
