@@ -87,6 +87,10 @@
   height: 4.5rem;
 }
 
+.trimbly-landing .font-body {
+  font-family: "Figtree", system-ui, sans-serif;
+}
+
 .trimbly-landing footer {
   background: hsl(var(--card));
 }
@@ -116,6 +120,19 @@
 
   .trimbly-landing section:hover > div img {
     transform: scale(1.012);
+  }
+}
+
+@media (max-width: 640px) {
+  .trimbly-landing .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .trimbly-landing [role="tablist"],
+  .trimbly-landing .inline-flex.rounded-full {
+    max-width: 100%;
+    overflow-x: auto;
   }
 }
 
