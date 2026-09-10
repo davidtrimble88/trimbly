@@ -1,11 +1,20 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, CheckCircle2, CircleDollarSign, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, BriefcaseBusiness, Car, CheckCircle2, CloudSun, FolderOpen, Home, House, ShieldCheck, ShoppingCart, Sparkles, Wrench, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BrandMark from "@/components/BrandMark";
 import modernHome from "@/assets/landing/trimbly-modern-home.jpg";
 
 const HeroSection = () => {
   const navigate = useNavigate();
+
+  const homeCapabilities = [
+    { icon: Wrench, label: "Fix it", detail: "Diagnosis · DIY guides · Cost estimates" },
+    { icon: BriefcaseBusiness, label: "Hire help", detail: "Pros · Bidding · Messaging · Reviews" },
+    { icon: CloudSun, label: "Stay ahead", detail: "Maintenance · Weather · Alerts" },
+    { icon: ShieldCheck, label: "Protect it", detail: "Coverage · Warranties · Insurance" },
+    { icon: FolderOpen, label: "Remember it", detail: "Binder · Manuals · Receipts · Service history" },
+    { icon: Zap, label: "Understand it", detail: "Home value · Energy · Lifespan" },
+  ];
 
   return (
     <section className="relative overflow-hidden border-b border-border bg-background pt-24 md:pt-28">
@@ -22,19 +31,27 @@ const HeroSection = () => {
           <div className="absolute inset-0 bg-[linear-gradient(90deg,hsl(var(--background))_0%,hsl(var(--background)/0.96)_34%,hsl(var(--background)/0.38)_65%,transparent_100%)]" />
 
           <div className="relative z-10 flex min-h-[660px] flex-col justify-between p-6 sm:p-10 lg:min-h-[710px] lg:p-14">
-            <div className="max-w-[650px] pt-4 lg:pt-10">
-              <div className="mb-7 flex items-center gap-3 text-sm font-bold text-primary">
+            <div className="max-w-[680px] pt-4 lg:pt-8">
+              <div className="mb-5 flex items-center gap-3 text-sm font-bold text-primary">
                 <BrandMark className="h-12 w-12 shadow-[var(--card-shadow)]" />
-                <span>Meet the home assistant that remembers everything.</span>
+                <span>One app. Your entire home.</span>
               </div>
-              <h1 className="max-w-[640px] text-[2.65rem] font-bold leading-[1.02] text-foreground sm:text-6xl lg:text-[4.6rem]">
-                TELL IT WHAT'S WRONG.
-                <span className="mt-2 block text-primary">IT TELLS YOU WHAT TO DO.</span>
+              <h1 className="max-w-[650px] text-[2.55rem] font-bold leading-[1.04] text-foreground sm:text-[3.55rem] lg:text-[4.25rem]">
+                Your home has a lot to keep track of.
+                <span className="mt-2 block text-primary">Trimbly keeps track of it all.</span>
               </h1>
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-foreground/75 md:text-xl">
-                Understand what's happening, what it may cost, what's covered, and what to do next — with your home's details already in one place.
+              <p className="mt-5 text-xl font-bold leading-snug text-foreground sm:text-2xl">
+                Tell it what's wrong. It tells you what to do.
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <p className="mt-3 max-w-2xl text-base leading-relaxed text-foreground/75 md:text-lg">
+                Maintain, understand, protect, organize, and improve your home — then get trusted help when you need it. Trimbly is your home command center, whether something breaks or you simply want to know what comes next.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-foreground/80">
+                <span>Maintain &amp; prevent</span><span aria-hidden="true" className="text-primary">•</span>
+                <span>Organize &amp; protect</span><span aria-hidden="true" className="text-primary">•</span>
+                <span>Understand &amp; get help</span>
+              </div>
+              <div className="mt-7 flex flex-wrap gap-3">
                 <Button size="lg" className="h-12 rounded-lg px-6 text-base shadow-[var(--brand-shadow)]" onClick={() => navigate("/auth?mode=signup&type=homeowner")}>
                   Get Started Free <ArrowRight />
                 </Button>
@@ -69,10 +86,29 @@ const HeroSection = () => {
           </div>
         </div>
 
-        <div className="grid gap-3 border-b border-border py-8 sm:grid-cols-3">
-          <div className="flex items-center gap-3 text-sm font-semibold text-foreground"><Sparkles className="text-primary" /> Understand the problem first</div>
-          <div className="flex items-center gap-3 text-sm font-semibold text-foreground"><CircleDollarSign className="text-intelligence" /> Know the cost before you spend</div>
-          <div className="flex items-center gap-3 text-sm font-semibold text-foreground"><CheckCircle2 className="text-success" /> DIY or hire — you decide</div>
+        <div className="border-b border-border py-8 md:py-10">
+          <div className="mb-6 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+            <div>
+              <p className="brand-kicker">One app. Your entire home.</p>
+              <h2 className="mt-2 text-2xl font-bold text-foreground md:text-3xl">Everything your home needs, organized around your home.</h2>
+            </div>
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary"><Home className="h-5 w-5" /> Your Home</div>
+          </div>
+          <div className="grid border-y border-border sm:grid-cols-2 lg:grid-cols-3">
+            {homeCapabilities.map(({ icon: Icon, label, detail }, index) => (
+              <div key={label} className={`flex gap-3 py-5 sm:px-5 sm:odd:border-r lg:border-r ${index >= 4 ? "border-b-0" : "border-b border-border lg:border-b-0"} lg:first:pl-0 lg:nth-[3n]:border-r-0`}>
+                <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                <div><p className="text-sm font-bold uppercase text-foreground">{label}</p><p className="mt-1 text-sm leading-relaxed text-muted-foreground">{detail}</p></div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-semibold text-foreground/75">
+            <span className="flex items-center gap-2"><Car className="h-4 w-4 text-intelligence" /> Garage</span>
+            <span className="flex items-center gap-2"><ShoppingCart className="h-4 w-4 text-intelligence" /> Shopping</span>
+            <span className="flex items-center gap-2"><BookOpen className="h-4 w-4 text-intelligence" /> Rentals</span>
+            <span className="flex items-center gap-2"><House className="h-4 w-4 text-intelligence" /> Multiple homes</span>
+            <span className="ml-auto hidden items-center gap-2 text-success sm:flex"><CheckCircle2 className="h-4 w-4" /> One place to manage it all</span>
+          </div>
         </div>
       </div>
     </section>
