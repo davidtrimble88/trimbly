@@ -13,4 +13,4 @@
 - [x] Reframe the opening around Trimbly as the complete command center for the home.
 - [x] Present the full homeowner breadth through concise need-based capability groups without a feature wall.
 - [x] Keep diagnosis as one capability and strengthen the weekly “Trimbly Says” home overview.
-- [ ] Verify the revised positioning and existing homepage behavior on desktop and mobile.
+- [x] Verify the revised positioning and existing homepage behavior on desktop and mobile.
