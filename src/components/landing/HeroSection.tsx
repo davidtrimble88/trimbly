@@ -78,6 +78,7 @@ const HeroSection = () => {
               <div className="mt-3 flex items-center gap-2 rounded-lg bg-primary/[0.08] p-3 text-sm text-foreground"><ShieldCheck className="h-4 w-4 text-primary" /><span><strong>Coverage:</strong> Home warranty may apply</span></div>
               <div className="mt-4"><p className="text-[11px] font-bold text-muted-foreground">NEXT STEP</p><p className="mt-1 text-sm leading-relaxed text-foreground">Flush the tank or schedule a professional inspection.</p></div>
               <Button className="mt-4 w-full rounded-lg" onClick={() => navigate("/symptom-triage")}>See What To Do <ArrowRight /></Button>
+              </div>
             </div>
           </div>
         </div>
