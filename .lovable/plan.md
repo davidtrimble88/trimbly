@@ -1,90 +1,86 @@
+# Trimbly Home-First Website Redesign
 
-## What we're building
+## What will change
 
-**My Garage** — a vehicle-focused companion module to Trimbly's home features. Homeowners (and any user) can add an optional add-on subscription to track cars and motorcycles the same way they track their home: maintenance schedules, service records, documents (registration, insurance, warranties), and pro lookups for mechanics.
+Redesign the public Trimbly website as a distinctive, bright consumer home-technology brand while preserving every existing route, feature, form, price, authentication flow, and integration.
 
-It lives **side-by-side** with the homeowner dashboard — not mixed into it. A user with the add-on sees a "Garage" entry in their navbar/bottom nav that opens a dedicated Garage area with its own dashboard, sub-pages, and visual accent (still on-brand: primary green, but garage uses a subtle secondary "shop" tone so it feels distinct).
+The new experience will immediately communicate:
 
-Pros are **not** changed in this pass — we'll surface existing auto/mechanic pros in Garage search, but no new pro onboarding flow.
+**TELL IT WHAT'S WRONG.**  
+**IT TELLS YOU WHAT TO DO.**
 
-## Scope — what gets built
+The emotional sequence will be: a beautiful real home, a smart and understandable product, then the recognizable Trimbly turtle personality.
 
-### Subscription add-on
-- New tier line item: **Garage Add-On** — $3.99/mo or $29/yr (final pricing to confirm with you).
-- Stacks on top of any homeowner tier (Free, Pro, Multi-Home). Available to standalone users too (you don't need to own a home).
-- Upsell surfaces:
-  - Dashboard banner card ("Add My Garage — track your vehicles too")
-  - Pricing page section
-  - One-time post-signup nudge
-- Gated by a single `has_garage_addon` check (RLS + UI).
+## Visual direction
 
-### Garage section (dedicated area at `/garage`)
-1. **Garage Dashboard** — overview of all vehicles, upcoming maintenance, document expirations (registration, inspection, insurance).
-2. **My Vehicles** — add/edit cars and motorcycles. Fields: nickname, year/make/model/trim, VIN (optional), license plate, mileage, fuel type, purchase date, photo. VIN decode is a stretch — initial release is manual entry with a "decode VIN" button stub.
-3. **Service Log** — per-vehicle log of past service (date, mileage, what was done, cost, shop/pro, receipt upload).
-4. **Maintenance Schedule** — mileage- and time-based reminders (oil change, tire rotation, brakes, chain/sprocket for bikes, valve adjustment, etc.). Seeded from a default rules set; user can edit or add.
-5. **Documents** — registration, insurance card, title, warranty, owner's manual. Mirrors the existing Home Binder UX/storage pattern.
-6. **Find a Mechanic** — reuses existing provider search, scoped to auto/motorcycle categories. No new pro flow.
+- Predominantly light: warm white `#F8F7F2`, soft background `#EEF3F5`, and white product surfaces.
+- Deep navy `#102A43` for trust and hierarchy; teal `#19A7A8`, green `#4FAF5A`, lime `#7CCB45`, and blue `#2F80ED` for useful brand moments.
+- Outfit headings and Figtree body/UI text.
+- Real daylight home photography throughout: welcoming homes, kitchens, systems, garages, and homeowners using Trimbly near real maintenance situations.
+- The existing turtle/house logo remains unchanged and appears prominently in navigation, the opening product experience, recommendations, and selected assistant moments.
+- White app surfaces, clean borders, soft shadows, moderate corners, generous whitespace, and subtle motion.
+- No black sections, luxury-editorial styling, generic SaaS layouts, purple gradients, cartoon-house illustrations, or card-grid overload.
 
-### Site/app entry points
-- Navbar: a **Garage** link appears once the add-on is active (otherwise an "Add Garage" upsell pill).
-- Mobile bottom nav: replace the least-used slot with **Garage** when active.
-- Landing page: small "Now with My Garage" strip under the hero (low-key, not a placeholder/launch stat).
-- SEO landing page at `/garage` for logged-out visitors explaining the add-on.
+## Homepage experience
 
-### What we are NOT building right now
-- No mechanic onboarding/registration flow (existing pros only).
-- No fuel/MPG tracking, no trip log, no expense reports.
-- No marketplace for parts or Amazon-style affiliate yet (can add later, mirroring existing Amazon module).
-- No insurance/claims chat — Coverage Advisor stays home-focused for now.
-- No multi-garage / fleet features.
+1. **Welcome home / opening**
+   - Large modern-home photograph as the emotional focus.
+   - Exact brand headline and supporting copy.
+   - Preserve homeowner, pro, and mechanic entry points.
+   - A realistic light Trimbly diagnosis surface for a noisy water heater, showing likely cause, urgency, cost, possible coverage, and next step.
+
+2. **Understand the problem**
+   - Show practical questions homeowners already ask.
+   - Explain symptom diagnosis and urgency in plain language.
+
+3. **Know what to do and what it costs**
+   - Present DIY-vs-pro guidance, materials, labor expectations, estimates, Home Value Advisor, Energy Advisor, and quote review without turning them into a feature wall.
+
+4. **Know what is covered**
+   - Show warranty and insurance analysis, coverage guidance, and claim help through a light consumer interface.
+
+5. **Your home, under control**
+   - A strong command-center demonstration with maintenance, weather prevention, system lifespans, upcoming tasks, Home Value, and emergency information.
+   - Proactive example: “Trimbly caught this” freeze warning with a clear action.
+
+6. **The memory of your home**
+   - Make the Digital Home Binder a major product scene with systems, appliances, warranties, receipts, manuals, and service history.
+
+7. **Home and Garage**
+   - Real home-and-vehicle photography with the same Trimbly intelligence extending to maintenance, history, coverage, diagnosis, costs, parts, and mechanics.
+   - Preserve the existing Garage add-on price and behavior exactly.
+
+8. **Multi-home**
+   - Present multiple properties as a premium, easy-to-understand ownership view.
+
+9. **Trusted help**
+   - Keep pros secondary to homeowner understanding: diagnosis and estimated cost first, then DIY or hire.
+   - Preserve job requests, bids, messaging, privacy, profiles, reviews, and equipment rentals.
+
+10. **For professionals**
+    - Preserve provider and mechanic pathways, 0% commission, lead tools, AI assistance, SEO microsites, job boards, QR tools, messaging, and equipment rentals.
+
+11. **Pricing**
+    - Keep all live pricing data, billing controls, beta language, trial behavior, audience tabs, and signup routes unchanged.
+    - Improve hierarchy around Free, Home Hero, Home Super Hero, and My Garage.
+
+12. **Closing**
+    - “YOUR HOME, HANDLED.”
+    - “Know what's wrong. Know what it costs. Know what to do next.”
+    - Preserve the free signup action.
+
+## Supporting pages and shared presentation
+
+- Restyle the public navigation and footer to match the new brand while preserving every link and signed-in behavior.
+- Apply the same visual language to public product, pricing, professional, and informational pages without changing their functionality.
+- Keep authenticated dashboards functional and visually compatible; scope disruptive visual changes to public presentation where necessary.
 
 ## Technical details
 
-### Data model (new tables in Lovable Cloud)
-- `vehicles` — owner_user_id, nickname, vehicle_type ('car'|'motorcycle'), year, make, model, trim, vin, license_plate, current_mileage, fuel_type, purchase_date, photo_url, notes, timestamps.
-- `vehicle_service_records` — vehicle_id, service_date, mileage, service_type, description, cost, currency, shop_name, provider_id (nullable), receipt_url, timestamps.
-- `vehicle_maintenance_tasks` — vehicle_id, task_name, interval_miles, interval_months, last_done_date, last_done_mileage, next_due_date, next_due_mileage, status, notes, timestamps.
-- `vehicle_documents` — vehicle_id, doc_type ('registration'|'insurance'|'title'|'warranty'|'manual'|'other'), file_name, file_url, file_size, expires_on, timestamps.
-- Storage bucket `vehicle-docs` (private, RLS-scoped).
-- `garage_subscriptions` — user_id, status ('active'|'canceled'|'past_due'), started_at, current_period_end, plan_interval ('monthly'|'yearly'). Single source of truth for `has_garage_addon`.
-
-All tables: RLS enabled, scoped to `owner_user_id = auth.uid()`, plus admin read via `has_role`. Explicit GRANTs to `authenticated` and `service_role` per project standards.
-
-### Routes
-- `/garage` — dashboard (gated)
-- `/garage/vehicles` and `/garage/vehicles/:id`
-- `/garage/maintenance`
-- `/garage/documents`
-- `/garage/mechanics` (provider search scoped to auto/moto)
-- `/garage/upsell` — public landing/upsell page (no gate)
-
-### Gating
-- Reusable hook `useGarageSubscription()` returns `{ active, loading, plan }`.
-- Reusable `<GarageGate>` wrapper component redirects non-subscribers to `/garage/upsell`.
-
-### Payments
-Garage is a paid add-on, so we'll need Stripe (Lovable's built-in seamless payments). I'll handle this as a separate follow-up step after the structural work is approved — enabling payments is its own confirmation flow. For now I'll mock `garage_subscriptions` so the gating logic is real and a staff-only toggle lets us flip a test user on.
-
-### Reuse, don't duplicate
-- Storage upload, file viewer, document expiration warnings → reuse Home Binder components, parameterized by bucket and table.
-- Maintenance reminder engine → fork the existing `maintenance-reminders` edge function logic into a shared helper used by both home and vehicle tasks.
-- Provider search UI → reuse `SearchPros` with a category filter prop.
-
-### Visual treatment
-Same brand (primary green, Plus Jakarta Sans/DM Sans). Garage pages get a subtle secondary surface tone and a wrench/car iconography set so the section feels distinct without breaking the design system.
-
-## Rollout order
-1. Migration: tables, RLS, grants, storage bucket, `garage_subscriptions` table.
-2. Gating hook + upsell landing page + navbar/bottom-nav entry.
-3. Vehicles CRUD + Garage dashboard shell.
-4. Service log + maintenance schedule.
-5. Documents.
-6. Mechanic search scoping.
-7. Payments wiring (separate approval step).
-
-## Open questions before I build
-1. Pricing — confirm $3.99/mo + $29/yr, or different?
-2. Should the add-on also be available to **providers** (e.g. a handyman tracking their work truck), or homeowners/standalone users only?
-3. For motorcycles, do you want the default maintenance schedule to include track-bike items (chain, valve adjust, fork oil) or just street-bike basics?
-4. Do you want a free trial on the add-on (e.g. 14 days), or paid from day one?
+- Build reusable landing-page sections and light product-demo surfaces rather than duplicating markup.
+- Update semantic color and typography tokens, loading Outfit and Figtree without remote CSS imports.
+- Generate and store a cohesive set of real-home photographic assets in the project.
+- Keep existing dynamic testimonial behavior: show only real qualifying reviews and render nothing when there are not enough.
+- Maintain all current pricing sources and navigation handlers rather than duplicating prices in presentation code.
+- Retain accessible contrast, semantic headings, alt text, keyboard access, reduced-motion support, and large mobile tap targets.
+- Verify desktop and phone layouts, navigation, audience toggles, pricing controls, section links, and primary signup routes in the live preview.
