@@ -5,8 +5,8 @@
 - [x] Use warm-white and soft-neutral sections, real-home photography, light product interfaces, and selective turtle moments.
 - [x] Reframe the homepage around the guided homeowner journey and the promise “Tell it what's wrong. It tells you what to do.”
 - [x] Verify desktop and mobile presentation and existing homepage actions.
-- [ ] Refine the homepage so the homeowner's relationship with their home is the visual center.
-- [ ] Make diagnosis, maintenance, coverage, and the Home Binder the dominant product moments.
-- [ ] Reframe the complete feature catalog as a secondary capability library without removing anything.
-- [ ] Verify the refined homepage on desktop and mobile without changing behavior.
-- [ ] Evaluate the final homepage against the approved ten-point home-app brand test.
+- [x] Refine the homepage so the homeowner's relationship with their home is the visual center.
+- [x] Make diagnosis, maintenance, coverage, and the Home Binder the dominant product moments.
+- [x] Reframe the complete feature catalog as a secondary capability library without removing anything.
+- [x] Verify the refined homepage on desktop and mobile without changing behavior.
+- [x] Evaluate the final homepage against the approved ten-point home-app brand test.
