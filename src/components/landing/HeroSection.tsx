@@ -19,24 +19,14 @@ const HeroSection = () => {
   return (
     <section className="relative overflow-hidden border-b border-border bg-background pt-24 md:pt-28">
       <div className="mx-auto max-w-[1500px] px-4 pb-14 sm:px-6 md:pb-20 lg:px-8">
-        <div className="relative min-h-[660px] overflow-hidden rounded-[1.75rem] bg-secondary lg:min-h-[710px]">
-          <img
-            src={modernHome}
-            alt="A welcoming modern home in warm morning light"
-            width={1536}
-            height={1024}
-            fetchPriority="high"
-            className="absolute inset-0 h-full w-full object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,hsl(var(--background))_0%,hsl(var(--background)/0.96)_34%,hsl(var(--background)/0.38)_65%,transparent_100%)]" />
-
-          <div className="relative z-10 flex min-h-[660px] flex-col justify-between p-6 sm:p-10 lg:min-h-[710px] lg:p-14">
-            <div className="max-w-[680px] pt-4 lg:pt-8">
+        <div className="grid overflow-hidden rounded-[1.75rem] bg-secondary lg:grid-cols-2">
+          <div className="flex flex-col justify-center bg-background p-6 sm:p-10 lg:p-14">
+            <div>
               <div className="mb-5 flex items-center gap-3 text-sm font-bold uppercase tracking-wide text-primary">
                 <BrandMark className="h-12 w-12 shadow-[var(--card-shadow)]" />
                 <span>One app. Your entire home.</span>
               </div>
-              <h1 className="max-w-[680px] text-[2.55rem] font-bold leading-[1.04] text-foreground sm:text-[3.55rem] lg:text-[4.25rem]">
+              <h1 className="text-[2.55rem] font-bold leading-[1.04] text-foreground sm:text-[3.25rem] xl:text-[3.9rem]">
                 Everything your home needs.
                 <span className="mt-2 block text-primary">All in one place.</span>
               </h1>
@@ -50,7 +40,7 @@ const HeroSection = () => {
                 <Button size="lg" className="h-12 rounded-lg px-6 text-base shadow-[var(--brand-shadow)]" onClick={() => navigate("/auth?mode=signup&type=homeowner")}>
                   Get Started Free <ArrowRight />
                 </Button>
-                <Button size="lg" variant="outline" className="h-12 rounded-lg bg-card/90 px-6 text-base" onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}>
+                <Button size="lg" variant="outline" className="h-12 rounded-lg bg-card px-6 text-base" onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}>
                   See How It Works
                 </Button>
               </div>
@@ -59,8 +49,19 @@ const HeroSection = () => {
                 <button onClick={() => navigate("/mechanic-pricing")} className="transition-colors hover:text-primary">For mechanics <ArrowRight className="inline h-3.5 w-3.5" /></button>
               </div>
             </div>
+          </div>
 
-            <div className="mt-12 w-full max-w-md self-end rounded-2xl border border-card/70 bg-card/95 p-5 shadow-[var(--product-shadow)] backdrop-blur-sm lg:absolute lg:bottom-10 lg:right-10 lg:mt-0">
+          <div className="relative min-h-[420px] lg:min-h-[640px]">
+            <img
+              src={modernHome}
+              alt="A welcoming modern home in warm morning light"
+              width={1536}
+              height={1024}
+              fetchPriority="high"
+              className="absolute inset-0 h-full w-full object-cover object-center"
+            />
+            <div className="absolute inset-x-4 bottom-4 sm:inset-x-6 sm:bottom-6">
+              <div className="w-full rounded-2xl border border-card/70 bg-card/95 p-5 shadow-[var(--product-shadow)] backdrop-blur-sm">
               <div className="flex items-center justify-between border-b border-border pb-4">
                 <div className="flex items-center gap-2.5">
                   <BrandMark className="h-9 w-9" />
@@ -77,6 +78,7 @@ const HeroSection = () => {
               <div className="mt-3 flex items-center gap-2 rounded-lg bg-primary/[0.08] p-3 text-sm text-foreground"><ShieldCheck className="h-4 w-4 text-primary" /><span><strong>Coverage:</strong> Home warranty may apply</span></div>
               <div className="mt-4"><p className="text-[11px] font-bold text-muted-foreground">NEXT STEP</p><p className="mt-1 text-sm leading-relaxed text-foreground">Flush the tank or schedule a professional inspection.</p></div>
               <Button className="mt-4 w-full rounded-lg" onClick={() => navigate("/symptom-triage")}>See What To Do <ArrowRight /></Button>
+              </div>
             </div>
           </div>
         </div>
