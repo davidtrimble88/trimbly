@@ -8,12 +8,12 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   const homeCapabilities = [
-    { icon: Wrench, label: "Fix it", detail: "Diagnosis · DIY guides · Cost estimates" },
-    { icon: BriefcaseBusiness, label: "Hire help", detail: "Pros · Bidding · Messaging · Reviews" },
-    { icon: CloudSun, label: "Stay ahead", detail: "Maintenance · Weather · Alerts" },
+    { icon: Wrench, label: "Fix it", detail: "Diagnosis · DIY · Cost" },
+    { icon: CloudSun, label: "Stay ahead", detail: "Maintenance · Weather · Lifespan" },
     { icon: ShieldCheck, label: "Protect it", detail: "Coverage · Warranties · Insurance" },
-    { icon: FolderOpen, label: "Remember it", detail: "Binder · Manuals · Receipts · Service history" },
-    { icon: Zap, label: "Understand it", detail: "Home value · Energy · Lifespan" },
+    { icon: FolderOpen, label: "Remember it", detail: "Home Binder · Manuals · Receipts · Service history" },
+    { icon: Zap, label: "Understand it", detail: "Home Value · Energy · Home Systems" },
+    { icon: BriefcaseBusiness, label: "Get help", detail: "Pros · Quotes · Bidding · Messaging · Reviews" },
   ];
 
   return (
