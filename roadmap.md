@@ -10,3 +10,7 @@
 - [x] Reframe the complete feature catalog as a secondary capability library without removing anything.
 - [x] Verify the refined homepage on desktop and mobile without changing behavior.
 - [x] Evaluate the final homepage against the approved ten-point home-app brand test.
+- [ ] Reframe the opening around Trimbly as the complete command center for the home.
+- [ ] Present the full homeowner breadth through concise need-based capability groups without a feature wall.
+- [ ] Keep diagnosis as one capability and strengthen the weekly “Trimbly Says” home overview.
+- [ ] Verify the revised positioning and existing homepage behavior on desktop and mobile.
