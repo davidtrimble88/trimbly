@@ -294,12 +294,12 @@ const FeaturesSection = () => {
   };
 
   return (
-    <section id="features" className="py-20 md:py-28">
+    <section id="features" className="py-16 md:py-20">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-10">
           <p className="brand-kicker">The complete Trimbly platform</p>
-          <h2 className="brand-title mt-4 mb-4">
-            One place for everything that comes with owning a home.
+          <h2 className="text-2xl font-bold text-foreground md:text-3xl mt-4 mb-4">
+            Every tool, ready when you need it.
           </h2>
           <p className="text-muted-foreground text-lg">
              From the everyday to the unexpected, every homeowner, provider, and mechanic capability remains close at hand.

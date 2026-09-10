@@ -6,36 +6,11 @@ import waterHeater from "@/assets/landing/trimbly-water-heater.jpg";
 import binderPhoto from "@/assets/landing/trimbly-home-binder.jpg";
 import garagePhoto from "@/assets/landing/trimbly-home-garage.jpg";
 
-const journey = [
-  ["01", "Understand the problem", "Describe a strange noise, leak, smell, warning, or maintenance issue. Trimbly identifies what may be happening and how urgent it is."],
-  ["02", "Know what it costs", "See a realistic range, materials, labor expectations, and DIY-vs-pro guidance before you spend money."],
-  ["03", "Know what's covered", "Store warranties and insurance documents, then ask Trimbly what may be covered and how to approach a claim."],
-  ["04", "Decide DIY or pro", "Follow clear guidance yourself or connect with a trusted local professional who already understands the project."],
-];
-
 const HomeJourneySection = () => {
   const navigate = useNavigate();
 
   return (
     <>
-      <section className="py-20 md:py-28">
-        <div className="container mx-auto px-4">
-          <div className="mb-14 max-w-3xl">
-            <p className="brand-kicker">Your home comes first</p>
-            <h2 className="brand-title mt-4">Your home has a lot to remember.<br />Now it doesn't all have to live in your head.</h2>
-          </div>
-          <div className="grid border-y border-border lg:grid-cols-4">
-            {journey.map(([number, title, copy]) => (
-              <article key={number} className="border-b border-border py-8 lg:border-b-0 lg:border-r lg:px-7 lg:first:pl-0 lg:last:border-r-0">
-                <span className="text-sm font-bold text-primary">{number}</span>
-                <h3 className="mt-5 text-xl font-bold text-foreground">{title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{copy}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="bg-secondary py-20 md:py-28">
         <div className="container mx-auto grid items-center gap-12 px-4 lg:grid-cols-[0.95fr_1.05fr]">
           <div className="relative overflow-hidden rounded-2xl">
