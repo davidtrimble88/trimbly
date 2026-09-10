@@ -162,8 +162,10 @@ export default function EnergyAdvisor() {
       }}
     >
       <div className="max-w-3xl">
-        <div className="flex items-center gap-2 mb-1">
-          <Zap className="text-primary" size={22} />
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <Zap className="text-primary" size={20} />
+          </div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display">Energy & Utility Savings Advisor</h1>
         </div>
         <p className="text-muted-foreground mb-6">

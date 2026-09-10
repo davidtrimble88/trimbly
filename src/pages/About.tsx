@@ -37,7 +37,7 @@ const About = () => {
           <div className="max-w-4xl mx-auto mb-20">
             <div className="bg-card border border-border rounded-2xl p-8 md:p-12">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <Target size={22} className="text-primary" />
                 </div>
                 <h2 className="text-2xl font-bold text-foreground font-display">Our Mission</h2>
@@ -60,8 +60,10 @@ const About = () => {
             <h2 className="text-2xl md:text-3xl font-extrabold text-foreground text-center mb-12 font-display">What We Stand For</h2>
             <div className="grid md:grid-cols-2 gap-6">
               {values.map(v => (
-                <div key={v.title} className="p-6 rounded-2xl border border-border bg-card hover:border-primary/20 transition-colors">
-                  <v.icon size={24} className="text-primary mb-4" />
+                <div key={v.title} className="p-6 rounded-2xl border border-border bg-card shadow-[var(--card-shadow)] hover:border-primary/20 hover:shadow-[var(--card-shadow-hover)] transition-all">
+                  <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                    <v.icon size={20} className="text-primary" />
+                  </div>
                   <h3 className="font-bold text-lg text-foreground mb-2">{v.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{v.description}</p>
                 </div>

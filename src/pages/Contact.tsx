@@ -102,9 +102,10 @@ const Contact = () => {
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-3xl">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 mb-4">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-4">
               <MessageSquare className="w-7 h-7 text-primary" />
             </div>
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">Get in Touch</p>
             <h1 className="font-display text-4xl font-bold text-foreground mb-3">Contact Us</h1>
             <p className="text-muted-foreground max-w-xl mx-auto">
               Have a question, feedback, or need help? Send us a message and our team will get back to you.

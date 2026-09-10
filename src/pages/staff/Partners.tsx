@@ -63,8 +63,11 @@ export default function StaffPartners() {
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
-        <h1 className="font-display text-2xl font-bold text-foreground mb-1 flex items-center gap-2">
-          <Handshake className="w-5 h-5 text-primary" /> Partner Program
+        <h1 className="font-display text-2xl font-bold text-foreground mb-1 flex items-center gap-2.5">
+          <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <Handshake className="w-4 h-4 text-primary" />
+          </span>
+          Partner Program
         </h1>
         <p className="text-sm text-muted-foreground">
           Everyone who redeemed a code with a commission attached, and what they'd owe this cycle based on their{" "}

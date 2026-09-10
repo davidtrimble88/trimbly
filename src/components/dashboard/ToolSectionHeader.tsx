@@ -8,7 +8,7 @@ interface ToolSectionHeaderProps {
 
 export const ToolSectionHeader = ({ icon: Icon, title, description }: ToolSectionHeaderProps) => (
   <div className="flex items-center gap-2 mb-1">
-    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
       <Icon size={16} className="text-primary" />
     </div>
     <div>

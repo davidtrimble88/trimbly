@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/EmptyState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -105,11 +106,14 @@ export default function VehicleJobBoard() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container mx-auto max-w-4xl px-4 pt-24 pb-10 text-center">
-          <Wrench className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-          <h1 className="text-3xl font-display font-bold mb-2">Vehicle Jobs</h1>
-          <p className="text-muted-foreground mb-6">This board is for auto/motorcycle repair jobs. Home-service jobs are over on the Job Board.</p>
-          <Button onClick={() => navigate("/job-board")}>Go to Job Board</Button>
+        <div className="container mx-auto max-w-4xl px-4 pt-24 pb-10">
+          <EmptyState
+            icon={Wrench}
+            title="Vehicle Jobs"
+            description="This board is for auto/motorcycle repair jobs. Home-service jobs are over on the Job Board."
+            actionLabel="Go to Job Board"
+            onAction={() => navigate("/job-board")}
+          />
         </div>
       </div>
     );
@@ -121,8 +125,11 @@ export default function VehicleJobBoard() {
       <div className="container mx-auto max-w-4xl px-4 pt-24 pb-10">
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-display font-bold flex items-center gap-2">
-              <Wrench className="w-7 h-7" /> Vehicle Jobs
+            <h1 className="text-3xl font-display font-bold flex items-center gap-3">
+              <span className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Wrench className="w-5 h-5 text-primary" />
+              </span>
+              Vehicle Jobs
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Open work from My Garage subscribers. Bid to connect with the owner.

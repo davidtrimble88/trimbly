@@ -255,7 +255,9 @@ const CoverageAdvisor = () => {
     >
       <div className="max-w-6xl">
         <div className="flex items-center gap-3 mb-6">
-          <Shield className="h-8 w-8 text-primary" />
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <Shield className="h-5 w-5 text-primary" />
+          </div>
           <div>
             <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display">Coverage Advisor</h1>
             <p className="text-muted-foreground">Upload your warranty & insurance documents, then ask AI about your coverage.</p>

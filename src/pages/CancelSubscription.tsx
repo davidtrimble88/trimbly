@@ -80,8 +80,10 @@ export default function CancelSubscription() {
       <main className="flex-1 container mx-auto px-4 py-12 max-w-2xl">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-display">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
+            <CardTitle className="flex items-center gap-2.5 font-display">
+              <span className="w-9 h-9 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+              </span>
               Cancel Subscription
             </CardTitle>
           </CardHeader>

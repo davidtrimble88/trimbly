@@ -205,9 +205,10 @@ const Help = () => {
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 mb-4">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-4">
               <HelpCircle className="w-7 h-7 text-primary" />
             </div>
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">Support</p>
             <h1 className="font-display text-4xl font-bold text-foreground mb-3">Help Center</h1>
             <p className="text-muted-foreground max-w-xl mx-auto">
               Browse common questions or search the docs. Still stuck? Our AI replies instantly to most questions, and humans take the rest.
@@ -241,7 +242,7 @@ const Help = () => {
                   <Card key={topic.title}>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-3 text-lg">
-                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
                           <Icon className="w-5 h-5 text-primary" />
                         </div>
                         <div>
@@ -268,7 +269,7 @@ const Help = () => {
 
           <Card className="mt-10 border-primary/20 bg-primary/5">
             <CardContent className="pt-6 flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
-              <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
                 <Mail className="w-6 h-6 text-primary" />
               </div>
               <div className="flex-1">

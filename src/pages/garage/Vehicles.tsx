@@ -153,7 +153,12 @@ export default function GarageVehicles() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold">My Vehicles</h1>
+        <h1 className="font-display text-2xl font-bold flex items-center gap-2.5">
+          <span className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <Car className="w-4 h-4 text-primary" />
+          </span>
+          My Vehicles
+        </h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild><Button><Plus size={16} className="mr-1" /> Add vehicle</Button></DialogTrigger>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">

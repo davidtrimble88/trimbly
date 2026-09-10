@@ -603,11 +603,14 @@ const JobBoard = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container mx-auto px-4 py-20 text-center">
-          <Briefcase className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-          <h1 className="text-3xl font-bold mb-2">Job Board</h1>
-          <p className="text-muted-foreground mb-6">You need a provider profile to browse and bid on jobs.</p>
-          <Button onClick={() => navigate("/pro-register")}>Register as a Pro</Button>
+        <div className="container mx-auto px-4 py-20">
+          <EmptyState
+            icon={Briefcase}
+            title="Job Board"
+            description="You need a provider profile to browse and bid on jobs."
+            actionLabel="Register as a Pro"
+            onAction={() => navigate("/pro-register")}
+          />
         </div>
         <Footer />
       </div>
@@ -618,11 +621,14 @@ const JobBoard = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container mx-auto px-4 py-20 text-center">
-          <Briefcase className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-          <h1 className="text-3xl font-bold mb-2">Job Board</h1>
-          <p className="text-muted-foreground mb-6">This board is for home-service jobs. Vehicle repair jobs are over on the Vehicle Jobs board.</p>
-          <Button onClick={() => navigate("/vehicle-jobs")}>Go to Vehicle Jobs</Button>
+        <div className="container mx-auto px-4 py-20">
+          <EmptyState
+            icon={Briefcase}
+            title="Job Board"
+            description="This board is for home-service jobs. Vehicle repair jobs are over on the Vehicle Jobs board."
+            actionLabel="Go to Vehicle Jobs"
+            onAction={() => navigate("/vehicle-jobs")}
+          />
         </div>
         <Footer />
       </div>
@@ -634,8 +640,11 @@ const JobBoard = () => {
       <Navbar />
       <div className="container mx-auto px-4 pt-24 pb-10 max-w-4xl">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Briefcase className="h-8 w-8 text-primary" /> Job Board
+          <h1 className="text-3xl font-bold flex items-center gap-3 font-display">
+            <span className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Briefcase className="h-5 w-5 text-primary" />
+            </span>
+            Job Board
           </h1>
           <p className="text-muted-foreground">Browse open jobs from homeowners and send your bid</p>
         </div>

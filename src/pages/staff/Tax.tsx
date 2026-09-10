@@ -494,8 +494,11 @@ const Tax = () => {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="font-display text-2xl font-bold flex items-center gap-2">
-            <Calculator className="h-6 w-6 text-primary" /> Tax Estimator — {data.tax_year}
+          <h2 className="font-display text-2xl font-bold flex items-center gap-2.5">
+            <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Calculator className="h-4 w-4 text-primary" />
+            </span>
+            Tax Estimator — {data.tax_year}
           </h2>
           <p className="text-sm text-muted-foreground">
             {data.jurisdiction.registered_address} · {data.jurisdiction.federal} · {data.jurisdiction.state} · {data.jurisdiction.city}

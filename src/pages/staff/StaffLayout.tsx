@@ -180,6 +180,11 @@ const StaffLayout = () => {
           <header className="h-14 flex items-center justify-between border-b border-border bg-card px-4 sticky top-0 z-30">
             <div className="flex items-center gap-3 min-w-0">
               <SidebarTrigger />
+              {currentNav?.icon && (
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <currentNav.icon className="h-4 w-4 text-primary" />
+                </div>
+              )}
               <h1 className="font-display font-semibold text-foreground truncate">
                 {currentNav?.label || "Staff Portal"}
               </h1>

@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Wrench, MapPin, DollarSign, Trash2, ChevronDown, ChevronUp, Phone, PhoneOff, MessageSquare, CheckCircle, XCircle, Car, Bike } from "lucide-react";
+import { Plus, Wrench, MapPin, DollarSign, Trash2, ChevronDown, ChevronUp, Phone, PhoneOff, MessageSquare, CheckCircle, XCircle, Car, Bike, Briefcase } from "lucide-react";
 import { toast } from "sonner";
 import JobPhotoUploader from "@/components/JobPhotoUploader";
 import JobVideoUploader from "@/components/JobVideoUploader";
@@ -167,7 +167,12 @@ export default function GarageJobs() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-display font-bold">Vehicle Jobs</h1>
+          <h1 className="text-2xl font-display font-bold flex items-center gap-2.5">
+            <span className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Briefcase className="w-4 h-4 text-primary" />
+            </span>
+            Vehicle Jobs
+          </h1>
           <p className="text-sm text-muted-foreground">Post repairs or service work and get bids from local mechanics.</p>
         </div>
         <Button onClick={() => setShowForm(true)}><Plus className="w-4 h-4 mr-1" /> Post a Job</Button>

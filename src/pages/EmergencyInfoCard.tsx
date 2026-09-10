@@ -131,7 +131,7 @@ const EmergencyInfoCard = () => {
       <div className="max-w-3xl print:max-w-full">
         <div className="mb-8 print:hidden">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
               <AlertTriangle size={22} className="text-destructive" />
             </div>
             <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display">Emergency Home Info Card</h1>
