@@ -8,12 +8,12 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   const homeCapabilities = [
-    { icon: Wrench, label: "Fix it", detail: "Diagnosis · DIY guides · Cost estimates" },
-    { icon: BriefcaseBusiness, label: "Hire help", detail: "Pros · Bidding · Messaging · Reviews" },
-    { icon: CloudSun, label: "Stay ahead", detail: "Maintenance · Weather · Alerts" },
+    { icon: Wrench, label: "Fix it", detail: "Diagnosis · DIY · Cost" },
+    { icon: CloudSun, label: "Stay ahead", detail: "Maintenance · Weather · Lifespan" },
     { icon: ShieldCheck, label: "Protect it", detail: "Coverage · Warranties · Insurance" },
-    { icon: FolderOpen, label: "Remember it", detail: "Binder · Manuals · Receipts · Service history" },
-    { icon: Zap, label: "Understand it", detail: "Home value · Energy · Lifespan" },
+    { icon: FolderOpen, label: "Remember it", detail: "Home Binder · Manuals · Receipts · Service history" },
+    { icon: Zap, label: "Understand it", detail: "Home Value · Energy · Home Systems" },
+    { icon: BriefcaseBusiness, label: "Get help", detail: "Pros · Quotes · Bidding · Messaging · Reviews" },
   ];
 
   return (
@@ -32,25 +32,20 @@ const HeroSection = () => {
 
           <div className="relative z-10 flex min-h-[660px] flex-col justify-between p-6 sm:p-10 lg:min-h-[710px] lg:p-14">
             <div className="max-w-[680px] pt-4 lg:pt-8">
-              <div className="mb-5 flex items-center gap-3 text-sm font-bold text-primary">
+              <div className="mb-5 flex items-center gap-3 text-sm font-bold uppercase tracking-wide text-primary">
                 <BrandMark className="h-12 w-12 shadow-[var(--card-shadow)]" />
                 <span>One app. Your entire home.</span>
               </div>
-              <h1 className="max-w-[650px] text-[2.55rem] font-bold leading-[1.04] text-foreground sm:text-[3.55rem] lg:text-[4.25rem]">
-                Your home has a lot to keep track of.
-                <span className="mt-2 block text-primary">Trimbly keeps track of it all.</span>
+              <h1 className="max-w-[680px] text-[2.55rem] font-bold leading-[1.04] text-foreground sm:text-[3.55rem] lg:text-[4.25rem]">
+                Everything your home needs.
+                <span className="mt-2 block text-primary">All in one place.</span>
               </h1>
-              <p className="mt-5 text-xl font-bold leading-snug text-foreground sm:text-2xl">
-                Tell it what's wrong. It tells you what to do.
+              <p className="mt-5 text-lg font-semibold leading-snug text-foreground/85 sm:text-xl">
+                Fix it. Maintain it. Protect it. Understand it. Organize it. Find help when you need it.
               </p>
-              <p className="mt-3 max-w-2xl text-base leading-relaxed text-foreground/75 md:text-lg">
-                Maintain, understand, protect, organize, and improve your home — then get trusted help when you need it. Trimbly is your home command center, whether something breaks or you simply want to know what comes next.
+              <p className="mt-4 text-base font-medium leading-relaxed text-foreground/70 md:text-lg">
+                <span className="font-bold text-foreground">Tell it what's wrong. It tells you what to do.</span> — just one of the ways Trimbly helps you take care of your home.
               </p>
-              <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-foreground/80">
-                <span>Maintain &amp; prevent</span><span aria-hidden="true" className="text-primary">•</span>
-                <span>Organize &amp; protect</span><span aria-hidden="true" className="text-primary">•</span>
-                <span>Understand &amp; get help</span>
-              </div>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Button size="lg" className="h-12 rounded-lg px-6 text-base shadow-[var(--brand-shadow)]" onClick={() => navigate("/auth?mode=signup&type=homeowner")}>
                   Get Started Free <ArrowRight />
@@ -89,8 +84,8 @@ const HeroSection = () => {
         <div className="border-b border-border py-8 md:py-10">
           <div className="mb-6 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
             <div>
-              <p className="brand-kicker">One app. Your entire home.</p>
-              <h2 className="mt-2 text-2xl font-bold text-foreground md:text-3xl">Everything your home needs, organized around your home.</h2>
+              <p className="brand-kicker">Whatever your home needs</p>
+              <h2 className="mt-2 text-2xl font-bold text-foreground md:text-3xl">Whatever your home needs, start here.</h2>
             </div>
             <div className="flex items-center gap-2 text-sm font-semibold text-primary"><Home className="h-5 w-5" /> Your Home</div>
           </div>
