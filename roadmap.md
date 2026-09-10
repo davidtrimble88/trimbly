@@ -9,3 +9,4 @@
 - [ ] Make diagnosis, maintenance, coverage, and the Home Binder the dominant product moments.
 - [ ] Reframe the complete feature catalog as a secondary capability library without removing anything.
 - [ ] Verify the refined homepage on desktop and mobile without changing behavior.
+- [ ] Evaluate the final homepage against the approved ten-point home-app brand test.
