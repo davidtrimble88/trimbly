@@ -61,7 +61,7 @@ const HeroSection = () => {
                 <div className="rounded-lg bg-secondary p-3"><p className="text-[11px] font-bold text-muted-foreground">LIKELY CAUSE</p><p className="mt-1 text-sm font-semibold text-foreground">Sediment buildup</p></div>
                 <div className="rounded-lg bg-secondary p-3"><p className="text-[11px] font-bold text-muted-foreground">ESTIMATED REPAIR</p><p className="mt-1 text-sm font-semibold text-foreground">$180–$320</p></div>
               </div>
-              <div className="mt-3 flex items-center gap-2 rounded-lg bg-primary/8 p-3 text-sm text-foreground"><ShieldCheck className="h-4 w-4 text-primary" /><span>Home warranty may apply</span></div>
+              <div className="mt-3 flex items-center gap-2 rounded-lg bg-primary/[0.08] p-3 text-sm text-foreground"><ShieldCheck className="h-4 w-4 text-primary" /><span>Home warranty may apply</span></div>
               <div className="mt-4"><p className="text-[11px] font-bold text-muted-foreground">NEXT STEP</p><p className="mt-1 text-sm leading-relaxed text-foreground">Flush the tank or schedule a professional inspection.</p></div>
               <Button className="mt-4 w-full rounded-lg" onClick={() => navigate("/symptom-triage")}>See What To Do <ArrowRight /></Button>
             </div>
@@ -70,7 +70,7 @@ const HeroSection = () => {
 
         <div className="grid gap-3 border-b border-border py-8 sm:grid-cols-3">
           <div className="flex items-center gap-3 text-sm font-semibold text-foreground"><Sparkles className="text-primary" /> Understand the problem first</div>
-          <div className="flex items-center gap-3 text-sm font-semibold text-foreground"><CircleDollarSign className="text-blue" /> Know the cost before you spend</div>
+          <div className="flex items-center gap-3 text-sm font-semibold text-foreground"><CircleDollarSign className="text-intelligence" /> Know the cost before you spend</div>
           <div className="flex items-center gap-3 text-sm font-semibold text-foreground"><CheckCircle2 className="text-success" /> DIY or hire — you decide</div>
         </div>
       </div>

@@ -1,8 +1,123 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=DM+Sans:wght@400;500;600;700&family=Cinzel:wght@500;600;700;800&display=swap');
+@font-face {
+  font-family: "Outfit";
+  src: url("./assets/fonts/outfit-400.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Outfit";
+  src: url("./assets/fonts/outfit-700.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Figtree";
+  src: url("./assets/fonts/figtree-400.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Figtree";
+  src: url("./assets/fonts/figtree-700.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700 900;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.trimbly-landing {
+  --background: 42 30% 96%;
+  --foreground: 210 61% 16%;
+  --card: 0 0% 100%;
+  --card-foreground: 210 61% 16%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 210 61% 16%;
+  --primary: 181 74% 38%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 197 26% 95%;
+  --secondary-foreground: 210 61% 16%;
+  --muted: 197 26% 95%;
+  --muted-foreground: 210 18% 42%;
+  --accent: 95 56% 53%;
+  --accent-foreground: 210 61% 16%;
+  --success: 126 39% 50%;
+  --success-foreground: 0 0% 100%;
+  --warning: 43 91% 57%;
+  --warning-foreground: 210 61% 16%;
+  --border: 197 18% 85%;
+  --input: 197 18% 85%;
+  --ring: 181 74% 38%;
+  --intelligence: 214 83% 56%;
+  --lime: 95 56% 53%;
+  --radius: 0.75rem;
+  --card-shadow: 0 8px 28px -18px hsl(210 61% 16% / 0.24);
+  --card-shadow-hover: 0 18px 46px -22px hsl(210 61% 16% / 0.32);
+  --brand-shadow: 0 16px 32px -16px hsl(181 74% 28% / 0.55);
+  --product-shadow: 0 28px 64px -30px hsl(210 61% 16% / 0.35);
+  color: hsl(var(--foreground));
+  font-family: "Figtree", system-ui, sans-serif;
+}
+
+.trimbly-landing h1,
+.trimbly-landing h2,
+.trimbly-landing h3,
+.trimbly-landing h4,
+.trimbly-landing h5,
+.trimbly-landing h6,
+.trimbly-landing .font-display {
+  font-family: "Outfit", system-ui, sans-serif;
+  letter-spacing: 0;
+}
+
+.trimbly-landing nav {
+  background: hsl(var(--background) / 0.92);
+  border-color: hsl(var(--border));
+}
+
+.trimbly-landing nav > div {
+  height: 4.5rem;
+}
+
+.trimbly-landing footer {
+  background: hsl(var(--card));
+}
+
+.brand-kicker {
+  color: hsl(var(--primary));
+  font-family: "Figtree", system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.brand-title {
+  color: hsl(var(--foreground));
+  font-family: "Outfit", system-ui, sans-serif;
+  font-size: clamp(2.25rem, 4.5vw, 4rem);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.08;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .trimbly-landing section img {
+    transition: transform 700ms ease;
+  }
+
+  .trimbly-landing section:hover > div img {
+    transform: scale(1.012);
+  }
+}
 
 @layer base {
   :root {

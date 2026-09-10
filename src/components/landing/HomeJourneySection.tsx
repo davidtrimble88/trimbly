@@ -75,9 +75,9 @@ const HomeJourneySection = () => {
               </div>
               <div className="grid md:grid-cols-[1.15fr_0.85fr]">
                 <div className="divide-y divide-border p-6">
-                  {[[CalendarCheck, "HVAC filter", "Due today", "warning"], [Wrench, "Gutters", "Due in 12 days", "primary"], [Activity, "Water heater", "8 years old", "blue"]].map(([Icon, title, detail, color]) => {
+                  {[[CalendarCheck, "HVAC filter", "Due today", "bg-warning/10", "text-warning"], [Wrench, "Gutters", "Due in 12 days", "bg-primary/10", "text-primary"], [Activity, "Water heater", "8 years old", "bg-intelligence/10", "text-intelligence"]].map(([Icon, title, detail, backgroundClass, iconClass]) => {
                     const I = Icon as typeof CalendarCheck;
-                    return <div key={title as string} className="flex items-center gap-4 py-4 first:pt-0 last:pb-0"><div className={`rounded-lg bg-${color}/10 p-2.5`}><I className={`h-5 w-5 text-${color}`} /></div><div className="min-w-0 flex-1"><p className="font-bold text-foreground">{title as string}</p><p className="text-sm text-muted-foreground">{detail as string}</p></div><ArrowRight className="h-4 w-4 text-muted-foreground" /></div>;
+                    return <div key={title as string} className="flex items-center gap-4 py-4 first:pt-0 last:pb-0"><div className={`rounded-lg p-2.5 ${backgroundClass as string}`}><I className={`h-5 w-5 ${iconClass as string}`} /></div><div className="min-w-0 flex-1"><p className="font-bold text-foreground">{title as string}</p><p className="text-sm text-muted-foreground">{detail as string}</p></div><ArrowRight className="h-4 w-4 text-muted-foreground" /></div>;
                   })}
                 </div>
                 <div className="m-4 rounded-xl bg-primary p-5 text-primary-foreground md:m-6 md:ml-0">
@@ -106,7 +106,7 @@ const HomeJourneySection = () => {
           <div className="relative">
             <img src={binderPhoto} alt="A homeowner organizing house records in a bright kitchen" width={1408} height={1024} loading="lazy" className="aspect-[4/3] w-full rounded-2xl object-cover" />
             <div className="absolute -bottom-6 left-4 right-4 rounded-xl border border-border bg-card p-4 shadow-[var(--product-shadow)] sm:left-8 sm:right-8">
-              <div className="grid grid-cols-3 gap-3 text-center"><div><FileText className="mx-auto text-primary" /><p className="mt-1 text-xs font-bold">Water Heater</p><p className="text-[11px] text-muted-foreground">Warranty to 2027</p></div><div><FolderOpen className="mx-auto text-blue" /><p className="mt-1 text-xs font-bold">HVAC</p><p className="text-[11px] text-muted-foreground">Installed 2022</p></div><div><ShieldCheck className="mx-auto text-success" /><p className="mt-1 text-xs font-bold">Roof</p><p className="text-[11px] text-muted-foreground">Warranty saved</p></div></div>
+              <div className="grid grid-cols-3 gap-3 text-center"><div><FileText className="mx-auto text-primary" /><p className="mt-1 text-xs font-bold">Water Heater</p><p className="text-[11px] text-muted-foreground">Warranty to 2027</p></div><div><FolderOpen className="mx-auto text-intelligence" /><p className="mt-1 text-xs font-bold">HVAC</p><p className="text-[11px] text-muted-foreground">Installed 2022</p></div><div><ShieldCheck className="mx-auto text-success" /><p className="mt-1 text-xs font-bold">Roof</p><p className="text-[11px] text-muted-foreground">Warranty saved</p></div></div>
             </div>
           </div>
         </div>
