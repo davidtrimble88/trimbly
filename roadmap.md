@@ -14,3 +14,6 @@
 - [x] Present the full homeowner breadth through concise need-based capability groups without a feature wall.
 - [x] Keep diagnosis as one capability and strengthen the weekly “Trimbly Says” home overview.
 - [x] Verify the revised positioning and existing homepage behavior on desktop and mobile.
+
+- [ ] Extend the approved warm, premium Trimbly theme across public pages and all portals without changing functionality.
+- [ ] Verify homeowner, provider, mechanic, garage, staff, and public flows at desktop and mobile sizes.
