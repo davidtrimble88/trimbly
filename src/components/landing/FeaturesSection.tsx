@@ -287,13 +287,13 @@ const FeaturesSection = () => {
   return (
     <section id="features" className="py-20 md:py-28">
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Features</p>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
-            Way more than a pro finder
+        <div className="text-center max-w-3xl mx-auto mb-10">
+          <p className="brand-kicker">Everything in one Trimbly</p>
+          <h2 className="brand-title mt-4 mb-4">
+            One place for everything that comes with owning a home.
           </h2>
           <p className="text-muted-foreground text-lg">
-            Diagnosis, coverage checks, and cost breakdowns — for your home and your car. Choose your view below.
+             Every capability is still here. Choose a view to explore the complete homeowner, provider, or mechanic experience.
           </p>
         </div>
 
@@ -333,7 +333,7 @@ const FeaturesSection = () => {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px overflow-hidden rounded-2xl border border-border bg-border">
           {features.map((f) => {
             const clickable = (audience === "homeowner" || audience === "mechanic") && "tab" in f && !!f.tab;
             const Tag = clickable ? "button" : "div";
@@ -341,8 +341,8 @@ const FeaturesSection = () => {
               <Tag
                 key={f.title}
                 onClick={clickable ? () => handleClick(f as any) : undefined}
-                className={`group p-6 rounded-xl bg-card border border-border shadow-[var(--card-shadow)] transition-all duration-300 text-left ${
-                  clickable ? "hover:border-primary/25 hover:shadow-[var(--card-shadow-hover)] cursor-pointer" : ""
+                className={`group bg-card p-6 transition-all duration-300 text-left ${
+                  clickable ? "hover:bg-secondary cursor-pointer" : ""
                 }`}
               >
                 <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">

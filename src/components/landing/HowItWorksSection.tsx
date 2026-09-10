@@ -628,11 +628,11 @@ const HowItWorksSection = () => {
   };
 
   return (
-    <section id="how-it-works" className="py-20 md:py-28 bg-secondary/50">
+    <section id="how-it-works" className="py-20 md:py-28 bg-secondary">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-2xl mx-auto mb-8">
-          <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">How It Works</p>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
+           <p className="brand-kicker">How it works</p>
+           <h2 className="brand-title mt-4 mb-4">
             {audience === "homeowner"
               ? "Simple steps to a well-maintained home"
               : audience === "mechanic"
