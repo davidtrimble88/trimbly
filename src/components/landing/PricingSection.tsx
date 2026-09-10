@@ -35,8 +35,8 @@ const PricingSection = () => {
     <section id="pricing" className="py-20 md:py-28">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-2xl mx-auto mb-8">
-          <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Pricing</p>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
+          <p className="brand-kicker">Pricing</p>
+          <h2 className="brand-title mt-4 mb-4">
             Simple, transparent pricing
           </h2>
           <p className="text-muted-foreground text-lg">

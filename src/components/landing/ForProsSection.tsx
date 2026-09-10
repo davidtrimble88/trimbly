@@ -23,13 +23,13 @@ const ForProsSection = () => {
   };
 
   return (
-    <section id="pros" className="py-20 md:py-28 bg-secondary/50">
+    <section id="pros" className="py-20 md:py-28 bg-secondary">
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div>
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">For Service Providers</p>
+            <p className="brand-kicker">For professionals</p>
             <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-6">
-              Real leads. Real AI tools. 0% commission.
+               Better leads. Faster replies. Keep 100%.
             </h2>
             <p className="text-muted-foreground text-lg mb-8">
               Trimbly isn't a lead-gen site that takes a cut of every job. It's an AI

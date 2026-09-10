@@ -12,26 +12,26 @@ type Audience = "homeowner" | "pro" | "mechanic";
 const homeownerFeatures = [
   {
     icon: Brain,
-    title: "AI Job Estimator",
-    description: "Describe the issue and get instant cost estimates, material lists, and DIY vs. pro recommendations.",
+    title: "What Will This Repair Cost?",
+    description: "Describe the issue. Trimbly estimates the cost, materials, and whether to tackle it yourself or call a pro.",
     tab: "estimator",
   },
   {
     icon: Stethoscope,
-    title: "AI Symptom Triage",
-    description: "Describe a noise, smell, or odd behavior — get an instant AI diagnosis, urgency level, safety warnings, and DIY-vs-Pro guidance.",
+    title: "What's Wrong?",
+    description: "Describe a noise, smell, leak, or odd behavior. Trimbly helps you understand the likely cause, urgency, and next step.",
     tab: "triage",
   },
   {
     icon: Shield,
-    title: "Coverage Advisor",
-    description: "Upload your home warranty and insurance docs, then ask AI questions about what's covered and how to file claims.",
+    title: "Is This Covered?",
+    description: "Upload your home warranty and insurance documents. Trimbly helps you understand what may be covered and how to approach a claim.",
     tab: "coverage",
   },
   {
     icon: Zap,
     title: "Energy & Utility Advisor",
-    description: "Chat with AI about your utility bills and get prioritized upgrades with real cost, savings, and payback numbers — not generic tips.",
+    description: "Understand your utility bills and get prioritized upgrades with real cost, savings, and payback numbers — not generic tips.",
     tab: "energy-advisor",
   },
   {
@@ -55,7 +55,7 @@ const homeownerFeatures = [
   {
     icon: FileWarning,
     title: "Quote & Contract Reviewer",
-    description: "Paste a contractor's quote or contract and get an instant AI red-flag check before you sign anything.",
+    description: "Paste a contractor's quote or contract and spot potential red flags before you sign anything.",
     tab: "quote-reviewer",
   },
   {
@@ -72,12 +72,12 @@ const homeownerFeatures = [
   {
     icon: ShoppingCart,
     title: "Smart Product Shopping",
-    description: "AI-powered product recommendations for every maintenance task. Find the right supplies on Amazon in one click, tailored to your home or vehicle.",
+    description: "Find the right supplies on Amazon in one click, with recommendations tailored to each home, vehicle, and maintenance task.",
     tab: "maintenance",
   },
   {
     icon: CalendarCheck,
-    title: "Maintenance Autopilot",
+    title: "Stay Ahead of Maintenance",
     description: "Automated schedules based on your home profile. Never forget an HVAC filter, gutter clean, or seasonal checkup.",
     tab: "maintenance",
   },
@@ -89,8 +89,8 @@ const homeownerFeatures = [
   },
   {
     icon: FolderOpen,
-    title: "Digital Home Binder",
-    description: "Store appliance info, warranties, past jobs, receipts, and documents — all organized in one dashboard.",
+    title: "Remember Everything",
+    description: "Keep appliance details, warranties, manuals, past jobs, receipts, projects, and important documents in your Digital Home Binder.",
     tab: "binder",
   },
   {
@@ -270,9 +270,18 @@ const mechanicFeatures = [
 
 const FeaturesSection = () => {
   const [audience, setAudience] = useState<Audience>("homeowner");
+  const homeownerPrimaryTitles = ["What's Wrong?", "What Will This Repair Cost?", "Is This Covered?", "Stay Ahead of Maintenance", "Remember Everything"];
+  const orderedHomeownerFeatures = [...homeownerFeatures].sort((a, b) => {
+    const aIndex = homeownerPrimaryTitles.indexOf(a.title);
+    const bIndex = homeownerPrimaryTitles.indexOf(b.title);
+    if (aIndex === -1 && bIndex === -1) return 0;
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+    return aIndex - bIndex;
+  });
   const features =
     audience === "homeowner"
-      ? homeownerFeatures
+      ? orderedHomeownerFeatures
       : audience === "mechanic"
       ? mechanicFeatures
       : proFeatures;
@@ -285,15 +294,15 @@ const FeaturesSection = () => {
   };
 
   return (
-    <section id="features" className="py-20 md:py-28">
+    <section id="features" className="py-16 md:py-20">
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Features</p>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
-            Way more than a pro finder
+        <div className="text-center max-w-3xl mx-auto mb-10">
+          <p className="brand-kicker">The complete Trimbly platform</p>
+          <h2 className="text-2xl font-bold text-foreground md:text-3xl mt-4 mb-4">
+            Every tool, ready when you need it.
           </h2>
           <p className="text-muted-foreground text-lg">
-            Diagnosis, coverage checks, and cost breakdowns — for your home and your car. Choose your view below.
+             From the everyday to the unexpected, every homeowner, provider, and mechanic capability remains close at hand.
           </p>
         </div>
 
@@ -333,7 +342,7 @@ const FeaturesSection = () => {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px overflow-hidden rounded-2xl border border-border bg-border">
           {features.map((f) => {
             const clickable = (audience === "homeowner" || audience === "mechanic") && "tab" in f && !!f.tab;
             const Tag = clickable ? "button" : "div";
@@ -341,8 +350,12 @@ const FeaturesSection = () => {
               <Tag
                 key={f.title}
                 onClick={clickable ? () => handleClick(f as any) : undefined}
-                className={`group p-6 rounded-xl bg-card border border-border shadow-[var(--card-shadow)] transition-all duration-300 text-left ${
-                  clickable ? "hover:border-primary/25 hover:shadow-[var(--card-shadow-hover)] cursor-pointer" : ""
+                 className={`group p-6 transition-all duration-300 text-left ${
+                   audience === "homeowner" && homeownerPrimaryTitles.includes(f.title)
+                     ? "bg-primary/[0.055] border-t-4 border-primary"
+                     : "bg-card"
+                 } ${
+                  clickable ? "hover:bg-secondary cursor-pointer" : ""
                 }`}
               >
                 <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">

@@ -1,236 +1,110 @@
 import { useNavigate } from "react-router-dom";
+import { ArrowRight, BookOpen, BriefcaseBusiness, Car, CheckCircle2, CloudSun, FolderOpen, Home, House, ShieldCheck, ShoppingCart, Wrench, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowRight, ShieldCheck, Stethoscope, CheckCircle2, Car,
-  CalendarCheck, FolderOpen, Building2, Wrench, Sparkles, BookOpen, Star, CloudSnow,
-} from "lucide-react";
-
-const pillars = [
-  { icon: Stethoscope, label: "Diagnose" },
-  { icon: CalendarCheck, label: "Maintain" },
-  { icon: FolderOpen, label: "Track Documents" },
-  { icon: Building2, label: "Multiple Homes" },
-  { icon: Car, label: "Your Garage" },
-  { icon: Wrench, label: "Find Pros" },
-];
+import BrandMark from "@/components/BrandMark";
+import modernHome from "@/assets/landing/trimbly-modern-home.jpg";
 
 const HeroSection = () => {
   const navigate = useNavigate();
+
+  const homeCapabilities = [
+    { icon: Wrench, label: "Fix it", detail: "Diagnosis · DIY · Cost" },
+    { icon: CloudSun, label: "Stay ahead", detail: "Maintenance · Weather · Lifespan" },
+    { icon: ShieldCheck, label: "Protect it", detail: "Coverage · Warranties · Insurance" },
+    { icon: FolderOpen, label: "Remember it", detail: "Home Binder · Manuals · Receipts · Service history" },
+    { icon: Zap, label: "Understand it", detail: "Home Value · Energy · Home Systems" },
+    { icon: BriefcaseBusiness, label: "Get help", detail: "Pros · Quotes · Bidding · Messaging · Reviews" },
+  ];
+
   return (
-    <section className="relative overflow-hidden pt-28 pb-20 md:pt-36 md:pb-28">
-      <div className="absolute inset-0 -z-10 bg-[hsl(var(--background))]">
-        <div className="absolute -top-24 -right-24 w-[520px] h-[520px] rounded-full bg-primary/[0.06] blur-3xl" />
-      </div>
-
-      <div className="container mx-auto px-4">
-        <div className="grid lg:grid-cols-[1.1fr,0.9fr] gap-14 lg:gap-8 items-center">
-          {/* Left: copy */}
-          <div className="max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/[0.06] text-primary text-xs font-semibold tracking-wide uppercase mb-7">
-              The full home & vehicle management system
-            </div>
-
-            <h1 className="font-display text-[2.75rem] leading-[1.05] sm:text-6xl lg:text-[4.25rem] font-semibold text-foreground mb-6 tracking-tight">
-              Tell it what's wrong.
-              <br />
-              It tells you <span className="text-primary italic">what to do</span>.
-            </h1>
-
-            <p className="text-lg text-muted-foreground leading-relaxed mb-7 max-w-lg">
-              Trimbly runs your maintenance schedule, stores every warranty and manual,
-              checks your insurance coverage, and diagnoses problems before you call
-              anyone — for every home you own and every vehicle in the garage. And when
-              you do need a pro, one's already vetted.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              {pillars.map((p) => (
-                <span
-                  key={p.label}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary border border-border text-xs font-semibold text-foreground"
-                >
-                  <p.icon size={13} className="text-primary" /> {p.label}
-                  {p.label === "Your Garage" && <span className="text-muted-foreground font-normal">*</span>}
-                </span>
-              ))}
-            </div>
-            <p className="text-xs text-muted-foreground mb-7">
-              *Your Garage is an optional add-on ($3.99/mo) — stacks on any plan, including Free.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-3 mb-11">
-              <Button
-                size="lg"
-                className="text-base px-7 h-12 gap-2 rounded-lg shadow-[var(--card-shadow)]"
-                onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
-              >
-                I have a home <ArrowRight size={18} />
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="text-base px-7 h-12 rounded-lg border-2"
-                onClick={() => navigate("/pro-pricing")}
-              >
-                I'm a pro
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="text-base px-7 h-12 rounded-lg border-2"
-                onClick={() => navigate("/mechanic-pricing")}
-              >
-                I'm a mechanic
-              </Button>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-x-7 gap-y-3 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5"><ShieldCheck size={16} className="text-primary" /> Checks your real coverage</span>
-              <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-primary" /> DIY steps or vetted pros — your call</span>
+    <section className="relative overflow-hidden border-b border-border bg-background pt-24 md:pt-28">
+      <div className="mx-auto max-w-[1500px] px-4 pb-14 sm:px-6 md:pb-20 lg:px-8">
+        <div className="grid overflow-hidden rounded-[1.75rem] bg-secondary lg:grid-cols-2">
+          <div className="flex flex-col justify-center bg-background p-6 sm:p-10 lg:p-14">
+            <div>
+              <div className="mb-5 flex items-center gap-3 text-sm font-bold uppercase tracking-wide text-primary">
+                <BrandMark className="h-12 w-12 shadow-[var(--card-shadow)]" />
+                <span>One app. Your entire home.</span>
+              </div>
+              <h1 className="text-[2.55rem] font-bold leading-[1.04] text-foreground sm:text-[3.25rem] xl:text-[3.9rem]">
+                Everything your home needs.
+                <span className="mt-2 block text-primary">All in one place.</span>
+              </h1>
+              <p className="mt-5 text-lg font-semibold leading-snug text-foreground/85 sm:text-xl">
+                Fix it. Maintain it. Protect it. Understand it. Organize it. Find help when you need it.
+              </p>
+              <p className="mt-4 text-base font-medium leading-relaxed text-foreground/70 md:text-lg">
+                <span className="font-bold text-foreground">Tell it what's wrong. It tells you what to do.</span> — just one of the ways Trimbly helps you take care of your home.
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Button size="lg" className="h-12 rounded-lg px-6 text-base shadow-[var(--brand-shadow)]" onClick={() => navigate("/auth?mode=signup&type=homeowner")}>
+                  Get Started Free <ArrowRight />
+                </Button>
+                <Button size="lg" variant="outline" className="h-12 rounded-lg bg-card px-6 text-base" onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}>
+                  See How It Works
+                </Button>
+              </div>
+              <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-foreground/70">
+                <button onClick={() => navigate("/pro-pricing")} className="transition-colors hover:text-primary">For service providers <ArrowRight className="inline h-3.5 w-3.5" /></button>
+                <button onClick={() => navigate("/mechanic-pricing")} className="transition-colors hover:text-primary">For mechanics <ArrowRight className="inline h-3.5 w-3.5" /></button>
+              </div>
             </div>
           </div>
 
-          {/* Right: signature card-stack visual */}
-          <div className="relative h-[420px] sm:h-[640px] hidden sm:block" aria-hidden="true">
-            <div className="absolute inset-0 rounded-[2rem]" style={{ background: "var(--hero-gradient)" }} />
-            <div className="absolute inset-0 rounded-[2rem] opacity-[0.15]" style={{
-              backgroundImage: "radial-gradient(circle at 1.5px 1.5px, white 1.5px, transparent 0)",
-              backgroundSize: "22px 22px",
-            }} />
-
-            {/* AI-powered badge */}
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-card/95 text-foreground rounded-full px-3.5 py-1.5 text-xs font-bold shadow-[var(--card-shadow-hover)] flex items-center gap-1.5 z-40">
-              <Sparkles size={13} className="text-primary" /> AI-powered, every step
-            </div>
-
-            {/* Freeze warning tag (scattered, small) */}
-            <div className="absolute top-0 left-0 w-40 bg-card rounded-lg shadow-[var(--card-shadow)] p-2.5 rotate-[-5deg] z-[3]">
-              <div className="flex items-center gap-1.5">
-                <CloudSnow size={13} className="text-warning shrink-0" />
-                <p className="text-[11px] font-semibold text-foreground leading-tight">Freeze warning tonight</p>
+          <div className="relative min-h-[420px] lg:min-h-[640px]">
+            <img
+              src={modernHome}
+              alt="A welcoming modern home in warm morning light"
+              width={1536}
+              height={1024}
+              fetchPriority="high"
+              className="absolute inset-0 h-full w-full object-cover object-center"
+            />
+            <div className="absolute inset-x-4 bottom-4 sm:inset-x-6 sm:bottom-6">
+              <div className="w-full rounded-2xl border border-card/70 bg-card/95 p-5 shadow-[var(--product-shadow)] backdrop-blur-sm">
+              <div className="flex items-center justify-between border-b border-border pb-4">
+                <div className="flex items-center gap-2.5">
+                  <BrandMark className="h-9 w-9" />
+                  <div><p className="text-xs font-bold text-primary">MY HOME</p><p className="text-sm font-semibold text-foreground">Trimbly is ready to help</p></div>
+                </div>
+                <span className="rounded-md bg-accent/15 px-2.5 py-1 text-xs font-bold text-accent-foreground">Home system</span>
+              </div>
+              <p className="mt-4 text-lg font-bold text-foreground">Water heater making noise</p>
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <div className="rounded-lg bg-secondary p-3"><p className="text-[11px] font-bold text-muted-foreground">LIKELY CAUSE</p><p className="mt-1 text-sm font-semibold text-foreground">Sediment buildup</p></div>
+                <div className="rounded-lg bg-success/10 p-3"><p className="text-[11px] font-bold text-success">URGENCY</p><p className="mt-1 text-sm font-semibold text-foreground">Low</p></div>
+                <div className="rounded-lg bg-secondary p-3"><p className="text-[11px] font-bold text-muted-foreground">ESTIMATED REPAIR</p><p className="mt-1 text-sm font-semibold text-foreground">$180–$320</p></div>
+              </div>
+              <div className="mt-3 flex items-center gap-2 rounded-lg bg-primary/[0.08] p-3 text-sm text-foreground"><ShieldCheck className="h-4 w-4 text-primary" /><span><strong>Coverage:</strong> Home warranty may apply</span></div>
+              <div className="mt-4"><p className="text-[11px] font-bold text-muted-foreground">NEXT STEP</p><p className="mt-1 text-sm leading-relaxed text-foreground">Flush the tank or schedule a professional inspection.</p></div>
+              <Button className="mt-4 w-full rounded-lg" onClick={() => navigate("/symptom-triage")}>See What To Do <ArrowRight /></Button>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* HERO: Diagnosis card */}
-            <div className="absolute top-9 left-0 w-64 bg-card rounded-xl shadow-2xl p-4 rotate-[-7deg] z-30 border-2 border-primary/20">
-              <p className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1.5">AI Diagnosis</p>
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <Stethoscope size={18} className="text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-foreground leading-tight">Water heater making noise</p>
-                  <p className="text-xs text-muted-foreground">Likely sediment buildup — not urgent</p>
-                </div>
-              </div>
+        <div className="border-b border-border py-8 md:py-10">
+          <div className="mb-6 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+            <div>
+              <p className="brand-kicker">Whatever your home needs</p>
+              <h2 className="mt-2 text-2xl font-bold text-foreground md:text-3xl">Whatever your home needs, start here.</h2>
             </div>
-
-            {/* HERO: Coverage check card */}
-            <div className="absolute top-6 right-0 w-56 bg-accent text-accent-foreground rounded-xl shadow-2xl p-4 rotate-[7deg] z-[28]">
-              <p className="text-xs font-bold uppercase tracking-wide mb-2.5 text-accent-foreground/80">Coverage check</p>
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={18} className="shrink-0" />
-                <span className="text-sm font-bold">Covered by home warranty</span>
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary"><Home className="h-5 w-5" /> Your Home</div>
+          </div>
+          <div className="grid border-y border-border sm:grid-cols-2 lg:grid-cols-3">
+            {homeCapabilities.map(({ icon: Icon, label, detail }, index) => (
+              <div key={label} className={`flex gap-3 py-5 sm:px-5 ${index % 2 === 0 ? "sm:border-r" : ""} ${index < 4 ? "border-b border-border lg:border-b-0" : ""} ${index % 3 !== 2 ? "lg:border-r" : "lg:border-r-0"} ${index === 0 ? "lg:pl-0" : ""}`}>
+                <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                <div><p className="text-sm font-bold uppercase text-foreground">{label}</p><p className="mt-1 text-sm leading-relaxed text-muted-foreground">{detail}</p></div>
               </div>
-            </div>
-
-            {/* Multi-home chip (scattered) */}
-            <div className="absolute top-32 right-0 w-40 bg-card rounded-lg shadow-[var(--card-shadow)] p-2.5 rotate-[9deg] z-[7]">
-              <div className="flex items-center gap-1.5">
-                <Building2 size={13} className="text-primary shrink-0" />
-                <p className="text-[11px] font-semibold text-foreground leading-tight">3 properties tracked</p>
-              </div>
-            </div>
-
-            {/* Maintenance schedule card (scattered) */}
-            <div className="absolute top-28 left-8 w-52 bg-card rounded-xl shadow-[var(--card-shadow)] p-3.5 rotate-[-11deg] z-10">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <CalendarCheck size={14} className="text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-foreground truncate">Gutter cleaning</p>
-                  <p className="text-[11px] text-muted-foreground">Due in 12 days</p>
-                </div>
-              </div>
-              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                <div className="h-full w-2/3 rounded-full bg-primary" />
-              </div>
-            </div>
-
-            {/* HERO: DIY vs Pro cost card */}
-            <div className="absolute top-[230px] left-1/2 -translate-x-1/2 w-64 bg-primary text-primary-foreground rounded-xl shadow-2xl p-4 rotate-[-2deg] z-[35]">
-              <p className="text-xs font-bold uppercase tracking-wide mb-2.5 text-primary-foreground/70">DIY or pro?</p>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span>DIY (parts only)</span>
-                  <span className="font-bold">$22</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>Hire a pro</span>
-                  <span className="font-bold">$180</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Document tracking card (scattered) */}
-            <div className="absolute top-64 right-2 w-48 bg-card rounded-xl shadow-[var(--card-shadow)] p-3.5 rotate-[8deg] z-[9]">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-accent/15 flex items-center justify-center shrink-0">
-                  <FolderOpen size={14} className="text-accent" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-foreground truncate">5 warranties on file</p>
-                  <p className="text-[11px] text-muted-foreground">All in one binder</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Manual finder card (scattered) */}
-            <div className="absolute bottom-44 left-0 w-44 bg-card rounded-xl shadow-[var(--card-shadow)] p-3.5 rotate-[-6deg] z-[8]">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <BookOpen size={14} className="text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-foreground truncate">Manual found</p>
-                  <p className="text-[11px] text-muted-foreground">Whirlpool WRF555 fridge</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Garage vehicle card (scattered) */}
-            <div className="absolute bottom-28 right-6 w-48 bg-card rounded-xl shadow-[var(--card-shadow)] p-3.5 rotate-[-8deg] z-[6]">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <Car size={14} className="text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-foreground leading-tight">2024 Civic<br />87,450 mi</p>
-                  <p className="text-[11px] text-muted-foreground">Oil change due soon</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Find a pro card (scattered) */}
-            <div className="absolute bottom-16 left-10 w-44 bg-card rounded-xl shadow-[var(--card-shadow)] p-3.5 rotate-[5deg] z-[5]">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <Wrench size={14} className="text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-foreground truncate">Ridge Plumbing</p>
-                  <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                    <Star size={10} className="fill-warning text-warning" /> 4.9 · Verified
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Works for cars too chip */}
-            <div className="absolute bottom-2 right-0 bg-foreground text-background rounded-full px-4 py-2 text-sm font-semibold shadow-2xl flex items-center gap-1.5 rotate-[-3deg] z-[25]">
-              <Car size={15} /> Works for your car too
-            </div>
+            ))}
+          </div>
+          <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-semibold text-foreground/75">
+            <span className="flex items-center gap-2"><Car className="h-4 w-4 text-intelligence" /> Garage</span>
+            <span className="flex items-center gap-2"><ShoppingCart className="h-4 w-4 text-intelligence" /> Shopping</span>
+            <span className="flex items-center gap-2"><BookOpen className="h-4 w-4 text-intelligence" /> Rentals</span>
+            <span className="flex items-center gap-2"><House className="h-4 w-4 text-intelligence" /> Multiple homes</span>
+            <span className="ml-auto hidden items-center gap-2 text-success sm:flex"><CheckCircle2 className="h-4 w-4" /> One place to manage it all</span>
           </div>
         </div>
       </div>

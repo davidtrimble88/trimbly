@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
+import HomeJourneySection from "@/components/landing/HomeJourneySection";
+import HomeJobsSection from "@/components/landing/HomeJobsSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
 import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import PricingSection from "@/components/landing/PricingSection";
@@ -22,10 +24,12 @@ const Index = () => {
   }, [loading, user, navigate]);
 
   return (
-    <div className="min-h-screen">
+    <div className="trimbly-landing min-h-screen bg-background">
       <Navbar />
       <main>
         <HeroSection />
+        <HomeJobsSection />
+        <HomeJourneySection />
         <FeaturesSection />
         <HowItWorksSection />
         <TestimonialsSection />
