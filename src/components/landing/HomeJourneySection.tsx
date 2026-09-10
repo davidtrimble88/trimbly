@@ -82,9 +82,12 @@ const HomeJourneySection = () => {
                 </div>
                 <div className="m-4 rounded-xl border border-primary/20 bg-primary/[0.07] p-5 md:m-6 md:ml-0">
                   <div className="flex items-center gap-2 text-sm font-bold text-primary"><BrandMark className="h-8 w-8" /> TRIMBLY SAYS</div>
-                  <CloudRain className="mt-7 h-6 w-6 text-intelligence" />
-                  <h4 className="mt-3 text-xl font-bold text-foreground">Rain is coming Thursday.</h4>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Your gutters are due for maintenance.</p>
+                  <h4 className="mt-5 text-xl font-bold text-foreground">Your home has 3 things to take care of this week.</h4>
+                  <div className="mt-4 divide-y divide-primary/15 text-sm">
+                    <div className="flex gap-3 py-3 first:pt-0"><CalendarCheck className="h-4 w-4 shrink-0 text-primary" /><p><strong className="text-foreground">HVAC filter</strong><span className="block text-muted-foreground">Due Thursday</span></p></div>
+                    <div className="flex gap-3 py-3"><CloudRain className="h-4 w-4 shrink-0 text-intelligence" /><p><strong className="text-foreground">Gutters</strong><span className="block text-muted-foreground">Rain coming Friday</span></p></div>
+                    <div className="flex gap-3 py-3 last:pb-0"><Activity className="h-4 w-4 shrink-0 text-success" /><p><strong className="text-foreground">Water heater</strong><span className="block text-muted-foreground">Check expected lifespan</span></p></div>
+                  </div>
                   <Button className="mt-6 w-full rounded-lg" onClick={() => navigate("/maintenance")}>See What To Do</Button>
                 </div>
               </div>

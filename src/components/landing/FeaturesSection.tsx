@@ -31,7 +31,7 @@ const homeownerFeatures = [
   {
     icon: Zap,
     title: "Energy & Utility Advisor",
-    description: "Chat with AI about your utility bills and get prioritized upgrades with real cost, savings, and payback numbers — not generic tips.",
+    description: "Understand your utility bills and get prioritized upgrades with real cost, savings, and payback numbers — not generic tips.",
     tab: "energy-advisor",
   },
   {
@@ -55,7 +55,7 @@ const homeownerFeatures = [
   {
     icon: FileWarning,
     title: "Quote & Contract Reviewer",
-    description: "Paste a contractor's quote or contract and get an instant AI red-flag check before you sign anything.",
+    description: "Paste a contractor's quote or contract and spot potential red flags before you sign anything.",
     tab: "quote-reviewer",
   },
   {
@@ -72,7 +72,7 @@ const homeownerFeatures = [
   {
     icon: ShoppingCart,
     title: "Smart Product Shopping",
-    description: "AI-powered product recommendations for every maintenance task. Find the right supplies on Amazon in one click, tailored to your home or vehicle.",
+    description: "Find the right supplies on Amazon in one click, with recommendations tailored to each home, vehicle, and maintenance task.",
     tab: "maintenance",
   },
   {
@@ -297,12 +297,12 @@ const FeaturesSection = () => {
     <section id="features" className="py-20 md:py-28">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-10">
-          <p className="brand-kicker">Everything else, when you need it</p>
+          <p className="brand-kicker">The complete Trimbly platform</p>
           <h2 className="brand-title mt-4 mb-4">
             One place for everything that comes with owning a home.
           </h2>
           <p className="text-muted-foreground text-lg">
-             Your home's essentials come first. Every other homeowner, provider, and mechanic capability remains close at hand.
+             From the everyday to the unexpected, every homeowner, provider, and mechanic capability remains close at hand.
           </p>
         </div>
 
