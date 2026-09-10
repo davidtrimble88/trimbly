@@ -24,8 +24,8 @@ export default function CookieConsent() {
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-20 md:bottom-4 left-4 right-4 z-50 md:left-auto md:max-w-md">
-      <div className="bg-card border border-border rounded-xl shadow-lg p-4 flex items-start gap-3">
+    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:max-w-md">
+      <div className="bg-card border border-border rounded-lg shadow-lg p-4 flex items-start gap-3">
         <Cookie size={20} className="text-primary flex-shrink-0 mt-0.5" />
         <div className="flex-1 text-sm">
           <p className="text-foreground font-medium mb-1">We use cookies</p>
