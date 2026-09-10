@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, BookOpen, BriefcaseBusiness, Car, CheckCircle2, CloudSun, FolderOpen, Home, House, ShieldCheck, ShoppingCart, Sparkles, Wrench, Zap } from "lucide-react";
+import { ArrowRight, BookOpen, BriefcaseBusiness, Car, CheckCircle2, CloudSun, FolderOpen, Home, House, ShieldCheck, ShoppingCart, Wrench, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BrandMark from "@/components/BrandMark";
 import modernHome from "@/assets/landing/trimbly-modern-home.jpg";
@@ -96,7 +96,7 @@ const HeroSection = () => {
           </div>
           <div className="grid border-y border-border sm:grid-cols-2 lg:grid-cols-3">
             {homeCapabilities.map(({ icon: Icon, label, detail }, index) => (
-              <div key={label} className={`flex gap-3 py-5 sm:px-5 sm:odd:border-r lg:border-r ${index >= 4 ? "border-b-0" : "border-b border-border lg:border-b-0"} lg:first:pl-0 lg:nth-[3n]:border-r-0`}>
+              <div key={label} className={`flex gap-3 py-5 sm:px-5 ${index % 2 === 0 ? "sm:border-r" : ""} ${index < 4 ? "border-b border-border lg:border-b-0" : ""} ${index % 3 !== 2 ? "lg:border-r" : "lg:border-r-0"} ${index === 0 ? "lg:pl-0" : ""}`}>
                 <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                 <div><p className="text-sm font-bold uppercase text-foreground">{label}</p><p className="mt-1 text-sm leading-relaxed text-muted-foreground">{detail}</p></div>
               </div>
