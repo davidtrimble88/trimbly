@@ -12,20 +12,20 @@ type Audience = "homeowner" | "pro" | "mechanic";
 const homeownerFeatures = [
   {
     icon: Brain,
-    title: "AI Job Estimator",
-    description: "Describe the issue and get instant cost estimates, material lists, and DIY vs. pro recommendations.",
+    title: "What Will This Repair Cost?",
+    description: "Describe the issue. Trimbly estimates the cost, materials, and whether to tackle it yourself or call a pro.",
     tab: "estimator",
   },
   {
     icon: Stethoscope,
-    title: "AI Symptom Triage",
-    description: "Describe a noise, smell, or odd behavior — get an instant AI diagnosis, urgency level, safety warnings, and DIY-vs-Pro guidance.",
+    title: "What's Wrong?",
+    description: "Describe a noise, smell, leak, or odd behavior. Trimbly helps you understand the likely cause, urgency, and next step.",
     tab: "triage",
   },
   {
     icon: Shield,
-    title: "Coverage Advisor",
-    description: "Upload your home warranty and insurance docs, then ask AI questions about what's covered and how to file claims.",
+    title: "Is This Covered?",
+    description: "Upload your home warranty and insurance documents. Trimbly helps you understand what may be covered and how to approach a claim.",
     tab: "coverage",
   },
   {
@@ -77,7 +77,7 @@ const homeownerFeatures = [
   },
   {
     icon: CalendarCheck,
-    title: "Maintenance Autopilot",
+    title: "Stay Ahead of Maintenance",
     description: "Automated schedules based on your home profile. Never forget an HVAC filter, gutter clean, or seasonal checkup.",
     tab: "maintenance",
   },
@@ -89,8 +89,8 @@ const homeownerFeatures = [
   },
   {
     icon: FolderOpen,
-    title: "Digital Home Binder",
-    description: "Store appliance info, warranties, past jobs, receipts, and documents — all organized in one dashboard.",
+    title: "Remember Everything",
+    description: "Keep appliance details, warranties, manuals, past jobs, receipts, projects, and important documents in your Digital Home Binder.",
     tab: "binder",
   },
   {
@@ -270,9 +270,18 @@ const mechanicFeatures = [
 
 const FeaturesSection = () => {
   const [audience, setAudience] = useState<Audience>("homeowner");
+  const homeownerPrimaryTitles = ["What's Wrong?", "What Will This Repair Cost?", "Is This Covered?", "Stay Ahead of Maintenance", "Remember Everything"];
+  const orderedHomeownerFeatures = [...homeownerFeatures].sort((a, b) => {
+    const aIndex = homeownerPrimaryTitles.indexOf(a.title);
+    const bIndex = homeownerPrimaryTitles.indexOf(b.title);
+    if (aIndex === -1 && bIndex === -1) return 0;
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+    return aIndex - bIndex;
+  });
   const features =
     audience === "homeowner"
-      ? homeownerFeatures
+      ? orderedHomeownerFeatures
       : audience === "mechanic"
       ? mechanicFeatures
       : proFeatures;
@@ -288,12 +297,12 @@ const FeaturesSection = () => {
     <section id="features" className="py-20 md:py-28">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-10">
-          <p className="brand-kicker">Everything in one Trimbly</p>
+          <p className="brand-kicker">Everything else, when you need it</p>
           <h2 className="brand-title mt-4 mb-4">
             One place for everything that comes with owning a home.
           </h2>
           <p className="text-muted-foreground text-lg">
-             Every capability is still here. Choose a view to explore the complete homeowner, provider, or mechanic experience.
+             Your home's essentials come first. Every other homeowner, provider, and mechanic capability remains close at hand.
           </p>
         </div>
 
@@ -341,7 +350,11 @@ const FeaturesSection = () => {
               <Tag
                 key={f.title}
                 onClick={clickable ? () => handleClick(f as any) : undefined}
-                className={`group bg-card p-6 transition-all duration-300 text-left ${
+                 className={`group p-6 transition-all duration-300 text-left ${
+                   audience === "homeowner" && homeownerPrimaryTitles.includes(f.title)
+                     ? "bg-primary/[0.055] border-t-4 border-primary"
+                     : "bg-card"
+                 } ${
                   clickable ? "hover:bg-secondary cursor-pointer" : ""
                 }`}
               >

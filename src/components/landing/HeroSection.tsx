@@ -32,7 +32,7 @@ const HeroSection = () => {
                 <span className="mt-2 block text-primary">IT TELLS YOU WHAT TO DO.</span>
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-foreground/75 md:text-xl">
-                AI-powered maintenance, diagnosis, records, coverage and trusted pros — all in one place.
+                Understand what's happening, what it may cost, what's covered, and what to do next — with your home's details already in one place.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button size="lg" className="h-12 rounded-lg px-6 text-base shadow-[var(--brand-shadow)]" onClick={() => navigate("/auth?mode=signup&type=homeowner")}>
@@ -52,16 +52,17 @@ const HeroSection = () => {
               <div className="flex items-center justify-between border-b border-border pb-4">
                 <div className="flex items-center gap-2.5">
                   <BrandMark className="h-9 w-9" />
-                  <div><p className="text-xs font-bold text-primary">TRIMBLY SAYS</p><p className="text-sm font-semibold text-foreground">Your home</p></div>
+                  <div><p className="text-xs font-bold text-primary">MY HOME</p><p className="text-sm font-semibold text-foreground">Trimbly is ready to help</p></div>
                 </div>
-                <span className="rounded-md bg-success/10 px-2.5 py-1 text-xs font-bold text-success">Low urgency</span>
+                <span className="rounded-md bg-accent/15 px-2.5 py-1 text-xs font-bold text-accent-foreground">Home system</span>
               </div>
               <p className="mt-4 text-lg font-bold text-foreground">Water heater making noise</p>
-              <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                 <div className="rounded-lg bg-secondary p-3"><p className="text-[11px] font-bold text-muted-foreground">LIKELY CAUSE</p><p className="mt-1 text-sm font-semibold text-foreground">Sediment buildup</p></div>
+                <div className="rounded-lg bg-success/10 p-3"><p className="text-[11px] font-bold text-success">URGENCY</p><p className="mt-1 text-sm font-semibold text-foreground">Low</p></div>
                 <div className="rounded-lg bg-secondary p-3"><p className="text-[11px] font-bold text-muted-foreground">ESTIMATED REPAIR</p><p className="mt-1 text-sm font-semibold text-foreground">$180–$320</p></div>
               </div>
-              <div className="mt-3 flex items-center gap-2 rounded-lg bg-primary/[0.08] p-3 text-sm text-foreground"><ShieldCheck className="h-4 w-4 text-primary" /><span>Home warranty may apply</span></div>
+              <div className="mt-3 flex items-center gap-2 rounded-lg bg-primary/[0.08] p-3 text-sm text-foreground"><ShieldCheck className="h-4 w-4 text-primary" /><span><strong>Coverage:</strong> Home warranty may apply</span></div>
               <div className="mt-4"><p className="text-[11px] font-bold text-muted-foreground">NEXT STEP</p><p className="mt-1 text-sm leading-relaxed text-foreground">Flush the tank or schedule a professional inspection.</p></div>
               <Button className="mt-4 w-full rounded-lg" onClick={() => navigate("/symptom-triage")}>See What To Do <ArrowRight /></Button>
             </div>
