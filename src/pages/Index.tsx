@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import HomeJourneySection from "@/components/landing/HomeJourneySection";
+import HomeJobsSection from "@/components/landing/HomeJobsSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
 import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import PricingSection from "@/components/landing/PricingSection";
@@ -27,6 +28,7 @@ const Index = () => {
       <Navbar />
       <main>
         <HeroSection />
+        <HomeJobsSection />
         <HomeJourneySection />
         <FeaturesSection />
         <HowItWorksSection />
