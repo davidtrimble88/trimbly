@@ -38,14 +38,17 @@ const severityBadgeClass: Record<RiskLevel, string> = {
 const QuoteReviewer = () => {
   const { user, profileName } = useAuth();
   const navigate = useNavigate();
+  const prefill = (useLocation().state ?? {}) as { projectContext?: string };
   const { isPro, subscriptionTier, loading: limitLoading } = useHomeLimit();
   const { active: hasGarage } = useGarageSubscription();
   const { toast } = useToast();
 
   const [quoteText, setQuoteText] = useState("");
-  const [projectContext, setProjectContext] = useState("");
+  const [projectContext, setProjectContext] = useState(prefill.projectContext ?? "");
   const [loading, setLoading] = useState(false);
   const [review, setReview] = useState<QuoteReview | null>(null);
+  const { docRefs, docsChecked, coverage, coverageLoading, coverageError, run: runCoverage, reset: resetCoverage } =
+    useCoverageCheck(user?.id);
 
   if (!user) {
     return (
