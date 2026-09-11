@@ -323,6 +323,41 @@ const EstimatorPage = () => {
                 </ul>
               </div>
 
+              {/* Next steps — keep the job moving without retyping anything */}
+              <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5">
+                <p className="font-bold text-foreground">What's next?</p>
+                <p className="mt-1 text-sm text-muted-foreground">Compare this estimate against a real quote, or let local pros bid on it.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-card"
+                    onClick={() => navigate("/quote-reviewer", { state: { projectContext: estimate.job_title } })}
+                  >
+                    <FileWarning size={14} className="mr-1.5" /> Check a quote you received
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-card"
+                    onClick={() =>
+                      navigate("/post-job", {
+                        state: {
+                          title: estimate.job_title,
+                          description: estimate.summary,
+                          category: estimate.category,
+                          budget_min: estimate.cost_low,
+                          budget_max: estimate.cost_high,
+                        },
+                      })
+                    }
+                  >
+                    <Wrench size={14} className="mr-1.5" /> Get bids from local pros
+                  </Button>
+                </div>
+              </div>
+
+
               {/* Disclaimer */}
               <p className="text-xs text-muted-foreground text-center">
                 This is an AI-generated estimate for informational purposes only. Actual costs may vary based on local rates, specific conditions, and materials chosen.
