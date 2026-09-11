@@ -11,6 +11,7 @@ import StatCard from "@/components/dashboard/StatCard";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
 import AttentionBanner from "@/components/dashboard/AttentionBanner";
 import AttentionList from "@/components/dashboard/AttentionList";
+import TrimblySaysPanel, { type TrimblySaysItem } from "./TrimblySaysPanel";
 import HomeSelectorStrip from "./HomeSelectorStrip";
 import GarageAnalyticsSection from "./GarageAnalyticsSection";
 import { upgradeConfig, type JobStats, type HomeData, type HomeStats, type TaskRow } from "./types";
@@ -88,6 +89,19 @@ const HomeownerOverviewTab = ({
       sublabel: !selectedHome ? home?.name : undefined,
       date: t.due_date ?? undefined,
       urgent: t.status === "overdue",
+    };
+  });
+
+  const trimblySaysItems: TrimblySaysItem[] = soonestDue.slice(0, 3).map((t, i) => {
+    const home = homes.find((h) => h.id === t.home_id);
+    const due = t.due_date ? new Date(t.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "No date set";
+    const overdue = t.status === "overdue";
+    return {
+      id: t.id ?? i,
+      icon: overdue ? AlertTriangle : CalendarClock,
+      title: t.title,
+      detail: `${overdue ? "Overdue · " : "Due "}${due}${!selectedHome && home ? ` · ${home.name}` : ""}`,
+      tone: overdue ? ("danger" as const) : ("primary" as const),
     };
   });
 
