@@ -69,7 +69,7 @@ export default function PayoutSetupPanel({ providerId }: { providerId: string })
           <p className="text-sm text-muted-foreground">
             Set this up once to receive milestone payments directly to your bank account, held securely until the homeowner approves each stage.
           </p>
-          <Badge variant="outline" className={ready ? "bg-green-500/15 text-green-700 border-green-500/40 shrink-0" : "bg-muted text-muted-foreground shrink-0"}>
+          <Badge variant="outline" className={ready ? "bg-success/15 text-success border-success/40 shrink-0" : "bg-muted text-muted-foreground shrink-0"}>
             {ready ? "Ready" : status.hasAccount ? "Incomplete" : "Not set up"}
           </Badge>
         </div>

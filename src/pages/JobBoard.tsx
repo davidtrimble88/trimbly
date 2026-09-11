@@ -1022,7 +1022,7 @@ const JobBoard = () => {
                     <Button
                       onClick={() => markJobComplete(detailJob)}
                       disabled={markingComplete}
-                      className="gap-1 bg-green-600 hover:bg-green-700 text-white"
+                      className="gap-1 bg-success hover:bg-success/90 text-success-foreground"
                     >
                       <CheckCircle size={14} /> {markingComplete ? "Marking..." : "Mark job complete"}
                     </Button>

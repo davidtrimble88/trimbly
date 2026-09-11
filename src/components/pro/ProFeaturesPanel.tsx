@@ -254,12 +254,12 @@ const ProFeaturesPanel = ({ provider, userId, onUpdated, jobsTable = "jobs", bid
               <p className="text-xs text-muted-foreground">Views (30d)</p>
             </div>
             <div className="bg-muted/40 rounded-lg p-3 text-center">
-              <MessageSquare className="mx-auto h-5 w-5 text-blue-500 mb-1" />
+              <MessageSquare className="mx-auto h-5 w-5 text-primary mb-1" />
               <p className="text-2xl font-bold text-foreground">{msgs30d}</p>
               <p className="text-xs text-muted-foreground">Messages</p>
             </div>
             <div className="bg-muted/40 rounded-lg p-3 text-center">
-              <CheckCircle className="mx-auto h-5 w-5 text-green-500 mb-1" />
+              <CheckCircle className="mx-auto h-5 w-5 text-success mb-1" />
               <p className="text-2xl font-bold text-foreground">
                 {winRate === null ? "—" : `${winRate}%`}
               </p>

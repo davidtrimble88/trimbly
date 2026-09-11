@@ -9,7 +9,7 @@ type Item = { id: string; category: string; item_name: string; condition: string
 type Inspection = { id: string; title: string; summary: string | null; sent_at: string | null; created_at: string };
 
 const CONDITION_LABEL: Record<string, { label: string; className: string }> = {
-  ok: { label: "OK", className: "bg-green-500/15 text-green-700 border-green-500/40" },
+  ok: { label: "OK", className: "bg-success/15 text-success border-success/40" },
   watch: { label: "Watch", className: "bg-warning/15 text-warning border-warning/40" },
   needs_attention: { label: "Needs attention", className: "bg-destructive/15 text-destructive border-destructive/40" },
 };
