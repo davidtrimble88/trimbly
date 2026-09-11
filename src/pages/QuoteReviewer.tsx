@@ -169,15 +169,24 @@ const QuoteReviewer = () => {
 
           {review && !loading && RMeta && (
             <div className="space-y-6 animate-fade-in-up">
-              <div className={`rounded-xl border p-6 ${RMeta.className}`}>
-                <div className="flex items-start gap-3">
+              <TrimblyResultCard title="Here's what Trimbly found in this quote" tag={projectContext.trim() || undefined}>
+                <div className={`mt-4 flex items-start gap-3 rounded-lg border p-4 ${RMeta.className}`}>
                   <RMeta.icon size={24} className="mt-0.5 shrink-0" />
                   <div>
                     <h2 className="text-lg font-bold text-foreground">{RMeta.label}</h2>
                     <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{review.risk_summary}</p>
                   </div>
                 </div>
-              </div>
+                <CoverageCallout
+                  className="mt-3"
+                  loading={coverageLoading}
+                  error={coverageError}
+                  verdict={coverage}
+                  docsChecked={docsChecked}
+                  hasDocs={docRefs.length > 0}
+                  emptyPrompt="Part of this work may be covered by a warranty or your insurance. Add your policies and Trimbly will check quotes like this against them automatically."
+                />
+              </TrimblyResultCard>
 
               {review.red_flags.length > 0 && (
                 <div className="rounded-xl border border-border bg-card p-5">
