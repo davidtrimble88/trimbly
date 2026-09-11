@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { LucideIcon, ArrowRight } from "lucide-react";
+import { LucideIcon, ArrowRight, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BrandMark from "@/components/BrandMark";
 
@@ -13,11 +13,20 @@ interface DashboardHeroBannerProps {
   greetingName: string;
   /** One line under the greeting — a quick "here's where things stand" summary. */
   summary: ReactNode;
+  /** Small at-a-glance health chip, like the one shown on the public homepage. */
+  status?: { label: string; tone: "success" | "warning" | "danger" };
   /** The single most time-sensitive thing right now, if there is one — a
    * concrete next action beats a pile of stat cards for "what should I do." */
   urgentAction?: UrgentAction;
   weatherSlot?: ReactNode;
 }
+
+const statusToneClasses = {
+  success: "bg-success/10 text-success",
+  warning: "bg-warning/10 text-warning",
+  danger: "bg-destructive/10 text-destructive",
+};
+
 
 /** Shared focal point for the top of a dashboard — a name/greeting, a
  * one-line status summary, and (if there's genuinely something urgent) a
