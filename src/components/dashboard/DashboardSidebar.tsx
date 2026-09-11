@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Shield } from "lucide-react";
+import BrandMark from "@/components/BrandMark";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarHeader, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem,
@@ -27,6 +27,7 @@ const DashboardSidebar = ({ brandLabel, navItems, groups, activeItemId, onNaviga
             tooltip={item.label}
             asChild={!!item.href}
             onClick={item.href ? undefined : () => onNavigate(item)}
+            className="h-9 rounded-xl px-3 font-body text-[0.8125rem] text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent/70 data-[active=true]:bg-sidebar-accent data-[active=true]:font-semibold data-[active=true]:text-sidebar-foreground [&>svg]:text-muted-foreground data-[active=true]:[&>svg]:text-primary"
           >
             {item.href ? (
               <Link to={item.href}>
@@ -54,22 +55,22 @@ const DashboardSidebar = ({ brandLabel, navItems, groups, activeItemId, onNaviga
   );
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader>
-        <Link to="/" className="flex items-center gap-2 px-2 py-1.5">
-          <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center shrink-0">
-            <Shield size={15} className="text-primary-foreground" />
-          </div>
-          <span className="font-display font-semibold text-sm text-sidebar-foreground truncate group-data-[collapsible=icon]:hidden">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+      <SidebarHeader className="px-2 py-3">
+        <Link to="/" className="flex items-center gap-2.5 px-2 py-1.5">
+          <BrandMark className="w-8 h-8 shrink-0" />
+          <span className="font-display text-[0.95rem] font-bold text-sidebar-foreground truncate group-data-[collapsible=icon]:hidden">
             {brandLabel}
           </span>
         </Link>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="px-1">
         {groups ? (
           groups.map((groupName) => (
             <SidebarGroup key={groupName}>
-              <SidebarGroupLabel>{groupName}</SidebarGroupLabel>
+              <SidebarGroupLabel className="px-3 font-body text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                {groupName}
+              </SidebarGroupLabel>
               <SidebarGroupContent>
                 {renderMenu(navItems.filter((item) => item.group === groupName))}
               </SidebarGroupContent>

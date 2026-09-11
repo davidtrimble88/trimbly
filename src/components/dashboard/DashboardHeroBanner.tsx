@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { LucideIcon, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import BrandMark from "@/components/BrandMark";
 
 interface UrgentAction {
   label: string;
@@ -27,19 +28,22 @@ export default function DashboardHeroBanner({ greetingName, summary, urgentActio
   const timeGreeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="rounded-xl border border-border bg-gradient-to-br from-primary/5 to-transparent p-5 mb-6">
+    <div className="mb-8 rounded-2xl border border-border bg-card p-6 shadow-[var(--card-shadow)] md:p-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">
-            {timeGreeting}, {greetingName.split(" ")[0]}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">{summary}</p>
+        <div className="flex items-start gap-3">
+          <BrandMark className="mt-1 hidden h-9 w-9 shrink-0 sm:block" />
+          <div>
+            <h1 className="font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
+              {timeGreeting}, {greetingName.split(" ")[0]}
+            </h1>
+            <p className="mt-2 font-body text-[0.95rem] text-muted-foreground">{summary}</p>
+          </div>
         </div>
         {weatherSlot}
       </div>
       {urgentAction && (
-        <Button size="sm" onClick={urgentAction.onClick} className="mt-4 gap-1.5">
-          <urgentAction.icon size={14} /> {urgentAction.label} <ArrowRight size={14} />
+        <Button onClick={urgentAction.onClick} className="mt-5 h-11 gap-2 rounded-full px-5 text-sm">
+          <urgentAction.icon size={15} /> {urgentAction.label} <ArrowRight size={15} />
         </Button>
       )}
     </div>
