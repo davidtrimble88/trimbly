@@ -67,6 +67,21 @@ const likelihoodBadge: Record<"high" | "medium" | "low", string> = {
   low: "bg-muted text-muted-foreground",
 };
 
+const urgencyTile: Record<SymptomTriage["urgency"], { word: string; box: string; label: string }> = {
+  emergency: { word: "Emergency", box: "bg-destructive/10", label: "text-destructive" },
+  urgent: { word: "High", box: "bg-warning/15", label: "text-warning-foreground" },
+  soon: { word: "Medium", box: "bg-primary/10", label: "text-primary" },
+  monitor: { word: "Low", box: "bg-success/10", label: "text-success" },
+};
+
+const coverageStatusLabel: Record<CoverageVerdict["status"], string> = {
+  likely_covered: "Likely covered",
+  possibly_covered: "May be covered",
+  not_covered: "Not covered",
+  unclear: "Couldn't confirm from your documents",
+};
+
+
 const SymptomTriagePage = () => {
   const { user, profileName, loading: authLoading } = useAuth();
   const { isPro, subscriptionTier, loading: limitLoading } = useHomeLimit();
