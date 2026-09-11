@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FileWarning, Loader2, ShieldAlert, ShieldCheck, AlertTriangle, CheckCircle2,
   HelpCircle, ArrowRight, Crown, Home as HomeIcon,
@@ -12,6 +12,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import TrimblyResultCard from "@/components/tools/TrimblyResultCard";
+import CoverageCallout from "@/components/tools/CoverageCallout";
+import { useCoverageCheck } from "@/components/tools/useCoverageCheck";
 import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
 import { tierLabels } from "@/components/dashboard/homeowner/types";
 import { useAuth } from "@/hooks/useAuth";
