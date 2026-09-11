@@ -76,9 +76,13 @@ const QuoteReviewer = () => {
     }
     setLoading(true);
     setReview(null);
+    resetCoverage();
     try {
       const result = await reviewQuote({ quoteText: quoteText.trim(), projectContext: projectContext.trim() || undefined });
       setReview(result);
+      await runCoverage(
+        `Contractor quote for ${projectContext.trim() || "home work"}. ${result.risk_summary} Quote text: ${quoteText.trim().slice(0, 4000)}`,
+      );
     } catch (err: any) {
       toast({ title: "Error", description: err?.message || "Failed to review the quote. Please try again.", variant: "destructive" });
     } finally {
