@@ -271,7 +271,7 @@ const ProDashboard = () => {
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <Building2 className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-          <h1 className="text-3xl font-bold mb-2">No Provider Profile</h1>
+          <h1 className="font-display text-3xl font-bold mb-2">No Provider Profile</h1>
           <p className="text-muted-foreground mb-6">Create your business profile to start receiving jobs and bids.</p>
           <Button size="lg" onClick={() => navigate("/pro-register")}>Register as a Pro</Button>
         </div>
