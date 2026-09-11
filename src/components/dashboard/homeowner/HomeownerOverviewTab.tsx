@@ -160,15 +160,18 @@ const HomeownerOverviewTab = ({
             </div>
 
             {soonestDue.length > 0 && (
-              <Card>
-                <CardContent className="p-4">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                    {selectedHome ? `Coming up next for ${selectedHome.name}` : "Coming up next, across your homes"}
-                  </p>
-                  <AttentionList items={attentionListItems} />
-                </CardContent>
-              </Card>
+              <TrimblySaysPanel
+                headline={
+                  overdueTotal > 0
+                    ? `${overdueTotal} thing${overdueTotal !== 1 ? "s are" : " is"} overdue${selectedHome ? ` at ${selectedHome.name}` : ""}.`
+                    : `Your home has ${soonestDue.length} thing${soonestDue.length !== 1 ? "s" : ""} to take care of next.`
+                }
+                items={trimblySaysItems}
+                actionLabel="See What To Do"
+                onAction={() => navigate("/maintenance")}
+              />
             )}
+
 
             <div className="mt-3">
               <UpgradeGate
