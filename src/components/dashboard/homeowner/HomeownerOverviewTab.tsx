@@ -11,6 +11,7 @@ import StatCard from "@/components/dashboard/StatCard";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
 import AttentionBanner from "@/components/dashboard/AttentionBanner";
 import AttentionList from "@/components/dashboard/AttentionList";
+import TrimblySaysPanel, { type TrimblySaysItem } from "./TrimblySaysPanel";
 import HomeSelectorStrip from "./HomeSelectorStrip";
 import GarageAnalyticsSection from "./GarageAnalyticsSection";
 import { upgradeConfig, type JobStats, type HomeData, type HomeStats, type TaskRow } from "./types";
@@ -91,6 +92,19 @@ const HomeownerOverviewTab = ({
     };
   });
 
+  const trimblySaysItems: TrimblySaysItem[] = soonestDue.slice(0, 3).map((t, i) => {
+    const home = homes.find((h) => h.id === t.home_id);
+    const due = t.due_date ? new Date(t.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "No date set";
+    const overdue = t.status === "overdue";
+    return {
+      id: `${t.title}-${i}`,
+      icon: overdue ? AlertTriangle : CalendarClock,
+      title: t.title,
+      detail: `${overdue ? "Overdue · " : "Due "}${due}${!selectedHome && home ? ` · ${home.name}` : ""}`,
+      tone: overdue ? ("danger" as const) : ("primary" as const),
+    };
+  });
+
   // Rough DIY savings estimate — a flat per-task figure, not a precise calculation.
   const DIY_SAVINGS_PER_TASK = 45;
   const estimatedSavings = completedTotal * DIY_SAVINGS_PER_TASK;
@@ -160,15 +174,18 @@ const HomeownerOverviewTab = ({
             </div>
 
             {soonestDue.length > 0 && (
-              <Card>
-                <CardContent className="p-4">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                    {selectedHome ? `Coming up next for ${selectedHome.name}` : "Coming up next, across your homes"}
-                  </p>
-                  <AttentionList items={attentionListItems} />
-                </CardContent>
-              </Card>
+              <TrimblySaysPanel
+                headline={
+                  overdueTotal > 0
+                    ? `${overdueTotal} thing${overdueTotal !== 1 ? "s are" : " is"} overdue${selectedHome ? ` at ${selectedHome.name}` : ""}.`
+                    : `Your home has ${trimblySaysItems.length} thing${trimblySaysItems.length !== 1 ? "s" : ""} to take care of next.`
+                }
+                items={trimblySaysItems}
+                actionLabel="See What To Do"
+                onAction={() => navigate("/maintenance")}
+              />
             )}
+
 
             <div className="mt-3">
               <UpgradeGate
