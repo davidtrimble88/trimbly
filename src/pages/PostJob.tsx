@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
 import { useGarageSubscription } from "@/hooks/useGarageSubscription";
@@ -111,17 +111,24 @@ type Bid = {
   };
 };
 
+type JobPrefill = {
+  title?: string; description?: string; category?: string;
+  budget_min?: number | string; budget_max?: number | string;
+};
+
 const PostJob = () => {
   const { user, profileName, loading: authLoading } = useAuth();
   const { subscriptionTier } = useHomeLimit();
   const { active: hasGarage } = useGarageSubscription();
   const navigate = useNavigate();
   const { toast } = useToast();
+  /** Details carried over from a diagnosis or estimate, so nothing is retyped. */
+  const prefill = (useLocation().state ?? {}) as JobPrefill;
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [bids, setBids] = useState<Record<string, Bid[]>>({});
   const [loadingJobs, setLoadingJobs] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(!!(prefill.title || prefill.description));
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -142,8 +149,12 @@ const PostJob = () => {
   const [savingPhone, setSavingPhone] = useState(false);
 
   const [form, setForm] = useState({
-    title: "", description: "", category: "", city: "", state: "", country: "US",
-    budget_min: "", budget_max: "", home_id: "",
+    title: prefill.title ?? "",
+    description: prefill.description ?? "",
+    category: "", city: "", state: "", country: "US",
+    budget_min: prefill.budget_min != null ? String(prefill.budget_min) : "",
+    budget_max: prefill.budget_max != null ? String(prefill.budget_max) : "",
+    home_id: "",
   });
   const [customCategory, setCustomCategory] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
@@ -663,7 +674,7 @@ const PostJob = () => {
                         <Badge className={`text-xs ${
                           jobBucket(job) === "completed" ? "bg-muted text-muted-foreground" :
                           jobBucket(job) === "approved" ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" :
-                          "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                          "bg-success/15 text-success"
                         }`}>
                           {jobBucket(job) === "approved" ? "Approved" : jobBucket(job) === "completed" ? "Completed" : "Pending"}
                         </Badge>
@@ -764,7 +775,7 @@ const PostJob = () => {
                                     </Badge>
                                   )}
                                   <Badge className={`text-xs ${
-                                    bid.status === "accepted" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" :
+                                    bid.status === "accepted" ? "bg-success/15 text-success" :
                                     bid.status === "rejected" ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" :
                                     "bg-secondary text-secondary-foreground"
                                   }`}>{bid.status}</Badge>

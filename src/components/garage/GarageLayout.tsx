@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { ArrowLeft, LayoutDashboard, Car, Wrench, FileText, Search, Briefcase, Shield } from "lucide-react";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import BrandMark from "@/components/BrandMark";
 import { useGarageAccess } from "./GarageAccessContext";
 
 const navItems = [
@@ -31,13 +32,14 @@ export default function GarageLayout() {
       </div>
 
       {/* Garage strip */}
-      <div className="bg-card border-b border-border">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-              <Car className="w-4 h-4 text-primary" />
+      <div className="bg-gradient-to-r from-primary/[0.07] via-card to-card border-b border-border">
+        <div className="container mx-auto px-4 py-5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <BrandMark className="h-10 w-10" />
+            <div>
+              <p className="text-xs font-bold tracking-wide text-primary">MY GARAGE</p>
+              <p className="font-display text-lg font-bold text-foreground">Everything your vehicles need</p>
             </div>
-            <span className="font-display font-bold text-lg text-foreground">My Garage</span>
           </div>
           <span className="text-xs text-muted-foreground hidden sm:inline">Vehicles &amp; motorcycles</span>
         </div>

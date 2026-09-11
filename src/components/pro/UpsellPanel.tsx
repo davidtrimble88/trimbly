@@ -196,7 +196,7 @@ const UpsellPanel = ({ providerId, providerCategory, businessName, userId, jobsT
                             <div className="flex justify-end mt-2">
                               {sent ? (
                                 <Badge variant="outline" className="gap-1">
-                                  <Send size={12} className="text-green-600" /> Sent
+                                  <Send size={12} className="text-success" /> Sent
                                 </Badge>
                               ) : (
                                 <Button

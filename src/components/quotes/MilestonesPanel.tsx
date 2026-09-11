@@ -83,7 +83,7 @@ export default function MilestonesPanel({
     const map: Record<string, string> = {
       pending: "bg-muted text-muted-foreground",
       funded: "bg-warning/15 text-warning border-warning/40",
-      released: "bg-green-500/15 text-green-700 border-green-500/40",
+      released: "bg-success/15 text-success border-success/40",
       refunded: "bg-destructive/15 text-destructive border-destructive/40",
     };
     return <Badge variant="outline" className={map[status] || map.pending}>{status}</Badge>;

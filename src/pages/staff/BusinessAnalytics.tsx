@@ -160,7 +160,7 @@ const BusinessAnalytics = () => {
 
       {/* Money KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <KPI label="MRR" value={money(t.mrr)} sub={`${money(t.mrr_homeowners)} HO · ${money(t.mrr_providers)} Pro`} icon={DollarSign} accent="bg-green-500/10 text-green-600" />
+        <KPI label="MRR" value={money(t.mrr)} sub={`${money(t.mrr_homeowners)} HO · ${money(t.mrr_providers)} Pro`} icon={DollarSign} accent="bg-success/10 text-success" />
         <KPI label="ARR (projected)" value={money(t.arr)} sub="MRR × 12" icon={TrendingUp} accent="bg-emerald-500/10 text-emerald-600" />
         <KPI label="ARPU" value={moneyDetailed(t.arpu)} sub="All users" icon={CreditCard} />
         <KPI label="ARPPU" value={moneyDetailed(t.arppu)} sub="Paying users only" icon={Crown} accent="bg-amber-500/10 text-amber-600" />
@@ -305,7 +305,7 @@ const BusinessAnalytics = () => {
         <TabsContent value="money" className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <KPI label="GMV bids submitted" value={money(t.gmv_bids_total)} sub={`${num(t.total_bids)} bids · avg ${money(t.avg_bid)}`} icon={Briefcase} />
-            <KPI label="GMV bids accepted" value={money(t.gmv_bids_accepted)} sub={`${num(t.accepted_bids)} accepted`} icon={Briefcase} accent="bg-green-500/10 text-green-600" />
+            <KPI label="GMV bids accepted" value={money(t.gmv_bids_accepted)} sub={`${num(t.accepted_bids)} accepted`} icon={Briefcase} accent="bg-success/10 text-success" />
             <KPI label="GMV signed rentals" value={money(t.gmv_rentals_signed)} sub={`${num(t.signed_agreements)} agreements`} icon={Package} accent="bg-amber-500/10 text-amber-600" />
             <KPI label="Active jobs" value={num(t.active_jobs)} icon={Briefcase} />
             <KPI label="Completed jobs" value={num(t.completed_jobs)} sub={`${num(t.total_jobs)} total`} icon={Briefcase} accent="bg-blue-500/10 text-blue-600" />

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FolderOpen, Plus, Loader2, Pencil, Trash2, FileText, Upload,
-  X, Search, Package, Wrench, Shield, Receipt, Home as HomeIcon, Download, BookOpen, Crown, Sparkles, CalendarClock
+  X, Search, Package, Wrench, Shield, Receipt, Home as HomeIcon, Download, BookOpen, Crown, Sparkles, CalendarClock, Stethoscope
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,9 @@ const itemTypes = [
   { value: "document", label: "Document", icon: FileText },
   { value: "other", label: "Other", icon: FolderOpen },
 ];
+
+/** Maps a binder item type onto the system list used by the diagnosis tool. */
+const triageSystemFor = (itemType: string) => (itemType === "appliance" ? "Appliance" : itemType === "system" ? "Other" : "Other");
 
 const typeColors: Record<string, string> = {
   appliance: "bg-primary/10 text-primary",
@@ -764,6 +767,22 @@ const HomeBinder = () => {
                             </div>
                           );
                         })()}
+
+                        {/* Straight from the binder into a diagnosis, with what
+                            Trimbly already knows about this item filled in. */}
+                        <button
+                          onClick={() =>
+                            navigate("/symptom-triage", {
+                              state: {
+                                symptom: `My ${item.name}${item.brand ? ` (${item.brand}${item.model_number ? ` ${item.model_number}` : ""})` : ""} is `,
+                                system: triageSystemFor(item.item_type),
+                              },
+                            })
+                          }
+                          className="mt-3 flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                        >
+                          <Stethoscope size={12} /> Something wrong with it?
+                        </button>
                       </div>
                     );
                   })}

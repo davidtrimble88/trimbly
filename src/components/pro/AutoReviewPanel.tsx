@@ -142,7 +142,7 @@ const AutoReviewPanel = ({ providerId, userId, jobsTable = "jobs", ownerIdField 
                   <div className="text-xs text-muted-foreground">{new Date(j.updated_at).toLocaleDateString()}</div>
                 </div>
                 {j.hasReview ? (
-                  <Badge className="text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">Reviewed</Badge>
+                  <Badge className="text-[10px] bg-success/15 text-success">Reviewed</Badge>
                 ) : j.hasRequest ? (
                   <Badge variant="secondary" className="text-[10px]">Sent</Badge>
                 ) : (

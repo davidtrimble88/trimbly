@@ -46,7 +46,7 @@ const CompetitorPricingPanel = ({ category, city, state, hourlyMin, hourlyMax }:
     ? "text-orange-600 dark:text-orange-400"
     : intel?.yourPosition === "above"
       ? "text-blue-600 dark:text-blue-400"
-      : "text-green-600 dark:text-green-400";
+      : "text-success";
 
   return (
     <Card>

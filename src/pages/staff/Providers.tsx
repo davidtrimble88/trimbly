@@ -53,7 +53,7 @@ function bgBadge(status: string) {
   const map: Record<string, string> = {
     not_started: "bg-muted text-muted-foreground",
     pending: "bg-warning/15 text-warning border-warning/40",
-    clear: "bg-green-500/15 text-green-700 border-green-500/40",
+    clear: "bg-success/15 text-success border-success/40",
     consider: "bg-orange-500/15 text-orange-700 border-orange-500/40",
     failed: "bg-destructive/15 text-destructive border-destructive/40",
     expired: "bg-destructive/15 text-destructive border-destructive/40",
@@ -217,7 +217,7 @@ const Providers = () => {
                 <div className="mt-3 pt-3 border-t border-border space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-foreground">Verification fee</span>
-                    <Badge variant="outline" className={`text-[10px] ${verifications[p.id]?.verification_fee_status === "paid" ? "bg-green-500/15 text-green-700 border-green-500/40" : "bg-muted text-muted-foreground"}`}>
+                    <Badge variant="outline" className={`text-[10px] ${verifications[p.id]?.verification_fee_status === "paid" ? "bg-success/15 text-success border-success/40" : "bg-muted text-muted-foreground"}`}>
                       {verifications[p.id]?.verification_fee_status || "unpaid"}
                     </Badge>
                   </div>
@@ -249,7 +249,7 @@ const Providers = () => {
                         </Button>
                         {doc.status === "pending" && (
                           <>
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-green-600" onClick={() => reviewDoc(doc, "approved")} title="Approve">
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-success" onClick={() => reviewDoc(doc, "approved")} title="Approve">
                               <Check className="w-3 h-3" />
                             </Button>
                             <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive" onClick={() => reviewDoc(doc, "rejected")} title="Reject">

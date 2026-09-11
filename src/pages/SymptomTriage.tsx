@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Stethoscope, Loader2, AlertTriangle, ShieldAlert, Clock, Calendar,
   Wrench, DollarSign, Crown, CheckCircle2, PhoneCall, ChevronRight, Home,
-  ShieldCheck, Upload
+  Calculator
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,13 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import BrandMark from "@/components/BrandMark";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import TrimblyResultCard from "@/components/tools/TrimblyResultCard";
+import CoverageCallout from "@/components/tools/CoverageCallout";
+import { useCoverageCheck } from "@/components/tools/useCoverageCheck";
 import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
 import { tierLabels } from "@/components/dashboard/homeowner/types";
 import { getSymptomTriage, type SymptomTriage } from "@/lib/api/symptomTriage";
-import { checkCoverage, loadCoverageDocRefs, type CoverageVerdict } from "@/lib/api/coverageCheck";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useHomeLimit } from "@/hooks/useHomeLimit";
@@ -74,13 +75,7 @@ const urgencyTile: Record<SymptomTriage["urgency"], { word: string; box: string;
   monitor: { word: "Low", box: "bg-success/10", label: "text-success" },
 };
 
-const coverageStatusLabel: Record<CoverageVerdict["status"], string> = {
-  likely_covered: "Likely covered",
-  possibly_covered: "May be covered",
-  not_covered: "Not covered",
-  unclear: "Couldn't confirm from your documents",
-};
-
+type TriagePrefill = { symptom?: string; system?: string };
 
 const SymptomTriagePage = () => {
   const { user, profileName, loading: authLoading } = useAuth();
@@ -88,30 +83,18 @@ const SymptomTriagePage = () => {
   const { active: hasGarage } = useGarageSubscription();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const prefill = (useLocation().state ?? {}) as TriagePrefill;
 
-  const [symptom, setSymptom] = useState("");
-  const [system, setSystem] = useState("");
+  const [symptom, setSymptom] = useState(prefill.symptom ?? "");
+  const [system, setSystem] = useState(prefill.system ?? "");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SymptomTriage | null>(null);
-  const [docRefs, setDocRefs] = useState<{ url: string; mimeType: string; label: string }[]>([]);
-  const [docsChecked, setDocsChecked] = useState(false);
-  const [coverage, setCoverage] = useState<CoverageVerdict | null>(null);
-  const [coverageLoading, setCoverageLoading] = useState(false);
-  const [coverageError, setCoverageError] = useState(false);
+  const { docRefs, docsChecked, coverage, coverageLoading, coverageError, run: runCoverage, reset: resetCoverage } =
+    useCoverageCheck(user?.id);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading]);
-
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    (async () => {
-      const refs = await loadCoverageDocRefs(user.id);
-      if (!cancelled) { setDocRefs(refs); setDocsChecked(true); }
-    })();
-    return () => { cancelled = true; };
-  }, [user?.id]);
 
   if (authLoading || !user) {
     return (
@@ -132,29 +115,16 @@ const SymptomTriagePage = () => {
     }
     setLoading(true);
     setResult(null);
-    setCoverage(null);
-    setCoverageError(false);
+    resetCoverage();
     try {
       const triage = await getSymptomTriage({
         symptom: symptom.trim(),
         system_type: system || undefined,
       });
       setResult(triage);
-
-      if (docRefs.length > 0) {
-        setCoverageLoading(true);
-        try {
-          const verdict = await checkCoverage(
-            `${triage.diagnosis_title} (${triage.system}). ${triage.summary} Homeowner described: ${symptom.trim()}`,
-            docRefs,
-          );
-          setCoverage(verdict);
-        } catch {
-          setCoverageError(true);
-        } finally {
-          setCoverageLoading(false);
-        }
-      }
+      await runCoverage(
+        `${triage.diagnosis_title} (${triage.system}). ${triage.summary} Homeowner described: ${symptom.trim()}`,
+      );
     } catch (e) {
       toast({
         title: "Couldn't analyze symptom",
@@ -253,18 +223,7 @@ const SymptomTriagePage = () => {
           {result && (
             <div className="space-y-5">
               {/* Summary card — matches the diagnosis card shown on the Trimbly landing page */}
-              <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--product-shadow)]">
-                <div className="flex items-center justify-between gap-3 border-b border-border pb-4">
-                  <div className="flex items-center gap-2.5">
-                    <BrandMark className="h-9 w-9" />
-                    <div>
-                      <p className="text-xs font-bold text-primary">MY HOME</p>
-                      <p className="text-sm font-semibold text-foreground">Here's what Trimbly found</p>
-                    </div>
-                  </div>
-                  <span className="rounded-md bg-accent/15 px-2.5 py-1 text-xs font-bold text-accent-foreground">{result.system}</span>
-                </div>
-
+              <TrimblyResultCard title="Here's what Trimbly found" tag={result.system}>
                 <p className="mt-4 text-lg font-bold text-foreground">{result.diagnosis_title}</p>
 
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -285,43 +244,15 @@ const SymptomTriagePage = () => {
                 </div>
 
                 {/* Coverage — reads the homeowner's uploaded warranty & insurance documents */}
-                <div className="mt-3 rounded-lg bg-primary/[0.08] p-3 text-sm text-foreground">
-                  {coverageLoading ? (
-                    <span className="flex items-center gap-2 text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" /> Checking your warranty and insurance documents…
-                    </span>
-                  ) : coverage ? (
-                    <div className="flex items-start gap-2">
-                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                      <div>
-                        <p><strong>Coverage:</strong> {coverageStatusLabel[coverage.status]}{coverage.source && coverage.source !== "None" ? ` — ${coverage.source}` : ""}</p>
-                        <p className="mt-1 text-muted-foreground">{coverage.explanation}</p>
-                        {coverage.next_step && <p className="mt-1 text-muted-foreground">{coverage.next_step}</p>}
-                      </div>
-                    </div>
-                  ) : coverageError ? (
-                    <span className="flex items-start gap-2 text-muted-foreground">
-                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                      We couldn't check your coverage documents this time. Try again in a moment.
-                    </span>
-                  ) : docsChecked && docRefs.length === 0 ? (
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex items-start gap-2">
-                        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                        <span>
-                          <strong>Coverage:</strong> This repair might be covered. Add your home warranty or insurance policy and Trimbly will check it against issues like this one automatically.
-                        </span>
-                      </div>
-                      <Button asChild size="sm" variant="outline" className="bg-card">
-                        <Link to="/coverage"><Upload size={14} className="mr-1.5" /> Upload your documents</Link>
-                      </Button>
-                    </div>
-                  ) : (
-                    <span className="flex items-center gap-2 text-muted-foreground">
-                      <ShieldCheck className="h-4 w-4 shrink-0 text-primary" /> Checking your coverage…
-                    </span>
-                  )}
-                </div>
+                <CoverageCallout
+                  className="mt-3"
+                  loading={coverageLoading}
+                  error={coverageError}
+                  verdict={coverage}
+                  docsChecked={docsChecked}
+                  hasDocs={docRefs.length > 0}
+                  emptyPrompt="This repair might be covered. Add your home warranty or insurance policy and Trimbly will check it against issues like this one automatically."
+                />
 
                 <div className="mt-4">
                   <p className="text-[11px] font-bold text-muted-foreground">NEXT STEP</p>
@@ -329,7 +260,43 @@ const SymptomTriagePage = () => {
                     {result.diy_steps[0] ?? `Schedule a ${result.recommended_pro_type} to take a look.`}
                   </p>
                 </div>
-              </div>
+
+                <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-card"
+                    onClick={() =>
+                      navigate("/estimator", {
+                        state: {
+                          description: `${result.diagnosis_title}. ${result.summary}`,
+                          category: result.system,
+                        },
+                      })
+                    }
+                  >
+                    <Calculator size={14} className="mr-1.5" /> Get a detailed cost estimate
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-card"
+                    onClick={() =>
+                      navigate("/post-job", {
+                        state: {
+                          title: result.diagnosis_title,
+                          description: `${result.summary}\n\nWhat I'm seeing: ${symptom.trim()}`,
+                          category: result.system,
+                          budget_min: result.estimated_cost_low,
+                          budget_max: result.estimated_cost_high,
+                        },
+                      })
+                    }
+                  >
+                    <Wrench size={14} className="mr-1.5" /> Get bids from local pros
+                  </Button>
+                </div>
+              </TrimblyResultCard>
 
               {/* Urgency detail */}
               <Card className={`border-2 ${urgencyMeta[result.urgency].classes}`}>

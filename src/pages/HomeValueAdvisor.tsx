@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   TrendingUp, TrendingDown, Minus, HelpCircle, Loader2, Crown,
   DollarSign, Percent, Clock, HardHat, Wrench, Lightbulb,
@@ -47,10 +47,12 @@ const HomeValueAdvisor = () => {
   const { active: hasGarage } = useGarageSubscription();
   const { toast } = useToast();
   const navigate = useNavigate();
+  /** A project carried over from somewhere else in Trimbly. */
+  const prefill = (useLocation().state ?? {}) as { description?: string };
 
   const [homes, setHomes] = useState<HomeOption[]>([]);
   const [selectedHomeId, setSelectedHomeId] = useState<string>("");
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(prefill.description ?? "");
 
   const [quickLoading, setQuickLoading] = useState(false);
   const [quickResult, setQuickResult] = useState<QuickValueEstimate | null>(null);

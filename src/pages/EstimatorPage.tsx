@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Brain, Loader2, DollarSign, Clock, Wrench, Lightbulb, ShieldCheck, AlertTriangle, ChevronRight, Crown, PlayCircle, ShoppingCart, ExternalLink, Home } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Brain, Loader2, DollarSign, Clock, Wrench, Lightbulb, ShieldCheck, AlertTriangle, ChevronRight, Crown, PlayCircle, ShoppingCart, ExternalLink, Home, FileWarning } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import TrimblyResultCard from "@/components/tools/TrimblyResultCard";
+import CoverageCallout from "@/components/tools/CoverageCallout";
+import { useCoverageCheck } from "@/components/tools/useCoverageCheck";
 import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
 import { tierLabels } from "@/components/dashboard/homeowner/types";
 import { getJobEstimate, type JobEstimate } from "@/lib/api/jobEstimator";
@@ -23,17 +26,22 @@ const categories = ["Plumbing", "Electrical", "Handyman", "General Contractor", 
 const difficultyLabels = ["", "Easy — DIY Friendly", "Moderate", "Intermediate", "Advanced", "Expert Only"];
 const difficultyColors = ["", "text-primary", "text-primary", "text-accent", "text-destructive", "text-destructive"];
 
+type EstimatePrefill = { description?: string; category?: string };
+
 const EstimatorPage = () => {
   const { user, profileName } = useAuth();
   const navigate = useNavigate();
+  const prefill = (useLocation().state ?? {}) as EstimatePrefill;
   const { hasEstimator, subscriptionTier, loading: limitLoading } = useHomeLimit();
   const { active: hasGarage } = useGarageSubscription();
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
+  const [description, setDescription] = useState(prefill.description ?? "");
+  const [category, setCategory] = useState(categories.includes(prefill.category ?? "") ? prefill.category! : "");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [loading, setLoading] = useState(false);
   const [estimate, setEstimate] = useState<JobEstimate | null>(null);
+  const { docRefs, docsChecked, coverage, coverageLoading, coverageError, run: runCoverage, reset: resetCoverage } =
+    useCoverageCheck(user?.id);
   const { toast } = useToast();
 
   if (!user) {
@@ -60,6 +68,7 @@ const EstimatorPage = () => {
     }
     setLoading(true);
     setEstimate(null);
+    resetCoverage();
     try {
       const result = await getJobEstimate({
         description: description.trim(),
@@ -68,6 +77,7 @@ const EstimatorPage = () => {
         state: state.trim() || undefined,
       });
       setEstimate(result);
+      await runCoverage(`${result.job_title} (${result.category}). ${result.summary} Homeowner described: ${description.trim()}`);
     } catch (err: any) {
       console.error("Estimate error:", err);
       toast({ title: "Error", description: err?.message || "Failed to generate estimate. Please try again.", variant: "destructive" });
@@ -181,12 +191,20 @@ const EstimatorPage = () => {
           {/* Results */}
           {estimate && !loading && (
             <div className="space-y-6 animate-fade-in-up">
-              {/* Summary Header */}
-              <div className="rounded-xl border border-primary/20 bg-primary/5 p-6">
-                <h2 className="text-xl font-bold text-foreground mb-1">{estimate.job_title}</h2>
-                <span className="text-xs font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-full">{estimate.category}</span>
-                <p className="text-muted-foreground text-sm mt-3 leading-relaxed">{estimate.summary}</p>
-              </div>
+              {/* Summary Header — same card people see on the Trimbly website */}
+              <TrimblyResultCard title="Here's what Trimbly estimates" tag={estimate.category}>
+                <h2 className="mt-4 text-lg font-bold text-foreground">{estimate.job_title}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{estimate.summary}</p>
+                <CoverageCallout
+                  className="mt-3"
+                  loading={coverageLoading}
+                  error={coverageError}
+                  verdict={coverage}
+                  docsChecked={docsChecked}
+                  hasDocs={docRefs.length > 0}
+                  emptyPrompt="Some of this work may be covered. Add your home warranty or insurance policy and Trimbly will check jobs like this one against it automatically."
+                />
+              </TrimblyResultCard>
 
               {/* Key Metrics */}
               <div className="grid sm:grid-cols-3 gap-4">
@@ -304,6 +322,41 @@ const EstimatorPage = () => {
                   ))}
                 </ul>
               </div>
+
+              {/* Next steps — keep the job moving without retyping anything */}
+              <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5">
+                <p className="font-bold text-foreground">What's next?</p>
+                <p className="mt-1 text-sm text-muted-foreground">Compare this estimate against a real quote, or let local pros bid on it.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-card"
+                    onClick={() => navigate("/quote-reviewer", { state: { projectContext: estimate.job_title } })}
+                  >
+                    <FileWarning size={14} className="mr-1.5" /> Check a quote you received
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-card"
+                    onClick={() =>
+                      navigate("/post-job", {
+                        state: {
+                          title: estimate.job_title,
+                          description: estimate.summary,
+                          category: estimate.category,
+                          budget_min: estimate.cost_low,
+                          budget_max: estimate.cost_high,
+                        },
+                      })
+                    }
+                  >
+                    <Wrench size={14} className="mr-1.5" /> Get bids from local pros
+                  </Button>
+                </div>
+              </div>
+
 
               {/* Disclaimer */}
               <p className="text-xs text-muted-foreground text-center">

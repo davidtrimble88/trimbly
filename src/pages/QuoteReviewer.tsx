@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FileWarning, Loader2, ShieldAlert, ShieldCheck, AlertTriangle, CheckCircle2,
   HelpCircle, ArrowRight, Crown, Home as HomeIcon,
@@ -12,6 +12,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import TrimblyResultCard from "@/components/tools/TrimblyResultCard";
+import CoverageCallout from "@/components/tools/CoverageCallout";
+import { useCoverageCheck } from "@/components/tools/useCoverageCheck";
 import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
 import { tierLabels } from "@/components/dashboard/homeowner/types";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,14 +38,17 @@ const severityBadgeClass: Record<RiskLevel, string> = {
 const QuoteReviewer = () => {
   const { user, profileName } = useAuth();
   const navigate = useNavigate();
+  const prefill = (useLocation().state ?? {}) as { projectContext?: string };
   const { isPro, subscriptionTier, loading: limitLoading } = useHomeLimit();
   const { active: hasGarage } = useGarageSubscription();
   const { toast } = useToast();
 
   const [quoteText, setQuoteText] = useState("");
-  const [projectContext, setProjectContext] = useState("");
+  const [projectContext, setProjectContext] = useState(prefill.projectContext ?? "");
   const [loading, setLoading] = useState(false);
   const [review, setReview] = useState<QuoteReview | null>(null);
+  const { docRefs, docsChecked, coverage, coverageLoading, coverageError, run: runCoverage, reset: resetCoverage } =
+    useCoverageCheck(user?.id);
 
   if (!user) {
     return (
@@ -70,9 +76,13 @@ const QuoteReviewer = () => {
     }
     setLoading(true);
     setReview(null);
+    resetCoverage();
     try {
       const result = await reviewQuote({ quoteText: quoteText.trim(), projectContext: projectContext.trim() || undefined });
       setReview(result);
+      await runCoverage(
+        `Contractor quote for ${projectContext.trim() || "home work"}. ${result.risk_summary} Quote text: ${quoteText.trim().slice(0, 4000)}`,
+      );
     } catch (err: any) {
       toast({ title: "Error", description: err?.message || "Failed to review the quote. Please try again.", variant: "destructive" });
     } finally {
@@ -159,15 +169,24 @@ const QuoteReviewer = () => {
 
           {review && !loading && RMeta && (
             <div className="space-y-6 animate-fade-in-up">
-              <div className={`rounded-xl border p-6 ${RMeta.className}`}>
-                <div className="flex items-start gap-3">
+              <TrimblyResultCard title="Here's what Trimbly found in this quote" tag={projectContext.trim() || undefined}>
+                <div className={`mt-4 flex items-start gap-3 rounded-lg border p-4 ${RMeta.className}`}>
                   <RMeta.icon size={24} className="mt-0.5 shrink-0" />
                   <div>
                     <h2 className="text-lg font-bold text-foreground">{RMeta.label}</h2>
                     <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{review.risk_summary}</p>
                   </div>
                 </div>
-              </div>
+                <CoverageCallout
+                  className="mt-3"
+                  loading={coverageLoading}
+                  error={coverageError}
+                  verdict={coverage}
+                  docsChecked={docsChecked}
+                  hasDocs={docRefs.length > 0}
+                  emptyPrompt="Part of this work may be covered by a warranty or your insurance. Add your policies and Trimbly will check quotes like this against them automatically."
+                />
+              </TrimblyResultCard>
 
               {review.red_flags.length > 0 && (
                 <div className="rounded-xl border border-border bg-card p-5">

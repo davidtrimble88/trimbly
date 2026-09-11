@@ -199,7 +199,7 @@ export default function MechanicDashboard() {
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <Wrench className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-          <h1 className="text-3xl font-bold mb-2">No Mechanic Profile</h1>
+          <h1 className="font-display text-3xl font-bold mb-2">No Mechanic Profile</h1>
           <p className="text-muted-foreground mb-6">Create your shop profile to start receiving vehicle jobs.</p>
           <Button size="lg" onClick={() => navigate("/mechanic-pricing")}>Register as a Mechanic</Button>
         </div>
