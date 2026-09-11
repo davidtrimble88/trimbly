@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, ExternalLink, Wrench } from "lucide-react";
+import { ShoppingCart, ExternalLink } from "lucide-react";
 import { VehicleProductDialog } from "@/components/garage/VehicleProductDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -43,12 +43,7 @@ export default function GarageMaintenance() {
 
   return (
     <div className="space-y-4">
-      <h1 className="font-display text-2xl font-bold flex items-center gap-2.5">
-        <span className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-          <Wrench className="w-4 h-4 text-primary" />
-        </span>
-        All Maintenance
-      </h1>
+      <h1 className="font-display text-2xl font-bold">All Maintenance</h1>
       {tasks.length === 0 ? (
         <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Add a vehicle to seed maintenance tasks.</CardContent></Card>
       ) : (

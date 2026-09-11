@@ -185,12 +185,7 @@ const MyQR = () => {
             <ArrowLeft size={16} /> Back to Dashboard
           </Button>
 
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <QrCode className="w-5 h-5 text-primary" />
-            </div>
-            <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground">My QR Code</h1>
-          </div>
+          <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground mb-2">My QR Code</h1>
           <p className="text-muted-foreground mb-6">
             Homeowners scan this code to view your profile and book you directly.
           </p>

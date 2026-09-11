@@ -17,3 +17,5 @@
 
 - [ ] Extend the approved warm, premium Trimbly theme across public pages and all portals without changing functionality.
 - [ ] Verify homeowner, provider, mechanic, garage, staff, and public flows at desktop and mobile sizes.
+
+- [ ] Migrate the authenticated homeowner portal to the landing page visual system (typography, color, sidebar, header, cards) without changing functionality.

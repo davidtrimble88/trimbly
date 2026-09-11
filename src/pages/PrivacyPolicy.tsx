@@ -23,7 +23,7 @@ const PrivacyPolicy = () => {
           </Link>
 
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <Shield size={22} className="text-primary" />
             </div>
             <div>

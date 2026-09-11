@@ -38,7 +38,7 @@ const DashboardShell = ({ brandLabel, navItems, groups, activeItemId, onNavigate
       />
       <SidebarInset>
         <DashboardHeader {...header} />
-        <div className="flex-1 p-4 md:p-6">{children}</div>
+        <div className="flex-1 px-4 py-6 md:px-8 md:py-8">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

@@ -65,7 +65,7 @@ const PortalChoice = () => {
             onClick={() => navigate(userDashRoute)}
           >
             <CardContent className="p-6">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                 <Home className="w-6 h-6 text-primary" />
               </div>
               <h2 className="font-display text-xl font-bold mb-2">User Dashboard</h2>
@@ -83,7 +83,7 @@ const PortalChoice = () => {
             onClick={() => navigate("/staff")}
           >
             <CardContent className="p-6">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                 <ShieldCheck className="w-6 h-6 text-primary" />
               </div>
               <h2 className="font-display text-xl font-bold mb-2">Employee Portal</h2>

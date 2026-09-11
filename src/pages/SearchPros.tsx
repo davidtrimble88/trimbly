@@ -243,12 +243,7 @@ const SearchPros = () => {
             <ArrowLeft size={16} /> Back to home
           </Link>
         )}
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <Search className="w-5 h-5 text-primary" />
-          </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display">Find a Pro Near You</h1>
-        </div>
+        <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display mb-2">Find a Pro Near You</h1>
         <p className="text-muted-foreground">Registered, verified pros in your area show up first — we only fill in with web results if there aren't enough nearby.</p>
       </div>
 

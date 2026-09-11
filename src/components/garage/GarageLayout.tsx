@@ -17,7 +17,7 @@ export default function GarageLayout() {
   const hasAccess = useGarageAccess();
 
   return (
-    <div className="min-h-screen bg-secondary/30">
+    <div className="min-h-screen bg-background">
       {/* Minimal back-to-dashboard bar, replacing the full public nav */}
       <div className="bg-background border-b border-border">
         <div className="container mx-auto px-4 h-12 flex items-center">
@@ -31,15 +31,15 @@ export default function GarageLayout() {
       </div>
 
       {/* Garage strip */}
-      <div className="bg-foreground text-background">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
-              <Car className="w-4 h-4 text-primary-foreground" />
+      <div className="bg-card border-b border-border">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+              <Car className="w-4 h-4 text-primary" />
             </div>
-            <span className="font-display font-bold text-lg">My Garage</span>
+            <span className="font-display font-bold text-lg text-foreground">My Garage</span>
           </div>
-          <span className="text-xs text-background/60 hidden sm:inline">Vehicles &amp; motorcycles</span>
+          <span className="text-xs text-muted-foreground hidden sm:inline">Vehicles &amp; motorcycles</span>
         </div>
       </div>
 

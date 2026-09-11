@@ -11,9 +11,8 @@ import BusinessHoursPanel, { type BusinessHours } from "@/components/pro/Busines
 import {
   MapPin, Briefcase, Star, Loader2, ShieldCheck, Award,
   MessageSquare, Zap, Clock, Phone, Pencil, Wallet, ExternalLink,
-  AlertTriangle, SearchX,
+
 } from "lucide-react";
-import { EmptyState } from "@/components/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
 import { PAYMENT_METHOD_MAP } from "@/lib/paymentMethods";
 import { useAuth } from "@/hooks/useAuth";
@@ -186,25 +185,21 @@ const PublicProviderProfile = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <main className="flex-1 pt-24 pb-16 container mx-auto px-4 max-w-md py-16">
+        <main className="flex-1 pt-24 pb-16 container mx-auto px-4 max-w-md text-center py-16">
           {loadError ? (
-            <EmptyState
-              icon={AlertTriangle}
-              title="Something went wrong"
-              description="We couldn't load this profile right now — this usually means a temporary issue, not that the profile doesn't exist. Please try again in a moment."
-              actionLabel="Browse pros"
-              actionHref="/search"
-              tone="warning"
-            />
+            <>
+              <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
+              <p className="text-muted-foreground mb-6">
+                We couldn't load this profile right now — this usually means a temporary issue, not that the profile doesn't exist. Please try again in a moment.
+              </p>
+            </>
           ) : (
-            <EmptyState
-              icon={SearchX}
-              title="Pro not found"
-              description="This profile doesn't exist or has been removed."
-              actionLabel="Browse pros"
-              actionHref="/search"
-            />
+            <>
+              <h1 className="text-2xl font-bold mb-2">Pro not found</h1>
+              <p className="text-muted-foreground mb-6">This profile doesn't exist or has been removed.</p>
+            </>
           )}
+          <Button asChild><Link to="/search">Browse pros</Link></Button>
         </main>
         <Footer />
       </div>

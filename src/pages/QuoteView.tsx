@@ -8,9 +8,8 @@ import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Check, X, Loader2, Printer, ArrowLeft, AlertTriangle, SearchX } from "lucide-react";
+import { FileText, Check, X, Loader2, Printer, ArrowLeft } from "lucide-react";
 import MilestonesPanel from "@/components/quotes/MilestonesPanel";
-import { EmptyState } from "@/components/EmptyState";
 
 interface LineItem {
   description: string;
@@ -107,16 +106,13 @@ const QuoteView = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <main className="flex-1 pt-24 pb-16 container mx-auto px-4 max-w-md py-16">
-          <EmptyState
-            icon={AlertTriangle}
-            title="Couldn't load quote"
-            description={loadError}
-            actionLabel="Try again"
-            onAction={load}
-            tone="warning"
-            secondary={<Button variant="outline" onClick={() => navigate(-1)}>Back</Button>}
-          />
+        <main className="flex-1 pt-24 pb-16 container mx-auto px-4 max-w-md text-center py-16">
+          <h1 className="text-2xl font-bold mb-2">Couldn't load quote</h1>
+          <p className="text-muted-foreground mb-6">{loadError}</p>
+          <div className="flex justify-center gap-2">
+            <Button variant="outline" onClick={() => navigate(-1)}>Back</Button>
+            <Button onClick={load}>Try again</Button>
+          </div>
         </main>
         <Footer />
       </div>
@@ -127,14 +123,10 @@ const QuoteView = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <main className="flex-1 pt-24 pb-16 container mx-auto px-4 max-w-md py-16">
-          <EmptyState
-            icon={SearchX}
-            title="Quote not found"
-            description="This quote doesn't exist or you don't have access."
-            actionLabel="Back"
-            onAction={() => navigate(-1)}
-          />
+        <main className="flex-1 pt-24 pb-16 container mx-auto px-4 max-w-md text-center py-16">
+          <h1 className="text-2xl font-bold mb-2">Quote not found</h1>
+          <p className="text-muted-foreground mb-6">This quote doesn't exist or you don't have access.</p>
+          <Button onClick={() => navigate(-1)}>Back</Button>
         </main>
         <Footer />
       </div>
@@ -158,11 +150,8 @@ const QuoteView = () => {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-wider text-muted-foreground">Quote from</p>
-                  <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-2.5 font-display">
-                    <span className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <FileText className="w-4 h-4 text-primary" />
-                    </span>
-                    {providerName}
+                  <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-2">
+                    <FileText className="text-primary" /> {providerName}
                   </h1>
                   <p className="text-sm text-muted-foreground mt-1">
                     {new Date(quote.sent_at || quote.created_at).toLocaleDateString()}

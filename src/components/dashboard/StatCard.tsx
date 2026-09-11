@@ -41,19 +41,19 @@ const StatCard = ({ icon: Icon, value, label, emptyLabel, isEmpty, onClick, tone
   return (
     <Tag
       onClick={onClick}
-      className={`rounded-xl border border-border bg-card p-5 text-center shadow-[var(--card-shadow)] transition-all ${
+      className={`w-full rounded-2xl border border-border bg-card p-5 text-left shadow-[var(--card-shadow)] transition-all ${
         animate ? "animate-fade-in-up" : ""
       } ${onClick ? "hover:border-primary/40 hover:shadow-[var(--card-shadow-hover)] cursor-pointer" : ""}`}
     >
-      <div className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2.5 ${t.circle}`}>
-        <Icon className={`h-5 w-5 ${t.icon}`} />
+      <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-full ${t.circle}`}>
+        <Icon className={`h-[1.15rem] w-[1.15rem] ${t.icon}`} strokeWidth={1.8} />
       </div>
       {isEmpty && emptyLabel ? (
-        <p className="text-sm font-medium text-muted-foreground">{emptyLabel}</p>
+        <p className="font-body text-sm font-medium text-muted-foreground">{emptyLabel}</p>
       ) : (
         <>
-          <p className={`font-display text-2xl font-semibold ${t.value}`}>{value}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
+          <p className={`font-display text-[1.75rem] font-bold leading-none ${t.value}`}>{value}</p>
+          <p className="mt-1.5 font-body text-xs text-muted-foreground">{label}</p>
         </>
       )}
     </Tag>

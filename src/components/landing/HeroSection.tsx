@@ -51,7 +51,7 @@ const HeroSection = () => {
             </div>
           </div>
 
-          <div className="relative min-h-[600px] sm:min-h-[460px] lg:min-h-[640px]">
+          <div className="relative min-h-[420px] lg:min-h-[640px]">
             <img
               src={modernHome}
               alt="A welcoming modern home in warm morning light"

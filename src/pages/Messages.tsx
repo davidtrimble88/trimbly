@@ -429,14 +429,9 @@ const Messages = () => {
           </Link>
         )}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <MessageSquare className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display">Messages</h1>
-              <p className="text-muted-foreground text-sm mt-1">Communicate with service providers directly</p>
-            </div>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-foreground font-display">Messages</h1>
+            <p className="text-muted-foreground text-sm mt-1">Communicate with service providers directly</p>
           </div>
           <Button asChild className="gap-2">
             <Link to="/search"><Search size={14} /> Find Local Pros</Link>

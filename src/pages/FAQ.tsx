@@ -91,7 +91,7 @@ const FAQ = () => {
           </Link>
 
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-4">
               <HelpCircle className="text-primary" />
             </div>
             <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Frequently Asked Questions</p>

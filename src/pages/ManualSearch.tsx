@@ -109,7 +109,7 @@ const ManualSearch = () => {
           </Link>
 
           <div className="mb-8">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
               <BookOpen className="text-primary" size={24} />
             </div>
             <h1 className="text-3xl md:text-4xl font-display font-extrabold text-foreground mb-2">

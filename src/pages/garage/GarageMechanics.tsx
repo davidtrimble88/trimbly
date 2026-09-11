@@ -66,12 +66,7 @@ export default function GarageMechanics() {
 
   return (
     <div className="space-y-4">
-      <h1 className="font-display text-2xl font-bold flex items-center gap-2.5">
-        <span className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-          <Search className="w-4 h-4 text-primary" />
-        </span>
-        Find a Mechanic
-      </h1>
+      <h1 className="font-display text-2xl font-bold">Find a Mechanic</h1>
       <p className="text-sm text-muted-foreground">Trimbly pros who work on cars and motorcycles. Message first — phone only after they approve.</p>
 
       <form onSubmit={(e) => { e.preventDefault(); load(); }} className="flex gap-2">

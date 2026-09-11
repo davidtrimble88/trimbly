@@ -47,12 +47,7 @@ export default function GarageDocuments() {
 
   return (
     <div className="space-y-4">
-      <h1 className="font-display text-2xl font-bold flex items-center gap-2.5">
-        <span className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-          <FileText className="w-4 h-4 text-primary" />
-        </span>
-        All Documents
-      </h1>
+      <h1 className="font-display text-2xl font-bold">All Documents</h1>
       {docs.length === 0 ? (
         <Card className="text-center py-10">
           <CardContent>

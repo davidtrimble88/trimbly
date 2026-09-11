@@ -539,12 +539,7 @@ Last updated: ${fmtTs(a.updated_at)}
 
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2.5 font-display">
-              <span className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <Wrench size={18} className="text-primary" />
-              </span>
-              Equipment Marketplace
-            </h1>
+            <h1 className="text-2xl font-bold flex items-center gap-2"><Wrench size={22} /> Equipment Marketplace</h1>
             <p className="text-sm text-muted-foreground">
               {isHomeowner
                 ? "Rent tools and equipment directly from local service providers. Message, sign, and keep a copy of every agreement."

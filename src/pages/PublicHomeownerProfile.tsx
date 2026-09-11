@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Calendar, Briefcase, CheckCircle, Star, Loader2, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import StatsGrid from "@/components/profile/StatsGrid";
-import { EmptyState } from "@/components/EmptyState";
 
 interface ProfileData {
   id: string;
@@ -75,14 +74,15 @@ const PublicHomeownerProfile = () => {
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
         <main className="flex-1 pt-24 pb-16">
-          <div className="container mx-auto px-4 max-w-md py-16">
-            <EmptyState
-              icon={Lock}
-              title="Profile is private"
-              description="This user hasn't made their profile public, or the link is incorrect."
-              actionLabel="Back to home"
-              actionHref="/"
-            />
+          <div className="container mx-auto px-4 max-w-md text-center py-16">
+            <Lock size={48} className="mx-auto text-muted-foreground mb-4" />
+            <h1 className="text-2xl font-bold text-foreground mb-2">Profile is private</h1>
+            <p className="text-muted-foreground mb-6">
+              This user hasn't made their profile public, or the link is incorrect.
+            </p>
+            <Button asChild>
+              <Link to="/">Back to home</Link>
+            </Button>
           </div>
         </main>
         <Footer />

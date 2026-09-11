@@ -261,12 +261,7 @@ export default function VehicleCoverage() {
       <div className="flex items-center gap-3">
         <Shield className="h-8 w-8 text-primary" />
         <div>
-          <h1 className="text-2xl font-bold font-display flex items-center gap-2.5">
-            <span className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <Shield className="w-4 h-4 text-primary" />
-            </span>
-            Vehicle Coverage Advisor
-          </h1>
+          <h1 className="text-2xl font-bold">Vehicle Coverage Advisor</h1>
           <p className="text-sm text-muted-foreground">
             Upload your auto insurance & warranty docs, describe what happened, and AI will tell you what's covered,
             write a strong claim, and weigh the pros &amp; cons of filing.

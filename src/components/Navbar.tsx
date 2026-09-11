@@ -231,7 +231,6 @@ const Navbar = ({ minimal = false }: NavbarProps) => {
   const dashboardRoute = isProvider ? "/pro-dashboard" : "/dashboard";
 
   return (
-    <>
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <Link to={user ? dashboardRoute : "/"} className="flex items-center gap-2">
@@ -287,10 +286,9 @@ const Navbar = ({ minimal = false }: NavbarProps) => {
           </button>
         )}
       </div>
-    </nav>
 
       {!minimal && open && (
-        <div className="md:hidden fixed inset-x-0 top-16 bottom-0 z-50 overflow-y-auto border-t border-border bg-background p-4 space-y-3 animate-fade-in">
+        <div className="md:hidden border-t border-border bg-background p-4 space-y-3 animate-fade-in">
           {user ? userMobileLinks?.(() => setOpen(false)) : guestMobileLinks(() => setOpen(false))}
 
           {user && isAdmin && inStaffPortal && (
@@ -322,7 +320,7 @@ const Navbar = ({ minimal = false }: NavbarProps) => {
           </div>
         </div>
       )}
-    </>
+    </nav>
   );
 };
 

@@ -120,7 +120,7 @@ export default function GarageUpsell() {
             ].map((f) => (
               <Card key={f.title} className="bg-card">
                 <CardContent className="p-6">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-3">
                     <f.icon size={20} />
                   </div>
                   <h3 className="font-display font-bold text-lg mb-1">{f.title}</h3>
