@@ -47,8 +47,8 @@ const DashboardHeader = ({
   };
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur">
-    <div className="flex items-center gap-3 px-4 py-3 md:px-6">
+    <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur-lg">
+    <div className="flex items-center gap-3 px-4 py-3.5 md:px-6">
       <SidebarTrigger />
       <div className="relative shrink-0">
         <Avatar className="w-10 h-10">
@@ -65,7 +65,7 @@ const DashboardHeader = ({
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="font-display text-base font-semibold text-foreground truncate">{displayName}</p>
+        <p className="font-display text-base font-bold text-foreground truncate">{displayName}</p>
         <div className="flex flex-wrap items-center gap-2 mt-0.5" data-tour="header-tier">{subtitle}</div>
       </div>
       {search && <div className="hidden lg:block shrink-0">{search}</div>}
@@ -77,18 +77,18 @@ const DashboardHeader = ({
           </div>
         )}
         {onViewPublicProfile && (
-          <Button variant="outline" size="sm" className="hidden md:inline-flex rounded-lg" onClick={onViewPublicProfile}>
+          <Button variant="outline" size="sm" className="hidden md:inline-flex rounded-full bg-card px-4" onClick={onViewPublicProfile}>
             <ExternalLink size={14} className="mr-1.5" /> View Public Profile
           </Button>
         )}
-        <Button variant="outline" size="sm" className="hidden md:inline-flex rounded-lg gap-1.5" onClick={() => setInstallOpen(true)}>
+        <Button variant="outline" size="sm" className="hidden md:inline-flex rounded-full bg-card gap-1.5 px-4" onClick={() => setInstallOpen(true)}>
           <Smartphone size={14} /> Download App
         </Button>
         <NotificationBell />
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="rounded-lg" aria-label="More options">
+            <Button variant="outline" size="icon" className="rounded-full bg-card" aria-label="More options">
               <MoreVertical size={16} />
             </Button>
           </DropdownMenuTrigger>
