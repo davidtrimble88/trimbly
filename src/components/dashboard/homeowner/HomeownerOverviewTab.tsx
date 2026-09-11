@@ -178,7 +178,7 @@ const HomeownerOverviewTab = ({
                 headline={
                   overdueTotal > 0
                     ? `${overdueTotal} thing${overdueTotal !== 1 ? "s are" : " is"} overdue${selectedHome ? ` at ${selectedHome.name}` : ""}.`
-                    : `Your home has ${soonestDue.length} thing${soonestDue.length !== 1 ? "s" : ""} to take care of next.`
+                    : `Your home has ${trimblySaysItems.length} thing${trimblySaysItems.length !== 1 ? "s" : ""} to take care of next.`
                 }
                 items={trimblySaysItems}
                 actionLabel="See What To Do"
