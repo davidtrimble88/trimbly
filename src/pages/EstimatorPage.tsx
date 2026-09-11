@@ -68,6 +68,7 @@ const EstimatorPage = () => {
     }
     setLoading(true);
     setEstimate(null);
+    resetCoverage();
     try {
       const result = await getJobEstimate({
         description: description.trim(),
@@ -76,6 +77,7 @@ const EstimatorPage = () => {
         state: state.trim() || undefined,
       });
       setEstimate(result);
+      await runCoverage(`${result.job_title} (${result.category}). ${result.summary} Homeowner described: ${description.trim()}`);
     } catch (err: any) {
       console.error("Estimate error:", err);
       toast({ title: "Error", description: err?.message || "Failed to generate estimate. Please try again.", variant: "destructive" });
