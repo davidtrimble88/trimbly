@@ -13,6 +13,8 @@ interface DashboardHeroBannerProps {
   greetingName: string;
   /** One line under the greeting — a quick "here's where things stand" summary. */
   summary: ReactNode;
+  /** Big line under the greeting kicker. Defaults to the person's first name. */
+  title?: string;
   /** Small at-a-glance health chip, like the one shown on the public homepage. */
   status?: { label: string; tone: "success" | "warning" | "danger" };
   /** The single most time-sensitive thing right now, if there is one — a
@@ -32,7 +34,7 @@ const statusToneClasses = {
  * one-line status summary, and (if there's genuinely something urgent) a
  * single call-to-action button, rather than dropping straight into stat
  * grids with no lead-in. */
-export default function DashboardHeroBanner({ greetingName, summary, status, urgentAction, weatherSlot }: DashboardHeroBannerProps) {
+export default function DashboardHeroBanner({ greetingName, summary, title, status, urgentAction, weatherSlot }: DashboardHeroBannerProps) {
   const hour = new Date().getHours();
   const timeGreeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
@@ -44,7 +46,7 @@ export default function DashboardHeroBanner({ greetingName, summary, status, urg
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-primary">{timeGreeting}</p>
             <h1 className="mt-1 font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
-              {greetingName.split(" ")[0]}'s Home
+              {title ?? greetingName.split(" ")[0]}
             </h1>
             <p className="mt-2 font-body text-[0.95rem] text-muted-foreground">{summary}</p>
           </div>
