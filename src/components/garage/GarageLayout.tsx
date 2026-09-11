@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { ArrowLeft, LayoutDashboard, Car, Wrench, FileText, Search, Briefcase, Shield } from "lucide-react";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import BrandMark from "@/components/BrandMark";
 import { useGarageAccess } from "./GarageAccessContext";
 
 const navItems = [
