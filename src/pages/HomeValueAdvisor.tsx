@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   TrendingUp, TrendingDown, Minus, HelpCircle, Loader2, Crown,
   DollarSign, Percent, Clock, HardHat, Wrench, Lightbulb,
