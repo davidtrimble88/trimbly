@@ -199,48 +199,53 @@
   }
 
   .dark {
-    --background: 154 30% 6%;
+    /* Dark counterpart of the navy/teal product palette — same hues,
+       retuned for contrast rather than copied from the light theme. */
+    --background: 210 45% 7%;
     --foreground: 40 20% 94%;
 
-    --card: 152 20% 10%;
+    --card: 210 38% 11%;
     --card-foreground: 40 20% 94%;
 
-    --popover: 152 20% 10%;
+    --popover: 210 38% 11%;
     --popover-foreground: 40 20% 94%;
 
-    --primary: 156 55% 50%;
-    --primary-foreground: 152 30% 8%;
+    --primary: 181 62% 48%;
+    --primary-foreground: 210 55% 9%;
 
-    --secondary: 156 16% 15%;
+    --secondary: 205 22% 18%;
     --secondary-foreground: 40 20% 94%;
 
-    --muted: 156 16% 15%;
-    --muted-foreground: 84 8% 62%;
+    --muted: 205 22% 18%;
+    --muted-foreground: 200 12% 68%;
 
-    --accent: 28 85% 60%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 95 48% 55%;
+    --accent-foreground: 210 55% 9%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62.8% 42%;
     --destructive-foreground: 210 40% 98%;
 
     --warning: 38 92% 55%;
-    --warning-foreground: 20 14% 8%;
+    --warning-foreground: 210 55% 9%;
 
-    --success: 156 55% 42%;
+    --success: 126 42% 46%;
     --success-foreground: 0 0% 100%;
 
-    --border: 156 16% 18%;
-    --input: 156 16% 18%;
-    --ring: 156 55% 50%;
+    --border: 205 20% 22%;
+    --input: 205 20% 22%;
+    --ring: 181 62% 48%;
 
-    --sidebar-background: 152 22% 7%;
+    --intelligence: 214 78% 62%;
+    --lime: 95 48% 55%;
+
+    --sidebar-background: 210 44% 9%;
     --sidebar-foreground: 40 20% 94%;
-    --sidebar-primary: 156 55% 50%;
-    --sidebar-primary-foreground: 152 30% 8%;
-    --sidebar-accent: 156 16% 15%;
+    --sidebar-primary: 181 62% 48%;
+    --sidebar-primary-foreground: 210 55% 9%;
+    --sidebar-accent: 205 24% 18%;
     --sidebar-accent-foreground: 40 20% 94%;
-    --sidebar-border: 156 16% 18%;
-    --sidebar-ring: 156 55% 50%;
+    --sidebar-border: 205 20% 22%;
+    --sidebar-ring: 181 62% 48%;
   }
 
   /* Viking Mode — exclusive to accounts that redeemed a partner code with
