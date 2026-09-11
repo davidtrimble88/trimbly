@@ -380,6 +380,15 @@ const Dashboard = () => {
           <div className="mt-2">
             <DashboardHeroBanner
               greetingName={displayName}
+              title={homes.length > 0 ? "Your Home" : displayName.split(" ")[0]}
+              status={
+                homes.length === 0
+                  ? undefined
+                  : totalOverdue > 0
+                    ? { label: `${totalOverdue} need${totalOverdue !== 1 ? "" : "s"} attention`, tone: "danger" as const }
+                    : { label: "Looking good", tone: "success" as const }
+              }
+
               summary={
                 totalOverdue > 0
                   ? `${totalOverdue} overdue task${totalOverdue !== 1 ? "s" : ""} across ${homes.length} home${homes.length !== 1 ? "s" : ""}`
