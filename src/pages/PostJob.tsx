@@ -149,8 +149,12 @@ const PostJob = () => {
   const [savingPhone, setSavingPhone] = useState(false);
 
   const [form, setForm] = useState({
-    title: "", description: "", category: "", city: "", state: "", country: "US",
-    budget_min: "", budget_max: "", home_id: "",
+    title: prefill.title ?? "",
+    description: prefill.description ?? "",
+    category: "", city: "", state: "", country: "US",
+    budget_min: prefill.budget_min != null ? String(prefill.budget_min) : "",
+    budget_max: prefill.budget_max != null ? String(prefill.budget_max) : "",
+    home_id: "",
   });
   const [customCategory, setCustomCategory] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
