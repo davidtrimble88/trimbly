@@ -249,7 +249,7 @@ const Providers = () => {
                         </Button>
                         {doc.status === "pending" && (
                           <>
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-green-600" onClick={() => reviewDoc(doc, "approved")} title="Approve">
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-success" onClick={() => reviewDoc(doc, "approved")} title="Approve">
                               <Check className="w-3 h-3" />
                             </Button>
                             <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive" onClick={() => reviewDoc(doc, "rejected")} title="Reject">

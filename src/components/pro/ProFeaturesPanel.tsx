@@ -367,7 +367,7 @@ const ProFeaturesPanel = ({ provider, userId, onUpdated, jobsTable = "jobs", bid
                   </div>
                   {j.requested ? (
                     <Badge variant="outline" className="gap-1">
-                      <CheckCircle size={12} className="text-green-600" /> Requested
+                      <CheckCircle size={12} className="text-success" /> Requested
                     </Badge>
                   ) : (
                     <Button

@@ -756,7 +756,7 @@ const JobBoard = () => {
                             <div className="flex flex-wrap items-center gap-2 mb-1">
                               <h3 className="font-semibold text-foreground">{job.title}</h3>
                               {job.status === "completed" && (
-                                <Badge className="text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                <Badge className="text-xs bg-success/15 text-success">
                                   <CheckCircle size={10} className="mr-1" /> Completed
                                 </Badge>
                               )}
@@ -804,7 +804,7 @@ const JobBoard = () => {
                             {myBid ? (
                               <div className="text-center">
                                 <Badge className={`text-xs ${
-                                  myBid.status === "accepted" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" :
+                                  myBid.status === "accepted" ? "bg-success/15 text-success" :
                                   myBid.status === "rejected" ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" :
                                   "bg-secondary text-secondary-foreground"
                                 }`}>
@@ -816,7 +816,7 @@ const JobBoard = () => {
                                   </div>
                                 )}
                                 {myBid.call_approved && (
-                                  <div className="flex items-center gap-1 mt-1 text-xs text-green-600 dark:text-green-400">
+                                  <div className="flex items-center gap-1 mt-1 text-xs text-success">
                                     <Phone size={12} /> Call approved
                                   </div>
                                 )}
@@ -941,7 +941,7 @@ const JobBoard = () => {
                     <div className="flex items-center justify-between">
                       <h4 className="text-sm font-semibold">Your bid</h4>
                       <Badge className={`text-xs ${
-                        myBid.status === "accepted" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" :
+                        myBid.status === "accepted" ? "bg-success/15 text-success" :
                         myBid.status === "rejected" ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" :
                         "bg-secondary text-secondary-foreground"
                       }`}>
@@ -957,7 +957,7 @@ const JobBoard = () => {
                     <p className="text-xs text-muted-foreground whitespace-pre-wrap">{myBid.message}</p>
                     <div className="text-xs flex items-center gap-1 text-muted-foreground">
                       {myBid.call_approved
-                        ? <><Phone size={12} className="text-green-600" /> Homeowner approved a phone call</>
+                        ? <><Phone size={12} className="text-success" /> Homeowner approved a phone call</>
                         : <><PhoneOff size={12} /> In-app messaging only</>}
                     </div>
                   </div>
@@ -1029,7 +1029,7 @@ const JobBoard = () => {
                   )}
                   {myBid && detailJob.status === "completed" && (
                     <div className="text-xs text-muted-foreground flex items-center gap-1 mr-auto">
-                      <CheckCircle size={12} className="text-green-600" /> Marked complete — homeowner asked to review.
+                      <CheckCircle size={12} className="text-success" /> Marked complete — homeowner asked to review.
                     </div>
                   )}
                   {myBid && (
