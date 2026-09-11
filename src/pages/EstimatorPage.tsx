@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Brain, Loader2, DollarSign, Clock, Wrench, Lightbulb, ShieldCheck, AlertTriangle, ChevronRight, Crown, PlayCircle, ShoppingCart, ExternalLink, Home } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Brain, Loader2, DollarSign, Clock, Wrench, Lightbulb, ShieldCheck, AlertTriangle, ChevronRight, Crown, PlayCircle, ShoppingCart, ExternalLink, Home, FileWarning } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import UpgradeGate from "@/components/dashboard/UpgradeGate";
+import TrimblyResultCard from "@/components/tools/TrimblyResultCard";
+import CoverageCallout from "@/components/tools/CoverageCallout";
+import { useCoverageCheck } from "@/components/tools/useCoverageCheck";
 import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
 import { tierLabels } from "@/components/dashboard/homeowner/types";
 import { getJobEstimate, type JobEstimate } from "@/lib/api/jobEstimator";
@@ -23,17 +26,22 @@ const categories = ["Plumbing", "Electrical", "Handyman", "General Contractor", 
 const difficultyLabels = ["", "Easy — DIY Friendly", "Moderate", "Intermediate", "Advanced", "Expert Only"];
 const difficultyColors = ["", "text-primary", "text-primary", "text-accent", "text-destructive", "text-destructive"];
 
+type EstimatePrefill = { description?: string; category?: string };
+
 const EstimatorPage = () => {
   const { user, profileName } = useAuth();
   const navigate = useNavigate();
+  const prefill = (useLocation().state ?? {}) as EstimatePrefill;
   const { hasEstimator, subscriptionTier, loading: limitLoading } = useHomeLimit();
   const { active: hasGarage } = useGarageSubscription();
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
+  const [description, setDescription] = useState(prefill.description ?? "");
+  const [category, setCategory] = useState(categories.includes(prefill.category ?? "") ? prefill.category! : "");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [loading, setLoading] = useState(false);
   const [estimate, setEstimate] = useState<JobEstimate | null>(null);
+  const { docRefs, docsChecked, coverage, coverageLoading, coverageError, run: runCoverage, reset: resetCoverage } =
+    useCoverageCheck(user?.id);
   const { toast } = useToast();
 
   if (!user) {
