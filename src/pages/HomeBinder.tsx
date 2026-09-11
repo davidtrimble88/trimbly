@@ -41,6 +41,9 @@ const itemTypes = [
   { value: "other", label: "Other", icon: FolderOpen },
 ];
 
+/** Maps a binder item type onto the system list used by the diagnosis tool. */
+const triageSystemFor = (itemType: string) => (itemType === "appliance" ? "Appliance" : itemType === "system" ? "Other" : "Other");
+
 const typeColors: Record<string, string> = {
   appliance: "bg-primary/10 text-primary",
   system: "bg-accent/10 text-accent",
