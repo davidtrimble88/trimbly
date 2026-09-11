@@ -192,6 +192,30 @@ const SystemLifespanTracker = () => {
                             <p className="text-xs text-muted-foreground mt-2">
                               {Math.round(m.ageYears)} yr{Math.round(m.ageYears) !== 1 ? "s" : ""} old · typical lifespan {m.minYears}–{m.maxYears} yrs
                             </p>
+                            {status !== "good" && (
+                              <div className="mt-3 flex flex-wrap gap-3 text-xs font-medium">
+                                <button
+                                  className="text-primary hover:underline"
+                                  onClick={() =>
+                                    navigate("/estimator", {
+                                      state: { description: `Replace my ${Math.round(m.ageYears)}-year-old ${m.name} (${m.label}).` },
+                                    })
+                                  }
+                                >
+                                  What would it cost?
+                                </button>
+                                <button
+                                  className="text-primary hover:underline"
+                                  onClick={() =>
+                                    navigate("/value-advisor", {
+                                      state: { description: `Replace the ${m.name} (${m.label}), currently about ${Math.round(m.ageYears)} years old.` },
+                                    })
+                                  }
+                                >
+                                  Does it add value?
+                                </button>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
