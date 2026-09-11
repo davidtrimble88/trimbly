@@ -138,57 +138,64 @@
 
 @layer base {
   :root {
-    --background: 40 33% 97%;
-    --foreground: 152 22% 10%;
+    /* Product palette promoted from the approved landing theme
+       (.trimbly-landing above) so the signed-in app reads as the same
+       brand: warm white surfaces, navy type, teal actions. */
+    --background: 42 30% 96%;
+    --foreground: 210 61% 16%;
 
     --card: 0 0% 100%;
-    --card-foreground: 152 22% 10%;
+    --card-foreground: 210 61% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 152 22% 10%;
+    --popover-foreground: 210 61% 16%;
 
-    --primary: 158 64% 19%;
+    --primary: 181 74% 38%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 158 20% 93%;
-    --secondary-foreground: 152 22% 10%;
+    --secondary: 197 26% 95%;
+    --secondary-foreground: 210 61% 16%;
 
-    --muted: 158 16% 95%;
-    --muted-foreground: 158 10% 38%;
+    --muted: 197 26% 95%;
+    --muted-foreground: 210 18% 42%;
 
-    --accent: 28 88% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 95 56% 53%;
+    --accent-foreground: 210 61% 16%;
 
-    --destructive: 0 72% 45%;
+    --destructive: 0 65% 48%;
     --destructive-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
-    --warning-foreground: 20 14% 12%;
+    --warning-foreground: 210 61% 16%;
 
-    --success: 158 64% 30%;
+    --success: 126 39% 45%;
     --success-foreground: 0 0% 100%;
 
-    --border: 158 14% 88%;
-    --input: 158 14% 88%;
-    --ring: 158 64% 19%;
+    --border: 197 18% 85%;
+    --input: 197 18% 85%;
+    --ring: 181 74% 38%;
+
+    --intelligence: 214 83% 56%;
+    --lime: 95 56% 53%;
 
     --radius: 0.75rem;
 
-    /* Blue-to-green sweep lifted from the turtle badge's ring (BrandMark /
-       src/assets/branding/trimbly-logo.png) so the Auth hero panel echoes
-       the mark instead of clashing with its blue. */
-    --hero-gradient: linear-gradient(135deg, hsl(213 88% 30%), hsl(142 62% 26%));
-    --card-shadow: 0 2px 16px -4px hsl(152 30% 10% / 0.08);
-    --card-shadow-hover: 0 16px 40px -12px hsl(152 30% 10% / 0.18);
+    /* Navy-to-teal sweep matching the landing hero so the Auth panel reads
+       as the same brand as the marketing site. */
+    --hero-gradient: linear-gradient(135deg, hsl(210 61% 16%), hsl(181 74% 32%));
+    --card-shadow: 0 8px 28px -18px hsl(210 61% 16% / 0.24);
+    --card-shadow-hover: 0 18px 46px -22px hsl(210 61% 16% / 0.32);
+    --brand-shadow: 0 16px 32px -16px hsl(181 74% 28% / 0.45);
+    --product-shadow: 0 28px 64px -30px hsl(210 61% 16% / 0.35);
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 152 22% 10%;
-    --sidebar-primary: 158 64% 19%;
+    --sidebar-background: 42 30% 97%;
+    --sidebar-foreground: 210 61% 16%;
+    --sidebar-primary: 181 74% 38%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 158 20% 93%;
-    --sidebar-accent-foreground: 152 22% 10%;
-    --sidebar-border: 158 14% 88%;
-    --sidebar-ring: 158 64% 19%;
+    --sidebar-accent: 181 52% 93%;
+    --sidebar-accent-foreground: 210 61% 16%;
+    --sidebar-border: 197 18% 87%;
+    --sidebar-ring: 181 74% 38%;
   }
 
   .dark {

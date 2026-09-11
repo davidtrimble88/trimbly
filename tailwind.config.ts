@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['"Fraunces"', 'ui-serif', 'Georgia', 'serif'],
-        body: ['"DM Sans"', 'system-ui', 'sans-serif'],
+        display: ['"Outfit"', 'system-ui', 'sans-serif'],
+        body: ['"Figtree"', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
