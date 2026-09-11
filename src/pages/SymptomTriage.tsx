@@ -237,7 +237,86 @@ const SymptomTriagePage = () => {
 
           {result && (
             <div className="space-y-5">
-              {/* Urgency banner */}
+              {/* Summary card — matches the diagnosis card shown on the Trimbly landing page */}
+              <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--product-shadow)]">
+                <div className="flex items-center justify-between gap-3 border-b border-border pb-4">
+                  <div className="flex items-center gap-2.5">
+                    <BrandMark className="h-9 w-9" />
+                    <div>
+                      <p className="text-xs font-bold text-primary">MY HOME</p>
+                      <p className="text-sm font-semibold text-foreground">Here's what Trimbly found</p>
+                    </div>
+                  </div>
+                  <span className="rounded-md bg-accent/15 px-2.5 py-1 text-xs font-bold text-accent-foreground">{result.system}</span>
+                </div>
+
+                <p className="mt-4 text-lg font-bold text-foreground">{result.diagnosis_title}</p>
+
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <div className="rounded-lg bg-secondary p-3">
+                    <p className="text-[11px] font-bold text-muted-foreground">LIKELY CAUSE</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">{result.likely_causes[0]?.cause ?? "See details below"}</p>
+                  </div>
+                  <div className={`rounded-lg p-3 ${urgencyTile[result.urgency].box}`}>
+                    <p className={`text-[11px] font-bold ${urgencyTile[result.urgency].label}`}>URGENCY</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">{urgencyTile[result.urgency].word}</p>
+                  </div>
+                  <div className="rounded-lg bg-secondary p-3">
+                    <p className="text-[11px] font-bold text-muted-foreground">ESTIMATED REPAIR</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">
+                      ${result.estimated_cost_low.toLocaleString()}–${result.estimated_cost_high.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Coverage — reads the homeowner's uploaded warranty & insurance documents */}
+                <div className="mt-3 rounded-lg bg-primary/[0.08] p-3 text-sm text-foreground">
+                  {coverageLoading ? (
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Checking your warranty and insurance documents…
+                    </span>
+                  ) : coverage ? (
+                    <div className="flex items-start gap-2">
+                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <div>
+                        <p><strong>Coverage:</strong> {coverageStatusLabel[coverage.status]}{coverage.source && coverage.source !== "None" ? ` — ${coverage.source}` : ""}</p>
+                        <p className="mt-1 text-muted-foreground">{coverage.explanation}</p>
+                        {coverage.next_step && <p className="mt-1 text-muted-foreground">{coverage.next_step}</p>}
+                      </div>
+                    </div>
+                  ) : coverageError ? (
+                    <span className="flex items-start gap-2 text-muted-foreground">
+                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      We couldn't check your coverage documents this time. Try again in a moment.
+                    </span>
+                  ) : docsChecked && docRefs.length === 0 ? (
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-start gap-2">
+                        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                        <span>
+                          <strong>Coverage:</strong> This repair might be covered. Add your home warranty or insurance policy and Trimbly will check it against issues like this one automatically.
+                        </span>
+                      </div>
+                      <Button asChild size="sm" variant="outline" className="bg-card">
+                        <Link to="/coverage"><Upload size={14} className="mr-1.5" /> Upload your documents</Link>
+                      </Button>
+                    </div>
+                  ) : (
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <ShieldCheck className="h-4 w-4 shrink-0 text-primary" /> Checking your coverage…
+                    </span>
+                  )}
+                </div>
+
+                <div className="mt-4">
+                  <p className="text-[11px] font-bold text-muted-foreground">NEXT STEP</p>
+                  <p className="mt-1 text-sm leading-relaxed text-foreground">
+                    {result.diy_steps[0] ?? `Schedule a ${result.recommended_pro_type} to take a look.`}
+                  </p>
+                </div>
+              </div>
+
+              {/* Urgency detail */}
               <Card className={`border-2 ${urgencyMeta[result.urgency].classes}`}>
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-3">
@@ -263,7 +342,7 @@ const SymptomTriagePage = () => {
                 </Card>
               )}
 
-              {/* Diagnosis */}
+              {/* Details */}
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between flex-wrap gap-2">
@@ -273,6 +352,7 @@ const SymptomTriagePage = () => {
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <p className="text-muted-foreground">{result.summary}</p>
+
 
                   {/* Likely causes */}
                   <div>
