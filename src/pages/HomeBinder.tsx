@@ -764,6 +764,22 @@ const HomeBinder = () => {
                             </div>
                           );
                         })()}
+
+                        {/* Straight from the binder into a diagnosis, with what
+                            Trimbly already knows about this item filled in. */}
+                        <button
+                          onClick={() =>
+                            navigate("/symptom-triage", {
+                              state: {
+                                symptom: `My ${item.name}${item.brand ? ` (${item.brand}${item.model_number ? ` ${item.model_number}` : ""})` : ""} is `,
+                                system: triageSystemFor(item.item_type),
+                              },
+                            })
+                          }
+                          className="mt-3 flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                        >
+                          <Stethoscope size={12} /> Something wrong with it?
+                        </button>
                       </div>
                     );
                   })}
