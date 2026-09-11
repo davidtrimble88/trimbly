@@ -223,18 +223,7 @@ const SymptomTriagePage = () => {
           {result && (
             <div className="space-y-5">
               {/* Summary card — matches the diagnosis card shown on the Trimbly landing page */}
-              <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--product-shadow)]">
-                <div className="flex items-center justify-between gap-3 border-b border-border pb-4">
-                  <div className="flex items-center gap-2.5">
-                    <BrandMark className="h-9 w-9" />
-                    <div>
-                      <p className="text-xs font-bold text-primary">MY HOME</p>
-                      <p className="text-sm font-semibold text-foreground">Here's what Trimbly found</p>
-                    </div>
-                  </div>
-                  <span className="rounded-md bg-accent/15 px-2.5 py-1 text-xs font-bold text-accent-foreground">{result.system}</span>
-                </div>
-
+              <TrimblyResultCard title="Here's what Trimbly found" tag={result.system}>
                 <p className="mt-4 text-lg font-bold text-foreground">{result.diagnosis_title}</p>
 
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -255,43 +244,15 @@ const SymptomTriagePage = () => {
                 </div>
 
                 {/* Coverage — reads the homeowner's uploaded warranty & insurance documents */}
-                <div className="mt-3 rounded-lg bg-primary/[0.08] p-3 text-sm text-foreground">
-                  {coverageLoading ? (
-                    <span className="flex items-center gap-2 text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" /> Checking your warranty and insurance documents…
-                    </span>
-                  ) : coverage ? (
-                    <div className="flex items-start gap-2">
-                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                      <div>
-                        <p><strong>Coverage:</strong> {coverageStatusLabel[coverage.status]}{coverage.source && coverage.source !== "None" ? ` — ${coverage.source}` : ""}</p>
-                        <p className="mt-1 text-muted-foreground">{coverage.explanation}</p>
-                        {coverage.next_step && <p className="mt-1 text-muted-foreground">{coverage.next_step}</p>}
-                      </div>
-                    </div>
-                  ) : coverageError ? (
-                    <span className="flex items-start gap-2 text-muted-foreground">
-                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                      We couldn't check your coverage documents this time. Try again in a moment.
-                    </span>
-                  ) : docsChecked && docRefs.length === 0 ? (
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex items-start gap-2">
-                        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                        <span>
-                          <strong>Coverage:</strong> This repair might be covered. Add your home warranty or insurance policy and Trimbly will check it against issues like this one automatically.
-                        </span>
-                      </div>
-                      <Button asChild size="sm" variant="outline" className="bg-card">
-                        <Link to="/coverage"><Upload size={14} className="mr-1.5" /> Upload your documents</Link>
-                      </Button>
-                    </div>
-                  ) : (
-                    <span className="flex items-center gap-2 text-muted-foreground">
-                      <ShieldCheck className="h-4 w-4 shrink-0 text-primary" /> Checking your coverage…
-                    </span>
-                  )}
-                </div>
+                <CoverageCallout
+                  className="mt-3"
+                  loading={coverageLoading}
+                  error={coverageError}
+                  verdict={coverage}
+                  docsChecked={docsChecked}
+                  hasDocs={docRefs.length > 0}
+                  emptyPrompt="This repair might be covered. Add your home warranty or insurance policy and Trimbly will check it against issues like this one automatically."
+                />
 
                 <div className="mt-4">
                   <p className="text-[11px] font-bold text-muted-foreground">NEXT STEP</p>
@@ -299,7 +260,43 @@ const SymptomTriagePage = () => {
                     {result.diy_steps[0] ?? `Schedule a ${result.recommended_pro_type} to take a look.`}
                   </p>
                 </div>
-              </div>
+
+                <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-card"
+                    onClick={() =>
+                      navigate("/estimator", {
+                        state: {
+                          description: `${result.diagnosis_title}. ${result.summary}`,
+                          category: result.system,
+                        },
+                      })
+                    }
+                  >
+                    <Calculator size={14} className="mr-1.5" /> Get a detailed cost estimate
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-card"
+                    onClick={() =>
+                      navigate("/post-job", {
+                        state: {
+                          title: result.diagnosis_title,
+                          description: `${result.summary}\n\nWhat I'm seeing: ${symptom.trim()}`,
+                          category: result.system,
+                          budget_min: result.estimated_cost_low,
+                          budget_max: result.estimated_cost_high,
+                        },
+                      })
+                    }
+                  >
+                    <Wrench size={14} className="mr-1.5" /> Get bids from local pros
+                  </Button>
+                </div>
+              </TrimblyResultCard>
 
               {/* Urgency detail */}
               <Card className={`border-2 ${urgencyMeta[result.urgency].classes}`}>
