@@ -78,10 +78,25 @@ const SymptomTriagePage = () => {
   const [system, setSystem] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SymptomTriage | null>(null);
+  const [docRefs, setDocRefs] = useState<{ url: string; mimeType: string; label: string }[]>([]);
+  const [docsChecked, setDocsChecked] = useState(false);
+  const [coverage, setCoverage] = useState<CoverageVerdict | null>(null);
+  const [coverageLoading, setCoverageLoading] = useState(false);
+  const [coverageError, setCoverageError] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading]);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const refs = await loadCoverageDocRefs(user.id);
+      if (!cancelled) { setDocRefs(refs); setDocsChecked(true); }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   if (authLoading || !user) {
     return (
@@ -102,12 +117,29 @@ const SymptomTriagePage = () => {
     }
     setLoading(true);
     setResult(null);
+    setCoverage(null);
+    setCoverageError(false);
     try {
       const triage = await getSymptomTriage({
         symptom: symptom.trim(),
         system_type: system || undefined,
       });
       setResult(triage);
+
+      if (docRefs.length > 0) {
+        setCoverageLoading(true);
+        try {
+          const verdict = await checkCoverage(
+            `${triage.diagnosis_title} (${triage.system}). ${triage.summary} Homeowner described: ${symptom.trim()}`,
+            docRefs,
+          );
+          setCoverage(verdict);
+        } catch {
+          setCoverageError(true);
+        } finally {
+          setCoverageLoading(false);
+        }
+      }
     } catch (e) {
       toast({
         title: "Couldn't analyze symptom",
@@ -118,6 +150,7 @@ const SymptomTriagePage = () => {
       setLoading(false);
     }
   };
+
 
   const UrgencyIcon = result ? urgencyMeta[result.urgency].icon : null;
   const displayName = profileName || user.user_metadata?.full_name || user.email;
