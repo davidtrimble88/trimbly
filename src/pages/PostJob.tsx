@@ -111,17 +111,24 @@ type Bid = {
   };
 };
 
+type JobPrefill = {
+  title?: string; description?: string; category?: string;
+  budget_min?: number | string; budget_max?: number | string;
+};
+
 const PostJob = () => {
   const { user, profileName, loading: authLoading } = useAuth();
   const { subscriptionTier } = useHomeLimit();
   const { active: hasGarage } = useGarageSubscription();
   const navigate = useNavigate();
   const { toast } = useToast();
+  /** Details carried over from a diagnosis or estimate, so nothing is retyped. */
+  const prefill = (useLocation().state ?? {}) as JobPrefill;
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [bids, setBids] = useState<Record<string, Bid[]>>({});
   const [loadingJobs, setLoadingJobs] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(!!(prefill.title || prefill.description));
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
