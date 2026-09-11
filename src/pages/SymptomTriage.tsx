@@ -75,13 +75,7 @@ const urgencyTile: Record<SymptomTriage["urgency"], { word: string; box: string;
   monitor: { word: "Low", box: "bg-success/10", label: "text-success" },
 };
 
-const coverageStatusLabel: Record<CoverageVerdict["status"], string> = {
-  likely_covered: "Likely covered",
-  possibly_covered: "May be covered",
-  not_covered: "Not covered",
-  unclear: "Couldn't confirm from your documents",
-};
-
+type TriagePrefill = { symptom?: string; system?: string };
 
 const SymptomTriagePage = () => {
   const { user, profileName, loading: authLoading } = useAuth();
@@ -89,30 +83,18 @@ const SymptomTriagePage = () => {
   const { active: hasGarage } = useGarageSubscription();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const prefill = (useLocation().state ?? {}) as TriagePrefill;
 
-  const [symptom, setSymptom] = useState("");
-  const [system, setSystem] = useState("");
+  const [symptom, setSymptom] = useState(prefill.symptom ?? "");
+  const [system, setSystem] = useState(prefill.system ?? "");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SymptomTriage | null>(null);
-  const [docRefs, setDocRefs] = useState<{ url: string; mimeType: string; label: string }[]>([]);
-  const [docsChecked, setDocsChecked] = useState(false);
-  const [coverage, setCoverage] = useState<CoverageVerdict | null>(null);
-  const [coverageLoading, setCoverageLoading] = useState(false);
-  const [coverageError, setCoverageError] = useState(false);
+  const { docRefs, docsChecked, coverage, coverageLoading, coverageError, run: runCoverage, reset: resetCoverage } =
+    useCoverageCheck(user?.id);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading]);
-
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    (async () => {
-      const refs = await loadCoverageDocRefs(user.id);
-      if (!cancelled) { setDocRefs(refs); setDocsChecked(true); }
-    })();
-    return () => { cancelled = true; };
-  }, [user?.id]);
 
   if (authLoading || !user) {
     return (
@@ -133,29 +115,16 @@ const SymptomTriagePage = () => {
     }
     setLoading(true);
     setResult(null);
-    setCoverage(null);
-    setCoverageError(false);
+    resetCoverage();
     try {
       const triage = await getSymptomTriage({
         symptom: symptom.trim(),
         system_type: system || undefined,
       });
       setResult(triage);
-
-      if (docRefs.length > 0) {
-        setCoverageLoading(true);
-        try {
-          const verdict = await checkCoverage(
-            `${triage.diagnosis_title} (${triage.system}). ${triage.summary} Homeowner described: ${symptom.trim()}`,
-            docRefs,
-          );
-          setCoverage(verdict);
-        } catch {
-          setCoverageError(true);
-        } finally {
-          setCoverageLoading(false);
-        }
-      }
+      await runCoverage(
+        `${triage.diagnosis_title} (${triage.system}). ${triage.summary} Homeowner described: ${symptom.trim()}`,
+      );
     } catch (e) {
       toast({
         title: "Couldn't analyze symptom",
