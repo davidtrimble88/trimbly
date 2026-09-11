@@ -32,7 +32,7 @@ const statusToneClasses = {
  * one-line status summary, and (if there's genuinely something urgent) a
  * single call-to-action button, rather than dropping straight into stat
  * grids with no lead-in. */
-export default function DashboardHeroBanner({ greetingName, summary, urgentAction, weatherSlot }: DashboardHeroBannerProps) {
+export default function DashboardHeroBanner({ greetingName, summary, status, urgentAction, weatherSlot }: DashboardHeroBannerProps) {
   const hour = new Date().getHours();
   const timeGreeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
@@ -40,16 +40,25 @@ export default function DashboardHeroBanner({ greetingName, summary, urgentActio
     <div className="mb-8 rounded-2xl border border-border bg-card p-6 shadow-[var(--card-shadow)] md:p-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <BrandMark className="mt-1 hidden h-9 w-9 shrink-0 sm:block" />
+          <BrandMark className="mt-1 hidden h-11 w-11 shrink-0 sm:block" />
           <div>
-            <h1 className="font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
-              {timeGreeting}, {greetingName.split(" ")[0]}
+            <p className="text-xs font-bold uppercase tracking-wide text-primary">{timeGreeting}</p>
+            <h1 className="mt-1 font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
+              {greetingName.split(" ")[0]}'s Home
             </h1>
             <p className="mt-2 font-body text-[0.95rem] text-muted-foreground">{summary}</p>
           </div>
         </div>
-        {weatherSlot}
+        <div className="flex flex-wrap items-center gap-2">
+          {status && (
+            <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold ${statusToneClasses[status.tone]}`}>
+              <Activity className="h-4 w-4" /> {status.label}
+            </div>
+          )}
+          {weatherSlot}
+        </div>
       </div>
+
       {urgentAction && (
         <Button onClick={urgentAction.onClick} className="mt-5 h-11 gap-2 rounded-full px-5 text-sm">
           <urgentAction.icon size={15} /> {urgentAction.label} <ArrowRight size={15} />
