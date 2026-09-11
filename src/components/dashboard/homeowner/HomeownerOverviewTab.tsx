@@ -97,7 +97,7 @@ const HomeownerOverviewTab = ({
     const due = t.due_date ? new Date(t.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "No date set";
     const overdue = t.status === "overdue";
     return {
-      id: t.id ?? i,
+      id: `${t.title}-${i}`,
       icon: overdue ? AlertTriangle : CalendarClock,
       title: t.title,
       detail: `${overdue ? "Overdue · " : "Due "}${due}${!selectedHome && home ? ` · ${home.name}` : ""}`,
