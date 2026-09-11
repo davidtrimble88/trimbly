@@ -191,12 +191,20 @@ const EstimatorPage = () => {
           {/* Results */}
           {estimate && !loading && (
             <div className="space-y-6 animate-fade-in-up">
-              {/* Summary Header */}
-              <div className="rounded-xl border border-primary/20 bg-primary/5 p-6">
-                <h2 className="text-xl font-bold text-foreground mb-1">{estimate.job_title}</h2>
-                <span className="text-xs font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-full">{estimate.category}</span>
-                <p className="text-muted-foreground text-sm mt-3 leading-relaxed">{estimate.summary}</p>
-              </div>
+              {/* Summary Header — same card people see on the Trimbly website */}
+              <TrimblyResultCard title="Here's what Trimbly estimates" tag={estimate.category}>
+                <h2 className="mt-4 text-lg font-bold text-foreground">{estimate.job_title}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{estimate.summary}</p>
+                <CoverageCallout
+                  className="mt-3"
+                  loading={coverageLoading}
+                  error={coverageError}
+                  verdict={coverage}
+                  docsChecked={docsChecked}
+                  hasDocs={docRefs.length > 0}
+                  emptyPrompt="Some of this work may be covered. Add your home warranty or insurance policy and Trimbly will check jobs like this one against it automatically."
+                />
+              </TrimblyResultCard>
 
               {/* Key Metrics */}
               <div className="grid sm:grid-cols-3 gap-4">
