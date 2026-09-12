@@ -280,11 +280,23 @@ const Navbar = ({ minimal = false }: NavbarProps) => {
           )}
         </div>
 
-        {!minimal && (
-          <button className="md:hidden text-foreground" onClick={() => setOpen(!open)}>
-            {open ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        )}
+        <div className="flex items-center gap-2 md:hidden">
+          {!user && (
+            <Button variant="ghost" size="sm" onClick={() => navigate("/auth?mode=login")}>
+              Log In
+            </Button>
+          )}
+          {!minimal && (
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <X size={24} /> : <Menu size={24} />}
+            </Button>
+          )}
+        </div>
       </div>
 
       {!minimal && open && (
