@@ -6,6 +6,7 @@ import { useGarageSubscription } from "@/hooks/useGarageSubscription";
 import { useHomeSharing, type GrantType } from "@/hooks/useHomeSharing";
 import { markFeatureSeen } from "@/components/dashboard/FeatureAnnouncementDot";
 import { supabase } from "@/integrations/supabase/client";
+import { syncHouseholdBilling } from "@/lib/billing";
 import { useToast } from "@/hooks/use-toast";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { buildHomeownerSatelliteNavItems, homeownerNavGroups } from "@/components/dashboard/homeowner/navItems";
@@ -104,6 +105,7 @@ export default function HomeSharing() {
     if (!confirm("Remove this person's access?")) return;
     const { error } = await supabase.rpc("revoke_home_share" as any, { p_share_id: shareId } as any);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    void syncHouseholdBilling(shareId);
     toast({ title: "Access removed" });
     refresh();
   };
@@ -157,9 +159,9 @@ export default function HomeSharing() {
         {!isSuperHero && (
           <Card className="border-primary/30 bg-primary/5">
             <CardContent className="pt-6 space-y-2">
-              <p className="font-semibold text-foreground flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" /> Included with your plan</p>
+              <p className="font-semibold text-foreground flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" /> $2/month per household member</p>
               <p className="text-sm text-muted-foreground">
-                Inviting a household member normally costs $2/mo on Home Hero. It's included at no extra charge for now — invite whoever shares your address.
+                Each person you invite is added to your Home Hero subscription at $2/month once they accept. Remove them any time and the charge stops. If you're still on your 14-day free trial, nothing is charged until it ends.
               </p>
             </CardContent>
           </Card>
@@ -169,7 +171,7 @@ export default function HomeSharing() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2"><UserPlus className="w-5 h-5 text-primary" /> Invite a family member</CardTitle>
-              <CardDescription>Included with your plan for now (normally $2/mo per person). They get their own login and can see your home.</CardDescription>
+              <CardDescription>$2/month per person, added to your subscription when they accept. They get their own login and can see your home.</CardDescription>
             </CardHeader>
             <CardContent>
               <Button onClick={() => createInvite("hero_member")} disabled={creating !== null} className="gap-1.5">
@@ -295,7 +297,7 @@ export default function HomeSharing() {
                   <CardDescription>
                     {isSuperHero
                       ? `+$${(monthlyAddonCents / 100).toFixed(2)}/mo in shared access`
-                      : "Included with your plan"}
+                      : `$${(monthlyAddonCents / 100).toFixed(2)}/mo in household members`}
                   </CardDescription>
                 )}
               </CardHeader>

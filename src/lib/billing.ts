@@ -24,6 +24,20 @@ export async function cancelMySubscriptions(): Promise<{ cancelled?: number; end
   return { cancelled: data?.cancelled ?? 0, endsAt: data?.endsAt ?? null };
 }
 
+/**
+ * Brings the owner's Stripe bill in line with their household seats after one
+ * is added or removed. The server works out the amount from the database; this
+ * only names the seat. Failures are swallowed on purpose: the seat itself is
+ * already saved, and a scheduled sweep catches anything missed.
+ */
+export async function syncHouseholdBilling(shareId: string): Promise<void> {
+  try {
+    await supabase.functions.invoke("sync-household-billing", { body: { shareId } });
+  } catch (err) {
+    console.error("household billing sync failed", err);
+  }
+}
+
 export async function startGarageCheckout(interval: "monthly" | "yearly" = "monthly"): Promise<{ url?: string; error?: string }> {
   const { data, error } = await supabase.functions.invoke("create-garage-checkout", { body: { interval } });
   if (error) return { error: error.message };

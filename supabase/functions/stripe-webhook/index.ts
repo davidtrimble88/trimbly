@@ -11,6 +11,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import Stripe from "npm:stripe@17.4.0";
 import { sendEmail } from "../_shared/sendEmail.ts";
+import { reconcileHouseholdBilling } from "../_shared/householdBilling.ts";
 import { GIFT_MAX_QUANTITY, generateGiftCode, renderBuyerEmail, renderRecipientEmail } from "../_shared/gift.ts";
 
 const corsHeaders = {
@@ -223,6 +224,14 @@ Deno.serve(async (req) => {
             return new Response(JSON.stringify({ error: "Failed to record subscription" }), {
               status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
+          }
+          // Household seats added before the card was on file (during the beta)
+          // start being billed now. Best effort: the scheduled sweep retries.
+          try {
+            const synced = await reconcileHouseholdBilling(admin, stripe, userId);
+            if (!synced.ok) console.error("stripe-webhook: household billing sync failed", synced.error);
+          } catch (err) {
+            console.error("stripe-webhook: household billing sync threw", err);
           }
         }
       } else if (kind === "gift_purchase") {
