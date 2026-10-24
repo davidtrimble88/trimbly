@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 const PrivacyPolicy = () => {
-  const lastUpdated = "May 12, 2026";
+  const lastUpdated = "October 23, 2026";
 
   const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
     <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-4">
@@ -56,6 +56,7 @@ const PrivacyPolicy = () => {
               <ul className="list-disc list-inside space-y-2">
                 <li><strong>Device & log data:</strong> IP address, browser/OS, device model, app version, crash logs, time stamps, and pages viewed.</li>
                 <li><strong>Usage data:</strong> features used, clicks, search queries, and referring URLs.</li>
+                <li><strong>Signup source:</strong> The first time you visit, we remember in your browser where you came from: the campaign tags in the link you clicked (such as <code>utm_source</code>), any ad click ID, the website that referred you, and the page you landed on. If you create an account, we save this with your profile so we can tell which channels bring in members. We keep only the referring site's name and the page address, never the full link or what you searched for.</li>
                 <li><strong>Cookies and similar technologies:</strong> see Section 9.</li>
                 <li><strong>Approximate location:</strong> derived from IP or, with permission, your device's location services, to match you with nearby Pros.</li>
                 <li><strong>Push tokens:</strong> if you enable notifications on the mobile app.</li>
@@ -137,6 +138,7 @@ const PrivacyPolicy = () => {
               <ul className="list-disc list-inside space-y-2">
                 <li><strong>Strictly necessary cookies</strong> — to keep you signed in and remember preferences.</li>
                 <li><strong>Functional storage</strong> — to remember UI choices (e.g., dismissed banners).</li>
+                <li><strong>Signup source</strong> — a small first-party record in your browser (the campaign tags, referring site and landing page from your first visit). It stays until you clear your browser data, and it is saved to your profile if you sign up. We don't use it to track you on other websites, and we don't store it if you reject optional cookies or your browser sends a Global Privacy Control signal.</li>
                 <li><strong>Analytics</strong> — anonymous usage statistics to improve the product.</li>
               </ul>
               <p>We do not use third-party advertising or cross-site tracking cookies. You can clear cookies in your browser at any time. We honor Global Privacy Control (GPC) signals as a valid opt-out where applicable.</p>

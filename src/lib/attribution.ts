@@ -6,7 +6,8 @@
 //
 // Privacy: first-party localStorage only, no third-party scripts, and we keep
 // the referrer's hostname and the landing *path* (never the full URL or the
-// query string). Nothing is stored if the visitor rejected cookies.
+// query string). Nothing is stored if the visitor rejected cookies or sends a
+// Global Privacy Control signal.
 
 const STORAGE_KEY = "trimbly_attribution_v1";
 const CONSENT_KEY = "hh_cookie_consent_v1"; // written by CookieConsent.tsx
@@ -31,8 +32,14 @@ const clean = (v: string | null | undefined): string | undefined => {
   return t ? t : undefined;
 };
 
-function hasRejectedCookies(): boolean {
+// True if the visitor opted out: they rejected optional cookies in our banner,
+// or their browser sends a Global Privacy Control signal (which our Privacy
+// Policy says we honor).
+function hasOptedOut(): boolean {
   try {
+    if (typeof navigator !== "undefined" && (navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl === true) {
+      return true;
+    }
     return localStorage.getItem(CONSENT_KEY) === "reject";
   } catch {
     return false;
@@ -50,7 +57,12 @@ function readStored(): Attribution | null {
 
 /** Call once on app start. Only the first visit is recorded (first touch). */
 export function captureAttribution(): void {
-  if (typeof window === "undefined" || hasRejectedCookies()) return;
+  if (typeof window === "undefined") return;
+  if (hasOptedOut()) {
+    // Drop anything saved before the visitor opted out.
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+    return;
+  }
   try {
     if (readStored()) return;
 
@@ -84,7 +96,7 @@ export function captureAttribution(): void {
 
 /** Flat string map to merge into the sign-up metadata (prefixed with `attr_`). */
 export function getAttributionForSignup(): Record<string, string> {
-  if (hasRejectedCookies()) return {};
+  if (hasOptedOut()) return {};
   const a = readStored();
   if (!a) return {};
   const out: Record<string, string> = {};

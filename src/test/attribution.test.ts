@@ -57,4 +57,18 @@ describe("signup attribution", () => {
     visit("/?utm_source=partnernet");
     expect(getAttributionForSignup()).toEqual({});
   });
+
+  it("honors a Global Privacy Control signal and clears what was saved earlier", () => {
+    visit("/?utm_source=partnernet");
+    expect(getAttributionForSignup().attr_source).toBe("partnernet");
+
+    Object.defineProperty(navigator, "globalPrivacyControl", { value: true, configurable: true });
+    try {
+      captureAttribution();
+      expect(getAttributionForSignup()).toEqual({});
+      expect(localStorage.getItem("trimbly_attribution_v1")).toBeNull();
+    } finally {
+      Object.defineProperty(navigator, "globalPrivacyControl", { value: undefined, configurable: true });
+    }
+  });
 });
