@@ -1538,6 +1538,10 @@ export type Database = {
           suspended_reason: string | null
           timezone: string | null
           tier_expires_at: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_current_period_end: string | null
+          subscription_status: string
           updated_at: string
           user_type: string
           viking_mode_unlocked: boolean
@@ -1557,6 +1561,10 @@ export type Database = {
           suspended_reason?: string | null
           timezone?: string | null
           tier_expires_at?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_current_period_end?: string | null
+          subscription_status?: string
           updated_at?: string
           user_type?: string
           viking_mode_unlocked?: boolean
@@ -1576,6 +1584,10 @@ export type Database = {
           suspended_reason?: string | null
           timezone?: string | null
           tier_expires_at?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_current_period_end?: string | null
+          subscription_status?: string
           updated_at?: string
           user_type?: string
           viking_mode_unlocked?: boolean

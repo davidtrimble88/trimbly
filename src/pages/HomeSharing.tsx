@@ -157,9 +157,9 @@ export default function HomeSharing() {
         {!isSuperHero && (
           <Card className="border-primary/30 bg-primary/5">
             <CardContent className="pt-6 space-y-2">
-              <p className="font-semibold text-foreground flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" /> Free during beta</p>
+              <p className="font-semibold text-foreground flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" /> Included with your plan</p>
               <p className="text-sm text-muted-foreground">
-                Inviting a household member normally costs $2/mo on Home Hero. While Trimbly is in beta it's free for everyone — invite whoever shares your address.
+                Inviting a household member normally costs $2/mo on Home Hero. It's included at no extra charge for now — invite whoever shares your address.
               </p>
             </CardContent>
           </Card>
@@ -169,7 +169,7 @@ export default function HomeSharing() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2"><UserPlus className="w-5 h-5 text-primary" /> Invite a family member</CardTitle>
-              <CardDescription>Free during beta (normally $2/mo per person). They get their own login and can see your home.</CardDescription>
+              <CardDescription>Included with your plan for now (normally $2/mo per person). They get their own login and can see your home.</CardDescription>
             </CardHeader>
             <CardContent>
               <Button onClick={() => createInvite("hero_member")} disabled={creating !== null} className="gap-1.5">
@@ -295,7 +295,7 @@ export default function HomeSharing() {
                   <CardDescription>
                     {isSuperHero
                       ? `+$${(monthlyAddonCents / 100).toFixed(2)}/mo in shared access`
-                      : "Free during beta"}
+                      : "Included with your plan"}
                   </CardDescription>
                 )}
               </CardHeader>

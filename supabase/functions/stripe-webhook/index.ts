@@ -2,6 +2,7 @@
 //   verification_fee       -> one-time provider verification fee (provider_verifications)
 //   provider_subscription  -> recurring Trimbly Pro / Pro Mechanic plan (providers)
 //   garage_subscription    -> recurring My Garage add-on (garage_subscriptions)
+//   homeowner_subscription -> recurring Home Hero / Home Super Hero (profiles)
 //   gift_purchase          -> one-time gift codes for Home Hero (gift_orders, gift_codes)
 //   charge.refunded        -> voids the unredeemed codes of a refunded gift
 //
@@ -206,6 +207,24 @@ Deno.serve(async (req) => {
             });
           }
         }
+      } else if (kind === "homeowner_subscription") {
+        const userId = session.metadata?.user_id || session.client_reference_id;
+        const tier = session.metadata?.tier;
+        if (userId && (tier === "homeowner_pro" || tier === "multi_pro")) {
+          const { error } = await admin.rpc("update_profile_subscription_trusted", {
+            p_user_id: userId,
+            p_stripe_customer_id: typeof session.customer === "string" ? session.customer : session.customer?.id ?? null,
+            p_stripe_subscription_id: typeof session.subscription === "string" ? session.subscription : session.subscription?.id ?? null,
+            p_subscription_tier: tier,
+            p_subscription_status: "active", // trialing counts as active; the card is on file
+          });
+          if (error) {
+            console.error("stripe-webhook: failed to activate homeowner subscription", error);
+            return new Response(JSON.stringify({ error: "Failed to record subscription" }), {
+              status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        }
       } else if (kind === "gift_purchase") {
         if (session.payment_status === "paid") {
           const ok = await fulfillGiftPurchase(admin, session);
@@ -244,6 +263,18 @@ Deno.serve(async (req) => {
           subscription_current_period_end: periodEnd,
           subscription_tier: status === "canceled" ? "free" : (sub.metadata?.tier || "pro"),
         }, sub.metadata.provider_id);
+      } else if (kind === "homeowner_subscription" && sub.metadata?.user_id) {
+        const status = sub.status === "active" || sub.status === "trialing" ? "active" : sub.status === "past_due" ? "past_due" : "canceled";
+        const { error } = await admin.rpc("update_profile_subscription_trusted", {
+          p_user_id: sub.metadata.user_id,
+          p_stripe_customer_id: typeof sub.customer === "string" ? sub.customer : sub.customer?.id ?? null,
+          p_stripe_subscription_id: sub.id,
+          p_subscription_status: status,
+          p_subscription_current_period_end: periodEnd,
+          // Only a lapsed subscription drops the plan; active and past_due keep it.
+          p_subscription_tier: status === "canceled" ? "free" : (sub.metadata.tier || null),
+        });
+        if (error) console.error("stripe-webhook: homeowner subscription sync failed", error);
       } else if (kind === "garage_subscription" && sub.metadata?.user_id) {
         const status = sub.status === "trialing" ? "trial" : sub.status === "active" ? "active" : sub.status === "past_due" ? "past_due" : "canceled";
         await admin.from("garage_subscriptions").update({
@@ -260,6 +291,13 @@ Deno.serve(async (req) => {
           subscription_status: "canceled",
           subscription_tier: "free",
         }, sub.metadata.provider_id);
+      } else if (kind === "homeowner_subscription" && sub.metadata?.user_id) {
+        const { error } = await admin.rpc("update_profile_subscription_trusted", {
+          p_user_id: sub.metadata.user_id,
+          p_subscription_tier: "free",
+          p_subscription_status: "canceled",
+        });
+        if (error) console.error("stripe-webhook: homeowner subscription cancel failed", error);
       } else if (kind === "garage_subscription" && sub.metadata?.user_id) {
         await admin.from("garage_subscriptions").update({
           status: "canceled",

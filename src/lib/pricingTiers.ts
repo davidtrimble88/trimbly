@@ -8,11 +8,12 @@ import { Star, Zap, Crown, LucideIcon } from "lucide-react";
 // behind it elsewhere). Edit a tier here and every page that renders it
 // picks up the change.
 
-// Trimbly is in a free public beta — every paid plan is unlocked at no
-// cost, no payment info collected. One flag so flipping it off when the
-// beta ends only means editing this file, not hunting across every
-// pricing page that references it.
-export const BETA_FREE_ACCESS = true;
+// The free public beta ended 2026-10-24. Paid plans now start with a 14-day
+// trial (card up front, first charge after the trial) in Stripe Checkout.
+// The flag is kept, not deleted, because every pricing page still branches on
+// it; leave it false. The database side of the cutover is
+// supabase/migrations/20261024010000_end_beta.sql.
+export const BETA_FREE_ACCESS = false;
 
 export const USD_TO_CAD = 1.4;
 
