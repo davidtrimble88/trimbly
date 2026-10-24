@@ -2,11 +2,15 @@
 //   verification_fee       -> one-time provider verification fee (provider_verifications)
 //   provider_subscription  -> recurring Trimbly Pro / Pro Mechanic plan (providers)
 //   garage_subscription    -> recurring My Garage add-on (garage_subscriptions)
+//   gift_purchase          -> one-time gift codes for Home Hero (gift_orders, gift_codes)
+//   charge.refunded        -> voids the unredeemed codes of a refunded gift
 //
 // Signature verification uses constructEventAsync (Web Crypto based) since
 // Deno doesn't have Node's crypto module Stripe's sync verifier relies on.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import Stripe from "npm:stripe@17.4.0";
+import { sendEmail } from "../_shared/sendEmail.ts";
+import { GIFT_MAX_QUANTITY, generateGiftCode, renderBuyerEmail, renderRecipientEmail } from "../_shared/gift.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -39,6 +43,73 @@ async function trustedProviderUpdate(admin: ReturnType<typeof createClient>, upd
     p_subscription_current_period_end: updates.subscription_current_period_end ?? null,
   });
   return error;
+}
+
+// Creates the order and its codes (once per Stripe session) and emails them.
+// Stripe retries webhooks, so this is safe to run repeatedly: the order insert
+// is keyed on the session id, and the emails are only sent while
+// gift_orders.emailed_at is still NULL. Returns false when something should be
+// retried.
+async function fulfillGiftPurchase(admin: ReturnType<typeof createClient>, session: Stripe.Checkout.Session): Promise<boolean> {
+  const m = session.metadata ?? {};
+  const buyerEmail = m.buyer_email || session.customer_details?.email;
+  if (!buyerEmail) {
+    console.error("stripe-webhook: gift session has no buyer email", session.id);
+    return false;
+  }
+  const quantity = Math.min(GIFT_MAX_QUANTITY, Math.max(1, parseInt(m.quantity || "1", 10) || 1));
+  const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id ?? null;
+
+  const { error: createErr } = await admin.rpc("create_gift_order", {
+    p_session_id: session.id,
+    p_payment_intent: paymentIntentId,
+    p_buyer_email: buyerEmail,
+    p_buyer_name: m.buyer_name || null,
+    p_recipient_email: m.recipient_email || null,
+    p_recipient_name: m.recipient_name || null,
+    p_note: m.note || null,
+    p_amount_cents: session.amount_total ?? 0,
+    p_codes: Array.from({ length: quantity }, () => generateGiftCode()),
+  });
+  if (createErr) {
+    console.error("stripe-webhook: create_gift_order failed", createErr);
+    return false;
+  }
+
+  const { data: order, error: orderErr } = await admin.from("gift_orders")
+    .select("id, buyer_email, buyer_name, recipient_email, recipient_name, note, emailed_at")
+    .eq("stripe_checkout_session_id", session.id)
+    .maybeSingle();
+  if (orderErr || !order) {
+    console.error("stripe-webhook: could not load gift order", orderErr);
+    return false;
+  }
+  if (order.emailed_at) return true;
+
+  const { data: codeRows, error: codesErr } = await admin.from("gift_codes")
+    .select("code").eq("order_id", order.id).order("created_at");
+  const codes = (codeRows ?? []).map((r: { code: string }) => r.code);
+  if (codesErr || codes.length === 0) {
+    console.error("stripe-webhook: could not load gift codes", codesErr);
+    return false;
+  }
+
+  const siteUrl = Deno.env.get("SITE_URL") || "https://trimblyhome.com";
+  const buyerMail = renderBuyerEmail({ codes, recipientEmail: order.recipient_email, recipientName: order.recipient_name, siteUrl });
+  const sent = await sendEmail({ to: order.buyer_email, ...buyerMail });
+  if (!sent.ok) return false;
+
+  if (order.recipient_email && codes.length === 1) {
+    const recipientMail = renderRecipientEmail({ code: codes[0], buyerName: order.buyer_name, note: order.note, siteUrl });
+    const recipientSent = await sendEmail({ to: order.recipient_email, replyTo: order.buyer_email, ...recipientMail });
+    // The buyer already has the code, so a failed recipient send doesn't block the order.
+    if (!recipientSent.ok) console.error("stripe-webhook: gift recipient email failed", session.id);
+  }
+
+  const { error: markErr } = await admin.from("gift_orders")
+    .update({ emailed_at: new Date().toISOString() }).eq("id", order.id);
+  if (markErr) console.error("stripe-webhook: could not mark gift order emailed", markErr);
+  return true;
 }
 
 Deno.serve(async (req) => {
@@ -135,6 +206,16 @@ Deno.serve(async (req) => {
             });
           }
         }
+      } else if (kind === "gift_purchase") {
+        if (session.payment_status === "paid") {
+          const ok = await fulfillGiftPurchase(admin, session);
+          if (!ok) {
+            // 500 makes Stripe redeliver; fulfillGiftPurchase is safe to repeat.
+            return new Response(JSON.stringify({ error: "Failed to fulfill gift" }), {
+              status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        }
       } else if (kind === "milestone_payment") {
         const milestoneId = session.metadata?.milestone_id || session.client_reference_id;
         if (milestoneId) {
@@ -184,6 +265,28 @@ Deno.serve(async (req) => {
           status: "canceled",
           canceled_at: new Date().toISOString(),
         }).eq("user_id", sub.metadata.user_id);
+      }
+    } else if (event.type === "charge.refunded") {
+      // A fully refunded gift can no longer be redeemed. Codes already
+      // redeemed are left alone; that's a staff decision.
+      const charge = event.data.object as Stripe.Charge;
+      const paymentIntentId = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
+      if (charge.refunded && paymentIntentId) {
+        const { data: orders } = await admin.from("gift_orders").select("id").eq("stripe_payment_intent_id", paymentIntentId);
+        const orderIds = (orders ?? []).map((o: { id: string }) => o.id);
+        if (orderIds.length > 0) {
+          const { error } = await admin.from("gift_codes")
+            .update({ voided_at: new Date().toISOString() })
+            .in("order_id", orderIds)
+            .is("redeemed_at", null)
+            .is("voided_at", null);
+          if (error) {
+            console.error("stripe-webhook: failed to void refunded gift codes", error);
+            return new Response(JSON.stringify({ error: "Failed to void gift codes" }), {
+              status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        }
       }
     } else if (event.type === "account.updated") {
       const account = event.data.object as Stripe.Account;

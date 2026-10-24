@@ -1537,6 +1537,7 @@ export type Database = {
           suspended: boolean
           suspended_reason: string | null
           timezone: string | null
+          tier_expires_at: string | null
           updated_at: string
           user_type: string
           viking_mode_unlocked: boolean
@@ -1555,6 +1556,7 @@ export type Database = {
           suspended?: boolean
           suspended_reason?: string | null
           timezone?: string | null
+          tier_expires_at?: string | null
           updated_at?: string
           user_type?: string
           viking_mode_unlocked?: boolean
@@ -1573,6 +1575,7 @@ export type Database = {
           suspended?: boolean
           suspended_reason?: string | null
           timezone?: string | null
+          tier_expires_at?: string | null
           updated_at?: string
           user_type?: string
           viking_mode_unlocked?: boolean

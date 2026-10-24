@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { VikingModeUnlockedDialog } from "@/components/VikingModeUnlockedDialog";
+import { formatGiftCode, isGiftCode } from "@/lib/gift";
 
 // A code box that lives in Settings/Profile rather than the signup/pricing
 // flow, so a partner code (like HEXWOOD) can still be redeemed by someone
@@ -34,6 +35,22 @@ export function RedeemCodeCard() {
     if (!trimmed) return;
     setRedeeming(true);
     try {
+      // Gift codes (bought on /gift) are a separate system from discount codes.
+      if (isGiftCode(trimmed)) {
+        const { data, error } = await supabase.rpc("redeem_gift_code" as any, { p_code: formatGiftCode(trimmed) } as any);
+        const gift = data as any;
+        if (error || !gift?.success) {
+          toast({ title: "Code didn't work", description: gift?.error || error?.message, variant: "destructive" });
+          return;
+        }
+        setCode("");
+        await refreshProfile();
+        toast({
+          title: "Gift redeemed!",
+          description: `Home Hero is on until ${new Date(gift.expires_at).toLocaleDateString()}.`,
+        });
+        return;
+      }
       const { data, error } = await supabase.rpc("redeem_discount_code" as any, { p_code: trimmed } as any);
       const result = data as any;
       if (error || !result?.success) {
