@@ -2,6 +2,7 @@ import { useState, useEffect, createContext, useContext } from "react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { getBrowserTimezone } from "@/lib/timezone";
+import { getAttributionForSignup } from "@/lib/attribution";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -100,7 +101,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       email,
       password,
       options: {
-        data: { ...metadata, timezone: getBrowserTimezone() },
+        data: { ...getAttributionForSignup(), ...metadata, timezone: getBrowserTimezone() },
         emailRedirectTo: window.location.origin,
       },
     });

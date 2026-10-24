@@ -42,8 +42,12 @@ type Totals = {
   verified_providers: number; featured_providers: number;
   total_rentals: number; available_rentals: number; signed_agreements: number;
 };
+type SourceRow = {
+  source: string; medium: string; campaign: string; signups: number; paid: number;
+};
 type Payload = {
-  totals: Totals; subscriptionBreakdown: SubRow[]; growth: GrowthRow[]; dailyGrowth: DailyRow[]; generated_at: string;
+  totals: Totals; subscriptionBreakdown: SubRow[]; growth: GrowthRow[]; dailyGrowth: DailyRow[];
+  signupsBySource?: SourceRow[]; generated_at: string;
 };
 
 const CHART_COLORS = ["#3da06e", "#f59e0b", "#3b82f6", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#10b981"];
@@ -125,6 +129,7 @@ const BusinessAnalytics = () => {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.subscriptionBreakdown), "Subscriptions");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.growth), "Growth (12 mo)");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.dailyGrowth), "Growth (30 day)");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.signupsBySource ?? []), "Signups by source");
     XLSX.writeFile(wb, `trimbly-business-analytics-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
@@ -362,6 +367,48 @@ const BusinessAnalytics = () => {
                   <Bar dataKey="providers_new" stackId="a" fill="#f59e0b" name="Providers" />
                 </BarChart>
               </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Signups by source (all time, first touch)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground mb-3">
+                "unknown" are accounts created before source tracking was added. Tag links with
+                ?utm_source=…&amp;utm_medium=…&amp;utm_campaign=… to see them here.
+              </p>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Source</TableHead>
+                    <TableHead>Medium</TableHead>
+                    <TableHead>Campaign</TableHead>
+                    <TableHead className="text-right">Signups</TableHead>
+                    <TableHead className="text-right">Paying</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(data.signupsBySource ?? []).length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                        No source data yet.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    (data.signupsBySource ?? []).slice(0, 25).map((r) => (
+                      <TableRow key={`${r.source}|${r.medium}|${r.campaign}`}>
+                        <TableCell className="font-medium">{r.source}</TableCell>
+                        <TableCell>{r.medium}</TableCell>
+                        <TableCell>{r.campaign || "—"}</TableCell>
+                        <TableCell className="text-right">{num(r.signups)}</TableCell>
+                        <TableCell className="text-right">{num(r.paid)}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
 
