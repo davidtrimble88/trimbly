@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
     const [profiles, providers, jobs, bids, rentals, agreements] = await Promise.all([
-      fetchAll(admin, "profiles", "id, user_type, subscription_tier, created_at, suspended"),
+      fetchAll(admin, "profiles", "id, user_type, subscription_tier, created_at, suspended, signup_source, signup_medium, signup_campaign"),
       fetchAll(admin, "providers", "id, user_id, subscription_tier, category, country, state, city, created_at, verified, featured"),
       fetchAll(admin, "jobs", "id, status, created_at"),
       fetchAll(admin, "job_bids", "id, bid_amount, status, created_at"),
@@ -286,8 +286,23 @@ Deno.serve(async (req) => {
       signed_agreements: signedAgreements.length,
     };
 
+    // --- Signups by acquisition source (first-touch, see src/lib/attribution.ts) ---
+    // Accounts created before attribution existed have no source and show as "unknown".
+    const sourceMap = new Map<string, { source: string; medium: string; campaign: string; signups: number; paid: number }>();
+    for (const p of profiles) {
+      const source = (p.signup_source || "unknown") as string;
+      const medium = (p.signup_medium || "unknown") as string;
+      const campaign = (p.signup_campaign || "") as string;
+      const key = `${source}|${medium}|${campaign}`;
+      const row = sourceMap.get(key) || { source, medium, campaign, signups: 0, paid: 0 };
+      row.signups += 1;
+      if ((p.subscription_tier || "free") !== "free") row.paid += 1;
+      sourceMap.set(key, row);
+    }
+    const signupsBySource = Array.from(sourceMap.values()).sort((a, b) => b.signups - a.signups);
+
     return new Response(
-      JSON.stringify({ totals, subscriptionBreakdown, growth, dailyGrowth, generated_at: new Date().toISOString() }),
+      JSON.stringify({ totals, subscriptionBreakdown, growth, dailyGrowth, signupsBySource, generated_at: new Date().toISOString() }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err: any) {
