@@ -48,7 +48,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [theme, user, vikingModeUnlocked, isPaidAccount, setTheme]);
 
   const fetchProfileName = async (userId: string) => {
-    const { data } = await supabase.from("profiles").select("full_name, avatar_url, timezone, viking_mode_unlocked, user_type, subscription_tier").eq("id", userId).maybeSingle();
+    let { data } = await supabase.from("profiles").select("full_name, avatar_url, timezone, viking_mode_unlocked, user_type, subscription_tier, tier_expires_at").eq("id", userId).maybeSingle();
+    // A gifted plan ends on its date. The server does the downgrade (this only
+    // asks it to), then we re-read so the rest of the app sees the real tier.
+    if (data?.tier_expires_at && new Date(data.tier_expires_at) < new Date()) {
+      await supabase.rpc("expire_my_gift_tier" as never);
+      ({ data } = await supabase.from("profiles").select("full_name, avatar_url, timezone, viking_mode_unlocked, user_type, subscription_tier, tier_expires_at").eq("id", userId).maybeSingle());
+    }
     setProfileName(data?.full_name || null);
     setAvatarUrl(data?.avatar_url || null);
     setUserTimezone(data?.timezone || null);

@@ -29,6 +29,12 @@ Deno.serve(async (req) => {
     // match the actual frontend domain.
     const siteUrl = Deno.env.get("SITE_URL") || "https://trimbly.lovable.app";
 
+    // This already runs on a schedule, so it doubles as the sweep that ends
+    // expired gift plans (the project has no pg_cron). A failure here must
+    // not stop the reminders.
+    const { error: expireErr } = await supabase.rpc("expire_gift_tiers");
+    if (expireErr) console.error("maintenance-reminders: expire_gift_tiers failed", expireErr);
+
     const today = new Date();
     const reminderDays = [30, 7, 1, 0];
 

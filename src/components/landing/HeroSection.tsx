@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, BookOpen, BriefcaseBusiness, Car, CheckCircle2, CloudSun, FolderOpen, Home, House, ShieldCheck, ShoppingCart, Wrench, Zap } from "lucide-react";
+import { ArrowRight, BookOpen, BriefcaseBusiness, Car, CheckCircle2, CloudSun, FolderOpen, Gift, Home, House, ShieldCheck, ShoppingCart, Wrench, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BrandMark from "@/components/BrandMark";
 import modernHome from "@/assets/landing/trimbly-modern-home.jpg";
@@ -42,6 +42,9 @@ const HeroSection = () => {
                 </Button>
                 <Button size="lg" variant="outline" className="h-12 rounded-lg bg-card px-6 text-base" onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}>
                   See How It Works
+                </Button>
+                <Button size="lg" variant="outline" className="h-12 rounded-lg bg-card px-6 text-base" onClick={() => navigate("/gift")}>
+                  <Gift /> Give a Gift
                 </Button>
               </div>
               <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-foreground/70">
