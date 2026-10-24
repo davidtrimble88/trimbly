@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { TESTING_NOTICE_ACK_KEY } from "@/pages/TestingNotice";
+import { BETA_FREE_ACCESS } from "@/lib/pricingTiers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -214,7 +215,8 @@ function AuthForm({
     } catch {
       acked = false;
     }
-    if (acked || email.toLowerCase().endsWith("@staff.trimbly.internal")) {
+    // The beta/testing notice only applies while the free beta runs.
+    if (!BETA_FREE_ACCESS || acked || email.toLowerCase().endsWith("@staff.trimbly.internal")) {
       navigate(dest);
     } else {
       navigate(`/testing-notice?next=${encodeURIComponent(dest)}`);

@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { TestingWelcomeModal } from "@/components/onboarding/TestingWelcomeModal";
 import { VikingModeUnlockedDialog } from "@/components/VikingModeUnlockedDialog";
 import { BETA_FREE_ACCESS, formatUsd, formatCad, homeownerTiers } from "@/lib/pricingTiers";
+import { startHomeownerCheckout } from "@/lib/billing";
 
 // Only the paid tiers render as cards here — Free is a plain text link
 // below (see "No thanks..."), so it's filtered out of the shared list.
@@ -80,16 +81,17 @@ export default function HomeownerUpsell() {
         }
       }
 
-      // Early-access tier selection — no real checkout exists yet, so this
-      // just records the choice via a scoped RPC (a user may only set their
-      // OWN tier to one of the three real values; see set_own_subscription_tier).
+      // Paid plans start in Stripe Checkout: card up front, first charge after
+      // the 14-day trial. The webhook turns the plan on when Checkout completes.
       if (tierKey !== "free" && user && !appliedViaCode) {
-        const { data, error } = await supabase.rpc("set_own_subscription_tier" as any, { p_tier: tierKey } as any);
-        if (error || !(data as any)?.success) {
-          toast({ title: "Couldn't update your plan", description: (data as any)?.error || error?.message, variant: "destructive" });
+        const { url, error } = await startHomeownerCheckout(tierKey === "multi_pro" ? "multi_pro" : "homeowner_pro");
+        if (error || !url) {
+          toast({ title: "Couldn't start checkout", description: error || "Please try again.", variant: "destructive" });
           setLoadingTier(null);
           return;
         }
+        window.location.href = url;
+        return;
       }
 
       if (tierKey === "free") {
@@ -287,7 +289,7 @@ export default function HomeownerUpsell() {
                   <Check size={14} className="text-primary" /> 14-day free trial
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Check size={14} className="text-primary" /> No credit card required to start trial
+                  <Check size={14} className="text-primary" /> Card required, but nothing is charged for 14 days
                 </span>
               </>
             )}

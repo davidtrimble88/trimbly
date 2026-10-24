@@ -115,6 +115,8 @@ Deno.serve(async (req) => {
         tier,
       },
       subscription_data: {
+        // Card up front, first charge after the 14-day trial.
+        trial_period_days: 14,
         metadata: {
           kind: "provider_subscription",
           provider_id: provider.id,

@@ -13,6 +13,7 @@ import { SecurityQuestionsGate } from "@/components/SecurityQuestionsGate";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import OfflineBanner from "@/components/OfflineBanner";
 import CookieConsent from "@/components/CookieConsent";
+import { BetaEndedGate } from "@/components/BetaEndedGate";
 
 // Eager: high-traffic landing + auth + dashboards
 import Index from "./pages/Index";
@@ -154,6 +155,7 @@ const App = () => (
           <ScrollToTop />
           <GlobalListeners />
           <SecurityQuestionsGate />
+          <BetaEndedGate />
           <div className="pb-16 md:pb-0">
           <Suspense fallback={<RouteLoader />}>
           <Routes>
