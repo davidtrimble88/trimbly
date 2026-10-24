@@ -1,6 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { rateLimit, rateLimitResponse, getClientKey } from "../_shared/rateLimit.ts";
 import { sendEmail } from "../_shared/sendEmail.ts";
+import Stripe from "npm:stripe@17.4.0";
+import { reconcileHouseholdBilling } from "../_shared/householdBilling.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,6 +36,27 @@ Deno.serve(async (req) => {
     // not stop the reminders.
     const { error: expireErr } = await supabase.rpc("expire_gift_tiers");
     if (expireErr) console.error("maintenance-reminders: expire_gift_tiers failed", expireErr);
+
+    // Same sweep re-checks household billing for every owner with a paid seat,
+    // catching a seat whose immediate sync failed. A failure must not stop the reminders.
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (stripeKey) {
+      try {
+        const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20", httpClient: Stripe.createFetchHttpClient() });
+        const { data: seatOwners } = await supabase
+          .from("home_shares")
+          .select("owner_user_id")
+          .eq("status", "active")
+          .gt("monthly_addon_cents", 0);
+        const ownerIds = [...new Set((seatOwners ?? []).map((r: { owner_user_id: string }) => r.owner_user_id))];
+        for (const ownerId of ownerIds) {
+          const synced = await reconcileHouseholdBilling(supabase, stripe, ownerId);
+          if (!synced.ok) console.error("maintenance-reminders: household billing sync failed", ownerId, synced.error);
+        }
+      } catch (err) {
+        console.error("maintenance-reminders: household billing sweep failed", err);
+      }
+    }
 
     const today = new Date();
     const reminderDays = [30, 7, 1, 0];

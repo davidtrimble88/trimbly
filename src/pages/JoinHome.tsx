@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Loader2, Home, Users, Building2, AlertCircle, Check } from "lucide-react";
+import { syncHouseholdBilling } from "@/lib/billing";
 
 type Preview = {
   success: boolean;
@@ -51,6 +52,7 @@ export default function JoinHome() {
         toast({ title: "Couldn't accept invite", description: result?.error || error?.message, variant: "destructive" });
         return;
       }
+      if (result.share_id) void syncHouseholdBilling(result.share_id);
       toast({ title: "You're in!", description: "You now have access to the shared home." });
       navigate("/homeowner-upsell?onboarding=1");
     } finally {
