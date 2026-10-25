@@ -64,8 +64,9 @@ const GiftCard = () => {
   const term = Number.isInteger(years) ? `${years} year${years === 1 ? "" : "s"}` : `${card.months} months`;
 
   return (
-    <div className="min-h-screen bg-secondary py-6 print:bg-white print:py-0">
-      <style>{`@media print { @page { size: letter; margin: 0.4in; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }`}</style>
+    <div className="min-h-screen bg-secondary py-6 print:min-h-0 print:bg-white print:py-0">
+      {/* Print: one letter page, and none of the site's floating banners (cookie notice, offline bar, bottom nav). */}
+      <style>{`@media print { @page { size: letter; margin: 0.4in; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; } .fixed { display: none !important; } }`}</style>
 
       <div className="mx-auto mb-4 flex max-w-3xl items-center justify-between gap-3 px-4 print:hidden">
         <p className="text-sm text-muted-foreground">Print this card, save it as a PDF, or forward the link to the person getting the gift.</p>
