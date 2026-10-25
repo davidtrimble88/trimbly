@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
@@ -568,6 +568,98 @@ export type Database = {
           stripe_subscription_id?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      gift_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          months: number
+          order_id: string
+          redeem_by: string
+          redeemed_at: string | null
+          redeemed_by: string | null
+          tier: string
+          voided_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          months?: number
+          order_id: string
+          redeem_by?: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          tier?: string
+          voided_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          months?: number
+          order_id?: string
+          redeem_by?: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          tier?: string
+          voided_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gift_codes_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "gift_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gift_orders: {
+        Row: {
+          amount_cents: number
+          buyer_email: string
+          buyer_name: string | null
+          created_at: string
+          emailed_at: string | null
+          id: string
+          note: string | null
+          quantity: number
+          recipient_email: string | null
+          recipient_name: string | null
+          stripe_checkout_session_id: string
+          stripe_payment_intent_id: string | null
+        }
+        Insert: {
+          amount_cents: number
+          buyer_email: string
+          buyer_name?: string | null
+          created_at?: string
+          emailed_at?: string | null
+          id?: string
+          note?: string | null
+          quantity: number
+          recipient_email?: string | null
+          recipient_name?: string | null
+          stripe_checkout_session_id: string
+          stripe_payment_intent_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          buyer_email?: string
+          buyer_name?: string | null
+          created_at?: string
+          emailed_at?: string | null
+          id?: string
+          note?: string | null
+          quantity?: number
+          recipient_email?: string | null
+          recipient_name?: string | null
+          stripe_checkout_session_id?: string
+          stripe_payment_intent_id?: string | null
         }
         Relationships: []
       }
@@ -1533,15 +1625,23 @@ export type Database = {
           is_public: boolean
           is_testing_account: boolean
           referred_by_code: string | null
-          subscription_tier: string
-          suspended: boolean
-          suspended_reason: string | null
-          timezone: string | null
-          tier_expires_at: string | null
+          signup_campaign: string | null
+          signup_click_id: string | null
+          signup_content: string | null
+          signup_landing_path: string | null
+          signup_medium: string | null
+          signup_referrer: string | null
+          signup_source: string | null
+          signup_term: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           subscription_current_period_end: string | null
           subscription_status: string
+          subscription_tier: string
+          suspended: boolean
+          suspended_reason: string | null
+          tier_expires_at: string | null
+          timezone: string | null
           updated_at: string
           user_type: string
           viking_mode_unlocked: boolean
@@ -1556,15 +1656,23 @@ export type Database = {
           is_public?: boolean
           is_testing_account?: boolean
           referred_by_code?: string | null
-          subscription_tier?: string
-          suspended?: boolean
-          suspended_reason?: string | null
-          timezone?: string | null
-          tier_expires_at?: string | null
+          signup_campaign?: string | null
+          signup_click_id?: string | null
+          signup_content?: string | null
+          signup_landing_path?: string | null
+          signup_medium?: string | null
+          signup_referrer?: string | null
+          signup_source?: string | null
+          signup_term?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_current_period_end?: string | null
           subscription_status?: string
+          subscription_tier?: string
+          suspended?: boolean
+          suspended_reason?: string | null
+          tier_expires_at?: string | null
+          timezone?: string | null
           updated_at?: string
           user_type?: string
           viking_mode_unlocked?: boolean
@@ -1579,15 +1687,23 @@ export type Database = {
           is_public?: boolean
           is_testing_account?: boolean
           referred_by_code?: string | null
-          subscription_tier?: string
-          suspended?: boolean
-          suspended_reason?: string | null
-          timezone?: string | null
-          tier_expires_at?: string | null
+          signup_campaign?: string | null
+          signup_click_id?: string | null
+          signup_content?: string | null
+          signup_landing_path?: string | null
+          signup_medium?: string | null
+          signup_referrer?: string | null
+          signup_source?: string | null
+          signup_term?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_current_period_end?: string | null
           subscription_status?: string
+          subscription_tier?: string
+          suspended?: boolean
+          suspended_reason?: string | null
+          tier_expires_at?: string | null
+          timezone?: string | null
           updated_at?: string
           user_type?: string
           viking_mode_unlocked?: boolean
@@ -3279,10 +3395,28 @@ export type Database = {
           user_id: string
         }[]
       }
+      beta_end_status: { Args: never; Returns: Json }
+      create_gift_order: {
+        Args: {
+          p_amount_cents: number
+          p_buyer_email: string
+          p_buyer_name: string
+          p_codes: string[]
+          p_note: string
+          p_payment_intent: string
+          p_recipient_email: string
+          p_recipient_name: string
+          p_session_id: string
+        }
+        Returns: string
+      }
       create_home_invite: {
         Args: { p_grant_type: string; p_home_id?: string }
         Returns: Json
       }
+      end_beta_switch_to_free: { Args: { p_scope: string }; Returns: Json }
+      expire_gift_tiers: { Args: never; Returns: number }
+      expire_my_gift_tier: { Args: never; Returns: boolean }
       find_user_by_email: {
         Args: { _email: string }
         Returns: {
@@ -3305,6 +3439,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      household_owner_can_be_billed: {
+        Args: { p_owner: string }
         Returns: boolean
       }
       mechanic_bids_this_month: {
@@ -3333,6 +3471,7 @@ export type Database = {
         }
         Returns: Json
       }
+      redeem_gift_code: { Args: { p_code: string }; Returns: Json }
       revoke_home_share: { Args: { p_share_id: string }; Returns: Json }
       set_own_garage_subscription: {
         Args: { p_interval?: string }
@@ -3348,6 +3487,17 @@ export type Database = {
           p_question_1: string
           p_question_2: string
           p_question_3: string
+        }
+        Returns: undefined
+      }
+      update_profile_subscription_trusted: {
+        Args: {
+          p_stripe_customer_id?: string
+          p_stripe_subscription_id?: string
+          p_subscription_current_period_end?: string
+          p_subscription_status?: string
+          p_subscription_tier?: string
+          p_user_id: string
         }
         Returns: undefined
       }
