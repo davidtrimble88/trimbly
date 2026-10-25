@@ -47,70 +47,122 @@ async function trustedProviderUpdate(admin: ReturnType<typeof createClient>, upd
   return error;
 }
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 // Creates the order and its codes (once per Stripe session) and emails them.
 // Stripe retries webhooks, so this is safe to run repeatedly: the order insert
-// is keyed on the session id, and the emails are only sent while
-// gift_orders.emailed_at is still NULL. Returns false when something should be
-// retried.
+// is keyed on the session id, the buyer email is only sent while
+// gift_orders.emailed_at is NULL, and each recipient's email is only sent while
+// that gift's recipient_emailed_at is NULL. Returns false when something should
+// be retried (the order or the buyer email); a recipient's email failing is
+// logged but never fails the webhook, since the buyer already has every code.
 async function fulfillGiftPurchase(admin: ReturnType<typeof createClient>, session: Stripe.Checkout.Session): Promise<boolean> {
   const m = session.metadata ?? {};
-  const buyerEmail = m.buyer_email || session.customer_details?.email;
-  if (!buyerEmail) {
-    console.error("stripe-webhook: gift session has no buyer email", session.id);
-    return false;
-  }
-  const quantity = Math.min(GIFT_MAX_QUANTITY, Math.max(1, parseInt(m.quantity || "1", 10) || 1));
   const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id ?? null;
+  const orderColumns = "id, buyer_email, buyer_name, recipient_email, recipient_name, note, emailed_at";
 
-  const { error: createErr } = await admin.rpc("create_gift_order", {
-    p_session_id: session.id,
-    p_payment_intent: paymentIntentId,
-    p_buyer_email: buyerEmail,
-    p_buyer_name: m.buyer_name || null,
-    p_recipient_email: m.recipient_email || null,
-    p_recipient_name: m.recipient_name || null,
-    p_note: m.note || null,
-    p_amount_cents: session.amount_total ?? 0,
-    p_codes: Array.from({ length: quantity }, () => generateGiftCode()),
-  });
-  if (createErr) {
-    console.error("stripe-webhook: create_gift_order failed", createErr);
+  let { data: order } = await admin.from("gift_orders").select(orderColumns)
+    .eq("stripe_checkout_session_id", session.id).maybeSingle();
+
+  if (!order) {
+    if (m.draft_id) {
+      // New flow: every gift has its own name, email and note, saved by create-gift-checkout.
+      const { data: draft, error: draftErr } = await admin.from("gift_drafts")
+        .select("buyer_email, buyer_name, items").eq("id", m.draft_id).maybeSingle();
+      if (draftErr || !draft) {
+        console.error("stripe-webhook: could not load the gift draft", m.draft_id, draftErr);
+        return false;
+      }
+      const items = (draft.items as Array<Record<string, string>>).map((it) => ({ ...it, code: generateGiftCode() }));
+      const { error: createErr } = await admin.rpc("create_gift_order_items", {
+        p_session_id: session.id,
+        p_payment_intent: paymentIntentId,
+        p_buyer_email: draft.buyer_email,
+        p_buyer_name: draft.buyer_name,
+        p_amount_cents: session.amount_total ?? 0,
+        p_items: items,
+      });
+      if (createErr) {
+        console.error("stripe-webhook: create_gift_order_items failed", createErr);
+        return false;
+      }
+      await admin.from("gift_drafts").delete().eq("id", m.draft_id); // best effort; it holds names and emails
+    } else {
+      // Older sessions: one order-wide recipient in the metadata.
+      const buyerEmail = m.buyer_email || session.customer_details?.email;
+      if (!buyerEmail) {
+        console.error("stripe-webhook: gift session has no buyer email", session.id);
+        return false;
+      }
+      const quantity = Math.min(GIFT_MAX_QUANTITY, Math.max(1, parseInt(m.quantity || "1", 10) || 1));
+      const { error: createErr } = await admin.rpc("create_gift_order", {
+        p_session_id: session.id,
+        p_payment_intent: paymentIntentId,
+        p_buyer_email: buyerEmail,
+        p_buyer_name: m.buyer_name || null,
+        p_recipient_email: m.recipient_email || null,
+        p_recipient_name: m.recipient_name || null,
+        p_note: m.note || null,
+        p_amount_cents: session.amount_total ?? 0,
+        p_codes: Array.from({ length: quantity }, () => generateGiftCode()),
+      });
+      if (createErr) {
+        console.error("stripe-webhook: create_gift_order failed", createErr);
+        return false;
+      }
+    }
+    const reloaded = await admin.from("gift_orders").select(orderColumns)
+      .eq("stripe_checkout_session_id", session.id).maybeSingle();
+    order = reloaded.data;
+  }
+  if (!order) {
+    console.error("stripe-webhook: could not load the gift order", session.id);
     return false;
   }
-
-  const { data: order, error: orderErr } = await admin.from("gift_orders")
-    .select("id, buyer_email, buyer_name, recipient_email, recipient_name, note, emailed_at")
-    .eq("stripe_checkout_session_id", session.id)
-    .maybeSingle();
-  if (orderErr || !order) {
-    console.error("stripe-webhook: could not load gift order", orderErr);
-    return false;
-  }
-  if (order.emailed_at) return true;
 
   const { data: codeRows, error: codesErr } = await admin.from("gift_codes")
-    .select("code").eq("order_id", order.id).order("created_at");
-  const codes = (codeRows ?? []).map((r: { code: string }) => r.code);
-  if (codesErr || codes.length === 0) {
+    .select("code, recipient_name, recipient_email, note, recipient_emailed_at")
+    .eq("order_id", order.id).order("position", { nullsFirst: false }).order("created_at");
+  if (codesErr || !codeRows || codeRows.length === 0) {
     console.error("stripe-webhook: could not load gift codes", codesErr);
     return false;
   }
 
+  type CodeRow = { code: string; recipient_name: string | null; recipient_email: string | null; note: string | null; recipient_emailed_at: string | null };
+  // An order saved before per-gift details existed kept its one recipient on the order itself.
+  const legacySingle = codeRows.length === 1 && !order.emailed_at;
+  const gifts = (codeRows as CodeRow[]).map((c) => ({
+    code: c.code,
+    name: c.recipient_name ?? (legacySingle ? order!.recipient_name : null),
+    email: c.recipient_email ?? (legacySingle ? order!.recipient_email : null),
+    note: c.note ?? order!.note,
+    alreadyEmailed: !!c.recipient_emailed_at,
+  }));
   const siteUrl = Deno.env.get("SITE_URL") || "https://trimblyhome.com";
-  const buyerMail = renderBuyerEmail({ codes, recipientEmail: order.recipient_email, recipientName: order.recipient_name, siteUrl });
-  const sent = await sendEmail({ to: order.buyer_email, ...buyerMail });
-  if (!sent.ok) return false;
 
-  if (order.recipient_email && codes.length === 1) {
-    const recipientMail = renderRecipientEmail({ code: codes[0], buyerName: order.buyer_name, note: order.note, siteUrl });
-    const recipientSent = await sendEmail({ to: order.recipient_email, replyTo: order.buyer_email, ...recipientMail });
-    // The buyer already has the code, so a failed recipient send doesn't block the order.
-    if (!recipientSent.ok) console.error("stripe-webhook: gift recipient email failed", session.id);
+  if (!order.emailed_at) {
+    const buyerMail = renderBuyerEmail({
+      items: gifts.map((g) => ({ code: g.code, recipientName: g.name, recipientEmail: g.email })),
+      siteUrl,
+    });
+    const sent = await sendEmail({ to: order.buyer_email, ...buyerMail });
+    if (!sent.ok) return false;
+    const { error: markErr } = await admin.from("gift_orders")
+      .update({ emailed_at: new Date().toISOString() }).eq("id", order.id);
+    if (markErr) console.error("stripe-webhook: could not mark gift order emailed", markErr);
   }
 
-  const { error: markErr } = await admin.from("gift_orders")
-    .update({ emailed_at: new Date().toISOString() }).eq("id", order.id);
-  if (markErr) console.error("stripe-webhook: could not mark gift order emailed", markErr);
+  for (const g of gifts) {
+    if (!g.email || g.alreadyEmailed) continue;
+    await sleep(600); // Resend allows about two requests a second
+    const mail = renderRecipientEmail({ code: g.code, buyerName: order.buyer_name, note: g.note, siteUrl });
+    const sent = await sendEmail({ to: g.email, replyTo: order.buyer_email, ...mail });
+    if (sent.ok) {
+      await admin.from("gift_codes").update({ recipient_emailed_at: new Date().toISOString() }).eq("code", g.code);
+    } else {
+      console.error("stripe-webhook: gift recipient email failed", session.id, g.code);
+    }
+  }
   return true;
 }
 

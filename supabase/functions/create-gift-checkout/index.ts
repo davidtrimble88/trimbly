@@ -2,6 +2,11 @@
 // buyer (often a realtor or a relative) doesn't need a Trimbly account. The
 // price is set here, never taken from the client. The codes themselves are
 // created by stripe-webhook after payment clears, not here.
+//
+// Each gift in the order can have its own recipient name, email and note.
+// Stripe metadata can't hold that (500 characters a value), so the validated
+// list is saved as a gift_drafts row and the session carries only its id.
+import { createClient } from "npm:@supabase/supabase-js@2";
 import Stripe from "npm:stripe@17.4.0";
 import { getClientKey, rateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 import {
@@ -10,6 +15,7 @@ import {
   GIFT_PRICE_CENTS,
   cleanLine,
   isEmail,
+  normalizeGiftItems,
 } from "../_shared/gift.ts";
 
 const corsHeaders = {
@@ -35,6 +41,8 @@ Deno.serve(async (req) => {
     const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
     if (!STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY is not configured");
     const SITE_URL = Deno.env.get("SITE_URL") || "https://trimblyhome.com";
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const body = await req.json().catch(() => ({}));
 
@@ -43,17 +51,29 @@ Deno.serve(async (req) => {
 
     const quantity = Math.floor(Number(body.quantity));
     if (!Number.isFinite(quantity) || quantity < 1 || quantity > GIFT_MAX_QUANTITY) {
-      return json({ error: `Choose between 1 and ${GIFT_MAX_QUANTITY} gifts. For more, email office@trimblyhome.com` }, 400);
+      return json({ error: `Choose between 1 and ${GIFT_MAX_QUANTITY} gifts. For more, place another order or email office@trimblyhome.com` }, 400);
     }
 
-    const recipientEmail = cleanLine(body.recipientEmail, 254).toLowerCase();
-    if (recipientEmail && !isEmail(recipientEmail)) return json({ error: "That recipient email doesn't look right" }, 400);
-    // A single gift can be emailed straight to its recipient; a multi-pack goes to the buyer to hand out.
-    if (recipientEmail && quantity !== 1) return json({ error: "Recipient email is only for a single gift" }, 400);
-
     const buyerName = cleanLine(body.buyerName, 80);
-    const recipientName = cleanLine(body.recipientName, 80);
-    const note = String(body.note ?? "").replace(/\r/g, "").trim().slice(0, GIFT_NOTE_MAX);
+    const defaultNote = String(body.note ?? "").replace(/\r/g, "").trim().slice(0, GIFT_NOTE_MAX);
+
+    // A page published before per-gift forms existed sends the single recipient at the top level.
+    const gifts = Array.isArray(body.gifts)
+      ? body.gifts
+      : [{ recipientName: body.recipientName, recipientEmail: body.recipientEmail }];
+    const normalized = normalizeGiftItems(gifts, quantity, defaultNote);
+    if ("error" in normalized) return json({ error: normalized.error }, 400);
+
+    const admin = createClient(SUPABASE_URL, SERVICE_KEY);
+    const { data: draft, error: draftErr } = await admin
+      .from("gift_drafts")
+      .insert({ buyer_email: buyerEmail, buyer_name: buyerName || null, items: normalized.items })
+      .select("id")
+      .single();
+    if (draftErr || !draft) {
+      console.error("create-gift-checkout: could not save the draft", draftErr);
+      return json({ error: "We couldn't start checkout. Please try again." }, 500);
+    }
 
     const stripe = new Stripe(STRIPE_SECRET_KEY, {
       apiVersion: "2024-06-20",
@@ -78,11 +98,9 @@ Deno.serve(async (req) => {
       ],
       metadata: {
         kind: "gift_purchase",
+        draft_id: draft.id,
         buyer_email: buyerEmail,
         buyer_name: buyerName,
-        recipient_email: recipientEmail,
-        recipient_name: recipientName,
-        note,
         quantity: String(quantity),
       },
       success_url: `${SITE_URL}/gift?thanks=1`,

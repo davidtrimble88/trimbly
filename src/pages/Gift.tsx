@@ -17,7 +17,11 @@ import {
   GIFT_MAX_QUANTITY,
   GIFT_NOTE_MAX,
   GIFT_PRICE_USD,
+  describeGiftError,
+  emptyGift,
   giftOrderSchema,
+  resizeGifts,
+  type GiftItem,
 } from "@/lib/gift";
 
 const highlights = GIFT_HIGHLIGHTS;
@@ -30,19 +34,22 @@ const Gift = () => {
     buyerName: "",
     buyerEmail: "",
     quantity: 1,
-    recipientName: "",
-    recipientEmail: "",
     note: "",
+    gifts: [emptyGift()],
   });
 
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => setForm((f) => ({ ...f, [key]: value }));
+  const setGift = (index: number, patch: Partial<GiftItem>) =>
+    setForm((f) => ({ ...f, gifts: f.gifts.map((g, i) => (i === index ? { ...g, ...patch } : g)) }));
+  const setQuantity = (quantity: number) => setForm((f) => ({ ...f, quantity, gifts: resizeGifts(f.gifts, quantity) }));
   const total = GIFT_PRICE_USD * form.quantity;
+  const many = form.quantity > 1;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = giftOrderSchema.safeParse(form);
     if (!parsed.success) {
-      toast.error(parsed.error.issues[0].message);
+      toast.error(describeGiftError(parsed.error.issues[0]));
       return;
     }
     setSubmitting(true);
@@ -108,11 +115,11 @@ const Gift = () => {
                 <p className="text-sm font-bold uppercase tracking-wide text-primary">How it works</p>
                 <ol className="mt-3 space-y-2 text-sm text-foreground">
                   <li><strong>1.</strong> You pay once. No account needed.</li>
-                  <li><strong>2.</strong> We email you a one-time gift code (and the recipient too, if you add their email and a note).</li>
+                  <li><strong>2.</strong> We email you every gift code with a printable gift card. If you add someone's email, we email them their gift too, with your name and your note.</li>
                   <li><strong>3.</strong> They create a free Trimbly account, enter the code, and Home Hero turns on for 12 months from that day.</li>
                 </ol>
                 <p className="mt-3 text-sm text-muted-foreground">
-                  Real estate agent, lender, or employer gifting more than {GIFT_MAX_QUANTITY}? Email{" "}
+                  Giving to more than {GIFT_MAX_QUANTITY} people? Place another order. Questions? Write{" "}
                   <a className="underline text-primary" href="mailto:office@trimblyhome.com">office@trimblyhome.com</a>.
                 </p>
               </div>
@@ -150,38 +157,56 @@ const Gift = () => {
                     <Input id="quantity" type="number" inputMode="numeric" min={1} max={GIFT_MAX_QUANTITY} value={form.quantity}
                       onChange={(e) => {
                         const n = Math.round(Number(e.target.value));
-                        set("quantity", Number.isFinite(n) ? Math.min(GIFT_MAX_QUANTITY, Math.max(1, n)) : 1);
+                        setQuantity(Number.isFinite(n) ? Math.min(GIFT_MAX_QUANTITY, Math.max(1, n)) : 1);
                       }} />
-                    {form.quantity > 1 && (
-                      <p className="text-xs text-muted-foreground">All {form.quantity} codes are emailed to you to hand out.</p>
-                    )}
+                    <p className="text-xs text-muted-foreground">Up to {GIFT_MAX_QUANTITY} per order. Each gift gets its own code and card.</p>
                   </div>
 
-                  {form.quantity === 1 && (
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="recipientName">Their name <span className="text-muted-foreground">(optional)</span></Label>
-                        <Input id="recipientName" value={form.recipientName} maxLength={80} placeholder="Sam"
-                          onChange={(e) => set("recipientName", e.target.value)} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="recipientEmail">Their email <span className="text-muted-foreground">(optional)</span></Label>
-                        <Input id="recipientEmail" type="email" value={form.recipientEmail} maxLength={254} placeholder="sam@example.com"
-                          onChange={(e) => set("recipientEmail", e.target.value)} />
-                      </div>
-                    </div>
-                  )}
-
                   <div className="space-y-2">
-                    <Label htmlFor="note">A note <span className="text-muted-foreground">(optional)</span></Label>
+                    <Label htmlFor="note">
+                      {many ? "Note for every gift" : "A note"} <span className="text-muted-foreground">(optional)</span>
+                    </Label>
                     <Textarea id="note" rows={3} value={form.note} maxLength={GIFT_NOTE_MAX}
                       placeholder="Congratulations on the new home!"
                       onChange={(e) => set("note", e.target.value)} />
                     <p className="text-xs text-muted-foreground">
-                      {form.quantity === 1 && form.recipientEmail
-                        ? "Shown in the email we send them."
-                        : "Only used when you add their email. Otherwise, write your own card."} {form.note.length}/{GIFT_NOTE_MAX}
+                      Printed on the gift card{many ? ", unless you write a different note for a gift below" : ""}. {form.note.length}/{GIFT_NOTE_MAX}
                     </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{many ? "Who is each gift for?" : "Who is it for?"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Add their email and we send them the gift and card ourselves, with your name on it. Leave it blank
+                        to hand it over yourself.
+                      </p>
+                    </div>
+                    {form.gifts.map((g, i) => (
+                      <div key={i} className={many ? "space-y-3 rounded-lg border border-border bg-secondary/40 p-3" : "space-y-3"}>
+                        {many && <p className="text-sm font-semibold text-foreground">Gift {i + 1}</p>}
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="space-y-1.5">
+                            <Label htmlFor={`rn-${i}`}>Their name <span className="text-muted-foreground">(optional)</span></Label>
+                            <Input id={`rn-${i}`} value={g.recipientName} maxLength={80} placeholder="Sam and Alex"
+                              onChange={(e) => setGift(i, { recipientName: e.target.value })} />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor={`re-${i}`}>Their email <span className="text-muted-foreground">(optional)</span></Label>
+                            <Input id={`re-${i}`} type="email" value={g.recipientEmail} maxLength={254} placeholder="sam@example.com"
+                              onChange={(e) => setGift(i, { recipientEmail: e.target.value })} />
+                          </div>
+                        </div>
+                        {many && (
+                          <div className="space-y-1.5">
+                            <Label htmlFor={`rt-${i}`}>A different note for this gift <span className="text-muted-foreground">(optional)</span></Label>
+                            <Textarea id={`rt-${i}`} rows={2} value={g.note} maxLength={GIFT_NOTE_MAX}
+                              placeholder={form.note ? "Leave blank to use the note above" : "Leave blank for no note"}
+                              onChange={(e) => setGift(i, { note: e.target.value })} />
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
 
                   <Button type="submit" size="lg" className="w-full" disabled={submitting}>
