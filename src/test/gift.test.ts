@@ -1,14 +1,21 @@
 import { describe, it, expect } from "vitest";
-import { formatGiftCode, giftOrderSchema, isGiftCode } from "@/lib/gift";
+import {
+  describeGiftError,
+  emptyGift,
+  formatGiftCode,
+  giftOrderSchema,
+  isGiftCode,
+  resizeGifts,
+} from "@/lib/gift";
 
-const valid = {
+const order = (quantity: number, overrides: Record<string, unknown> = {}) => ({
   buyerName: "Dana Keller",
   buyerEmail: "dana@example.com",
-  quantity: 1,
-  recipientName: "",
-  recipientEmail: "",
+  quantity,
   note: "",
-};
+  gifts: Array.from({ length: quantity }, () => emptyGift()),
+  ...overrides,
+});
 
 describe("gift codes", () => {
   it("recognizes a gift code however it was typed", () => {
@@ -29,20 +36,57 @@ describe("gift codes", () => {
 
 describe("gift order form", () => {
   it("accepts a single gift with a recipient", () => {
-    expect(giftOrderSchema.safeParse({ ...valid, recipientEmail: "new@home.com" }).success).toBe(true);
+    const gifts = [{ recipientName: "Sam", recipientEmail: "new@home.com", note: "" }];
+    expect(giftOrderSchema.safeParse(order(1, { gifts })).success).toBe(true);
+  });
+
+  it("accepts ten gifts, each with its own name, email and note", () => {
+    const gifts = Array.from({ length: 10 }, (_, i) => ({
+      recipientName: `Client ${i + 1}`,
+      recipientEmail: `client${i + 1}@example.com`,
+      note: `Note for client ${i + 1}`,
+    }));
+    expect(giftOrderSchema.safeParse(order(10, { gifts })).success).toBe(true);
+  });
+
+  it("accepts a mix of gifts with and without an email", () => {
+    const gifts = [
+      { recipientName: "Sam", recipientEmail: "sam@example.com", note: "" },
+      { recipientName: "", recipientEmail: "", note: "" },
+    ];
+    expect(giftOrderSchema.safeParse(order(2, { gifts })).success).toBe(true);
   });
 
   it("rejects a bad buyer email", () => {
-    expect(giftOrderSchema.safeParse({ ...valid, buyerEmail: "nope" }).success).toBe(false);
+    expect(giftOrderSchema.safeParse(order(1, { buyerEmail: "nope" })).success).toBe(false);
   });
 
-  it("only allows a recipient email on a single gift", () => {
-    expect(giftOrderSchema.safeParse({ ...valid, quantity: 3, recipientEmail: "new@home.com" }).success).toBe(false);
-    expect(giftOrderSchema.safeParse({ ...valid, quantity: 3 }).success).toBe(true);
+  it("rejects a bad recipient email and names the gift", () => {
+    const gifts = [emptyGift(), { recipientName: "Pat", recipientEmail: "pat@", note: "" }];
+    const result = giftOrderSchema.safeParse(order(2, { gifts }));
+    expect(result.success).toBe(false);
+    if (!result.success) expect(describeGiftError(result.error.issues[0])).toMatch(/^Gift 2:/);
   });
 
-  it("caps the quantity and the note", () => {
-    expect(giftOrderSchema.safeParse({ ...valid, quantity: 11 }).success).toBe(false);
-    expect(giftOrderSchema.safeParse({ ...valid, note: "x".repeat(301) }).success).toBe(false);
+  it("needs exactly one line per gift", () => {
+    expect(giftOrderSchema.safeParse(order(3, { gifts: [emptyGift()] })).success).toBe(false);
+  });
+
+  it("caps the quantity and every note", () => {
+    expect(giftOrderSchema.safeParse(order(11)).success).toBe(false);
+    expect(giftOrderSchema.safeParse(order(1, { note: "x".repeat(301) })).success).toBe(false);
+    const gifts = [{ recipientName: "", recipientEmail: "", note: "x".repeat(301) }];
+    expect(giftOrderSchema.safeParse(order(1, { gifts })).success).toBe(false);
+  });
+});
+
+describe("resizeGifts", () => {
+  it("keeps what was typed when the quantity grows or shrinks", () => {
+    const start = [{ recipientName: "Sam", recipientEmail: "", note: "" }, { recipientName: "Alex", recipientEmail: "", note: "" }];
+    const grown = resizeGifts(start, 4);
+    expect(grown).toHaveLength(4);
+    expect(grown[0].recipientName).toBe("Sam");
+    expect(grown[3]).toEqual(emptyGift());
+    expect(resizeGifts(grown, 1).map((g) => g.recipientName)).toEqual(["Sam"]);
   });
 });

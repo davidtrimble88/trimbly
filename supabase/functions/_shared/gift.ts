@@ -74,24 +74,34 @@ function codeBlock(code: string, siteUrl: string): string {
   </div>`;
 }
 
-export function renderBuyerEmail(opts: {
-  codes: string[];
-  recipientEmail: string | null;
+export interface GiftEmailItem {
+  code: string;
   recipientName: string | null;
+  /** Set when this gift's own email is going to the recipient. */
+  recipientEmail: string | null;
+}
+
+export function renderBuyerEmail(opts: {
+  items: GiftEmailItem[];
   siteUrl: string;
 }): { subject: string; html: string } {
-  const { codes, recipientEmail, recipientName, siteUrl } = opts;
-  const plural = codes.length > 1;
-  const sent = recipientEmail
-    ? `We also emailed ${escapeHtml(recipientName || recipientEmail)} their gift. `
-    : "";
+  const { items, siteUrl } = opts;
+  const plural = items.length > 1;
+  const blocks = items.map((it, i) => {
+    const label = it.recipientName ? `For ${escapeHtml(it.recipientName)}` : plural ? `Gift ${i + 1}` : "";
+    const sent = it.recipientEmail
+      ? `<p style="color:#6b7280; font-size:13px; margin:0 0 4px;">We are also emailing this gift to ${escapeHtml(it.recipientEmail)}.</p>`
+      : "";
+    const head = label ? `<p style="color:#111827; font-size:15px; font-weight:600; margin:16px 0 0;">${label}</p>` : "";
+    return `${head}${sent}${codeBlock(it.code, siteUrl)}`;
+  }).join("");
   const body = `
-    <p style="color:#374151; font-size:15px; line-height:1.6; margin:0 0 8px;">Thank you for your gift. ${sent}Here ${plural ? "are your codes" : "is your code"}. Each one gives one homeowner a full year of Trimbly Home Hero, starting the day they redeem it.</p>
-    ${codes.map((c) => codeBlock(c, siteUrl)).join("")}
-    <p style="color:#374151; font-size:15px; line-height:1.6; margin:16px 0 0;">To give ${plural ? "one" : "it"} in person, open "Print or share the gift card" above: it is a one-page card with your note, what Trimbly does for a homeowner, and the code, ready to print, save as a PDF, or forward. The recipient creates a free Trimbly account (or signs in), enters the code, and Home Hero turns on. Each code works once and is good for redemption for two years.</p>
+    <p style="color:#374151; font-size:15px; line-height:1.6; margin:0 0 8px;">Thank you for your gift. Here ${plural ? "are your codes" : "is your code"}. Each one gives one homeowner a full year of Trimbly Home Hero, starting the day they redeem it.</p>
+    ${blocks}
+    <p style="color:#374151; font-size:15px; line-height:1.6; margin:16px 0 0;">To give ${plural ? "one" : "it"} in person, open "Print or share the gift card" above: it is a one-page card with the note, what Trimbly does for a homeowner, and the code, ready to print, save as a PDF, or forward. Each code works once and is good for redemption for two years.</p>
   `;
   return {
-    subject: plural ? `Your ${codes.length} Trimbly gift codes` : "Your Trimbly gift code",
+    subject: plural ? `Your ${items.length} Trimbly gift codes` : "Your Trimbly gift code",
     html: shell(plural ? "Your gift codes are ready" : "Your gift code is ready", body),
   };
 }
@@ -117,4 +127,38 @@ export function renderRecipientEmail(opts: {
     subject: `${cleanLine(buyerName, 60) || "Someone"} gave you a year of Trimbly Home Hero`,
     html: shell("You have a gift", body),
   };
+}
+
+export interface GiftItemInput {
+  recipient_name: string;
+  recipient_email: string;
+  note: string;
+}
+
+/**
+ * Cleans the per-gift list a buyer submitted. A gift's own note wins; a blank
+ * one takes the order-wide default. Returns an error message for the buyer, or
+ * the normalized items (always exactly `quantity` long).
+ */
+export function normalizeGiftItems(
+  raw: unknown,
+  quantity: number,
+  defaultNote: string,
+): { error: string } | { items: GiftItemInput[] } {
+  const list = Array.isArray(raw) ? raw : [];
+  const items: GiftItemInput[] = [];
+  for (let i = 0; i < quantity; i++) {
+    const g = (list[i] ?? {}) as Record<string, unknown>;
+    const email = cleanLine(typeof g.recipientEmail === "string" ? g.recipientEmail : "", 254).toLowerCase();
+    if (email && !isEmail(email)) {
+      return { error: `The email for gift ${i + 1} doesn't look right` };
+    }
+    const own = String(g.note ?? "").replace(/\r/g, "").trim().slice(0, GIFT_NOTE_MAX);
+    items.push({
+      recipient_name: cleanLine(typeof g.recipientName === "string" ? g.recipientName : "", 80),
+      recipient_email: email,
+      note: own || defaultNote,
+    });
+  }
+  return { items };
 }
