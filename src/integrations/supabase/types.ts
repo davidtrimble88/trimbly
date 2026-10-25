@@ -3424,6 +3424,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_gift_card: { Args: { p_code: string }; Returns: Json }
       get_invite_preview: { Args: { p_token: string }; Returns: Json }
       get_recovery_questions: {
         Args: { p_identifier: string }
