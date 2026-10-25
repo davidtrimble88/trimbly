@@ -7,6 +7,21 @@ export const GIFT_LIST_PRICE_USD = 60; // Home Hero is $5/mo
 export const GIFT_MAX_QUANTITY = 10;
 export const GIFT_NOTE_MAX = 300;
 
+/** What a year of Home Hero gets a new homeowner. Shown on the gift page and on the printable gift card. */
+export const GIFT_HIGHLIGHTS = [
+  "Digital Home Binder for receipts, manuals and warranties",
+  "Maintenance Autopilot: reminders before things break",
+  "AI Symptom Triage: what's wrong and what to do",
+  "AI Job Estimator: repair-cost ranges before you call",
+  "Coverage Advisor for warranty and insurance questions",
+  "Local pros, bids and messaging in one place",
+];
+
+/** Path of the printable card for a code (the code is the key; it is never guessable). */
+export function giftCardPath(code: string): string {
+  return `/gift-card?code=${encodeURIComponent(code)}`;
+}
+
 export const giftOrderSchema = z
   .object({
     buyerName: z.string().trim().max(80),

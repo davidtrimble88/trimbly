@@ -39,7 +39,7 @@ export function describePendingPlan(plan: PendingPlan): PendingPlanView {
 const OPEN_PATHS = [
   "/", "/auth", "/reset-password", "/account-recovery", "/staff-login",
   "/terms", "/privacy", "/contact", "/faq", "/help", "/about",
-  "/cancel-subscription", "/gift", "/redeem-gift",
+  "/cancel-subscription", "/gift", "/redeem-gift", "/gift-card",
 ];
 
 export function isGateExempt(pathname: string): boolean {

@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BETA_FREE_ACCESS } from "@/lib/pricingTiers";
 import {
+  GIFT_HIGHLIGHTS,
   GIFT_LIST_PRICE_USD,
   GIFT_MAX_QUANTITY,
   GIFT_NOTE_MAX,
@@ -19,16 +20,7 @@ import {
   giftOrderSchema,
 } from "@/lib/gift";
 
-// What a new homeowner feels in the first year. Kept in step with the Home Hero
-// tier in pricingTiers.ts and with the realtor flier.
-const highlights = [
-  "Digital Home Binder for receipts, manuals and warranties",
-  "Maintenance Autopilot: reminders before things break",
-  "AI Symptom Triage: what's wrong and what to do",
-  "AI Job Estimator: repair-cost ranges before you call",
-  "Coverage Advisor for warranty and insurance questions",
-  "Local pros, bids and messaging in one place",
-];
+const highlights = GIFT_HIGHLIGHTS;
 
 const Gift = () => {
   const [searchParams] = useSearchParams();
