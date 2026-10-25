@@ -577,7 +577,12 @@ export type Database = {
           created_at: string
           id: string
           months: number
+          note: string | null
           order_id: string
+          position: number | null
+          recipient_email: string | null
+          recipient_emailed_at: string | null
+          recipient_name: string | null
           redeem_by: string
           redeemed_at: string | null
           redeemed_by: string | null
@@ -589,7 +594,12 @@ export type Database = {
           created_at?: string
           id?: string
           months?: number
+          note?: string | null
           order_id: string
+          position?: number | null
+          recipient_email?: string | null
+          recipient_emailed_at?: string | null
+          recipient_name?: string | null
           redeem_by?: string
           redeemed_at?: string | null
           redeemed_by?: string | null
@@ -601,7 +611,12 @@ export type Database = {
           created_at?: string
           id?: string
           months?: number
+          note?: string | null
           order_id?: string
+          position?: number | null
+          recipient_email?: string | null
+          recipient_emailed_at?: string | null
+          recipient_name?: string | null
           redeem_by?: string
           redeemed_at?: string | null
           redeemed_by?: string | null
@@ -617,6 +632,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      gift_drafts: {
+        Row: {
+          buyer_email: string
+          buyer_name: string | null
+          created_at: string
+          id: string
+          items: Json
+        }
+        Insert: {
+          buyer_email: string
+          buyer_name?: string | null
+          created_at?: string
+          id?: string
+          items: Json
+        }
+        Update: {
+          buyer_email?: string
+          buyer_name?: string | null
+          created_at?: string
+          id?: string
+          items?: Json
+        }
+        Relationships: []
       }
       gift_orders: {
         Row: {
@@ -3406,6 +3445,17 @@ export type Database = {
           p_payment_intent: string
           p_recipient_email: string
           p_recipient_name: string
+          p_session_id: string
+        }
+        Returns: string
+      }
+      create_gift_order_items: {
+        Args: {
+          p_amount_cents: number
+          p_buyer_email: string
+          p_buyer_name: string
+          p_items: Json
+          p_payment_intent: string
           p_session_id: string
         }
         Returns: string
