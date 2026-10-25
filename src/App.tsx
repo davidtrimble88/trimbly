@@ -27,6 +27,7 @@ const SearchPros = lazy(() => import("./pages/SearchPros"));
 const TestingNotice = lazy(() => import("./pages/TestingNotice"));
 const Gift = lazy(() => import("./pages/Gift"));
 const RedeemGift = lazy(() => import("./pages/RedeemGift"));
+const GiftCard = lazy(() => import("./pages/GiftCard"));
 const EstimatorPage = lazy(() => import("./pages/EstimatorPage"));
 const HomeValueAdvisor = lazy(() => import("./pages/HomeValueAdvisor"));
 const SystemLifespanTracker = lazy(() => import("./pages/SystemLifespanTracker"));
@@ -176,6 +177,7 @@ const App = () => (
             <Route path="/testing-notice" element={<TestingNotice />} />
             <Route path="/gift" element={<Gift />} />
             <Route path="/redeem-gift" element={<RedeemGift />} />
+            <Route path="/gift-card" element={<GiftCard />} />
             <Route path="/about" element={<About />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />

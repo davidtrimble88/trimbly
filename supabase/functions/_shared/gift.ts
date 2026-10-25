@@ -65,9 +65,12 @@ function shell(title: string, bodyHtml: string): string {
 
 function codeBlock(code: string, siteUrl: string): string {
   const link = `${siteUrl}/redeem-gift?code=${encodeURIComponent(code)}`;
+  const card = `${siteUrl}/gift-card?code=${encodeURIComponent(code)}`;
   return `<div style="margin:12px 0; padding:14px 16px; background:#eef6fc; border-radius:8px;">
     <div style="font-family: 'SFMono-Regular', Consolas, monospace; font-size:20px; letter-spacing:1px; color:#0c4a76; font-weight:700;">${escapeHtml(code)}</div>
     <a href="${escapeHtml(link)}" style="display:inline-block; margin-top:8px; font-size:14px; color:#1476c4;">Redeem this code</a>
+    <span style="color:#9ca3af;"> &nbsp;|&nbsp; </span>
+    <a href="${escapeHtml(card)}" style="display:inline-block; margin-top:8px; font-size:14px; color:#1476c4;">Print or share the gift card</a>
   </div>`;
 }
 
@@ -85,7 +88,7 @@ export function renderBuyerEmail(opts: {
   const body = `
     <p style="color:#374151; font-size:15px; line-height:1.6; margin:0 0 8px;">Thank you for your gift. ${sent}Here ${plural ? "are your codes" : "is your code"}. Each one gives one homeowner a full year of Trimbly Home Hero, starting the day they redeem it.</p>
     ${codes.map((c) => codeBlock(c, siteUrl)).join("")}
-    <p style="color:#374151; font-size:15px; line-height:1.6; margin:16px 0 0;">To give ${plural ? "one" : "it"} in person, write the code on a card or forward this email. The recipient creates a free Trimbly account (or signs in), enters the code, and Home Hero turns on. Each code works once and is good for redemption for two years.</p>
+    <p style="color:#374151; font-size:15px; line-height:1.6; margin:16px 0 0;">To give ${plural ? "one" : "it"} in person, open "Print or share the gift card" above: it is a one-page card with your note, what Trimbly does for a homeowner, and the code, ready to print, save as a PDF, or forward. The recipient creates a free Trimbly account (or signs in), enters the code, and Home Hero turns on. Each code works once and is good for redemption for two years.</p>
   `;
   return {
     subject: plural ? `Your ${codes.length} Trimbly gift codes` : "Your Trimbly gift code",
